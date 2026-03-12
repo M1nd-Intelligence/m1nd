@@ -1,0 +1,11 @@
+[package]
+name = "m1nd-ingest"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+m1nd-core = { path = "../m1nd-core" }
+regex = "1"
+walkdir = "2"
+rayon = "1.10"
+serde_json = { workspace = true }

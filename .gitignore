@@ -1,0 +1,21 @@
+# Build
+/target/
+**/*.rs.bk
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# m1nd runtime state (don't commit user data)
+graph_snapshot.json
+plasticity_state.json
+
+# Test artifacts
+/tmp/
