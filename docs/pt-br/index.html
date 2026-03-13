@@ -83,7 +83,7 @@
       text-decoration: none; color: var(--text); letter-spacing: -0.5px;
     }
     .nav-logo span { color: var(--green); }
-    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
     .nav-links a {
       color: var(--text-dim); text-decoration: none; font-size: 14px;
       font-weight: 500; transition: color 0.2s;
@@ -95,6 +95,25 @@
       transition: opacity 0.2s !important;
     }
     .nav-cta:hover { opacity: 0.85; }
+    /* ── Language dropdown ── */
+    .lang-dropdown { position: relative; }
+    .lang-dropdown-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text-dim); font-size: 14px; padding: 4px 10px; cursor: pointer;
+      display: flex; align-items: center; gap: 4px; transition: border-color 0.2s;
+    }
+    .lang-dropdown-btn:hover { border-color: var(--green); color: var(--green); }
+    .lang-dropdown-menu {
+      display: none; position: absolute; top: 100%; right: 0; margin-top: 8px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 0; min-width: 160px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 200;
+    }
+    .lang-dropdown:hover .lang-dropdown-menu { display: block; }
+    .lang-dropdown-menu a {
+      display: block; padding: 6px 16px; font-size: 13px; white-space: nowrap;
+    }
+    .lang-dropdown-menu a:hover { background: var(--green-dim); }
 
     /* ── Hero Logo ── */
     .hero-logo { margin: 0 auto 40px; width: 180px; height: 180px; }
@@ -648,26 +667,22 @@
     <div class="container">
       <a href="#" class="nav-logo">m<span>1</span>nd</a>
       <div class="nav-links">
-        <a href="#why">Por qu&ecirc;</a>
-        <a href="#different">Diferencial</a>
-        <a href="#agents-first">Agent-Native</a>
-        <a href="#perspectives">Perspectivas</a>
         <a href="#tools">Ferramentas</a>
         <a href="#benchmarks">Benchmarks</a>
-        <a href="#advantage">A Vantagem</a>
-        <a href="#start">Comecar</a>
         <a href="../wiki-build/index.html">Wiki</a>
-        <a href="../wiki-build/faq.html">FAQ</a>
-        <a href="https://github.com/maxkle1nz/m1nd" class="nav-cta">GitHub</a>
-        <div class="lang-selector" style="display: flex; gap: 8px; align-items: center; margin-left: 8px; font-size: 16px;">
-          <a href="/" title="English" style="text-decoration:none;">&#x1F1EC;&#x1F1E7;</a>
-          <a href="/pt-br/" title="Portugu&ecirc;s" style="text-decoration:none;">&#x1F1E7;&#x1F1F7;</a>
-          <a href="/es/" title="Espa&ntilde;ol" style="text-decoration:none;">&#x1F1EA;&#x1F1F8;</a>
-          <a href="/it/" title="Italiano" style="text-decoration:none;">&#x1F1EE;&#x1F1F9;</a>
-          <a href="/fr/" title="Fran&ccedil;ais" style="text-decoration:none;">&#x1F1EB;&#x1F1F7;</a>
-          <a href="/de/" title="Deutsch" style="text-decoration:none;">&#x1F1E9;&#x1F1EA;</a>
-          <a href="/zh/" title="&#x4E2D;&#x6587;" style="text-decoration:none;">&#x1F1E8;&#x1F1F3;</a>
+        <div class="lang-dropdown">
+          <button class="lang-dropdown-btn">&#x1F310; PT &#x25BE;</button>
+          <div class="lang-dropdown-menu">
+            <a href="/">&#x1F1EC;&#x1F1E7; English</a>
+            <a href="/pt-br/">&#x1F1E7;&#x1F1F7; Portugu&ecirc;s</a>
+            <a href="/es/">&#x1F1EA;&#x1F1F8; Espa&ntilde;ol</a>
+            <a href="/it/">&#x1F1EE;&#x1F1F9; Italiano</a>
+            <a href="/fr/">&#x1F1EB;&#x1F1F7; Fran&ccedil;ais</a>
+            <a href="/de/">&#x1F1E9;&#x1F1EA; Deutsch</a>
+            <a href="/zh/">&#x1F1E8;&#x1F1F3; &#x4E2D;&#x6587;</a>
+          </div>
         </div>
+        <a href="https://github.com/maxkle1nz/m1nd" class="nav-cta">GitHub</a>
       </div>
     </div>
   </nav>
@@ -816,6 +831,219 @@
           <span id="termStatus">9.767 n&oacute;s &middot; 26.557 arestas &middot; 335 arquivos</span>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ── Credibility Strip: Linguagens + Clientes MCP + Badges ── -->
+  <section id="credibility" style="padding: 60px 0 40px; border-top: 1px solid var(--border);">
+    <style>
+      /* ── Credibility Strip ── */
+      .cred-strip { text-align: center; }
+      .cred-heading {
+        font-family: var(--mono); font-size: 13px; color: var(--green);
+        text-transform: uppercase; letter-spacing: 3px; margin-bottom: 8px;
+      }
+      .cred-subheading {
+        font-size: 14px; color: var(--text-faint); margin-bottom: 28px;
+        font-family: var(--sans);
+      }
+      .cred-grid {
+        display: flex; flex-wrap: wrap; justify-content: center;
+        gap: 12px; max-width: 900px; margin: 0 auto;
+      }
+      .cred-icon {
+        display: inline-flex; align-items: center; justify-content: center;
+        gap: 6px; padding: 6px 14px; border-radius: 8px;
+        background: var(--bg-card); border: 1px solid var(--border);
+        transition: all 0.25s ease; cursor: default;
+      }
+      .cred-icon img {
+        width: 20px; height: 20px; filter: grayscale(1) brightness(1.6);
+        transition: filter 0.25s ease;
+      }
+      .cred-icon span {
+        font-family: var(--mono); font-size: 11px; color: var(--text-faint);
+        letter-spacing: 0.5px; transition: color 0.25s ease; white-space: nowrap;
+      }
+      .cred-icon:hover {
+        border-color: rgba(0, 229, 160, 0.4);
+        background: rgba(0, 229, 160, 0.04);
+      }
+      .cred-icon:hover img { filter: grayscale(0) brightness(1); }
+      .cred-icon:hover span { color: var(--text); }
+
+      .cred-divider {
+        width: 100%; height: 1px; max-width: 400px; margin: 36px auto;
+        background: linear-gradient(90deg, transparent, var(--border), transparent);
+      }
+
+      .cred-fallback {
+        font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+        margin-top: 12px; letter-spacing: 0.3px;
+      }
+      .cred-fallback span { color: var(--green); }
+
+      /* ── Badges Row ── */
+      .cred-badges {
+        display: flex; flex-wrap: wrap; justify-content: center;
+        gap: 12px; max-width: 700px; margin: 0 auto;
+      }
+      .cred-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 16px; border-radius: 100px;
+        border: 1px solid var(--border); background: var(--bg-card);
+        font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+        letter-spacing: 0.3px; transition: border-color 0.25s;
+      }
+      .cred-badge:hover { border-color: rgba(0, 229, 160, 0.3); }
+      .cred-badge svg { width: 14px; height: 14px; flex-shrink: 0; }
+      .cred-badge .badge-dot {
+        width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+      }
+
+      /* ── MCP Client Row ── */
+      .mcp-grid {
+        display: flex; flex-wrap: wrap; justify-content: center;
+        gap: 10px; max-width: 800px; margin: 0 auto;
+      }
+      .mcp-icon {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 14px; border-radius: 8px;
+        background: var(--bg-card); border: 1px solid var(--border);
+        transition: all 0.25s ease; cursor: default;
+      }
+      .mcp-icon span {
+        font-family: var(--mono); font-size: 11px; color: var(--text-faint);
+        transition: color 0.25s ease; white-space: nowrap;
+      }
+      .mcp-icon svg {
+        width: 18px; height: 18px; flex-shrink: 0;
+      }
+      .mcp-icon:hover {
+        border-color: rgba(0, 229, 160, 0.4);
+        background: rgba(0, 229, 160, 0.04);
+      }
+      .mcp-icon:hover span { color: var(--text); }
+
+      @media (max-width: 640px) {
+        .cred-grid { gap: 8px; }
+        .cred-icon { padding: 5px 10px; }
+        .cred-icon span { font-size: 10px; }
+        .mcp-grid { gap: 8px; }
+        .mcp-icon { padding: 5px 10px; }
+        .mcp-icon span { font-size: 10px; }
+      }
+    </style>
+    <div class="container cred-strip">
+
+      <!-- ── Linguagens ── -->
+      <div class="cred-heading">28 linguagens. Zero configuração.</div>
+      <div class="cred-subheading">Extratores regex, parsers tree-sitter e fallback genérico &mdash; tudo embutido.</div>
+      <div class="cred-grid">
+        <!-- Regex extractors (Tier 0) -->
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/python/3776AB" alt="Python"><span>Python</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/rust/DEA584" alt="Rust"><span>Rust</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/typescript/3178C6" alt="TypeScript"><span>TypeScript</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/javascript/F7DF1E" alt="JavaScript"><span>JavaScript</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/go/00ADD8" alt="Go"><span>Go</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/openjdk/ED8B00" alt="Java"><span>Java</span></div>
+        <!-- Tier 1 tree-sitter -->
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/c/A8B9CC" alt="C"><span>C</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/cplusplus/00599C" alt="C++"><span>C++</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/csharp/239120" alt="C#"><span>C#</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/ruby/CC342D" alt="Ruby"><span>Ruby</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/php/777BB4" alt="PHP"><span>PHP</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/swift/F05138" alt="Swift"><span>Swift</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/kotlin/7F52FF" alt="Kotlin"><span>Kotlin</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/scala/DC322F" alt="Scala"><span>Scala</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/gnubash/4EAA25" alt="Bash"><span>Bash</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/lua/2C2D72" alt="Lua"><span>Lua</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/r/276DC3" alt="R"><span>R</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/html5/E34F26" alt="HTML"><span>HTML</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/css3/1572B6" alt="CSS"><span>CSS</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/json/000000" alt="JSON"><span>JSON</span></div>
+        <!-- Tier 2 tree-sitter -->
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/elixir/4B275F" alt="Elixir"><span>Elixir</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/dart/0175C2" alt="Dart"><span>Dart</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/zig/F7A41D" alt="Zig"><span>Zig</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/haskell/5D4F85" alt="Haskell"><span>Haskell</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/ocaml/EC6813" alt="OCaml"><span>OCaml</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/toml/9C4121" alt="TOML"><span>TOML</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/yaml/CB171E" alt="YAML"><span>YAML</span></div>
+        <div class="cred-icon"><img src="https://cdn.simpleicons.org/postgresql/4169E1" alt="SQL"><span>SQL</span></div>
+      </div>
+      <div class="cred-fallback"><span>+</span> fallback regex genérico para qualquer linguagem não listada</div>
+
+      <div class="cred-divider"></div>
+
+      <!-- ── Clientes MCP ── -->
+      <div class="cred-heading">Funciona com todo cliente MCP</div>
+      <div class="cred-subheading">Protocolo MCP padrão. Um binário, qualquer cliente.</div>
+      <div class="mcp-grid">
+        <div class="mcp-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Claude Code</span>
+        </div>
+        <div class="mcp-icon">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#fff" stroke-width="1.5"/><path d="M8 16V8l8 8V8" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Cursor</span>
+        </div>
+        <div class="mcp-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="#3EC9A7" stroke-width="1.5"/><path d="M8 12c0-2.21 1.79-4 4-4s4 1.79 4 4" stroke="#3EC9A7" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>Windsurf</span>
+        </div>
+        <div class="mcp-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="color: #fff"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <span>GitHub Copilot</span>
+        </div>
+        <div class="mcp-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="#084CCF" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="#084CCF" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>Zed</span>
+        </div>
+        <div class="mcp-icon">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.5"/><path d="M12 7v5l3 3" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Cline</span>
+        </div>
+        <div class="mcp-icon">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="#8B5CF6" stroke-width="1.5"/><path d="M9 9l6 6M15 9l-6 6" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>Roo Code</span>
+        </div>
+        <div class="mcp-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Continue</span>
+        </div>
+        <div class="mcp-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>OpenCode</span>
+        </div>
+        <div class="mcp-icon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M3 12l4.5-8h9L21 12l-4.5 8h-9L3 12z" stroke="#FF9900" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          <span>Amazon Q</span>
+        </div>
+      </div>
+
+      <div class="cred-divider"></div>
+
+      <!-- ── Badges ── -->
+      <div class="cred-badges">
+        <div class="cred-badge">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7v10l10 5 10-5V7L12 2z" stroke="#DEA584" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="#DEA584"/></svg>
+          <span>Feito em Rust</span>
+        </div>
+        <div class="cred-badge">
+          <div class="badge-dot" style="background: var(--green);"></div>
+          <span>Licença MIT</span>
+        </div>
+        <div class="cred-badge">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--green)" stroke-width="1.5"/><path d="M8 8l8 8" stroke="var(--red)" stroke-width="2" stroke-linecap="round"/><path d="M12 8v4M12 15h.01" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>Zero tokens de LLM</span>
+        </div>
+        <div class="cred-badge">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" stroke="var(--green)" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>100% local &mdash; seu código nunca sai da máquina</span>
+        </div>
+      </div>
+
     </div>
   </section>
 
