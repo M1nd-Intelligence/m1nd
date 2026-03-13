@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <radialGradient id="p" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="50%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
+    </radialGradient>
+    <radialGradient id="h" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#6d28d9" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="g">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="gs">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Activation ring -->
+  <circle cx="64" cy="64" r="56" fill="none" stroke="#7c3aed" stroke-width="0.8" opacity="0.15"/>
+
+  <!-- 6 signal rays -->
+  <line x1="64" y1="64" x2="64" y2="18" stroke="#a78bfa" stroke-width="2" opacity="0.4" filter="url(#gs)"/>
+  <line x1="64" y1="64" x2="103.8" y2="41" stroke="#a78bfa" stroke-width="2" opacity="0.4" filter="url(#gs)"/>
+  <line x1="64" y1="64" x2="103.8" y2="87" stroke="#a78bfa" stroke-width="2" opacity="0.35" filter="url(#gs)"/>
+  <line x1="64" y1="64" x2="64" y2="110" stroke="#a78bfa" stroke-width="2" opacity="0.35" filter="url(#gs)"/>
+  <line x1="64" y1="64" x2="24.2" y2="87" stroke="#a78bfa" stroke-width="2" opacity="0.4" filter="url(#gs)"/>
+  <line x1="64" y1="64" x2="24.2" y2="41" stroke="#a78bfa" stroke-width="2" opacity="0.4" filter="url(#gs)"/>
+
+  <!-- 6 outer nodes -->
+  <circle cx="64" cy="18" r="4" fill="#7c3aed" opacity="0.5" filter="url(#gs)"/>
+  <circle cx="103.8" cy="41" r="3.5" fill="#7c3aed" opacity="0.45"/>
+  <circle cx="103.8" cy="87" r="4" fill="#7c3aed" opacity="0.5" filter="url(#gs)"/>
+  <circle cx="64" cy="110" r="3.5" fill="#7c3aed" opacity="0.45"/>
+  <circle cx="24.2" cy="87" r="4" fill="#7c3aed" opacity="0.5" filter="url(#gs)"/>
+  <circle cx="24.2" cy="41" r="3.5" fill="#7c3aed" opacity="0.45"/>
+
+  <!-- Hexagonal web -->
+  <polygon points="64,18 103.8,41 103.8,87 64,110 24.2,87 24.2,41" fill="none" stroke="#7c3aed" stroke-width="0.6" opacity="0.12"/>
+
+  <!-- Ghost edge -->
+  <line x1="64" y1="18" x2="64" y2="110" stroke="#c4b5fd" stroke-width="0.6" stroke-dasharray="3,5" opacity="0.15"/>
+
+  <!-- Core -->
+  <circle cx="64" cy="64" r="16" fill="url(#h)"/>
+  <circle cx="64" cy="64" r="9" fill="url(#p)" filter="url(#g)"/>
+  <circle cx="64" cy="64" r="5" fill="#a78bfa" filter="url(#gs)"/>
+  <circle cx="64" cy="64" r="2.2" fill="#ede9fe"/>
+</svg>
