@@ -79,6 +79,28 @@ impl DomainConfig {
         }
     }
 
+    /// Memory / note-taking domain
+    pub fn memory() -> Self {
+        let mut half_lives = HashMap::new();
+        half_lives.insert(NodeType::File, 1008.0);       // 42 days
+        half_lives.insert(NodeType::Module, 720.0);      // 30 days
+        half_lives.insert(NodeType::Concept, 720.0);     // 30 days
+        half_lives.insert(NodeType::Process, 168.0);     // 7 days
+        half_lives.insert(NodeType::Reference, 336.0);   // 14 days
+        half_lives.insert(NodeType::System, 840.0);      // 35 days
+        Self {
+            name: "memory".into(),
+            half_lives,
+            default_half_life: 504.0,
+            relations: vec![
+                "contains".into(), "mentions".into(), "references".into(),
+                "relates_to".into(), "happened_on".into(), "supersedes".into(),
+                "decided".into(), "tracks".into(),
+            ],
+            git_co_change: false,
+        }
+    }
+
     /// Get half-life for a node type
     pub fn half_life_for(&self, node_type: NodeType) -> f32 {
         self.half_lives.get(&node_type).copied().unwrap_or(self.default_half_life)

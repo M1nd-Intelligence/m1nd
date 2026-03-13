@@ -3,7 +3,7 @@
 use std::path::Path;
 use std::io::{Write, BufWriter};
 use crate::error::{M1ndError, M1ndResult};
-use crate::graph::Graph;
+use crate::graph::{Graph, NodeProvenanceInput, ResolvedNodeProvenance};
 use crate::plasticity::SynapticState;
 use crate::types::*;
 
@@ -13,7 +13,7 @@ use crate::types::*;
 // ---------------------------------------------------------------------------
 
 /// Graph snapshot format version.
-pub const SNAPSHOT_VERSION: u32 = 2;
+pub const SNAPSHOT_VERSION: u32 = 3;
 
 // ---------------------------------------------------------------------------
 // Serialization types
@@ -34,6 +34,24 @@ struct NodeSnapshot {
     tags: Vec<String>,
     last_modified: f64,
     change_frequency: f32,
+    #[serde(default, skip_serializing_if = "node_provenance_snapshot_is_empty")]
+    provenance: NodeProvenanceSnapshot,
+}
+
+#[derive(Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+struct NodeProvenanceSnapshot {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    source_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    line_start: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    line_end: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    excerpt: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    namespace: Option<String>,
+    #[serde(default)]
+    canonical: bool,
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -104,6 +122,21 @@ fn u8_to_node_type(v: u8) -> NodeType {
     }
 }
 
+fn node_provenance_snapshot_is_empty(value: &NodeProvenanceSnapshot) -> bool {
+    value == &NodeProvenanceSnapshot::default()
+}
+
+fn snapshot_from_provenance(value: ResolvedNodeProvenance) -> NodeProvenanceSnapshot {
+    NodeProvenanceSnapshot {
+        source_path: value.source_path,
+        line_start: value.line_start,
+        line_end: value.line_end,
+        excerpt: value.excerpt,
+        namespace: value.namespace,
+        canonical: value.canonical,
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Graph save/load
 // ---------------------------------------------------------------------------
@@ -134,6 +167,9 @@ pub fn save_graph(graph: &Graph, path: &Path) -> M1ndResult<()> {
             tags,
             last_modified: graph.nodes.last_modified[i],
             change_frequency: graph.nodes.change_frequency[i].get(),
+            provenance: snapshot_from_provenance(
+                graph.resolve_node_provenance(NodeId::new(i as u32)),
+            ),
         });
     }
 
@@ -199,14 +235,26 @@ pub fn load_graph(path: &Path) -> M1ndResult<Graph> {
     // Add all nodes
     for node in &snapshot.nodes {
         let tags: Vec<&str> = node.tags.iter().map(|s| s.as_str()).collect();
-        let _ = graph.add_node(
+        if let Ok(node_id) = graph.add_node(
             &node.external_id,
             &node.label,
             u8_to_node_type(node.node_type),
             &tags,
             node.last_modified,
             node.change_frequency,
-        );
+        ) {
+            graph.set_node_provenance(
+                node_id,
+                NodeProvenanceInput {
+                    source_path: node.provenance.source_path.as_deref(),
+                    line_start: node.provenance.line_start,
+                    line_end: node.provenance.line_end,
+                    excerpt: node.provenance.excerpt.as_deref(),
+                    namespace: node.provenance.namespace.as_deref(),
+                    canonical: node.provenance.canonical,
+                },
+            );
+        }
     }
 
     // Add all edges

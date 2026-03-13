@@ -108,7 +108,7 @@ Assumptions: 335-file Python backend, 8-hour agent workday, agent using Claude O
 
 **Estimated savings: ~720K tokens/day** (60% reduction in context tokens).
 
-These are estimates based on production usage in the ROOMANIZER OS multi-agent system. Your mileage varies with codebase size, task type, and agent behavior.
+These are estimates based on production usage in a multi-agent system. Your mileage varies with codebase size, task type, and agent behavior.
 
 The key insight: m1nd does not replace search. It *focuses* search. The agent still uses grep and reads files, but it starts from a much better position because m1nd told it where to look.
 

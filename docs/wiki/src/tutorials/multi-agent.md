@@ -1,6 +1,6 @@
 # Multi-Agent Usage
 
-m1nd is designed for multi-agent systems. One m1nd instance serves many agents simultaneously. This tutorial covers agent identity, concurrent access, perspective isolation, trail sharing, and a real-world example of how ROOMANIZER OS uses m1nd with 19 agents.
+m1nd is designed for multi-agent systems. One m1nd instance serves many agents simultaneously. This tutorial covers agent identity, concurrent access, perspective isolation, trail sharing, and a real-world example of how a production system uses m1nd with a fleet of agents.
 
 ## How It Works
 
@@ -21,10 +21,10 @@ The graph is shared. Learning by one agent benefits all agents. Perspectives are
 Every m1nd tool requires an `agent_id` parameter. This is a free-form string, but consistent naming matters:
 
 ```
-agent_id: "jimi"          -- orchestrator
-agent_id: "hacker-auth"   -- security hardening agent
-agent_id: "forge-api"     -- API building agent
-agent_id: "analyst-perf"  -- performance analysis agent
+agent_id: "orchestrator"    -- orchestrator
+agent_id: "auditor-1"       -- security hardening agent
+agent_id: "builder-api"     -- API building agent
+agent_id: "analyzer-core"   -- performance analysis agent
 ```
 
 **Recommended convention**: `{archetype}-{task}` for short-lived task agents, simple names for persistent agents.
@@ -412,60 +412,60 @@ The merge automatically detects where independent investigations converged (12 s
 }
 ```
 
-## Real-World Example: ROOMANIZER OS
+## Real-World Example: Multi-Agent Production System
 
-ROOMANIZER OS is a multi-agent orchestration system that uses m1nd as its shared code intelligence layer. Here is how it works in production:
+The following example is based on a production system that uses m1nd as its shared code intelligence layer. Here is how it works in practice:
 
 ### Architecture
 
 ```
-JIMI (orchestrator)
+orchestrator
   |
-  +-- hacker-auth (security agent)     --+
-  +-- forge-api (API builder)           --+-- All share one m1nd instance
-  +-- analyst-perf (performance)        --+
-  +-- sentinel-files (file watcher)     --+
-  +-- critic-quality (code reviewer)    --+
-  +-- ... 14 more agents               --+
+  +-- auditor-1 (security agent)       --+
+  +-- builder-api (API builder)         --+-- All share one m1nd instance
+  +-- analyzer-core (performance)       --+
+  +-- watcher-files (file watcher)      --+
+  +-- reviewer-quality (code reviewer)  --+
+  +-- ... additional agents            --+
 ```
 
-One m1nd instance serves 19 agents. The graph covers a 335-file Python backend (~52K lines), a React frontend, and MCP server infrastructure.
+One m1nd instance serves all agents. The graph covers a Python backend, a React frontend, and server infrastructure.
 
 ### Orchestrator Boot Sequence
 
-When JIMI (the orchestrator) starts a session:
+When the orchestrator starts a session:
 
 ```jsonc
 // Step 1: Check m1nd health
-{"method":"tools/call","params":{"name":"m1nd.health","arguments":{"agent_id":"jimi"}}}
+{"method":"tools/call","params":{"name":"m1nd.health","arguments":{"agent_id":"orchestrator"}}}
 
 // Step 2: Check what changed since last session
-{"method":"tools/call","params":{"name":"m1nd.drift","arguments":{"agent_id":"jimi","since":"last_session"}}}
+{"method":"tools/call","params":{"name":"m1nd.drift","arguments":{"agent_id":"orchestrator","since":"last_session"}}}
 
 // Step 3: Re-ingest if the graph is stale
 {"method":"tools/call","params":{"name":"m1nd.ingest","arguments":{
-  "path":"/project/backend","agent_id":"jimi","incremental":true
+  "path":"/project/backend","agent_id":"orchestrator","incremental":true
 }}}
 ```
 
 ### Task Delegation with Graph Context
 
-When JIMI delegates a security hardening task:
+When the orchestrator delegates a security hardening task:
 
 ```jsonc
 // Before spawning the security agent, get blast radius context
 {"method":"tools/call","params":{"name":"m1nd.impact","arguments":{
-  "node_id":"file::auth.py","agent_id":"jimi"
+  "node_id":"file::auth.py","agent_id":"orchestrator"
 }}}
 
 // Warm up the graph for the security task
 {"method":"tools/call","params":{"name":"m1nd.warmup","arguments":{
-  "task_description":"harden authentication token validation","agent_id":"jimi"
+  "task_description":"harden authentication token validation","agent_id":"orchestrator"
 }}}
 
 // The security agent then uses the primed graph
 {"method":"tools/call","params":{"name":"m1nd.activate","arguments":{
-  "query":"token validation vulnerabilities","agent_id":"hacker-auth"
+  "query":"token validation vulnerabilities","agent_id":"auditor-1"
 }}}
 ```
 
@@ -477,7 +477,7 @@ After each agent completes its task, it provides feedback:
 // Security agent found useful results
 {"method":"tools/call","params":{"name":"m1nd.learn","arguments":{
   "query":"token validation vulnerabilities",
-  "agent_id":"hacker-auth",
+  "agent_id":"auditor-1",
   "feedback":"correct",
   "node_ids":["file::auth.py","file::middleware.py","file::session_pool.py"]
 }}}
@@ -485,13 +485,13 @@ After each agent completes its task, it provides feedback:
 // Performance agent found different useful results
 {"method":"tools/call","params":{"name":"m1nd.learn","arguments":{
   "query":"connection pool bottleneck",
-  "agent_id":"analyst-perf",
+  "agent_id":"analyzer-core",
   "feedback":"correct",
   "node_ids":["file::worker_pool.py","file::process_manager.py"]
 }}}
 ```
 
-Over a session with 19 agents, the graph accumulates thousands of learning signals. Each agent benefits from every other agent's discoveries.
+Over a session with many agents, the graph accumulates thousands of learning signals. Each agent benefits from every other agent's discoveries.
 
 ### Investigation Handoff
 
@@ -500,15 +500,15 @@ When Agent A finds something that Agent B needs to investigate:
 ```jsonc
 // Agent A saves its investigation
 {"method":"tools/call","params":{"name":"m1nd.trail.save","arguments":{
-  "agent_id":"hacker-auth",
+  "agent_id":"auditor-1",
   "label":"session-hijack-vector",
   "tags":["security","critical"]
 }}}
 
 // Orchestrator merges with Agent B's independent findings
 {"method":"tools/call","params":{"name":"m1nd.trail.merge","arguments":{
-  "agent_id":"jimi",
-  "trail_ids":["trail-hacker-001","trail-analyst-002"]
+  "agent_id":"orchestrator",
+  "trail_ids":["trail-auditor-001","trail-analyzer-002"]
 }}}
 ```
 

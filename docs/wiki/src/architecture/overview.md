@@ -155,7 +155,7 @@ Graph and plasticity state are saved via atomic write: serialize to a temporary 
 
 ## Performance Characteristics
 
-Benchmarks on the ROOMANIZER OS codebase (~335 files, ~52K lines):
+Benchmarks on a production codebase (335 files, ~52K lines, Python + Rust + TypeScript):
 
 | Operation | Time | Notes |
 |-----------|------|-------|

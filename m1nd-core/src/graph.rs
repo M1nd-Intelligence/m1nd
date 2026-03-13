@@ -239,6 +239,51 @@ pub struct PlasticityNode {
 }
 
 // ---------------------------------------------------------------------------
+// NodeProvenance — cold-path source metadata for nodes
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct NodeProvenance {
+    pub source_path: Option<InternedStr>,
+    pub line_start: u32,
+    pub line_end: u32,
+    pub excerpt: Option<InternedStr>,
+    pub namespace: Option<InternedStr>,
+    pub canonical: bool,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct NodeProvenanceInput<'a> {
+    pub source_path: Option<&'a str>,
+    pub line_start: Option<u32>,
+    pub line_end: Option<u32>,
+    pub excerpt: Option<&'a str>,
+    pub namespace: Option<&'a str>,
+    pub canonical: bool,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct ResolvedNodeProvenance {
+    pub source_path: Option<String>,
+    pub line_start: Option<u32>,
+    pub line_end: Option<u32>,
+    pub excerpt: Option<String>,
+    pub namespace: Option<String>,
+    pub canonical: bool,
+}
+
+impl ResolvedNodeProvenance {
+    pub fn is_empty(&self) -> bool {
+        self.source_path.is_none()
+            && self.line_start.is_none()
+            && self.line_end.is_none()
+            && self.excerpt.is_none()
+            && self.namespace.is_none()
+            && !self.canonical
+    }
+}
+
+// ---------------------------------------------------------------------------
 // NodeStorage — SoA layout (04-SPEC Section 1.2)
 // Replaces: engine_v2.py Node dataclass, engine_fast.py FastNode
 // ---------------------------------------------------------------------------
@@ -268,6 +313,8 @@ pub struct NodeStorage {
     pub last_modified: Vec<f64>,
     /// Change frequency normalised [0.0, 1.0].
     pub change_frequency: Vec<FiniteF32>,
+    /// Provenance / source metadata for cold-path inspection.
+    pub provenance: Vec<NodeProvenance>,
 }
 
 impl NodeStorage {
@@ -282,6 +329,7 @@ impl NodeStorage {
             tags: Vec::new(),
             last_modified: Vec::new(),
             change_frequency: Vec::new(),
+            provenance: Vec::new(),
         }
     }
 
@@ -296,6 +344,7 @@ impl NodeStorage {
             tags: Vec::with_capacity(cap),
             last_modified: Vec::with_capacity(cap),
             change_frequency: Vec::with_capacity(cap),
+            provenance: Vec::with_capacity(cap),
         }
     }
 }
@@ -430,6 +479,7 @@ impl Graph {
         self.nodes.activation.push([FiniteF32::ZERO; 4]);
         self.nodes.pagerank.push(FiniteF32::ZERO);
         self.nodes.plasticity.push(PlasticityNode::default());
+        self.nodes.provenance.push(NodeProvenance::default());
 
         self.id_to_node.insert(ext_interned, id);
         self.generation = self.generation.next();
@@ -670,6 +720,96 @@ impl Graph {
     pub fn resolve_id(&self, external_id: &str) -> Option<NodeId> {
         let interned = self.strings.lookup(external_id)?;
         self.id_to_node.get(&interned).copied()
+    }
+
+    pub fn set_node_provenance(
+        &mut self,
+        node: NodeId,
+        provenance: NodeProvenanceInput<'_>,
+    ) {
+        let idx = node.as_usize();
+        if idx >= self.nodes.count as usize {
+            return;
+        }
+
+        self.nodes.provenance[idx] = NodeProvenance {
+            source_path: provenance
+                .source_path
+                .filter(|value| !value.is_empty())
+                .map(|value| self.strings.get_or_intern(value)),
+            line_start: provenance.line_start.unwrap_or(0),
+            line_end: provenance
+                .line_end
+                .or(provenance.line_start)
+                .unwrap_or(0),
+            excerpt: provenance
+                .excerpt
+                .filter(|value| !value.is_empty())
+                .map(|value| self.strings.get_or_intern(value)),
+            namespace: provenance
+                .namespace
+                .filter(|value| !value.is_empty())
+                .map(|value| self.strings.get_or_intern(value)),
+            canonical: provenance.canonical,
+        };
+    }
+
+    pub fn merge_node_provenance(
+        &mut self,
+        node: NodeId,
+        incoming: NodeProvenanceInput<'_>,
+    ) {
+        let idx = node.as_usize();
+        if idx >= self.nodes.count as usize {
+            return;
+        }
+
+        let current = self.resolve_node_provenance(node);
+        let line_start = current.line_start.or(incoming.line_start);
+        let line_end = match (current.line_end, incoming.line_end.or(incoming.line_start)) {
+            (Some(existing), Some(extra)) => Some(existing.max(extra)),
+            (Some(existing), None) => Some(existing),
+            (None, Some(extra)) => Some(extra),
+            (None, None) => line_start,
+        };
+
+        self.set_node_provenance(
+            node,
+            NodeProvenanceInput {
+                source_path: current
+                    .source_path
+                    .as_deref()
+                    .or(incoming.source_path),
+                line_start,
+                line_end,
+                excerpt: current.excerpt.as_deref().or(incoming.excerpt),
+                namespace: current.namespace.as_deref().or(incoming.namespace),
+                canonical: current.canonical || incoming.canonical,
+            },
+        );
+    }
+
+    pub fn resolve_node_provenance(&self, node: NodeId) -> ResolvedNodeProvenance {
+        let idx = node.as_usize();
+        if idx >= self.nodes.count as usize {
+            return ResolvedNodeProvenance::default();
+        }
+
+        let provenance = self.nodes.provenance[idx];
+        ResolvedNodeProvenance {
+            source_path: provenance
+                .source_path
+                .and_then(|value| self.strings.try_resolve(value).map(str::to_owned)),
+            line_start: (provenance.line_start > 0).then_some(provenance.line_start),
+            line_end: (provenance.line_end > 0).then_some(provenance.line_end),
+            excerpt: provenance
+                .excerpt
+                .and_then(|value| self.strings.try_resolve(value).map(str::to_owned)),
+            namespace: provenance
+                .namespace
+                .and_then(|value| self.strings.try_resolve(value).map(str::to_owned)),
+            canonical: provenance.canonical,
+        }
     }
 
     /// Average out-degree.

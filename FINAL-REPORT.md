@@ -65,7 +65,7 @@ The core idea: software repositories have structure that mirrors neural circuits
 
 ## 3. The 13 Tools
 
-Each tool is an MCP endpoint callable by any orchestrator (Claude, Stormender, etc.) over JSON-RPC stdio.
+Each tool is an MCP endpoint callable by any orchestrator (Claude, the runtime orchestrator, etc.) over JSON-RPC stdio.
 
 | Tool | What It Does |
 |------|-------------|
@@ -150,9 +150,9 @@ The bottleneck was never speed -- it was input quality. Better specs produce bet
 
 ---
 
-## 5. Stormender Integration
+## 5. Orchestrator Integration
 
-m1nd serves as the orchestrator brain for Stormender (the Grounded One-Shot Build runtime). Each build phase uses a different subset of m1nd's tools.
+m1nd serves as the orchestrator brain for the runtime orchestrator (the Grounded One-Shot Build runtime). Each build phase uses a different subset of m1nd's tools.
 
 ### Phase 1: Reconnaissance (extending existing code)
 

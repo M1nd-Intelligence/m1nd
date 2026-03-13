@@ -377,7 +377,7 @@ warmup(task_description)
 
 When to use: Before any non-trivial code change. The output of `impact` and `predict` should inform the scope of the change.
 
-### Pattern: Stormender Build Loop
+### Pattern: Orchestrator Build Loop
 
 The core orchestrator loop that runs after each agent completes a module during a layered parallel build.
 
@@ -391,7 +391,7 @@ Per completed module:
   6. missing()                           -- new structural holes? spawn fix agent
 ```
 
-When to use: Stormender Phase 4 (Layered Build). This loop makes the orchestrator progressively smarter as the build proceeds -- each completed module feeds plasticity data back into the graph.
+When to use: During the layered build phase. This loop makes the orchestrator progressively smarter as the build proceeds -- each completed module feeds plasticity data back into the graph.
 
 ### Pattern: Memory Enhancement
 
@@ -412,9 +412,9 @@ Session end:
   (auto-persisted)                -- state survives restart
 ```
 
-When to use: Any long-lived agent (Jimi, Stormender orchestrator) that benefits from remembering what worked across sessions.
+When to use: Any long-lived agent (the orchestrator agent, build coordinators) that benefits from remembering what worked across sessions.
 
-### Pattern: Reconnaissance (Stormender Phase 1)
+### Pattern: Reconnaissance (Build Phase 1)
 
 Before writing a spec for changes to an existing codebase.
 
@@ -425,7 +425,7 @@ missing(feature_area)             -- structural holes the feature must bridge
 why(module_a, module_b)           -- invisible dependency chains to preserve
 ```
 
-### Pattern: Hardening Intelligence (Stormender Phase 2)
+### Pattern: Hardening Intelligence (Build Phase 2)
 
 Feed intelligence to hardening swarm agents.
 
@@ -435,7 +435,7 @@ predict(historically_volatile_file)     -- "when auth.rs changes, what else chan
 fingerprint()                           -- duplicate module detection for spec consolidation
 ```
 
-### Pattern: Integration Audit (Stormender Phase 5)
+### Pattern: Integration Audit (Build Phase 5)
 
 Validate the complete system after all build layers are done.
 
@@ -694,7 +694,7 @@ m1nd gets smarter as it's used. Understanding this is key to getting maximum val
 |-------|-----------------|
 | After `ingest` | Raw graph structure: who imports whom, what contains what |
 | After first `activate` + `learn` cycle | Which connections matter for specific queries |
-| After a Stormender build (Phase 4) | Which modules actually change together (real co-change data from the build itself) |
+| After a layered build (Phase 4) | Which modules actually change together (real co-change data from the build itself) |
 | After calibration (Phase 6) | Human-refined weights from "that doesn't look right" feedback |
 | After multiple sessions | Accumulated plasticity from all agents across all sessions |
 

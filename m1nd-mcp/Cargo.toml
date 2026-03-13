@@ -14,3 +14,6 @@ tokio = { version = "1", features = ["io-std", "rt-multi-thread", "macros", "sig
 [[bin]]
 name = "m1nd-mcp"
 path = "src/main.rs"
+
+[dev-dependencies]
+tempfile = "3.27.0"

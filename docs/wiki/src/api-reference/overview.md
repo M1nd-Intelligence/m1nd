@@ -87,7 +87,7 @@ Every tool requires the `agent_id` parameter:
 |-----------|------|----------|-------------|
 | `agent_id` | `string` | Yes | Identifier for the calling agent. Used for session tracking, perspective ownership, lock ownership, and multi-agent coordination. |
 
-Agent IDs are free-form strings. Convention: use the agent's name or role identifier (e.g. `"jimi"`, `"hacker-auth"`, `"forge-build"`).
+Agent IDs are free-form strings. Convention: use the agent's name or role identifier (e.g. `"orchestrator"`, `"auditor-1"`, `"builder-api"`, `"analyzer-core"`).
 
 ## JSON-RPC Request Format
 

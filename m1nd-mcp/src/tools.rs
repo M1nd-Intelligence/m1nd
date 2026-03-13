@@ -14,6 +14,79 @@ use std::time::Instant;
 // All handlers take &mut SessionState for graph + engine access.
 // ---------------------------------------------------------------------------
 
+fn normalized_ingest_mode(mode: &str) -> &str {
+    if mode.eq_ignore_ascii_case("merge") {
+        "merge"
+    } else {
+        "replace"
+    }
+}
+
+fn finalize_ingest(
+    state: &mut SessionState,
+    input: &IngestInput,
+    adapter: &str,
+    new_graph: m1nd_core::graph::Graph,
+    stats: m1nd_ingest::IngestStats,
+) -> M1ndResult<serde_json::Value> {
+    let mode = normalized_ingest_mode(&input.mode).to_string();
+    let namespace = input.namespace.clone().or_else(|| {
+        if adapter == "memory" {
+            Some("memory".to_string())
+        } else {
+            None
+        }
+    });
+
+    let combined_graph = if mode == "merge" {
+        let current = state.graph.read();
+        if current.num_nodes() > 0 {
+            m1nd_ingest::merge::merge_graphs(&current, &new_graph)?
+        } else {
+            new_graph
+        }
+    } else {
+        new_graph
+    };
+
+    {
+        let mut graph = state.graph.write();
+        *graph = combined_graph;
+        if !graph.finalized {
+            graph.finalize()?;
+        }
+    }
+
+    state.rebuild_engines()?;
+
+    // Track ingest roots for L3 git discovery
+    if !state.ingest_roots.contains(&input.path) {
+        state.ingest_roots.push(input.path.clone());
+    }
+
+    if let Err(e) = state.persist() {
+        eprintln!("[m1nd] auto-persist after ingest failed: {}", e);
+    }
+
+    let (node_count, edge_count) = {
+        let graph = state.graph.read();
+        (graph.num_nodes(), graph.num_edges())
+    };
+
+    Ok(serde_json::json!({
+        "mode": mode,
+        "adapter": adapter,
+        "namespace": namespace,
+        "files_scanned": stats.files_scanned,
+        "files_parsed": stats.files_parsed,
+        "nodes_created": stats.nodes_created,
+        "edges_created": stats.edges_created,
+        "elapsed_ms": stats.elapsed_ms,
+        "node_count": node_count,
+        "edge_count": edge_count,
+    }))
+}
+
 /// Handle m1nd.activate (03-MCP Section 2.1).
 /// Replaces: ConnectomeEngine.query() + AdaptiveXLREngine.query() + PlasticityEngine.query()
 pub fn handle_activate(
@@ -102,7 +175,7 @@ pub fn handle_activate(
         .iter()
         .map(|a| {
             let idx = a.node.as_usize();
-            let (ext_id, label, node_type, tags) = if idx < graph.num_nodes() as usize {
+            let (ext_id, label, node_type, tags, provenance) = if idx < graph.num_nodes() as usize {
                 let eid = &node_to_ext[idx];
                 let l = graph.strings.resolve(graph.nodes.label[idx]).to_string();
                 let t = format!("{:?}", graph.nodes.node_type[idx]);
@@ -110,9 +183,28 @@ pub fn handle_activate(
                     .iter()
                     .map(|&ti| graph.strings.resolve(ti).to_string())
                     .collect();
-                (eid.clone(), l, t, tg)
+                let provenance = graph.resolve_node_provenance(a.node);
+                let provenance = if provenance.is_empty() {
+                    None
+                } else {
+                    Some(ProvenanceOutput {
+                        source_path: provenance.source_path,
+                        line_start: provenance.line_start,
+                        line_end: provenance.line_end,
+                        excerpt: provenance.excerpt,
+                        namespace: provenance.namespace,
+                        canonical: provenance.canonical,
+                    })
+                };
+                (eid.clone(), l, t, tg, provenance)
             } else {
-                (format!("node_{}", idx), format!("node_{}", idx), "Unknown".into(), vec![])
+                (
+                    format!("node_{}", idx),
+                    format!("node_{}", idx),
+                    "Unknown".into(),
+                    vec![],
+                    None,
+                )
             };
             ActivatedNodeOutput {
                 node_id: ext_id,
@@ -131,6 +223,7 @@ pub fn handle_activate(
                     0.0
                 },
                 tags,
+                provenance,
             }
         })
         .collect();
@@ -1224,6 +1317,11 @@ pub fn handle_ingest(
     use m1nd_ingest::IngestAdapter;
 
     let path = std::path::PathBuf::from(&input.path);
+    if input.incremental && input.adapter != "code" {
+        return Ok(serde_json::json!({
+            "error": "incremental ingest is only supported for adapter 'code'",
+        }));
+    }
 
     match input.adapter.as_str() {
         "code" => {
@@ -1251,68 +1349,23 @@ pub fn handle_ingest(
                 }))
             } else {
                 let (new_graph, stats) = ingestor.ingest()?;
-                // Replace the graph
-                {
-                    let mut graph = state.graph.write();
-                    *graph = new_graph;
-                    graph.finalize()?;
-                }
-                // CRITICAL: rebuild all engines (semantic indexes, temporal, plasticity)
-                // so they reflect the new graph, not the stale empty one.
-                state.rebuild_engines()?;
-
-                // Auto-persist after full ingest so graph survives restarts
-                if let Err(e) = state.persist() {
-                    eprintln!("[m1nd] auto-persist after ingest failed: {}", e);
-                }
-
-                Ok(serde_json::json!({
-                    "mode": "full",
-                    "adapter": "code",
-                    "files_scanned": stats.files_scanned,
-                    "files_parsed": stats.files_parsed,
-                    "nodes_created": stats.nodes_created,
-                    "edges_created": stats.edges_created,
-                    "elapsed_ms": stats.elapsed_ms,
-                }))
+                finalize_ingest(state, &input, "code", new_graph, stats)
             }
         }
         "json" => {
             // JSON descriptor adapter -- domain-agnostic ingestion
             let adapter = m1nd_ingest::json_adapter::JsonIngestAdapter;
             let (new_graph, stats) = adapter.ingest(&path)?;
-
-            // Replace the graph
-            {
-                let mut graph = state.graph.write();
-                *graph = new_graph;
-                // finalize is already called inside the adapter, but the
-                // graph may have been replaced after finalize, so ensure it.
-                if !graph.finalized {
-                    graph.finalize()?;
-                }
-            }
-            // Rebuild engines for the new graph
-            state.rebuild_engines()?;
-
-            // Auto-persist after full ingest
-            if let Err(e) = state.persist() {
-                eprintln!("[m1nd] auto-persist after json ingest failed: {}", e);
-            }
-
-            Ok(serde_json::json!({
-                "mode": "full",
-                "adapter": "json",
-                "files_scanned": stats.files_scanned,
-                "files_parsed": stats.files_parsed,
-                "nodes_created": stats.nodes_created,
-                "edges_created": stats.edges_created,
-                "elapsed_ms": stats.elapsed_ms,
-            }))
+            finalize_ingest(state, &input, "json", new_graph, stats)
+        }
+        "memory" => {
+            let adapter = m1nd_ingest::memory_adapter::MemoryIngestAdapter::new(input.namespace.clone());
+            let (new_graph, stats) = adapter.ingest(&path)?;
+            finalize_ingest(state, &input, "memory", new_graph, stats)
         }
         other => {
             Ok(serde_json::json!({
-                "error": format!("Unknown adapter: '{}'. Supported: 'code', 'json'", other),
+                "error": format!("Unknown adapter: '{}'. Supported: 'code', 'json', 'memory'", other),
             }))
         }
     }

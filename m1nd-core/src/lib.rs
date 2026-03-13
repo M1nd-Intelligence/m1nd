@@ -651,6 +651,43 @@ mod tests {
     }
 
     #[test]
+    fn test_snapshot_roundtrip_preserves_provenance() {
+        use crate::graph::NodeProvenanceInput;
+        use crate::snapshot::{save_graph, load_graph};
+
+        let mut g = make_test_graph();
+        let node = g.resolve_id("n0").unwrap();
+        g.set_node_provenance(
+            node,
+            NodeProvenanceInput {
+                source_path: Some("memory/2026-03-13.md"),
+                line_start: Some(12),
+                line_end: Some(14),
+                excerpt: Some("Batman mode means peak build window."),
+                namespace: Some("memory"),
+                canonical: true,
+            },
+        );
+
+        let path = std::path::PathBuf::from("/tmp/m1nd_test_snapshot_provenance.json");
+        save_graph(&g, &path).unwrap();
+        let loaded = load_graph(&path).unwrap();
+        let provenance = loaded.resolve_node_provenance(loaded.resolve_id("n0").unwrap());
+
+        assert_eq!(provenance.source_path.as_deref(), Some("memory/2026-03-13.md"));
+        assert_eq!(provenance.line_start, Some(12));
+        assert_eq!(provenance.line_end, Some(14));
+        assert_eq!(
+            provenance.excerpt.as_deref(),
+            Some("Batman mode means peak build window.")
+        );
+        assert_eq!(provenance.namespace.as_deref(), Some("memory"));
+        assert!(provenance.canonical);
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
     fn test_snapshot_roundtrip_plasticity_state() {
         use crate::snapshot::{save_plasticity_state, load_plasticity_state};
         use crate::plasticity::SynapticState;
@@ -1834,4 +1871,3 @@ mod tests {
         assert!(has_gamma, "After commit group [alpha, gamma], alpha should predict gamma");
     }
 }
-

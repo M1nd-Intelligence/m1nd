@@ -30,7 +30,7 @@ Ingest or re-ingest a codebase, descriptor, or memory corpus into the graph. Thi
     "name": "m1nd.ingest",
     "arguments": {
       "agent_id": "jimi",
-      "path": "/Users/cosmophonix/clawd/roomanizer-os/backend",
+      "path": "/path/to/your/project",
       "adapter": "code",
       "mode": "replace",
       "incremental": false
