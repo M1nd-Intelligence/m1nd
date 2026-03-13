@@ -83,7 +83,7 @@
       text-decoration: none; color: var(--text); letter-spacing: -0.5px;
     }
     .nav-logo span { color: var(--green); }
-    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
     .nav-links a {
       color: var(--text-dim); text-decoration: none; font-size: 14px;
       font-weight: 500; transition: color 0.2s;
@@ -95,6 +95,25 @@
       transition: opacity 0.2s !important;
     }
     .nav-cta:hover { opacity: 0.85; }
+    /* ── Language dropdown ── */
+    .lang-dropdown { position: relative; }
+    .lang-dropdown-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text-dim); font-size: 14px; padding: 4px 10px; cursor: pointer;
+      display: flex; align-items: center; gap: 4px; transition: border-color 0.2s;
+    }
+    .lang-dropdown-btn:hover { border-color: var(--green); color: var(--green); }
+    .lang-dropdown-menu {
+      display: none; position: absolute; top: 100%; right: 0; margin-top: 8px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 0; min-width: 160px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 200;
+    }
+    .lang-dropdown-menu.open { display: block; }
+    .lang-dropdown-menu a {
+      display: block; padding: 6px 16px; font-size: 13px; white-space: nowrap;
+    }
+    .lang-dropdown-menu a:hover { background: var(--green-dim); }
 
     /* ── Hero Logo ── */
     .hero-logo { margin: 0 auto 40px; width: 180px; height: 180px; }
