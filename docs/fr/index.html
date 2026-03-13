@@ -660,13 +660,13 @@
         <a href="../wiki-build/faq.html">FAQ</a>
         <a href="https://github.com/maxkle1nz/m1nd" class="nav-cta">GitHub</a>
         <div class="lang-selector" style="display: flex; gap: 8px; align-items: center; margin-left: 8px; font-size: 16px;">
-          <a href="/m1nd/" title="English" style="text-decoration:none;">&#x1F1EC;&#x1F1E7;</a>
-          <a href="/m1nd/pt-br/" title="Portugu&ecirc;s" style="text-decoration:none;">&#x1F1E7;&#x1F1F7;</a>
-          <a href="/m1nd/es/" title="Espa&ntilde;ol" style="text-decoration:none;">&#x1F1EA;&#x1F1F8;</a>
-          <a href="/m1nd/it/" title="Italiano" style="text-decoration:none;">&#x1F1EE;&#x1F1F9;</a>
-          <a href="/m1nd/fr/" title="Fran&ccedil;ais" style="text-decoration:none;">&#x1F1EB;&#x1F1F7;</a>
-          <a href="/m1nd/de/" title="Deutsch" style="text-decoration:none;">&#x1F1E9;&#x1F1EA;</a>
-          <a href="/m1nd/zh/" title="&#x4E2D;&#x6587;" style="text-decoration:none;">&#x1F1E8;&#x1F1F3;</a>
+          <a href="/" title="English" style="text-decoration:none;">&#x1F1EC;&#x1F1E7;</a>
+          <a href="/pt-br/" title="Portugu&ecirc;s" style="text-decoration:none;">&#x1F1E7;&#x1F1F7;</a>
+          <a href="/es/" title="Espa&ntilde;ol" style="text-decoration:none;">&#x1F1EA;&#x1F1F8;</a>
+          <a href="/it/" title="Italiano" style="text-decoration:none;">&#x1F1EE;&#x1F1F9;</a>
+          <a href="/fr/" title="Fran&ccedil;ais" style="text-decoration:none;">&#x1F1EB;&#x1F1F7;</a>
+          <a href="/de/" title="Deutsch" style="text-decoration:none;">&#x1F1E9;&#x1F1EA;</a>
+          <a href="/zh/" title="&#x4E2D;&#x6587;" style="text-decoration:none;">&#x1F1E8;&#x1F1F3;</a>
         </div>
       </div>
     </div>
@@ -1025,3 +1025,1045 @@
       </div>
     </div>
   </section>
+
+  <!-- ── Built for Agents ── -->
+  <section id="agents-first" style="padding: 80px 0;">
+    <div class="container" style="text-align: center;">
+      <div class="section-label">Le changement de paradigme</div>
+      <h2 class="section-title">Chaque outil de recherche a &eacute;t&eacute; con&ccedil;u pour les humains.<br>m1nd a &eacute;t&eacute; con&ccedil;u pour les <span style="color: var(--green);">agents</span>.</h2>
+      <p class="section-desc" style="max-width: 720px; margin: 0 auto 20px;">
+        2026 est l'ann&eacute;e de l'AI slop &mdash; des agents qui forcent leur chemin &agrave; travers les codebases avec des boucles grep, br&ucirc;lant des tokens comme du petit bois. grep, ripgrep, tree-sitter : des outils brillants. Pour les <em>humains</em> qui lisent des terminaux. Mais un agent IA ne veut pas 200 lignes d'output &agrave; interpr&eacute;ter lin&eacute;airement. Il veut un graphe avec des poids, des dimensions et une r&eacute;ponse directe : <strong style="color: var(--text);">&laquo; ce qui compte et ce qui manque &raquo;</strong> &mdash; pr&ecirc;t &agrave; d&eacute;cider, pas &agrave; parser.
+      </p>
+      <p style="color: var(--text-faint); font-size: 14px; font-family: var(--mono); margin-bottom: 48px;">La fin du th&eacute;&acirc;tre de la fen&ecirc;tre de contexte. Plus besoin de passer des r&eacute;sultats de recherche &agrave; un LLM pour qu'il cherche &agrave; nouveau.</p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; text-align: left;">
+        <div class="problem-card" style="border-color: rgba(255, 51, 102, 0.3); background: linear-gradient(180deg, rgba(255, 51, 102, 0.04) 0%, var(--bg-card) 100%);">
+          <div class="question" style="color: var(--red); font-size: 16px;">Le cycle slop</div>
+          <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 12px; line-height: 1.8;">
+            <span style="color: var(--text-faint);">1.</span> L'agent lance grep <span style="color: var(--text-faint);">&rarr;</span> 200 lignes de bruit<br>
+            <span style="color: var(--text-faint);">2.</span> Envoie tout au LLM <span style="color: var(--text-faint);">&rarr;</span> br&ucirc;le des tokens &agrave; parser du texte<br>
+            <span style="color: var(--text-faint);">3.</span> Le LLM relance grep <span style="color: var(--text-faint);">&rarr;</span> r&eacute;p&eacute;ter 3&ndash;5 fois<br>
+            <span style="color: var(--text-faint);">4.</span> Finit par agir sur un tableau incomplet<br>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 51, 102, 0.15);">
+              <strong style="color: var(--red);">0,30&ndash;0,50 $ br&ucirc;l&eacute;s par recherche. 10 secondes perdues. Les angles morts structurels persistent.</strong>
+            </div>
+          </div>
+        </div>
+        <div class="problem-card" style="border-color: rgba(0, 229, 160, 0.3); background: linear-gradient(180deg, rgba(0, 229, 160, 0.04) 0%, var(--bg-card) 100%);">
+          <div class="question" style="color: var(--green); font-size: 16px;">Chirurgie de pr&eacute;cision</div>
+          <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 12px; line-height: 1.8;">
+            <span style="color: var(--text-faint);">1.</span> L'agent appelle m1nd.activate<br>
+            <span style="color: var(--text-faint);">2.</span> Obtient un sous-graphe class&eacute; avec scores de confiance<br>
+            <span style="color: var(--text-faint);">3.</span> Voit les trous structurels qu'aucune recherche textuelle ne pourrait trouver<br>
+            <span style="color: var(--text-faint);">4.</span> Agit imm&eacute;diatement avec le tableau complet<br>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0, 229, 160, 0.15);">
+              <strong style="color: var(--green);">1 appel. 31ms. 0,00 $. Z&eacute;ro token. Compr&eacute;hension structurelle compl&egrave;te.</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p style="color: var(--text-dim); font-size: 15px; margin-top: 40px; max-width: 640px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+        m1nd ne produit pas du texte qu'un LLM doit r&eacute;interpr&eacute;ter. Il produit des <strong style="color: var(--text);">d&eacute;cisions structur&eacute;es</strong> &mdash; n&oelig;uds pond&eacute;r&eacute;s, scores de confiance, classements dimensionnels, trous structurels. Le format dont un agent a r&eacute;ellement besoin pour agir, pas plus de slop &agrave; m&acirc;cher.
+      </p>
+
+      <div style="margin-top: 56px; max-width: 760px; margin-left: auto; margin-right: auto; background: linear-gradient(135deg, rgba(0, 229, 160, 0.04) 0%, rgba(0, 153, 255, 0.04) 100%); border: 1px solid rgba(0, 229, 160, 0.15); border-radius: 12px; padding: 32px 36px; text-align: left;">
+        <div style="font-family: var(--mono); font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;">Pourquoi 0,00 $ est r&eacute;el &mdash; pas du marketing</div>
+        <p style="color: var(--text); font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">Quand un agent IA cherche dans votre code avec un LLM, il <strong>envoie votre code &agrave; une API cloud</strong>, paie par token (entr&eacute;e + sortie), attend la r&eacute;ponse, et r&eacute;p&egrave;te souvent 3&ndash;5 fois. Chaque cycle co&ucirc;te 0,05 &agrave; 0,50 $.</p>
+        <p style="color: var(--text); font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">m1nd utilise <strong>z&eacute;ro appel LLM</strong>. Votre codebase vit sous forme de graphe pond&eacute;r&eacute; en RAM locale. Les requ&ecirc;tes sont de la math pure &mdash; spreading activation, parcours de graphe, alg&egrave;bre lin&eacute;aire &mdash; ex&eacute;cut&eacute;es par un binaire Rust sur votre machine. Pas d'appel API. Pas de tokens. Aucune donn&eacute;e ne quitte votre ordinateur. C'est pour &ccedil;a que c'est &agrave; 0,00 $ en 31ms.</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div style="background: rgba(255, 51, 102, 0.06); border-radius: 8px; padding: 16px;">
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--red); margin-bottom: 8px;">Cycle grep LLM</div>
+            <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.6;">Votre code &rarr; API Cloud &rarr; tokens &rarr; $$<br><span style="color: var(--text-faint);">Comme demander son chemin &agrave; Google chaque fois qu'on doit traverser la rue</span></div>
+          </div>
+          <div style="background: rgba(0, 229, 160, 0.06); border-radius: 8px; padding: 16px;">
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">Requ&ecirc;te m1nd</div>
+            <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.6;">Graphe en RAM &rarr; math &rarr; r&eacute;ponse &rarr; 0 $<br><span style="color: var(--text-faint);">Comme regarder une carte d&eacute;j&agrave; pos&eacute;e sur votre bureau</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Perspectives ── -->
+  <section id="perspectives">
+    <div class="container">
+      <div class="section-label">Perspectives</div>
+      <h2 class="section-title">Naviguez dans le code comme un chirurgien.</h2>
+      <p class="section-desc">grep est stateless. Chaque recherche part de z&eacute;ro. Les Perspectives m1nd maintiennent une session de navigation vivante &mdash; avec historique, branches et suggestions.</p>
+      <div class="perspective-flow">
+        <div class="p-step"><div class="p-icon">&#x1F50D;</div><div class="p-name">start</div><div class="p-desc">Entrez dans une perspective. Une surface navigable se forme autour de votre requ&ecirc;te.</div></div>
+        <div class="p-step"><div class="p-icon">&#x1F9ED;</div><div class="p-name">routes</div><div class="p-desc">Parcourez les routes class&eacute;es &mdash; chemins pond&eacute;r&eacute;s &agrave; travers le graphe.</div></div>
+        <div class="p-step"><div class="p-icon">&#x1F3AF;</div><div class="p-name">follow</div><div class="p-desc">D&eacute;placez le focus vers une cible. De nouvelles routes se synth&eacute;tisent automatiquement.</div></div>
+        <div class="p-step p-highlight"><div class="p-icon">&#x1F500;</div><div class="p-name">branch</div><div class="p-desc">Bifurquez votre exploration. Comme les branches git, mais pour l'investigation.</div></div>
+        <div class="p-step"><div class="p-icon">&#x1F4A1;</div><div class="p-name">suggest</div><div class="p-desc">m1nd recommande votre prochain mouvement bas&eacute; sur l'historique de navigation.</div></div>
+        <div class="p-step"><div class="p-icon">&#x2696;&#xFE0F;</div><div class="p-name">compare</div><div class="p-desc">Diff de deux perspectives. N&oelig;uds partag&eacute;s, chemins uniques, deltas dimensionnels.</div></div>
+      </div>
+      <p class="perspective-tagline">12 outils. <strong>Exploration stateful avec m&eacute;moire, branches et annulation.</strong><br>Aucun autre outil de navigation de code sur le march&eacute; ne fait &ccedil;a.</p>
+      <div class="perspective-demo">
+        <div class="demo-header"><span class="demo-dot r"></span><span class="demo-dot y"></span><span class="demo-dot g"></span><span class="demo-title">session de perspective</span></div>
+        <div class="demo-body">
+          <span class="prompt">$</span> m1nd.perspective_start <span class="dim">--query</span> "payment flow"<br>
+          <span class="dim">Perspective p-7a3f ouverte &middot; 6 routes synth&eacute;tis&eacute;es</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_follow <span class="dim">--route</span> "checkout &rarr; stripe"<br>
+          <span class="dim">Focus d&eacute;plac&eacute; sur stripe/client.rs &middot; 4 nouvelles routes depuis ce n&oelig;ud</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_branch <span class="dim">--name</span> "refund-path"<br>
+          <span class="dim">Branche cr&eacute;&eacute;e &middot; bifurqu&eacute;e depuis stripe/client.rs</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_suggest<br>
+          <span class="val">&#x2192;</span> <span class="val">refund/handler.rs</span> <span class="dim">(affinit&eacute; : 0.91, structurelle + causale)</span><br>
+          <span class="dim">&nbsp;&nbsp;&laquo; Bas&eacute; sur 3 hops : c'est la d&eacute;pendance suivante la plus probable &raquo;</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_compare <span class="dim">--a</span> "main" <span class="dim">--b</span> "refund-path"<br>
+          <span class="dim">Partag&eacute;s : 12 n&oelig;uds &middot; Uniques &agrave; refund-path : 5 n&oelig;uds &middot; Divergence : 0.34</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Tools ── -->
+  <section id="tools">
+    <div class="container">
+      <div class="section-label">43 outils MCP</div>
+      <h2 class="section-title">Tout ce dont un agent a besoin.</h2>
+      <p class="section-desc">Invocables par tout client MCP via JSON-RPC stdio. Aucun SDK requis.</p>
+      <div class="tools-group">
+        <div class="tools-group-title">Fondations <span>(13)</span></div>
+        <div class="tools-grid">
+          <div class="tool-card"><div><div class="tool-name">m1nd.ingest</div><div class="tool-desc">Charger des donn&eacute;es dans le graphe. Extracteur de code ou descripteur JSON.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.activate</div><div class="tool-desc">Requ&ecirc;te de spreading activation -- &laquo; qu'est-ce qui est li&eacute; &agrave; X ? &raquo;</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.impact</div><div class="tool-desc">Rayon d'impact -- &laquo; qu'est-ce que modifier X affecte ? &raquo;</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.why</div><div class="tool-desc">Explication du chemin -- &laquo; comment A et B sont-ils connect&eacute;s ? &raquo;</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.learn</div><div class="tool-desc">Feedback Hebbian -- &laquo; ce r&eacute;sultat &eacute;tait correct / faux / partiel. &raquo;</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.drift</div><div class="tool-desc">Analyse de d&eacute;rive des poids -- &laquo; qu'est-ce qui a chang&eacute; depuis la derni&egrave;re session ? &raquo;</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.health</div><div class="tool-desc">Diagnostic -- comptage n&oelig;uds/ar&ecirc;tes, sessions, &eacute;tat de persistance.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.seek</div><div class="tool-desc">Recherche cibl&eacute;e de n&oelig;uds -- trouver des entit&eacute;s sp&eacute;cifiques par ID ou pattern.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.scan</div><div class="tool-desc">Scan large du graphe -- &eacute;num&eacute;rer les n&oelig;uds par type, label ou voisinage.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.timeline</div><div class="tool-desc">S&eacute;quence temporelle -- comment les n&oelig;uds ont chang&eacute; au fil du temps.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.diverge</div><div class="tool-desc">Analyse de divergence -- o&ugrave; deux chemins divergent-ils ?</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.warmup</div><div class="tool-desc">Amorce du contexte -- &laquo; pr&eacute;pare-toi pour la t&acirc;che X. &raquo;</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.federate</div><div class="tool-desc">F&eacute;d&eacute;ration multi-repo -- relier les graphes entre repositories.</div></div></div>
+        </div>
+      </div>
+      <div class="tools-group">
+        <div class="tools-group-title">Navigation par Perspective <span>(12)</span></div>
+        <div class="tools-grid">
+          <div class="tool-card"><div><div class="tool-name">perspective.start</div><div class="tool-desc">Ouvrir une perspective -- une vue filtr&eacute;e et scop&eacute;e dans le graphe.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">perspective.routes</div><div class="tool-desc">Trouver tous les chemins entre deux n&oelig;uds dans la perspective.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">perspective.follow</div><div class="tool-desc">Naviguer en avant -- suivre une ar&ecirc;te depuis la position actuelle.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">perspective.back</div><div class="tool-desc">Naviguer en arri&egrave;re -- revenir &agrave; une position pr&eacute;c&eacute;dente.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">perspective.peek</div><div class="tool-desc">Aper&ccedil;u des voisins sans bouger -- regarder avant de sauter.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">perspective.inspect</div><div class="tool-desc">D&eacute;tail complet du n&oelig;ud actuel -- ar&ecirc;tes, poids, m&eacute;tadonn&eacute;es.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">perspective.suggest</div><div class="tool-desc">Navigation guid&eacute;e -- &laquo; o&ugrave; devrais-je aller ensuite ? &raquo;</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">perspective.affinity</div><div class="tool-desc">&Eacute;valuer la corr&eacute;lation entre deux n&oelig;uds depuis ce point de vue.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">perspective.branch</div><div class="tool-desc">Bifurquer la perspective actuelle en explorations parall&egrave;les.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">perspective.compare</div><div class="tool-desc">Diff de deux perspectives -- qu'est-ce que chacune voit que l'autre ne voit pas ?</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">perspective.list</div><div class="tool-desc">Lister toutes les perspectives actives et leurs positions.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">perspective.close</div><div class="tool-desc">Fermer une perspective et lib&eacute;rer ses ressources.</div></div></div>
+        </div>
+      </div>
+      <div class="tools-group">
+        <div class="tools-group-title">Syst&egrave;me de Verrous <span>(5)</span></div>
+        <div class="tools-grid">
+          <div class="tool-card"><div><div class="tool-name">lock.create</div><div class="tool-desc">Snapshot de l'&eacute;tat du graphe -- cr&eacute;er une baseline pour comparaison.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">lock.watch</div><div class="tool-desc">Surveiller les changements par rapport au verrou -- d&eacute;tection de d&eacute;rive en temps r&eacute;el.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">lock.diff</div><div class="tool-desc">Diff de l'&eacute;tat actuel par rapport au verrou -- qu'est-ce qui a chang&eacute; ?</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">lock.rebase</div><div class="tool-desc">Mettre &agrave; jour le verrou vers l'&eacute;tat actuel -- accepter tous les changements.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">lock.release</div><div class="tool-desc">Lib&eacute;rer le verrou et la m&eacute;moire du snapshot.</div></div></div>
+        </div>
+      </div>
+      <div class="tools-group">
+        <div class="tools-group-title">Super-pouvoirs <span>(13)</span></div>
+        <div class="tools-grid">
+          <div class="tool-card"><div><div class="tool-name">m1nd.hypothesize</div><div class="tool-desc">Tester une affirmation structurelle -- confiance bay&eacute;sienne sur 25K+ chemins.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.counterfactual</div><div class="tool-desc">Simulation de suppression -- &laquo; que casse-t-on si on supprime X ? &raquo;</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.missing</div><div class="tool-desc">D&eacute;tection de trous structurels -- &laquo; qu'est-ce qui manque dans ce tableau ? &raquo;</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.resonate</div><div class="tool-desc">Analyse harmonique -- ondes stationnaires, fr&eacute;quences de r&eacute;sonance.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.fingerprint</div><div class="tool-desc">D&eacute;tection d'&eacute;quivalence -- &laquo; ces deux choses sont-elles des doublons ? &raquo;</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.trace</div><div class="tool-desc">Trace compl&egrave;te d'activation -- chaque hop, chaque poids, chaque d&eacute;cision.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.validate_plan</div><div class="tool-desc">Valider un plan d'impl&eacute;mentation contre la structure du graphe.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.predict</div><div class="tool-desc">Pr&eacute;diction co-change -- &laquo; quoi d'autre devra changer ? &raquo;</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">m1nd.differential</div><div class="tool-desc">XLR diff&eacute;rentiel -- s&eacute;parer le signal du bruit entre deux requ&ecirc;tes.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">trail.save</div><div class="tool-desc">Sauvegarder l'&eacute;tat d'enqu&ecirc;te actuel -- toutes les activations, perspectives, contexte.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">trail.resume</div><div class="tool-desc">Reprendre un trail sauvegard&eacute; -- repartir exactement l&agrave; o&ugrave; vous &eacute;tiez.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">trail.merge</div><div class="tool-desc">Fusionner deux trails -- combiner des investigations parall&egrave;les.</div></div></div>
+          <div class="tool-card"><div><div class="tool-name">trail.list</div><div class="tool-desc">Lister tous les trails sauvegard&eacute;s avec m&eacute;tadonn&eacute;es et horodatages.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Benchmarks ── -->
+  <section id="benchmarks">
+    <div class="container">
+      <div class="section-label">Benchmarks de production</div>
+      <h2 class="section-title">Des vrais chiffres d'une vraie codebase.</h2>
+      <p class="section-desc">Mesur&eacute;s sur un projet de 335 fichiers en Rust + Python + TypeScript. Z&eacute;ro cherry-picking.</p>
+      <div class="bench-grid">
+        <div class="bench-card"><div class="bench-label">Ingestion compl&egrave;te</div><div class="bench-value">910ms</div><div class="bench-detail">335 fichiers &rarr; 9 767 n&oelig;uds &rarr; 26 557 ar&ecirc;tes</div></div>
+        <div class="bench-card"><div class="bench-label">Spreading activation</div><div class="bench-value">31-77ms</div><div class="bench-detail">Front d'onde &agrave; 4 dimensions, gate de bruit XLR</div></div>
+        <div class="bench-card"><div class="bench-label">Rayon d'impact</div><div class="bench-value">5-52ms</div><div class="bench-detail">Analyse en cascade compl&egrave;te avec profondeur de hop</div></div>
+        <div class="bench-card"><div class="bench-label">Simulation counterfactual</div><div class="bench-value">3ms</div><div class="bench-detail">4 189 n&oelig;uds affect&eacute;s &eacute;valu&eacute;s</div></div>
+        <div class="bench-card"><div class="bench-label">Lock diff</div><div class="bench-value">0.08&micro;s</div><div class="bench-detail">Comparaison de snapshot, quasi instantan&eacute;</div></div>
+        <div class="bench-card"><div class="bench-label">F&eacute;d&eacute;ration (2 repos)</div><div class="bench-value">1.3s</div><div class="bench-detail">18 203 ar&ecirc;tes cross-repo reli&eacute;es</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Comparison ── -->
+  <section id="comparison">
+    <div class="container">
+      <div class="section-label">Comparaison</div>
+      <h2 class="section-title">m1nd vs. les alternatives.</h2>
+      <p class="section-desc">Une cat&eacute;gorie diff&eacute;rente, pas juste une meilleure version.</p>
+      <div style="background: linear-gradient(135deg, rgba(255, 51, 102, 0.06) 0%, rgba(0, 229, 160, 0.06) 100%); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 48px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px; align-items: center;">
+          <div>
+            <div style="font-family: var(--mono); font-size: 12px; color: var(--red); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">La taxe sur les tokens est r&eacute;elle</div>
+            <p style="font-size: 15px; color: var(--text-dim); line-height: 1.6; margin-bottom: 16px;">Chaque fois qu'un agent IA grep votre codebase et envoie les r&eacute;sultats &agrave; un LLM, vous payez. Des utilisateurs Cursor ont signal&eacute; des d&eacute;passements de <strong style="color: var(--red);">22 000 $/mois</strong>. Des &eacute;quipes utilisant Copilot + mod&egrave;les frontier sur de gros repos voient <strong style="color: var(--red);">200&ndash;500 $/mois</strong> en co&ucirc;ts de recherche invisibles.</p>
+            <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.8;">
+              <span style="color: var(--red);">100 recherches/jour</span> &times; 0,30 $/recherche = <strong style="color: var(--red);">9 $/jour</strong> = <strong style="color: var(--red);">270 $/mois</strong><br>
+              <span style="color: var(--red);">Soit 3 240 $/an</span> <span style="color: var(--text-faint);">rien que pour la recherche. Par d&eacute;veloppeur.</span>
+            </div>
+          </div>
+          <div style="text-align: center; padding: 24px; background: var(--bg-card); border-radius: 12px; border: 1px solid rgba(0, 229, 160, 0.2);">
+            <div style="font-family: var(--mono); font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">m1nd</div>
+            <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1;">0 $</div>
+            <div style="font-family: var(--mono); font-size: 14px; color: var(--text-dim); margin-top: 8px;">/requ&ecirc;te. /jour. /mois. /pour toujours.</div>
+            <div style="font-size: 13px; color: var(--text-faint); margin-top: 12px;">Binaire Rust local. Z&eacute;ro cl&eacute; API. Z&eacute;ro cloud.<br>Aucune donn&eacute;e ne quitte votre machine. Jamais.</div>
+          </div>
+        </div>
+      </div>
+      <table class="vs-table">
+        <thead><tr><th></th><th class="highlight">m1nd</th><th>Sourcegraph</th><th>Cursor</th><th>Copilot</th><th>Greptile</th></tr></thead>
+        <tbody>
+          <tr><td>Graphe de code</td><td class="yes">Property graph complet</td><td class="partial">Index de symboles</td><td class="no">Aucun</td><td class="no">Aucun</td><td class="partial">Index AST</td></tr>
+          <tr><td>Apprend de l'usage</td><td class="yes">Hebbian plasticity</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td></tr>
+          <tr><td>Persiste les enqu&ecirc;tes</td><td class="yes">Trail system</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td></tr>
+          <tr><td>Teste les hypoth&egrave;ses</td><td class="yes">Moteur bay&eacute;sien</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td></tr>
+          <tr><td>Simule la suppression</td><td class="yes">Counterfactual</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td></tr>
+          <tr><td>Verrous multi-agents</td><td class="yes">Syst&egrave;me de verrous (op&eacute;rationnel)</td><td class="no">Non</td><td class="no">Tent&eacute;, &eacute;chou&eacute;</td><td class="no">Non</td><td class="no">Non</td></tr>
+          <tr><td>Multi-repo</td><td class="yes">F&eacute;d&eacute;ration</td><td class="yes">Oui</td><td class="no">Non</td><td class="no">Non</td><td class="partial">Par repo</td></tr>
+          <tr><td>Latence de recherche</td><td class="yes">31ms (local)</td><td class="partial">~200ms (cloud)</td><td class="partial">320ms+ (cloud)</td><td class="partial">500&ndash;800ms</td><td class="partial">D&eacute;pendant du cloud</td></tr>
+          <tr><td>Interface agent</td><td class="yes">43 outils MCP</td><td class="partial">API</td><td class="no">Int&eacute;gr&eacute; uniquement</td><td class="no">Int&eacute;gr&eacute; uniquement</td><td class="partial">API</td></tr>
+          <tr><td>Co&ucirc;t mensuel</td><td class="yes">0 $ (pour toujours)</td><td class="no">59 $/utilisateur/mois</td><td class="no">20+ $/mois (d&eacute;passements jusqu'&agrave; 22K $)</td><td class="no">19+ $/mois</td><td class="no">30 $/dev/mois</td></tr>
+          <tr><td>Capacit&eacute;s (sur 16)</td><td class="yes" style="font-size: 15px; font-weight: 700;">16/16</td><td class="no">1/16</td><td class="no">0/16</td><td class="no">0/16</td><td class="no">1/16</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Competitive Advantage ── -->
+  <section id="advantage" style="border-top: 1px solid var(--border);">
+    <div class="container">
+      <div class="section-label">L'&eacute;cart mesur&eacute;</div>
+      <h2 class="section-title">3&ndash;4 ans d'avance. Mesur&eacute;s.</h2>
+      <p class="section-desc">Nous avons compar&eacute; m1nd &agrave; chaque outil de la cat&eacute;gorie sur 16 capacit&eacute;s. m1nd obtient 16/16. Le meilleur concurrent obtient 3. Cursor et Copilot obtiennent z&eacute;ro.</p>
+      <div style="margin-bottom: 64px;">
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Capacit&eacute;s couvertes (sur 16)</div>
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--green);">m1nd</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 32px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 100%; height: 100%; background: linear-gradient(90deg, var(--green) 0%, rgba(0, 229, 160, 0.7) 100%); border-radius: 5px; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;">
+              <span style="font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--bg);">16/16</span>
+            </div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--green);">100%</div>
+        </div>
+
+        <!-- CodeGraphContext -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">CodeGraphCtx</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 18.75%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">3/16</div>
+        </div>
+
+        <!-- Joern -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Joern</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- CodeQL -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">CodeQL</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- ast-grep -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">ast-grep</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- Letta Code -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Letta Code</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- Sourcegraph Cody -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Sourcegraph</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
+        </div>
+
+        <!-- Augment -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Augment</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
+        </div>
+
+        <!-- Greptile -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Greptile</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
+        </div>
+
+        <!-- Cursor -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Cursor</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 0%; height: 100%;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">0/16</div>
+        </div>
+
+        <!-- Copilot -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Copilot</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 0%; height: 100%;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">0/16</div>
+        </div>
+      </div>
+
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Six choses que personne d'autre ne peut revendiquer</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 64px;">
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">01 &mdash; Z&Eacute;RO CONCURRENT</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Hebbian plasticity sur graphes de code</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Le graphe se rec&acirc;ble en fonction des chemins de requ&ecirc;te menant &agrave; des r&eacute;sultats corrects. Aucun autre outil ne fait &ccedil;a. Aucun paper publi&eacute; ne le d&eacute;crit pour le code.</div>
+        </div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">02 &mdash; 10-30x PLUS RAPIDE</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">0,00 $/requ&ecirc;te en 31ms</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Binaire Rust local. Z&eacute;ro token LLM br&ucirc;l&eacute; par requ&ecirc;te. Tout outil d&eacute;pendant d'un LLM paie 0,10-0,50 $ par recherche et attend 300ms-2s.</div>
+        </div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">03 &mdash; Z&Eacute;RO ANT&Eacute;C&Eacute;DENT</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Trouve ce qui MANQUE dans le code</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">D&eacute;tection de trous structurels issue de la th&eacute;orie sociologique de Burt, appliqu&eacute;e aux graphes de code. Trouve les lacunes de votre architecture qu'aucune recherche ne peut r&eacute;v&eacute;ler.</div>
+        </div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">04 &mdash; PLUS GRANDE SURFACE</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">43 outils MCP = cycle cognitif complet</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Ing&eacute;rer, activer, formuler des hypoth&egrave;ses, simuler, apprendre, naviguer, f&eacute;d&eacute;rer. Le plus grand concurrent offre ~15 outils. La plupart en offrent 3-5.</div>
+        </div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">05 &mdash; TECHNIQUE IN&Eacute;DITE</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Annulation du bruit XLR</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Emprunt&eacute;e &agrave; l'ing&eacute;nierie audio : le filtrage Cross-Layer Resonance supprime les ar&ecirc;tes faux-positifs durant la spreading activation. Z&eacute;ro ant&eacute;c&eacute;dent pour les graphes de code. Z&eacute;ro concurrent, z&eacute;ro paper.</div>
+        </div>
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">06 &mdash; LES AUTRES ONT ESSAY&Eacute; ET &Eacute;CHOU&Eacute;</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Verrouillage de graphe multi-agents</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Cursor a tent&eacute; le file locking multi-agents et l'a abandonn&eacute;. m1nd livre 5 outils de verrous qui fonctionnent : snapshot, watch, diff, rebase, release. Plusieurs agents, un seul graphe coh&eacute;rent.</div>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 48px;">
+        <div style="display: inline-block; background: linear-gradient(135deg, rgba(0, 229, 160, 0.08) 0%, rgba(0, 229, 160, 0.03) 100%); border: 1px solid rgba(0, 229, 160, 0.2); border-radius: 16px; padding: 32px 56px;">
+          <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1;">3&ndash;4 ans d'avance</div>
+          <div style="font-size: 15px; color: var(--text-dim); margin-top: 12px; max-width: 500px;">Construit sur 6 disciplines qu'aucun concurrent ne couvre : sciences cognitives, sociologie, neurosciences, traitement du signal, physique et syst&egrave;mes distribu&eacute;s.</div>
+          <a href="https://github.com/maxkle1nz/m1nd/blob/main/docs/m1nd/M1ND-COMPETITIVE-INTELLIGENCE-2026-03-13.md" style="display: inline-block; margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--green); text-decoration: underline;">Lire l'analyse concurrentielle compl&egrave;te &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Live session ── -->
+  <section id="session" style="padding-top: 0;">
+    <div class="container">
+      <div class="section-label">Sortie r&eacute;elle</div>
+      <h2 class="section-title">Une session compl&egrave;te, du d&eacute;but &agrave; la fin.</h2>
+      <p class="section-desc">m1nd ing&eacute;rant et analysant une codebase de production. Chaque chiffre est r&eacute;el.</p>
+      <div class="session">
+        <div class="demo-block" style="max-width: 100%;">
+          <div class="demo-header"><span class="demo-dot r"></span><span class="demo-dot y"></span><span class="demo-dot g"></span><span class="demo-title">session de production m1nd</span></div>
+          <div class="demo-body">
+            <span class="step-label">1. Ingest</span>
+            <span class="prompt">&gt;</span> m1nd.ingest <span class="dim">path=./</span><br>
+            <span class="dim">335 fichiers sources scann&eacute;s dans 3 langages</span><br>
+            <span class="val">9 767 n&oelig;uds</span>, <span class="val">26 557 ar&ecirc;tes</span> <span class="dim">construits en 910ms</span><br>
+            <span class="dim">Historique co-change : 214 groupes de commits analys&eacute;s</span><br><br>
+            <span class="step-label">2. Activate</span>
+            <span class="prompt">&gt;</span> m1nd.activate <span class="dim">query="spreading activation"</span><br>
+            <span class="dim">Graines : activation.rs, graph.rs, xlr.rs</span><br>
+            <span class="dim">Front d'onde : 3 &rarr; 18 &rarr; 47 n&oelig;uds</span><br>
+            <span class="val">0.94</span> fn::propagate_wavefront <span class="dim">(structural 0.97)</span><br>
+            <span class="val">0.91</span> fn::score_candidates <span class="dim">(semantic 0.93)</span><br>
+            <span class="val">0.87</span> fn::xlr_gate <span class="dim">(causal 0.89)</span><br>
+            <span class="val">0.72</span> fn::compute_pagerank <span class="dim">(structural 0.78)</span><br>
+            <span class="dim">XLR a annul&eacute; 12 ar&ecirc;tes de bruit &middot; 31ms</span><br><br>
+            <span class="step-label">3. Impact</span>
+            <span class="prompt">&gt;</span> m1nd.impact <span class="dim">targets=["graph.rs"]</span><br>
+            <span class="dim">Rayon d'impact : <span class="val">23 n&oelig;uds</span> sur 4 hops</span><br>
+            <span class="val">Direct :</span> activation.rs, xlr.rs, temporal.rs, builder.rs<br>
+            <span class="val">Indirect :</span> server.rs, tools.rs, session.rs<br>
+            <span class="warn">Haut impact :</span> graph.rs est une cl&eacute; de vo&ucirc;te (PageRank top 3%)<br><br>
+            <span class="step-label">4. Hypothesize</span>
+            <span class="prompt">&gt;</span> m1nd.hypothesize <span class="dim">"graph.rs depends on temporal.rs"</span><br>
+            <span class="dim">25 015 chemins explor&eacute;s en 58ms</span><br>
+            <span class="val">Confiance : 0.87</span> <span class="dim">(forte &eacute;vidence structurelle + temporelle)</span><br>
+            <span class="dim">En soutien : 14 chemins directs, 3 clusters co-change</span><br>
+            <span class="warn">En affaiblissement :</span> 2 chemins via module d&eacute;pr&eacute;ci&eacute;<br><br>
+            <span class="step-label">5. Counterfactual</span>
+            <span class="prompt">&gt;</span> m1nd.counterfactual <span class="dim">remove=["graph.rs"]</span><br>
+            <span class="err">CASCADE :</span> 4 189 n&oelig;uds affect&eacute;s en 3ms<br>
+            <span class="err">ORPHELINS :</span> 8 fonctions deviennent inaccessibles<br>
+            <span class="val">R&Eacute;SILIENTS :</span> temporal.rs, domain.rs survivent via chemins alternatifs<br>
+            <span class="dim">Simulation termin&eacute;e : graph.rs est porteur</span><br><br>
+            <span class="step-label">6. Learn</span>
+            <span class="prompt">&gt;</span> m1nd.learn <span class="dim">feedback=correct nodes=[activation.rs, xlr.rs]</span><br>
+            <span class="val">LTP appliqu&eacute; :</span> 14 ar&ecirc;tes renforc&eacute;es (moy. +0.12)<br>
+            <span class="dim">&Eacute;tat de plasticit&eacute; persist&eacute; &middot; 2 847 poids modifi&eacute;s au total</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Quick Start ── -->
+  <section id="start">
+    <div class="container">
+      <div class="section-label">D&eacute;marrer</div>
+      <h2 class="section-title">Op&eacute;rationnel en 60 secondes.</h2>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-content"><h3>Build</h3><div class="code-block">cargo build --release</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-content"><h3>Lancer</h3><p>m1nd d&eacute;marre en tant que serveur JSON-RPC stdio. Compatible MCP d&egrave;s le d&eacute;part.</p><div class="code-block">./target/release/m1nd-mcp</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-content"><h3>Ing&eacute;rer et Interroger</h3><p>Envoyez des messages MCP via stdin. L'&eacute;tat persiste automatiquement.</p><div class="code-block"><span class="comment">// Ingérer une codebase</span><br>{"method":"tools/call","params":{"name":"m1nd.ingest",<br>&nbsp;&nbsp;"arguments":{"path":"/your/project","agent_id":"my-agent"}}}<br><br><span class="comment">// Interroger</span><br>{"method":"tools/call","params":{"name":"m1nd.activate",<br>&nbsp;&nbsp;"arguments":{"query":"authentication","agent_id":"my-agent"}}}<br><br><span class="comment">// Apprendre des résultats</span><br>{"method":"tools/call","params":{"name":"m1nd.learn",<br>&nbsp;&nbsp;"arguments":{"feedback":"correct","node_ids":["file::src/auth.rs"]}}}</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-content"><h3>N'importe quel domaine</h3><p>Pas que du code. Ing&eacute;rez n'importe quel knowledge graph depuis JSON.</p><div class="code-block"><span class="comment">// Descripteur JSON -- fonctionne pour tout domaine</span><br>{"nodes": [<br>&nbsp;&nbsp;{"id":"concept::activation", "label":"Spreading Activation", "type":"Concept"},<br>&nbsp;&nbsp;{"id":"concept::plasticity", "label":"Hebbian Plasticity", "type":"Process"}<br>],<br>"edges": [<br>&nbsp;&nbsp;{"source":"concept::activation", "target":"concept::plasticity",<br>&nbsp;&nbsp;&nbsp;"relation":"enables", "weight":0.8}<br>]}</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Limitations ── -->
+  <section id="limitations">
+    <div class="container">
+      <div class="section-label">Limites honn&ecirc;tes</div>
+      <h2 class="section-title">Ce que m1nd n'est pas.</h2>
+      <p class="section-desc">Aucun outil ne fait tout. Voici les limites de m1nd.</p>
+      <div class="limits-list">
+        <div class="limit-item"><div class="limit-title">Pas un &eacute;diteur de code</div><div class="limit-desc">m1nd navigue et analyse. Il n'&eacute;crit pas, ne refactorise pas, n'applique pas de patches. Associez-le &agrave; un agent qui le fait.</div></div>
+        <div class="limit-item"><div class="limit-title">Pas un moteur de recherche</div><div class="limit-desc">Il trouve des relations structurelles, pas des correspondances de cha&icirc;nes. Pour la recherche textuelle litt&eacute;rale, utilisez grep. Pour la compr&eacute;hension structurelle, utilisez m1nd.</div></div>
+        <div class="limit-item"><div class="limit-title">Le graphe vit en m&eacute;moire</div><div class="limit-desc">Le graphe complet est conserv&eacute; en RAM pour la vitesse. Les grands monorepos (100K+ fichiers) n&eacute;cessiteront de la m&eacute;moire significative. La persistance se fait sur disque &agrave; l'arr&ecirc;t.</div></div>
+        <div class="limit-item"><div class="limit-title">Machine unique, aujourd'hui</div><div class="limit-desc">La f&eacute;d&eacute;ration relie les graphes de plusieurs repos, mais le serveur tourne sur une seule machine. Le mode distribu&eacute; n'est pas encore impl&eacute;ment&eacute;.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Metrics bar ── -->
+  <section style="padding: 48px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div class="container" style="display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; text-align: center;">
+      <div><div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~15 500</div><div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Lignes de Rust</div></div>
+      <div><div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">159</div><div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Tests</div></div>
+      <div><div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">43</div><div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Outils MCP</div></div>
+      <div><div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">6+1</div><div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Langages</div></div>
+      <div><div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~8 Mo</div><div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Binaire (ARM64)</div></div>
+    </div>
+  </section>
+
+  <!-- ── Final CTA ── -->
+  <section style="padding: 80px 0; text-align: center;">
+    <div class="container">
+      <h2 class="section-title" style="max-width: 700px; margin: 0 auto 16px;">Arr&ecirc;tez de payer pour l'amn&eacute;sie.<br>Donnez un <span style="color: var(--green);">m1nd</span> &agrave; vos agents.</h2>
+      <p style="color: var(--text-dim); font-size: 16px; max-width: 560px; margin: 0 auto 40px; line-height: 1.6;">Open source. Local. Z&eacute;ro co&ucirc;t. Un seul binaire. 43 outils.<br>Votre codebase ne quitte jamais votre machine.</p>
+      <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+        <a href="https://github.com/maxkle1nz/m1nd" class="btn btn-primary" style="font-size: 16px; padding: 16px 36px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Obtenir m1nd sur GitHub
+        </a>
+        <a href="https://github.com/sponsors/maxkle1nz" class="btn btn-secondary" style="font-size: 16px; padding: 16px 36px;">
+          <span style="color: #FF3366;">&hearts;</span> Sponsoriser ce projet
+        </a>
+      </div>
+      <p style="font-family: var(--mono); font-size: 12px; color: var(--text-faint); margin-top: 24px;">Licence MIT &middot; Rust &middot; ~8 Mo binaire &middot; Compatible avec tout client MCP</p>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div class="container">
+      <div class="footer-logo">m<span>1</span>nd</div>
+      <div class="footer-desc">Le graphe de code adaptatif</div>
+      <div class="footer-links">
+        <a href="https://github.com/maxkle1nz/m1nd">GitHub</a>
+        <a href="../wiki-build/index.html">Wiki</a>
+        <a href="../wiki-build/faq.html">FAQ</a>
+        <a href="../wiki-build/api-reference/overview.html">R&eacute;f&eacute;rence API</a>
+        <a href="https://github.com/maxkle1nz/m1nd/blob/main/EXAMPLES.md">Exemples</a>
+        <a href="https://github.com/sponsors/maxkle1nz">Sponsor</a>
+        <a href="https://github.com/maxkle1nz/m1nd/blob/main/LICENSE">Licence MIT</a>
+      </div>
+      <div class="author">MAX ELIAS KLEINSCHMIDT &#x1F1E7;&#x1F1F7; &mdash; COSMOPHONIX INTELLIGENCE &mdash; fi&egrave;rement br&eacute;silien</div>
+    </div>
+  </footer>
+      <div class="footer-logo">m<span>1</span>nd</div>
+      <div class="footer-desc">The adaptive code graph</div>
+      <div class="footer-links">
+        <a href="https://github.com/maxkle1nz/m1nd">GitHub</a>
+        <a href="wiki-build/index.html">Wiki</a>
+        <a href="wiki-build/faq.html">FAQ</a>
+        <a href="wiki-build/api-reference/overview.html">API Reference</a>
+        <a href="https://github.com/maxkle1nz/m1nd/blob/main/EXAMPLES.md">Examples</a>
+        <a href="https://github.com/sponsors/maxkle1nz">Sponsor</a>
+        <a href="https://github.com/maxkle1nz/m1nd/blob/main/LICENSE">MIT License</a>
+      </div>
+      <div class="author">MAX ELIAS KLEINSCHMIDT &#x1F1E7;&#x1F1F7; &mdash; COSMOPHONIX INTELLIGENCE &mdash; proudly Brazilian</div>
+    </div>
+  </footer>
+
+<script>
+// ── Live Terminal Animation Engine ──
+(function() {
+  const scenes = [
+    // Scene 0: Find what matters
+    [
+      { type: 'comment', text: '# You ask: "What handles authentication in this project?"' },
+      { type: 'blank' },
+      { type: 'cmd', text: '$ m1nd.activate --query "authentication"' },
+      { type: 'blank' },
+      { type: 'comment', text: '# m1nd lights up the graph. No grepping. No reading files.' },
+      { type: 'comment', text: '# It finds the 4 most relevant files instantly:' },
+      { type: 'blank' },
+      { type: 'result', score: '94%', file: 'auth/middleware.rs', detail: 'the main auth layer' },
+      { type: 'result', score: '89%', file: 'auth/jwt.rs', detail: 'token validation' },
+      { type: 'result', score: '83%', file: 'session/manager.rs', detail: 'session handling' },
+      { type: 'result', score: '71%', file: 'middleware/cors.rs', detail: 'related security' },
+      { type: 'blank' },
+      { type: 'success', text: 'Done in 31ms. Zero LLM tokens. Zero cost.' },
+    ],
+    // Scene 1: Find what's missing
+    [
+      { type: 'comment', text: '# The feature no other tool has:' },
+      { type: 'comment', text: '# find what SHOULD exist in your code but DOESN\'T.' },
+      { type: 'blank' },
+      { type: 'cmd', text: '$ m1nd.missing --query "payment processing"' },
+      { type: 'blank' },
+      { type: 'comment', text: '# m1nd found 3 gaps in your payment system:' },
+      { type: 'blank' },
+      { type: 'hole', score: '!', file: 'payment/refund_handler.rs', detail: 'no refund logic exists' },
+      { type: 'hole', score: '!', file: 'payment/webhook_validator.rs', detail: 'Stripe webhooks are unverified' },
+      { type: 'hole', score: '!', file: 'payment/idempotency.rs', detail: 'retries can charge twice' },
+      { type: 'blank' },
+      { type: 'comment', text: '# grep can\'t find these. They\'re files that don\'t exist yet.' },
+      { type: 'success', text: '3 missing pieces found in 18ms. $0.00.' },
+    ],
+    // Scene 2: Simulate before you break
+    [
+      { type: 'comment', text: '# Before deleting a file, ask:' },
+      { type: 'comment', text: '# "What breaks if I remove this?"' },
+      { type: 'blank' },
+      { type: 'cmd', text: '$ m1nd.counterfactual --remove "auth/middleware.rs"' },
+      { type: 'blank' },
+      { type: 'comment', text: '# m1nd simulates the removal without touching your code:' },
+      { type: 'blank' },
+      { type: 'critical', text: 'BREAKS  api.rs — 47 endpoints lose authentication' },
+      { type: 'critical', text: 'BREAKS  session/manager.rs — sessions stop validating' },
+      { type: 'warn', text: 'RISK    cors.rs — security rules become orphaned' },
+      { type: 'warn', text: 'RISK    jwt.rs — token validator has no consumer' },
+      { type: 'blank' },
+      { type: 'comment', text: '# 23 files affected. You see the full blast radius.' },
+      { type: 'success', text: 'Simulated in 3ms. No tests needed. No runtime.' },
+    ],
+    // Scene 3: Navigate like a surgeon
+    [
+      { type: 'comment', text: '# Explore your code like navigating a map.' },
+      { type: 'comment', text: '# m1nd remembers where you\'ve been.' },
+      { type: 'blank' },
+      { type: 'cmd', text: '$ m1nd.perspective_start --query "payment flow"' },
+      { type: 'dim', text: 'Opened. 6 paths to explore.', delay: 300 },
+      { type: 'blank' },
+      { type: 'cmd', text: '$ m1nd.perspective_follow "checkout → stripe"' },
+      { type: 'dim', text: 'Moved to stripe/client.rs. 4 new paths appeared.', delay: 300 },
+      { type: 'blank' },
+      { type: 'comment', text: '# Fork your exploration — like git branches for investigation' },
+      { type: 'cmd', text: '$ m1nd.perspective_branch "refund-path"' },
+      { type: 'blank' },
+      { type: 'comment', text: '# m1nd suggests where to go next:' },
+      { type: 'cmd', text: '$ m1nd.perspective_suggest' },
+      { type: 'suggest', file: 'refund/handler.rs', detail: '91% likely next dependency' },
+      { type: 'blank' },
+      { type: 'success', text: 'Stateful. Branching. Undo. Zero tokens.' },
+    ],
+  ];
+
+  const container = document.getElementById('liveTerminal');
+  const sceneEls = container.querySelectorAll('.term-scene');
+  const tabs = container.querySelectorAll('.term-tab');
+  const progressBar = document.getElementById('termProgress');
+  const playBtn = document.getElementById('termPlayBtn');
+  let currentScene = 0;
+  let animating = false;
+  let animCancel = false;
+
+  function renderLine(item, idx) {
+    const d = (item.delay || 0) + idx * 180;
+    const s = `animation-delay: ${d}ms;`;
+    switch (item.type) {
+      case 'comment':
+        return `<div class="line" style="${s}"><span class="comment">${esc(item.text)}</span></div>`;
+      case 'cmd':
+        return `<div class="line" style="${s}"><span class="prompt">${esc(item.text.substring(0,1))}</span><span style="color:var(--text)">${esc(item.text.substring(1))}</span></div>`;
+      case 'dim':
+        return `<div class="line" style="${s}"><span class="dim">${esc(item.text)}</span></div>`;
+      case 'result':
+        return `<div class="line" style="${s}"><span class="val">${item.score}</span> <span style="color:var(--text)">file::${esc(item.file)}</span> <span class="dim">(${esc(item.detail)})</span></div>`;
+      case 'hole':
+        return `<div class="line" style="${s}"><span class="warn">${item.score}</span> <span class="warn">file::${esc(item.file)}</span> <span class="dim">${esc(item.detail)}</span></div>`;
+      case 'critical':
+        return `<div class="line" style="${s}"><span class="err">${esc(item.text)}</span></div>`;
+      case 'warn':
+        return `<div class="line" style="${s}"><span class="warn">${esc(item.text)}</span></div>`;
+      case 'suggest':
+        return `<div class="line" style="${s}"><span class="val">→ ${esc(item.file)}</span> <span class="dim">(${esc(item.detail)})</span></div>`;
+      case 'success':
+        return `<div class="line" style="${s}"><span class="val">✓ ${esc(item.text)}</span></div>`;
+      case 'blank':
+        return `<div class="line" style="${s}">&nbsp;</div>`;
+      default:
+        return '';
+    }
+  }
+
+  function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function playScene(idx) {
+    currentScene = idx;
+    tabs.forEach(t => t.classList.toggle('active', +t.dataset.scene === idx));
+    const scene = scenes[idx];
+    const el = sceneEls[idx];
+
+    // Reset all scenes
+    sceneEls.forEach(s => { s.classList.remove('active'); s.innerHTML = ''; });
+    el.classList.add('active');
+
+    // Render lines with staggered animation
+    el.innerHTML = scene.map((item, i) => renderLine(item, i)).join('');
+
+    // Progress bar
+    const totalTime = scene.length * 180 + 2000;
+    progressBar.style.transition = 'none';
+    progressBar.style.width = '0%';
+    requestAnimationFrame(() => {
+      progressBar.style.transition = `width ${totalTime}ms linear`;
+      progressBar.style.width = '100%';
+    });
+  }
+
+  // Tab clicks
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => playScene(+tab.dataset.scene));
+  });
+
+  // Replay
+  playBtn.addEventListener('click', () => playScene(currentScene));
+
+  // Auto-cycle every 8s
+  let cycleTimer;
+  function startCycle() {
+    clearInterval(cycleTimer);
+    cycleTimer = setInterval(() => {
+      playScene((currentScene + 1) % scenes.length);
+    }, 12000);
+  }
+
+  // Pause auto-cycle on manual interaction
+  container.addEventListener('click', () => { clearInterval(cycleTimer); setTimeout(startCycle, 20000); });
+
+  // Init
+  playScene(0);
+  startCycle();
+
+  // Intersection observer: only animate when visible
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) startCycle();
+      else clearInterval(cycleTimer);
+    });
+  }, { threshold: 0.3 });
+  obs.observe(container);
+})();
+
+// ── Core Loop Visualization ──
+(function() {
+  const svg = document.getElementById('coreLoopViz');
+  if (!svg) return;
+  const phase = document.getElementById('viz-phase');
+  const edges = document.getElementById('viz-edges');
+  const d1 = document.getElementById('viz-d1');
+  const d2 = document.getElementById('viz-d2');
+  const d3 = document.getElementById('viz-d3');
+  const core = document.getElementById('viz-core-inner');
+  const labels = document.getElementById('viz-labels');
+  const ghost = document.getElementById('viz-ghost');
+  const comment = document.getElementById('viz-c1');
+  let running = false;
+
+  function ani(el, props, dur) {
+    return new Promise(r => {
+      el.style.transition = `all ${dur}ms ease`;
+      Object.entries(props).forEach(([k,v]) => {
+        if (k === 'opacity' || k === 'r') el.setAttribute(k, v);
+        else el.style[k] = v;
+      });
+      setTimeout(r, dur);
+    });
+  }
+
+  function setPhase(text) { phase.textContent = text; }
+  function setComment(text) {
+    comment.textContent = text;
+    comment.setAttribute('opacity', text ? '1' : '0');
+  }
+
+  function setGroupColor(g, color, opacity) {
+    g.querySelectorAll('circle').forEach(c => {
+      c.setAttribute('fill', color);
+      c.style.transition = 'all 600ms ease';
+    });
+    g.style.transition = 'opacity 600ms ease';
+    g.setAttribute('opacity', opacity);
+  }
+
+  async function activate() {
+    if (running) return;
+    running = true;
+
+    // Phase 1: QUERY ARRIVES
+    setPhase('PHASE 1 — QUERY RECEIVED');
+    setComment('Agent asks: "What handles authentication?"');
+    core.setAttribute('fill', '#00E5A0');
+    core.setAttribute('opacity', '0.9');
+    core.style.transition = 'all 400ms ease';
+    document.getElementById('viz-core').querySelector('circle').setAttribute('stroke', '#00E5A0');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 2: SPREADING ACTIVATION — Hop 1
+    setPhase('PHASE 2 — SPREADING ACTIVATION (HOP 1)');
+    setComment('Wavefront: seed node → 4 direct neighbors');
+    edges.style.transition = 'opacity 500ms ease';
+    edges.setAttribute('opacity', '0.4');
+    setGroupColor(d1, '#00E5A0', '0.8');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 3: Hop 2
+    setPhase('PHASE 3 — SPREADING ACTIVATION (HOP 2)');
+    setComment('Wavefront expands: 4 → 7 nodes, weighted by 4 dimensions');
+    setGroupColor(d2, '#60A5FA', '0.65');
+    edges.setAttribute('opacity', '0.55');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 4: Hop 3
+    setPhase('PHASE 4 — SPREADING ACTIVATION (HOP 3)');
+    setComment('7 → 8 outer nodes. XLR cancels 14 false-positive edges.');
+    setGroupColor(d3, '#F5A623', '0.5');
+    edges.setAttribute('opacity', '0.65');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 5: STRUCTURAL HOLE
+    setPhase('PHASE 5 — STRUCTURAL HOLE DETECTED');
+    setComment('Missing connection found: rate_limit.rs should exist but doesn\'t!');
+    ghost.setAttribute('opacity', '0.6');
+    ghost.style.transition = 'opacity 400ms ease';
+    // Flash the hole area
+    d2.querySelectorAll('circle')[1].setAttribute('fill', '#FF3366');
+    d2.querySelectorAll('circle')[4].setAttribute('fill', '#FF3366');
+    await new Promise(r => setTimeout(r, 2800));
+
+    // Phase 6: RESULTS
+    setPhase('PHASE 6 — RESULTS RANKED');
+    setComment('127 nodes activated in 31ms · 0 LLM tokens · 2,847 weights updated');
+    labels.style.transition = 'opacity 500ms ease';
+    labels.setAttribute('opacity', '1');
+    await new Promise(r => setTimeout(r, 3500));
+
+    // Phase 7: LEARN
+    setPhase('PHASE 7 — HEBBIAN LEARNING');
+    setComment('Agent confirms results correct → connections strengthen for next query');
+    // Brighten edges to show strengthening
+    edges.setAttribute('opacity', '0.8');
+    d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '10'); c.style.transition = 'r 600ms ease, fill 600ms ease'; });
+    await new Promise(r => setTimeout(r, 4000));
+
+    // Reset
+    setPhase('COMPLETE — CLICK TO REPLAY');
+    setComment('The graph is now smarter. Next query will be more accurate.');
+    await new Promise(r => setTimeout(r, 4000));
+
+    // Fade back to dormant
+    setPhase('DORMANT — CLICK TO ACTIVATE');
+    setComment('');
+    edges.setAttribute('opacity', '0.12');
+    setGroupColor(d1, '#5A6577', '0.25');
+    setGroupColor(d2, '#5A6577', '0.2');
+    setGroupColor(d3, '#5A6577', '0.15');
+    d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '8'); });
+    core.setAttribute('fill', '#5A6577');
+    core.setAttribute('opacity', '0.3');
+    document.getElementById('viz-core').querySelector('circle').setAttribute('stroke', '#5A6577');
+    labels.setAttribute('opacity', '0');
+    ghost.setAttribute('opacity', '0');
+    running = false;
+  }
+
+  svg.addEventListener('click', activate);
+  let animCancel = false;
+
+  function renderLine(item, idx) {
+    const d = (item.delay || 0) + idx * 180;
+    const s = `animation-delay: ${d}ms;`;
+    switch (item.type) {
+      case 'comment':
+        return `<div class="line" style="${s}"><span class="comment">${esc(item.text)}</span></div>`;
+      case 'cmd':
+        return `<div class="line" style="${s}"><span class="prompt">${esc(item.text.substring(0,1))}</span><span style="color:var(--text)">${esc(item.text.substring(1))}</span></div>`;
+      case 'dim':
+        return `<div class="line" style="${s}"><span class="dim">${esc(item.text)}</span></div>`;
+      case 'result':
+        return `<div class="line" style="${s}"><span class="val">${item.score}</span> <span style="color:var(--text)">file::${esc(item.file)}</span> <span class="dim">(${esc(item.detail)})</span></div>`;
+      case 'hole':
+        return `<div class="line" style="${s}"><span class="warn">${item.score}</span> <span class="warn">file::${esc(item.file)}</span> <span class="dim">${esc(item.detail)}</span></div>`;
+      case 'critical':
+        return `<div class="line" style="${s}"><span class="err">${esc(item.text)}</span></div>`;
+      case 'warn':
+        return `<div class="line" style="${s}"><span class="warn">${esc(item.text)}</span></div>`;
+      case 'suggest':
+        return `<div class="line" style="${s}"><span class="val">→ ${esc(item.file)}</span> <span class="dim">(${esc(item.detail)})</span></div>`;
+      case 'success':
+        return `<div class="line" style="${s}"><span class="val">✓ ${esc(item.text)}</span></div>`;
+      case 'blank':
+        return `<div class="line" style="${s}">&nbsp;</div>`;
+      default:
+        return '';
+    }
+  }
+
+  function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function playScene(idx) {
+    currentScene = idx;
+    tabs.forEach(t => t.classList.toggle('active', +t.dataset.scene === idx));
+    const scene = scenes[idx];
+    const el = sceneEls[idx];
+
+    // Reset all scenes
+    sceneEls.forEach(s => { s.classList.remove('active'); s.innerHTML = ''; });
+    el.classList.add('active');
+
+    // Render lines with staggered animation
+    el.innerHTML = scene.map((item, i) => renderLine(item, i)).join('');
+
+    // Progress bar
+    const totalTime = scene.length * 180 + 2000;
+    progressBar.style.transition = 'none';
+    progressBar.style.width = '0%';
+    requestAnimationFrame(() => {
+      progressBar.style.transition = `width ${totalTime}ms linear`;
+      progressBar.style.width = '100%';
+    });
+  }
+
+  // Tab clicks
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => playScene(+tab.dataset.scene));
+  });
+
+  // Replay
+  playBtn.addEventListener('click', () => playScene(currentScene));
+
+  // Auto-cycle every 8s
+  let cycleTimer;
+  function startCycle() {
+    clearInterval(cycleTimer);
+    cycleTimer = setInterval(() => {
+      playScene((currentScene + 1) % scenes.length);
+    }, 12000);
+  }
+
+  // Pause auto-cycle on manual interaction
+  container.addEventListener('click', () => { clearInterval(cycleTimer); setTimeout(startCycle, 20000); });
+
+  // Init
+  playScene(0);
+  startCycle();
+
+  // Intersection observer: only animate when visible
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) startCycle();
+      else clearInterval(cycleTimer);
+    });
+  }, { threshold: 0.3 });
+  obs.observe(container);
+})();
+
+// ── Core Loop Visualization ──
+(function() {
+  const svg = document.getElementById('coreLoopViz');
+  if (!svg) return;
+  const phase = document.getElementById('viz-phase');
+  const edges = document.getElementById('viz-edges');
+  const d1 = document.getElementById('viz-d1');
+  const d2 = document.getElementById('viz-d2');
+  const d3 = document.getElementById('viz-d3');
+  const core = document.getElementById('viz-core-inner');
+  const labels = document.getElementById('viz-labels');
+  const ghost = document.getElementById('viz-ghost');
+  const comment = document.getElementById('viz-c1');
+  let running = false;
+
+  function ani(el, props, dur) {
+    return new Promise(r => {
+      el.style.transition = `all ${dur}ms ease`;
+      Object.entries(props).forEach(([k,v]) => {
+        if (k === 'opacity' || k === 'r') el.setAttribute(k, v);
+        else el.style[k] = v;
+      });
+      setTimeout(r, dur);
+    });
+  }
+
+  function setPhase(text) { phase.textContent = text; }
+  function setComment(text) {
+    comment.textContent = text;
+    comment.setAttribute('opacity', text ? '1' : '0');
+  }
+
+  function setGroupColor(g, color, opacity) {
+    g.querySelectorAll('circle').forEach(c => {
+      c.setAttribute('fill', color);
+      c.style.transition = 'all 600ms ease';
+    });
+    g.style.transition = 'opacity 600ms ease';
+    g.setAttribute('opacity', opacity);
+  }
+
+  async function activate() {
+    if (running) return;
+    running = true;
+
+    // Phase 1: QUERY ARRIVES
+    setPhase('PHASE 1 — QUERY RECEIVED');
+    setComment('Agent asks: "What handles authentication?"');
+    core.setAttribute('fill', '#00E5A0');
+    core.setAttribute('opacity', '0.9');
+    core.style.transition = 'all 400ms ease';
+    document.getElementById('viz-core').querySelector('circle').setAttribute('stroke', '#00E5A0');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 2: SPREADING ACTIVATION — Hop 1
+    setPhase('PHASE 2 — SPREADING ACTIVATION (HOP 1)');
+    setComment('Wavefront: seed node → 4 direct neighbors');
+    edges.style.transition = 'opacity 500ms ease';
+    edges.setAttribute('opacity', '0.4');
+    setGroupColor(d1, '#00E5A0', '0.8');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 3: Hop 2
+    setPhase('PHASE 3 — SPREADING ACTIVATION (HOP 2)');
+    setComment('Wavefront expands: 4 → 7 nodes, weighted by 4 dimensions');
+    setGroupColor(d2, '#60A5FA', '0.65');
+    edges.setAttribute('opacity', '0.55');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 4: Hop 3
+    setPhase('PHASE 4 — SPREADING ACTIVATION (HOP 3)');
+    setComment('7 → 8 outer nodes. XLR cancels 14 false-positive edges.');
+    setGroupColor(d3, '#F5A623', '0.5');
+    edges.setAttribute('opacity', '0.65');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 5: STRUCTURAL HOLE
+    setPhase('PHASE 5 — STRUCTURAL HOLE DETECTED');
+    setComment('Missing connection found: rate_limit.rs should exist but doesn\'t!');
+    ghost.setAttribute('opacity', '0.6');
+    ghost.style.transition = 'opacity 400ms ease';
+    // Flash the hole area
+    d2.querySelectorAll('circle')[1].setAttribute('fill', '#FF3366');
+    d2.querySelectorAll('circle')[4].setAttribute('fill', '#FF3366');
+    await new Promise(r => setTimeout(r, 2800));
+
+    // Phase 6: RESULTS
+    setPhase('PHASE 6 — RESULTS RANKED');
+    setComment('127 nodes activated in 31ms · 0 LLM tokens · 2,847 weights updated');
+    labels.style.transition = 'opacity 500ms ease';
+    labels.setAttribute('opacity', '1');
+    await new Promise(r => setTimeout(r, 3500));
+
+    // Phase 7: LEARN
+    setPhase('PHASE 7 — HEBBIAN LEARNING');
+    setComment('Agent confirms results correct → connections strengthen for next query');
+    // Brighten edges to show strengthening
+    edges.setAttribute('opacity', '0.8');
+    d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '10'); c.style.transition = 'r 600ms ease, fill 600ms ease'; });
+    await new Promise(r => setTimeout(r, 4000));
+
+    // Reset
+    setPhase('COMPLETE — CLICK TO REPLAY');
+    setComment('The graph is now smarter. Next query will be more accurate.');
+    await new Promise(r => setTimeout(r, 4000));
+
+    // Fade back to dormant
+    setPhase('DORMANT — CLICK TO ACTIVATE');
+    setComment('');
+    edges.setAttribute('opacity', '0.12');
+    setGroupColor(d1, '#5A6577', '0.25');
+    setGroupColor(d2, '#5A6577', '0.2');
+    setGroupColor(d3, '#5A6577', '0.15');
+    d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '8'); });
+    core.setAttribute('fill', '#5A6577');
+    core.setAttribute('opacity', '0.3');
+    document.getElementById('viz-core').querySelector('circle').setAttribute('stroke', '#5A6577');
+    labels.setAttribute('opacity', '0');
+    ghost.setAttribute('opacity', '0');
+    running = false;
+  }
+
+  svg.addEventListener('click', activate);
+
+  // Auto-play when visible
+  const vizObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !running) {
+        setTimeout(activate, 500);
+        vizObs.unobserve(svg);
+      }
+    });
+  }, { threshold: 0.5 });
+  vizObs.observe(svg);
+})();
+</script>
+</html>
