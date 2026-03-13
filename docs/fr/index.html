@@ -849,12 +849,34 @@
       </div>
 
       <table class="comparison-table" style="margin-top: 64px;">
-        <thead><tr><th>Approche</th><th>Ce qu'elle fait</th><th>Pourquoi elle &eacute;choue</th></tr></thead>
+        <thead>
+          <tr>
+            <thead><tr><th>Approche</th>
+            <th>Ce qu'elle fait</th>
+            <th>Pourquoi elle &eacute;choue</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td>Recherche full-text</td><td>Correspondance de tokens</td><td>Trouve ce que vous avez dit, pas ce que vous vouliez dire</td></tr>
-          <tr><td>RAG</td><td>Embedding de chunks, top-K</td><td>Chaque retrieval est amn&eacute;sique. Aucune relation.</td></tr>
-          <tr><td>Analyse statique</td><td>AST, call graphs</td><td>Snapshot fig&eacute;. Ne r&eacute;pond pas &agrave; &laquo; et si ? &raquo;. N'apprend pas.</td></tr>
-          <tr><td>Knowledge graphs</td><td>Triple stores</td><td>Curation manuelle. Ne retourne que ce qui a &eacute;t&eacute; encod&eacute; explicitement.</td></tr>
+          <tr>
+            <td>Recherche full-text</td>
+            <td>Correspondance de tokens</td>
+            <td>Trouve ce que vous avez dit, pas ce que vous vouliez dire</td>
+          </tr>
+          <tr>
+            <td>RAG</td>
+            <td>Embedding de chunks, top-K</td>
+            <td>Chaque retrieval est amn&eacute;sique. Aucune relation.</td>
+          </tr>
+          <tr>
+            <td>Analyse statique</td>
+            <td>AST, call graphs</td>
+            <td>Snapshot fig&eacute;. Ne r&eacute;pond pas &agrave; &laquo; et si ? &raquo;. N'apprend pas.</td>
+          </tr>
+          <tr>
+            <td>Knowledge graphs</td>
+            <td>Triple stores</td>
+            <td>Curation manuelle. Ne retourne que ce qui a &eacute;t&eacute; encod&eacute; explicitement.</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -929,7 +951,7 @@
           </defs>
 
           <!-- Phase labels -->
-          <text id="viz-phase" x="360" y="28" text-anchor="middle" fill="#5A6577" font-family="'JetBrains Mono',monospace" font-size="12" letter-spacing="2">DORMANT — CLICK TO ACTIVATE</text>
+          <text id="viz-phase" x="360" y="28" text-anchor="middle" fill="#5A6577" font-family="'JetBrains Mono',monospace" font-size="12" letter-spacing="2">EN VEILLE — CLIQUEZ POUR ACTIVER</text>
 
           <!-- Edges (dormant = dim, activated = bright) -->
           <g id="viz-edges" opacity="0.12">
@@ -1010,18 +1032,46 @@
       </div>
 
       <div class="loop-steps">
-        <div class="loop-step"><div class="num">01</div><div class="name">Ingest</div><div class="desc">Construisez le property graph &agrave; partir des donn&eacute;es source. Code, JSON, n'importe quel domaine.</div></div>
-        <div class="loop-step"><div class="num">02</div><div class="name">Activate</div><div class="desc">Spreading activation sur 4 dimensions avec annulation du bruit XLR.</div></div>
-        <div class="loop-step"><div class="num">03</div><div class="name">Learn</div><div class="desc">Hebbian plasticity : les r&eacute;sultats corrects renforcent les connexions, les erreurs les affaiblissent.</div></div>
-        <div class="loop-step"><div class="num">04</div><div class="name">Persist</div><div class="desc">Graphe + &eacute;tat de plasticit&eacute; sauvegard&eacute;s sur disque. La prochaine session reprend l&agrave; o&ugrave; celle-ci s'est arr&ecirc;t&eacute;e.</div></div>
+        <div class="loop-step">
+          <div class="num">01</div>
+          <div class="name">Ingest</div>
+          <div class="desc">Construisez le property graph &agrave; partir des donn&eacute;es source. Code, JSON, n'importe quel domaine.</div>
+        </div>
+        <div class="loop-step">
+          <div class="num">02</div>
+          <div class="name">Activate</div>
+          <div class="desc">Spreading activation sur 4 dimensions avec annulation du bruit XLR.</div>
+        </div>
+        <div class="loop-step">
+          <div class="num">03</div>
+          <div class="name">Learn</div>
+          <div class="desc">Hebbian plasticity : les r&eacute;sultats corrects renforcent les connexions, les erreurs les affaiblissent.</div>
+        </div>
+        <div class="loop-step">
+          <div class="num">04</div>
+          <div class="name">Persist</div>
+          <div class="desc">Graphe + &eacute;tat de plasticit&eacute; sauvegard&eacute;s sur disque. La prochaine session reprend l&agrave; o&ugrave; celle-ci s'est arr&ecirc;t&eacute;e.</div>
+        </div>
       </div>
 
       <h3 class="section-title" style="font-size: 24px; margin-top: 64px;">Quatre dimensions d'activation</h3>
       <div class="dimensions">
-        <div class="dim-card"><div class="dim-name" style="color: var(--green);">Structurelle</div><div class="dim-desc">Topologie du graphe : ar&ecirc;tes, PageRank, structure des communaut&eacute;s. Comment les choses sont c&acirc;bl&eacute;es.</div></div>
-        <div class="dim-card"><div class="dim-name" style="color: #60A5FA;">S&eacute;mantique</div><div class="dim-desc">Similarit&eacute; des labels : n-grammes de caract&egrave;res, co-occurrence (PPMI), expansion de synonymes.</div></div>
-        <div class="dim-card"><div class="dim-name" style="color: var(--gold);">Temporelle</div><div class="dim-desc">Dynamiques temporelles : d&eacute;croissance de r&eacute;cence, v&eacute;locit&eacute; de changement, historique co-change.</div></div>
-        <div class="dim-card"><div class="dim-name" style="color: var(--red);">Causale</div><div class="dim-desc">Flux de d&eacute;pendance : causation dirig&eacute;e le long des ar&ecirc;tes d'import, d'appel et de contenance.</div></div>
+        <div class="dim-card">
+          <div class="dim-name" style="color: var(--green);">Structurelle</div>
+          <div class="dim-desc">Topologie du graphe : ar&ecirc;tes, PageRank, structure des communaut&eacute;s. Comment les choses sont c&acirc;bl&eacute;es.</div>
+        </div>
+        <div class="dim-card">
+          <div class="dim-name" style="color: #60A5FA;">S&eacute;mantique</div>
+          <div class="dim-desc">Similarit&eacute; des labels : n-grammes de caract&egrave;res, co-occurrence (PPMI), expansion de synonymes.</div>
+        </div>
+        <div class="dim-card">
+          <div class="dim-name" style="color: var(--gold);">Temporelle</div>
+          <div class="dim-desc">Dynamiques temporelles : d&eacute;croissance de r&eacute;cence, v&eacute;locit&eacute; de changement, historique co-change.</div>
+        </div>
+        <div class="dim-card">
+          <div class="dim-name" style="color: var(--red);">Causale</div>
+          <div class="dim-desc">Flux de d&eacute;pendance : causation dirig&eacute;e le long des ar&ecirc;tes d'import, d'appel et de contenance.</div>
+        </div>
       </div>
     </div>
   </section>
@@ -1092,12 +1142,36 @@
       <h2 class="section-title">Naviguez dans le code comme un chirurgien.</h2>
       <p class="section-desc">grep est stateless. Chaque recherche part de z&eacute;ro. Les Perspectives m1nd maintiennent une session de navigation vivante &mdash; avec historique, branches et suggestions.</p>
       <div class="perspective-flow">
-        <div class="p-step"><div class="p-icon">&#x1F50D;</div><div class="p-name">start</div><div class="p-desc">Entrez dans une perspective. Une surface navigable se forme autour de votre requ&ecirc;te.</div></div>
-        <div class="p-step"><div class="p-icon">&#x1F9ED;</div><div class="p-name">routes</div><div class="p-desc">Parcourez les routes class&eacute;es &mdash; chemins pond&eacute;r&eacute;s &agrave; travers le graphe.</div></div>
-        <div class="p-step"><div class="p-icon">&#x1F3AF;</div><div class="p-name">follow</div><div class="p-desc">D&eacute;placez le focus vers une cible. De nouvelles routes se synth&eacute;tisent automatiquement.</div></div>
-        <div class="p-step p-highlight"><div class="p-icon">&#x1F500;</div><div class="p-name">branch</div><div class="p-desc">Bifurquez votre exploration. Comme les branches git, mais pour l'investigation.</div></div>
-        <div class="p-step"><div class="p-icon">&#x1F4A1;</div><div class="p-name">suggest</div><div class="p-desc">m1nd recommande votre prochain mouvement bas&eacute; sur l'historique de navigation.</div></div>
-        <div class="p-step"><div class="p-icon">&#x2696;&#xFE0F;</div><div class="p-name">compare</div><div class="p-desc">Diff de deux perspectives. N&oelig;uds partag&eacute;s, chemins uniques, deltas dimensionnels.</div></div>
+        <div class="p-step">
+          <div class="p-icon">&#x1F50D;</div>
+          <div class="p-name">start</div>
+          <div class="p-desc">Entrez dans une perspective. Une surface navigable se forme autour de votre requ&ecirc;te.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x1F9ED;</div>
+          <div class="p-name">routes</div>
+          <div class="p-desc">Parcourez les routes class&eacute;es &mdash; chemins pond&eacute;r&eacute;s &agrave; travers le graphe.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x1F3AF;</div>
+          <div class="p-name">follow</div>
+          <div class="p-desc">D&eacute;placez le focus vers une cible. De nouvelles routes se synth&eacute;tisent automatiquement.</div>
+        </div>
+        <div class="p-step p-highlight">
+          <div class="p-icon">&#x1F500;</div>
+          <div class="p-name">branch</div>
+          <div class="p-desc">Bifurquez votre exploration. Comme les branches git, mais pour l'investigation.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x1F4A1;</div>
+          <div class="p-name">suggest</div>
+          <div class="p-desc">m1nd recommande votre prochain mouvement bas&eacute; sur l'historique de navigation.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x2696;&#xFE0F;</div>
+          <div class="p-name">compare</div>
+          <div class="p-desc">Diff de deux perspectives. N&oelig;uds partag&eacute;s, chemins uniques, deltas dimensionnels.</div>
+        </div>
       </div>
       <p class="perspective-tagline">12 outils. <strong>Exploration stateful avec m&eacute;moire, branches et annulation.</strong><br>Aucun autre outil de navigation de code sur le march&eacute; ne fait &ccedil;a.</p>
       <div class="perspective-demo">
@@ -1128,64 +1202,279 @@
       <div class="tools-group">
         <div class="tools-group-title">Fondations <span>(13)</span></div>
         <div class="tools-grid">
-          <div class="tool-card"><div><div class="tool-name">m1nd.ingest</div><div class="tool-desc">Charger des donn&eacute;es dans le graphe. Extracteur de code ou descripteur JSON.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.activate</div><div class="tool-desc">Requ&ecirc;te de spreading activation -- &laquo; qu'est-ce qui est li&eacute; &agrave; X ? &raquo;</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.impact</div><div class="tool-desc">Rayon d'impact -- &laquo; qu'est-ce que modifier X affecte ? &raquo;</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.why</div><div class="tool-desc">Explication du chemin -- &laquo; comment A et B sont-ils connect&eacute;s ? &raquo;</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.learn</div><div class="tool-desc">Feedback Hebbian -- &laquo; ce r&eacute;sultat &eacute;tait correct / faux / partiel. &raquo;</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.drift</div><div class="tool-desc">Analyse de d&eacute;rive des poids -- &laquo; qu'est-ce qui a chang&eacute; depuis la derni&egrave;re session ? &raquo;</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.health</div><div class="tool-desc">Diagnostic -- comptage n&oelig;uds/ar&ecirc;tes, sessions, &eacute;tat de persistance.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.seek</div><div class="tool-desc">Recherche cibl&eacute;e de n&oelig;uds -- trouver des entit&eacute;s sp&eacute;cifiques par ID ou pattern.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.scan</div><div class="tool-desc">Scan large du graphe -- &eacute;num&eacute;rer les n&oelig;uds par type, label ou voisinage.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.timeline</div><div class="tool-desc">S&eacute;quence temporelle -- comment les n&oelig;uds ont chang&eacute; au fil du temps.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.diverge</div><div class="tool-desc">Analyse de divergence -- o&ugrave; deux chemins divergent-ils ?</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.warmup</div><div class="tool-desc">Amorce du contexte -- &laquo; pr&eacute;pare-toi pour la t&acirc;che X. &raquo;</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.federate</div><div class="tool-desc">F&eacute;d&eacute;ration multi-repo -- relier les graphes entre repositories.</div></div></div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.ingest</div>
+              <div class="tool-desc">Charger des donn&eacute;es dans le graphe. Extracteur de code ou descripteur JSON.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.activate</div>
+              <div class="tool-desc">Requ&ecirc;te de spreading activation -- &laquo; qu'est-ce qui est li&eacute; &agrave; X ? &raquo;</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.impact</div>
+              <div class="tool-desc">Rayon d'impact -- &laquo; qu'est-ce que modifier X affecte ? &raquo;</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.why</div>
+              <div class="tool-desc">Explication du chemin -- &laquo; comment A et B sont-ils connect&eacute;s ? &raquo;</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.learn</div>
+              <div class="tool-desc">Feedback Hebbian -- &laquo; ce r&eacute;sultat &eacute;tait correct / faux / partiel. &raquo;</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.drift</div>
+              <div class="tool-desc">Analyse de d&eacute;rive des poids -- &laquo; qu'est-ce qui a chang&eacute; depuis la derni&egrave;re session ? &raquo;</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.health</div>
+              <div class="tool-desc">Diagnostic -- comptage n&oelig;uds/ar&ecirc;tes, sessions, &eacute;tat de persistance.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.seek</div>
+              <div class="tool-desc">Recherche cibl&eacute;e de n&oelig;uds -- trouver des entit&eacute;s sp&eacute;cifiques par ID ou pattern.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.scan</div>
+              <div class="tool-desc">Scan large du graphe -- &eacute;num&eacute;rer les n&oelig;uds par type, label ou voisinage.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.timeline</div>
+              <div class="tool-desc">S&eacute;quence temporelle -- comment les n&oelig;uds ont chang&eacute; au fil du temps.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.diverge</div>
+              <div class="tool-desc">Analyse de divergence -- o&ugrave; deux chemins divergent-ils ?</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.warmup</div>
+              <div class="tool-desc">Amorce du contexte -- &laquo; pr&eacute;pare-toi pour la t&acirc;che X. &raquo;</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.federate</div>
+              <div class="tool-desc">F&eacute;d&eacute;ration multi-repo -- relier les graphes entre repositories.</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="tools-group">
         <div class="tools-group-title">Navigation par Perspective <span>(12)</span></div>
         <div class="tools-grid">
-          <div class="tool-card"><div><div class="tool-name">perspective.start</div><div class="tool-desc">Ouvrir une perspective -- une vue filtr&eacute;e et scop&eacute;e dans le graphe.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">perspective.routes</div><div class="tool-desc">Trouver tous les chemins entre deux n&oelig;uds dans la perspective.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">perspective.follow</div><div class="tool-desc">Naviguer en avant -- suivre une ar&ecirc;te depuis la position actuelle.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">perspective.back</div><div class="tool-desc">Naviguer en arri&egrave;re -- revenir &agrave; une position pr&eacute;c&eacute;dente.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">perspective.peek</div><div class="tool-desc">Aper&ccedil;u des voisins sans bouger -- regarder avant de sauter.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">perspective.inspect</div><div class="tool-desc">D&eacute;tail complet du n&oelig;ud actuel -- ar&ecirc;tes, poids, m&eacute;tadonn&eacute;es.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">perspective.suggest</div><div class="tool-desc">Navigation guid&eacute;e -- &laquo; o&ugrave; devrais-je aller ensuite ? &raquo;</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">perspective.affinity</div><div class="tool-desc">&Eacute;valuer la corr&eacute;lation entre deux n&oelig;uds depuis ce point de vue.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">perspective.branch</div><div class="tool-desc">Bifurquer la perspective actuelle en explorations parall&egrave;les.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">perspective.compare</div><div class="tool-desc">Diff de deux perspectives -- qu'est-ce que chacune voit que l'autre ne voit pas ?</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">perspective.list</div><div class="tool-desc">Lister toutes les perspectives actives et leurs positions.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">perspective.close</div><div class="tool-desc">Fermer une perspective et lib&eacute;rer ses ressources.</div></div></div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.start</div>
+              <div class="tool-desc">Ouvrir une perspective -- une vue filtr&eacute;e et scop&eacute;e dans le graphe.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.routes</div>
+              <div class="tool-desc">Trouver tous les chemins entre deux n&oelig;uds dans la perspective.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.follow</div>
+              <div class="tool-desc">Naviguer en avant -- suivre une ar&ecirc;te depuis la position actuelle.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.back</div>
+              <div class="tool-desc">Naviguer en arri&egrave;re -- revenir &agrave; une position pr&eacute;c&eacute;dente.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.peek</div>
+              <div class="tool-desc">Aper&ccedil;u des voisins sans bouger -- regarder avant de sauter.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.inspect</div>
+              <div class="tool-desc">D&eacute;tail complet du n&oelig;ud actuel -- ar&ecirc;tes, poids, m&eacute;tadonn&eacute;es.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.suggest</div>
+              <div class="tool-desc">Navigation guid&eacute;e -- &laquo; o&ugrave; devrais-je aller ensuite ? &raquo;</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.affinity</div>
+              <div class="tool-desc">&Eacute;valuer la corr&eacute;lation entre deux n&oelig;uds depuis ce point de vue.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.branch</div>
+              <div class="tool-desc">Bifurquer la perspective actuelle en explorations parall&egrave;les.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.compare</div>
+              <div class="tool-desc">Diff de deux perspectives -- qu'est-ce que chacune voit que l'autre ne voit pas ?</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.list</div>
+              <div class="tool-desc">Lister toutes les perspectives actives et leurs positions.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.close</div>
+              <div class="tool-desc">Fermer une perspective et lib&eacute;rer ses ressources.</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="tools-group">
         <div class="tools-group-title">Syst&egrave;me de Verrous <span>(5)</span></div>
         <div class="tools-grid">
-          <div class="tool-card"><div><div class="tool-name">lock.create</div><div class="tool-desc">Snapshot de l'&eacute;tat du graphe -- cr&eacute;er une baseline pour comparaison.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">lock.watch</div><div class="tool-desc">Surveiller les changements par rapport au verrou -- d&eacute;tection de d&eacute;rive en temps r&eacute;el.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">lock.diff</div><div class="tool-desc">Diff de l'&eacute;tat actuel par rapport au verrou -- qu'est-ce qui a chang&eacute; ?</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">lock.rebase</div><div class="tool-desc">Mettre &agrave; jour le verrou vers l'&eacute;tat actuel -- accepter tous les changements.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">lock.release</div><div class="tool-desc">Lib&eacute;rer le verrou et la m&eacute;moire du snapshot.</div></div></div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">lock.create</div>
+              <div class="tool-desc">Snapshot de l'&eacute;tat du graphe -- cr&eacute;er une baseline pour comparaison.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">lock.watch</div>
+              <div class="tool-desc">Surveiller les changements par rapport au verrou -- d&eacute;tection de d&eacute;rive en temps r&eacute;el.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">lock.diff</div>
+              <div class="tool-desc">Diff de l'&eacute;tat actuel par rapport au verrou -- qu'est-ce qui a chang&eacute; ?</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">lock.rebase</div>
+              <div class="tool-desc">Mettre &agrave; jour le verrou vers l'&eacute;tat actuel -- accepter tous les changements.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">lock.release</div>
+              <div class="tool-desc">Lib&eacute;rer le verrou et la m&eacute;moire du snapshot.</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="tools-group">
         <div class="tools-group-title">Super-pouvoirs <span>(13)</span></div>
         <div class="tools-grid">
-          <div class="tool-card"><div><div class="tool-name">m1nd.hypothesize</div><div class="tool-desc">Tester une affirmation structurelle -- confiance bay&eacute;sienne sur 25K+ chemins.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.counterfactual</div><div class="tool-desc">Simulation de suppression -- &laquo; que casse-t-on si on supprime X ? &raquo;</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.missing</div><div class="tool-desc">D&eacute;tection de trous structurels -- &laquo; qu'est-ce qui manque dans ce tableau ? &raquo;</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.resonate</div><div class="tool-desc">Analyse harmonique -- ondes stationnaires, fr&eacute;quences de r&eacute;sonance.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.fingerprint</div><div class="tool-desc">D&eacute;tection d'&eacute;quivalence -- &laquo; ces deux choses sont-elles des doublons ? &raquo;</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.trace</div><div class="tool-desc">Trace compl&egrave;te d'activation -- chaque hop, chaque poids, chaque d&eacute;cision.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.validate_plan</div><div class="tool-desc">Valider un plan d'impl&eacute;mentation contre la structure du graphe.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.predict</div><div class="tool-desc">Pr&eacute;diction co-change -- &laquo; quoi d'autre devra changer ? &raquo;</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">m1nd.differential</div><div class="tool-desc">XLR diff&eacute;rentiel -- s&eacute;parer le signal du bruit entre deux requ&ecirc;tes.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">trail.save</div><div class="tool-desc">Sauvegarder l'&eacute;tat d'enqu&ecirc;te actuel -- toutes les activations, perspectives, contexte.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">trail.resume</div><div class="tool-desc">Reprendre un trail sauvegard&eacute; -- repartir exactement l&agrave; o&ugrave; vous &eacute;tiez.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">trail.merge</div><div class="tool-desc">Fusionner deux trails -- combiner des investigations parall&egrave;les.</div></div></div>
-          <div class="tool-card"><div><div class="tool-name">trail.list</div><div class="tool-desc">Lister tous les trails sauvegard&eacute;s avec m&eacute;tadonn&eacute;es et horodatages.</div></div></div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.hypothesize</div>
+              <div class="tool-desc">Tester une affirmation structurelle -- confiance bay&eacute;sienne sur 25K+ chemins.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.counterfactual</div>
+              <div class="tool-desc">Simulation de suppression -- &laquo; que casse-t-on si on supprime X ? &raquo;</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.missing</div>
+              <div class="tool-desc">D&eacute;tection de trous structurels -- &laquo; qu'est-ce qui manque dans ce tableau ? &raquo;</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.resonate</div>
+              <div class="tool-desc">Analyse harmonique -- ondes stationnaires, fr&eacute;quences de r&eacute;sonance.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.fingerprint</div>
+              <div class="tool-desc">D&eacute;tection d'&eacute;quivalence -- &laquo; ces deux choses sont-elles des doublons ? &raquo;</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.trace</div>
+              <div class="tool-desc">Trace compl&egrave;te d'activation -- chaque hop, chaque poids, chaque d&eacute;cision.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.validate_plan</div>
+              <div class="tool-desc">Valider un plan d'impl&eacute;mentation contre la structure du graphe.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.predict</div>
+              <div class="tool-desc">Pr&eacute;diction co-change -- &laquo; quoi d'autre devra changer ? &raquo;</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.differential</div>
+              <div class="tool-desc">XLR diff&eacute;rentiel -- s&eacute;parer le signal du bruit entre deux requ&ecirc;tes.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">trail.save</div>
+              <div class="tool-desc">Sauvegarder l'&eacute;tat d'enqu&ecirc;te actuel -- toutes les activations, perspectives, contexte.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">trail.resume</div>
+              <div class="tool-desc">Reprendre un trail sauvegard&eacute; -- repartir exactement l&agrave; o&ugrave; vous &eacute;tiez.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">trail.merge</div>
+              <div class="tool-desc">Fusionner deux trails -- combiner des investigations parall&egrave;les.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">trail.list</div>
+              <div class="tool-desc">Lister tous les trails sauvegard&eacute;s avec m&eacute;tadonn&eacute;es et horodatages.</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1198,12 +1487,36 @@
       <h2 class="section-title">Des vrais chiffres d'une vraie codebase.</h2>
       <p class="section-desc">Mesur&eacute;s sur un projet de 335 fichiers en Rust + Python + TypeScript. Z&eacute;ro cherry-picking.</p>
       <div class="bench-grid">
-        <div class="bench-card"><div class="bench-label">Ingestion compl&egrave;te</div><div class="bench-value">910ms</div><div class="bench-detail">335 fichiers &rarr; 9 767 n&oelig;uds &rarr; 26 557 ar&ecirc;tes</div></div>
-        <div class="bench-card"><div class="bench-label">Spreading activation</div><div class="bench-value">31-77ms</div><div class="bench-detail">Front d'onde &agrave; 4 dimensions, gate de bruit XLR</div></div>
-        <div class="bench-card"><div class="bench-label">Rayon d'impact</div><div class="bench-value">5-52ms</div><div class="bench-detail">Analyse en cascade compl&egrave;te avec profondeur de hop</div></div>
-        <div class="bench-card"><div class="bench-label">Simulation counterfactual</div><div class="bench-value">3ms</div><div class="bench-detail">4 189 n&oelig;uds affect&eacute;s &eacute;valu&eacute;s</div></div>
-        <div class="bench-card"><div class="bench-label">Lock diff</div><div class="bench-value">0.08&micro;s</div><div class="bench-detail">Comparaison de snapshot, quasi instantan&eacute;</div></div>
-        <div class="bench-card"><div class="bench-label">F&eacute;d&eacute;ration (2 repos)</div><div class="bench-value">1.3s</div><div class="bench-detail">18 203 ar&ecirc;tes cross-repo reli&eacute;es</div></div>
+        <div class="bench-card">
+          <div class="bench-label">Ingestion compl&egrave;te</div>
+          <div class="bench-value">910ms</div>
+          <div class="bench-detail">335 fichiers &rarr; 9 767 n&oelig;uds &rarr; 26 557 ar&ecirc;tes</div>
+        </div>
+        <div class="bench-card">
+          <div class="bench-label">Spreading activation</div>
+          <div class="bench-value">31-77ms</div>
+          <div class="bench-detail">Front d'onde &agrave; 4 dimensions, gate de bruit XLR</div>
+        </div>
+        <div class="bench-card">
+          <div class="bench-label">Rayon d'impact</div>
+          <div class="bench-value">5-52ms</div>
+          <div class="bench-detail">Analyse en cascade compl&egrave;te avec profondeur de hop</div>
+        </div>
+        <div class="bench-card">
+          <div class="bench-label">Simulation counterfactual</div>
+          <div class="bench-value">3ms</div>
+          <div class="bench-detail">4 189 n&oelig;uds affect&eacute;s &eacute;valu&eacute;s</div>
+        </div>
+        <div class="bench-card">
+          <div class="bench-label">Lock diff</div>
+          <div class="bench-value">0.08&micro;s</div>
+          <div class="bench-detail">Comparaison de snapshot, quasi instantan&eacute;</div>
+        </div>
+        <div class="bench-card">
+          <div class="bench-label">F&eacute;d&eacute;ration (2 repos)</div>
+          <div class="bench-value">1.3s</div>
+          <div class="bench-detail">18 203 ar&ecirc;tes cross-repo reli&eacute;es</div>
+        </div>
       </div>
     </div>
   </section>
@@ -1233,19 +1546,105 @@
         </div>
       </div>
       <table class="vs-table">
-        <thead><tr><th></th><th class="highlight">m1nd</th><th>Sourcegraph</th><th>Cursor</th><th>Copilot</th><th>Greptile</th></tr></thead>
+        <thead>
+          <tr>
+            <thead><tr><th></th>
+            <th class="highlight">m1nd</th>
+            <th>Sourcegraph</th>
+            <th>Cursor</th>
+            <th>Copilot</th>
+            <th>Greptile</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td>Graphe de code</td><td class="yes">Property graph complet</td><td class="partial">Index de symboles</td><td class="no">Aucun</td><td class="no">Aucun</td><td class="partial">Index AST</td></tr>
-          <tr><td>Apprend de l'usage</td><td class="yes">Hebbian plasticity</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td></tr>
-          <tr><td>Persiste les enqu&ecirc;tes</td><td class="yes">Trail system</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td></tr>
-          <tr><td>Teste les hypoth&egrave;ses</td><td class="yes">Moteur bay&eacute;sien</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td></tr>
-          <tr><td>Simule la suppression</td><td class="yes">Counterfactual</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td><td class="no">Non</td></tr>
-          <tr><td>Verrous multi-agents</td><td class="yes">Syst&egrave;me de verrous (op&eacute;rationnel)</td><td class="no">Non</td><td class="no">Tent&eacute;, &eacute;chou&eacute;</td><td class="no">Non</td><td class="no">Non</td></tr>
-          <tr><td>Multi-repo</td><td class="yes">F&eacute;d&eacute;ration</td><td class="yes">Oui</td><td class="no">Non</td><td class="no">Non</td><td class="partial">Par repo</td></tr>
-          <tr><td>Latence de recherche</td><td class="yes">31ms (local)</td><td class="partial">~200ms (cloud)</td><td class="partial">320ms+ (cloud)</td><td class="partial">500&ndash;800ms</td><td class="partial">D&eacute;pendant du cloud</td></tr>
-          <tr><td>Interface agent</td><td class="yes">43 outils MCP</td><td class="partial">API</td><td class="no">Int&eacute;gr&eacute; uniquement</td><td class="no">Int&eacute;gr&eacute; uniquement</td><td class="partial">API</td></tr>
-          <tr><td>Co&ucirc;t mensuel</td><td class="yes">0 $ (pour toujours)</td><td class="no">59 $/utilisateur/mois</td><td class="no">20+ $/mois (d&eacute;passements jusqu'&agrave; 22K $)</td><td class="no">19+ $/mois</td><td class="no">30 $/dev/mois</td></tr>
-          <tr><td>Capacit&eacute;s (sur 16)</td><td class="yes" style="font-size: 15px; font-weight: 700;">16/16</td><td class="no">1/16</td><td class="no">0/16</td><td class="no">0/16</td><td class="no">1/16</td></tr>
+          <tr>
+            <td>Graphe de code</td>
+            <td class="yes">Property graph complet</td>
+            <td class="partial">Index de symboles</td>
+            <td class="no">Aucun</td>
+            <td class="no">Aucun</td>
+            <td class="partial">Index AST</td>
+          </tr>
+          <tr>
+            <td>Apprend de l'usage</td>
+            <td class="yes">Hebbian plasticity</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+          </tr>
+          <tr>
+            <td>Persiste les enqu&ecirc;tes</td>
+            <td class="yes">Trail system</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+          </tr>
+          <tr>
+            <td>Teste les hypoth&egrave;ses</td>
+            <td class="yes">Moteur bay&eacute;sien</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+          </tr>
+          <tr>
+            <td>Simule la suppression</td>
+            <td class="yes">Counterfactual</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+          </tr>
+          <tr>
+            <td>Verrous multi-agents</td>
+            <td class="yes">Syst&egrave;me de verrous (op&eacute;rationnel)</td>
+            <td class="no">Non</td>
+            <td class="no">Tent&eacute;, &eacute;chou&eacute;</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+          </tr>
+          <tr>
+            <td>Multi-repo</td>
+            <td class="yes">F&eacute;d&eacute;ration</td>
+            <td class="yes">Oui</td>
+            <td class="no">Non</td>
+            <td class="no">Non</td>
+            <td class="partial">Par repo</td>
+          </tr>
+          <tr>
+            <td>Latence de recherche</td>
+            <td class="yes">31ms (local)</td>
+            <td class="partial">~200ms (cloud)</td>
+            <td class="partial">320ms+ (cloud)</td>
+            <td class="partial">500&ndash;800ms</td>
+            <td class="partial">D&eacute;pendant du cloud</td>
+          </tr>
+          <tr>
+            <td>Interface agent</td>
+            <td class="yes">43 outils MCP</td>
+            <td class="partial">API</td>
+            <td class="no">Int&eacute;gr&eacute; uniquement</td>
+            <td class="no">Int&eacute;gr&eacute; uniquement</td>
+            <td class="partial">API</td>
+          </tr>
+          <tr>
+            <td>Co&ucirc;t mensuel</td>
+            <td class="yes">0 $ (pour toujours)</td>
+            <td class="no">59 $/utilisateur/mois</td>
+            <td class="no">20+ $/mois (d&eacute;passements jusqu'&agrave; 22K $)</td>
+            <td class="no">19+ $/mois</td>
+            <td class="no">30 $/dev/mois</td>
+          </tr>
+          <tr>
+            <td>Capacit&eacute;s (sur 16)</td>
+            <td class="yes" style="font-size: 15px; font-weight: 700;">16/16</td>
+            <td class="no">1/16</td>
+            <td class="no">0/16</td>
+            <td class="no">0/16</td>
+            <td class="no">1/16</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -1462,9 +1861,36 @@
       <h2 class="section-title">Op&eacute;rationnel en 60 secondes.</h2>
       <div class="steps">
         <div class="step"><div class="step-num">1</div><div class="step-content"><h3>Build</h3><div class="code-block">cargo build --release</div></div></div>
-        <div class="step"><div class="step-num">2</div><div class="step-content"><h3>Lancer</h3><p>m1nd d&eacute;marre en tant que serveur JSON-RPC stdio. Compatible MCP d&egrave;s le d&eacute;part.</p><div class="code-block">./target/release/m1nd-mcp</div></div></div>
-        <div class="step"><div class="step-num">3</div><div class="step-content"><h3>Ing&eacute;rer et Interroger</h3><p>Envoyez des messages MCP via stdin. L'&eacute;tat persiste automatiquement.</p><div class="code-block"><span class="comment">// Ingérer une codebase</span><br>{"method":"tools/call","params":{"name":"m1nd.ingest",<br>&nbsp;&nbsp;"arguments":{"path":"/your/project","agent_id":"my-agent"}}}<br><br><span class="comment">// Interroger</span><br>{"method":"tools/call","params":{"name":"m1nd.activate",<br>&nbsp;&nbsp;"arguments":{"query":"authentication","agent_id":"my-agent"}}}<br><br><span class="comment">// Apprendre des résultats</span><br>{"method":"tools/call","params":{"name":"m1nd.learn",<br>&nbsp;&nbsp;"arguments":{"feedback":"correct","node_ids":["file::src/auth.rs"]}}}</div></div></div>
-        <div class="step"><div class="step-num">4</div><div class="step-content"><h3>N'importe quel domaine</h3><p>Pas que du code. Ing&eacute;rez n'importe quel knowledge graph depuis JSON.</p><div class="code-block"><span class="comment">// Descripteur JSON -- fonctionne pour tout domaine</span><br>{"nodes": [<br>&nbsp;&nbsp;{"id":"concept::activation", "label":"Spreading Activation", "type":"Concept"},<br>&nbsp;&nbsp;{"id":"concept::plasticity", "label":"Hebbian Plasticity", "type":"Process"}<br>],<br>"edges": [<br>&nbsp;&nbsp;{"source":"concept::activation", "target":"concept::plasticity",<br>&nbsp;&nbsp;&nbsp;"relation":"enables", "weight":0.8}<br>]}</div></div></div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h3>Lancer</h3>
+            <p>m1nd d&eacute;marre en tant que serveur JSON-RPC stdio. Compatible MCP d&egrave;s le d&eacute;part.</p>
+            <div class="code-block">
+              ./target/release/m1nd-mcp
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h3>Ing&eacute;rer et Interroger</h3>
+            <p>Envoyez des messages MCP via stdin. L'&eacute;tat persiste automatiquement.</p>
+            <div class="code-block">
+              <span class="comment">// Ingérer une codebase</span><br>{"method":"tools/call","params":{"name":"m1nd.ingest",<br>&nbsp;&nbsp;"arguments":{"path":"/your/project","agent_id":"my-agent"}}}<br><br><span class="comment">// Interroger</span><br>{"method":"tools/call","params":{"name":"m1nd.activate",<br>&nbsp;&nbsp;"arguments":{"query":"authentication","agent_id":"my-agent"}}}<br><br><span class="comment">// Apprendre des résultats</span><br>{"method":"tools/call","params":{"name":"m1nd.learn",<br>&nbsp;&nbsp;"arguments":{"feedback":"correct","node_ids":["file::src/auth.rs"]}}}
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h3>N'importe quel domaine</h3>
+            <p>Pas que du code. Ing&eacute;rez n'importe quel knowledge graph depuis JSON.</p>
+            <div class="code-block">
+              <span class="comment">// Descripteur JSON -- fonctionne pour tout domaine</span><br>{"nodes": [<br>&nbsp;&nbsp;{"id":"concept::activation", "label":"Spreading Activation", "type":"Concept"},<br>&nbsp;&nbsp;{"id":"concept::plasticity", "label":"Hebbian Plasticity", "type":"Process"}<br>],<br>"edges": [<br>&nbsp;&nbsp;{"source":"concept::activation", "target":"concept::plasticity",<br>&nbsp;&nbsp;&nbsp;"relation":"enables", "weight":0.8}<br>]}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -1476,10 +1902,22 @@
       <h2 class="section-title">Ce que m1nd n'est pas.</h2>
       <p class="section-desc">Aucun outil ne fait tout. Voici les limites de m1nd.</p>
       <div class="limits-list">
-        <div class="limit-item"><div class="limit-title">Pas un &eacute;diteur de code</div><div class="limit-desc">m1nd navigue et analyse. Il n'&eacute;crit pas, ne refactorise pas, n'applique pas de patches. Associez-le &agrave; un agent qui le fait.</div></div>
-        <div class="limit-item"><div class="limit-title">Pas un moteur de recherche</div><div class="limit-desc">Il trouve des relations structurelles, pas des correspondances de cha&icirc;nes. Pour la recherche textuelle litt&eacute;rale, utilisez grep. Pour la compr&eacute;hension structurelle, utilisez m1nd.</div></div>
-        <div class="limit-item"><div class="limit-title">Le graphe vit en m&eacute;moire</div><div class="limit-desc">Le graphe complet est conserv&eacute; en RAM pour la vitesse. Les grands monorepos (100K+ fichiers) n&eacute;cessiteront de la m&eacute;moire significative. La persistance se fait sur disque &agrave; l'arr&ecirc;t.</div></div>
-        <div class="limit-item"><div class="limit-title">Machine unique, aujourd'hui</div><div class="limit-desc">La f&eacute;d&eacute;ration relie les graphes de plusieurs repos, mais le serveur tourne sur une seule machine. Le mode distribu&eacute; n'est pas encore impl&eacute;ment&eacute;.</div></div>
+        <div class="limit-item">
+          <div class="limit-title">Pas un &eacute;diteur de code</div>
+          <div class="limit-desc">m1nd navigue et analyse. Il n'&eacute;crit pas, ne refactorise pas, n'applique pas de patches. Associez-le &agrave; un agent qui le fait.</div>
+        </div>
+        <div class="limit-item">
+          <div class="limit-title">Pas un moteur de recherche</div>
+          <div class="limit-desc">Il trouve des relations structurelles, pas des correspondances de cha&icirc;nes. Pour la recherche textuelle litt&eacute;rale, utilisez grep. Pour la compr&eacute;hension structurelle, utilisez m1nd.</div>
+        </div>
+        <div class="limit-item">
+          <div class="limit-title">Le graphe vit en m&eacute;moire</div>
+          <div class="limit-desc">Le graphe complet est conserv&eacute; en RAM pour la vitesse. Les grands monorepos (100K+ fichiers) n&eacute;cessiteront de la m&eacute;moire significative. La persistance se fait sur disque &agrave; l'arr&ecirc;t.</div>
+        </div>
+        <div class="limit-item">
+          <div class="limit-title">Machine unique, aujourd'hui</div>
+          <div class="limit-desc">La f&eacute;d&eacute;ration relie les graphes de plusieurs repos, mais le serveur tourne sur une seule machine. Le mode distribu&eacute; n'est pas encore impl&eacute;ment&eacute;.</div>
+        </div>
       </div>
     </div>
   </section>
@@ -1487,11 +1925,26 @@
   <!-- ── Metrics bar ── -->
   <section style="padding: 48px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
     <div class="container" style="display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; text-align: center;">
-      <div><div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~15 500</div><div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Lignes de Rust</div></div>
-      <div><div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">159</div><div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Tests</div></div>
-      <div><div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">43</div><div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Outils MCP</div></div>
-      <div><div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">6+1</div><div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Langages</div></div>
-      <div><div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~8 Mo</div><div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Binaire (ARM64)</div></div>
+      <div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~15 500</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Lignes de Rust</div>
+      </div>
+      <div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">159</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Tests</div>
+      </div>
+      <div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">43</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Outils MCP</div>
+      </div>
+      <div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">6+1</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Langages</div>
+      </div>
+      <div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~8 Mo</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Binaire (ARM64)</div>
+      </div>
     </div>
   </section>
 
@@ -1530,20 +1983,7 @@
       <div class="author">MAX ELIAS KLEINSCHMIDT &#x1F1E7;&#x1F1F7; &mdash; COSMOPHONIX INTELLIGENCE &mdash; fi&egrave;rement br&eacute;silien</div>
     </div>
   </footer>
-      <div class="footer-logo">m<span>1</span>nd</div>
-      <div class="footer-desc">The adaptive code graph</div>
-      <div class="footer-links">
-        <a href="https://github.com/maxkle1nz/m1nd">GitHub</a>
-        <a href="wiki-build/index.html">Wiki</a>
-        <a href="wiki-build/faq.html">FAQ</a>
-        <a href="wiki-build/api-reference/overview.html">API Reference</a>
-        <a href="https://github.com/maxkle1nz/m1nd/blob/main/EXAMPLES.md">Examples</a>
-        <a href="https://github.com/sponsors/maxkle1nz">Sponsor</a>
-        <a href="https://github.com/maxkle1nz/m1nd/blob/main/LICENSE">MIT License</a>
-      </div>
-      <div class="author">MAX ELIAS KLEINSCHMIDT &#x1F1E7;&#x1F1F7; &mdash; COSMOPHONIX INTELLIGENCE &mdash; proudly Brazilian</div>
-    </div>
-  </footer>
+
 
 <script>
 // ── Live Terminal Animation Engine ──
@@ -1551,72 +1991,72 @@
   const scenes = [
     // Scene 0: Find what matters
     [
-      { type: 'comment', text: '# You ask: "What handles authentication in this project?"' },
+      { type: 'comment', text: '# Vous demandez : "Qu'est-ce qui gère l'authentification dans ce projet ?"' },
       { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.activate --query "authentication"' },
       { type: 'blank' },
-      { type: 'comment', text: '# m1nd lights up the graph. No grepping. No reading files.' },
-      { type: 'comment', text: '# It finds the 4 most relevant files instantly:' },
+      { type: 'comment', text: '# m1nd éclaire le graphe. Pas de grepping. Pas de lecture de fichiers.' },
+      { type: 'comment', text: '# Il trouve les 4 fichiers les plus pertinents instantanément :' },
       { type: 'blank' },
-      { type: 'result', score: '94%', file: 'auth/middleware.rs', detail: 'the main auth layer' },
-      { type: 'result', score: '89%', file: 'auth/jwt.rs', detail: 'token validation' },
-      { type: 'result', score: '83%', file: 'session/manager.rs', detail: 'session handling' },
-      { type: 'result', score: '71%', file: 'middleware/cors.rs', detail: 'related security' },
+      { type: 'result', score: '94%', file: 'auth/middleware.rs', detail: 'la couche auth principale' },
+      { type: 'result', score: '89%', file: 'auth/jwt.rs', detail: 'validation de tokens' },
+      { type: 'result', score: '83%', file: 'session/manager.rs', detail: 'gestion de sessions' },
+      { type: 'result', score: '71%', file: 'middleware/cors.rs', detail: 'sécurité associée' },
       { type: 'blank' },
-      { type: 'success', text: 'Done in 31ms. Zero LLM tokens. Zero cost.' },
+      { type: 'success', text: 'Terminé en 31ms. Zéro token LLM. Zéro coût.' },
     ],
-    // Scene 1: Find what's missing
+    // Scene 1: Find what\'s missing
     [
-      { type: 'comment', text: '# The feature no other tool has:' },
-      { type: 'comment', text: '# find what SHOULD exist in your code but DOESN\'T.' },
+      { type: 'comment', text: '# La fonctionnalité qu'aucun autre outil ne possède :' },
+      { type: 'comment', text: '# trouvez ce qui DEVRAIT exister dans votre code mais N'EXISTE PAS.' },
       { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.missing --query "payment processing"' },
       { type: 'blank' },
-      { type: 'comment', text: '# m1nd found 3 gaps in your payment system:' },
+      { type: 'comment', text: '# m1nd a trouvé 3 lacunes dans votre système de paiement :' },
       { type: 'blank' },
-      { type: 'hole', score: '!', file: 'payment/refund_handler.rs', detail: 'no refund logic exists' },
-      { type: 'hole', score: '!', file: 'payment/webhook_validator.rs', detail: 'Stripe webhooks are unverified' },
-      { type: 'hole', score: '!', file: 'payment/idempotency.rs', detail: 'retries can charge twice' },
+      { type: 'hole', score: '!', file: 'payment/refund_handler.rs', detail: 'aucune logique de remboursement' },
+      { type: 'hole', score: '!', file: 'payment/webhook_validator.rs', detail: 'les webhooks Stripe ne sont pas vérifiés' },
+      { type: 'hole', score: '!', file: 'payment/idempotency.rs', detail: 'les retentatives peuvent facturer en double' },
       { type: 'blank' },
-      { type: 'comment', text: '# grep can\'t find these. They\'re files that don\'t exist yet.' },
-      { type: 'success', text: '3 missing pieces found in 18ms. $0.00.' },
+      { type: 'comment', text: '# grep ne peut pas les trouver. Ce sont des fichiers qui n'existent pas encore.' },
+      { type: 'success', text: '3 pièces manquantes trouvées en 18ms. 0,00 $.' },
     ],
     // Scene 2: Simulate before you break
     [
-      { type: 'comment', text: '# Before deleting a file, ask:' },
-      { type: 'comment', text: '# "What breaks if I remove this?"' },
+      { type: 'comment', text: '# Avant de supprimer un fichier, demandez :' },
+      { type: 'comment', text: '# "Qu'est-ce qui casse si je retire ça ?"' },
       { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.counterfactual --remove "auth/middleware.rs"' },
       { type: 'blank' },
-      { type: 'comment', text: '# m1nd simulates the removal without touching your code:' },
+      { type: 'comment', text: '# m1nd simule la suppression sans toucher à votre code :' },
       { type: 'blank' },
-      { type: 'critical', text: 'BREAKS  api.rs — 47 endpoints lose authentication' },
-      { type: 'critical', text: 'BREAKS  session/manager.rs — sessions stop validating' },
-      { type: 'warn', text: 'RISK    cors.rs — security rules become orphaned' },
-      { type: 'warn', text: 'RISK    jwt.rs — token validator has no consumer' },
+      { type: 'critical', text: 'CASSE   api.rs — 47 endpoints perdent l'authentification' },
+      { type: 'critical', text: 'CASSE   session/manager.rs — les sessions arrêtent la validation' },
+      { type: 'warn', text: 'RISQUE  cors.rs — les règles de sécurité deviennent orphelines' },
+      { type: 'warn', text: 'RISQUE  jwt.rs — le validateur de tokens n'a plus de consommateur' },
       { type: 'blank' },
-      { type: 'comment', text: '# 23 files affected. You see the full blast radius.' },
-      { type: 'success', text: 'Simulated in 3ms. No tests needed. No runtime.' },
+      { type: 'comment', text: '# 23 fichiers affectés. Vous voyez le rayon d'impact complet.' },
+      { type: 'success', text: 'Simulé en 3ms. Pas de tests nécessaires. Pas de runtime.' },
     ],
     // Scene 3: Navigate like a surgeon
     [
-      { type: 'comment', text: '# Explore your code like navigating a map.' },
-      { type: 'comment', text: '# m1nd remembers where you\'ve been.' },
+      { type: 'comment', text: '# Explorez votre code comme on navigue sur une carte.' },
+      { type: 'comment', text: '# m1nd se souvient où vous êtes allé.' },
       { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.perspective_start --query "payment flow"' },
-      { type: 'dim', text: 'Opened. 6 paths to explore.', delay: 300 },
+      { type: 'dim', text: 'Ouvert. 6 chemins à explorer.', delay: 300 },
       { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.perspective_follow "checkout → stripe"' },
-      { type: 'dim', text: 'Moved to stripe/client.rs. 4 new paths appeared.', delay: 300 },
+      { type: 'dim', text: 'Déplacé vers stripe/client.rs. 4 nouveaux chemins apparus.', delay: 300 },
       { type: 'blank' },
-      { type: 'comment', text: '# Fork your exploration — like git branches for investigation' },
+      { type: 'comment', text: '# Bifurquez votre exploration — comme des branches git pour l'investigation' },
       { type: 'cmd', text: '$ m1nd.perspective_branch "refund-path"' },
       { type: 'blank' },
-      { type: 'comment', text: '# m1nd suggests where to go next:' },
+      { type: 'comment', text: '# m1nd suggère où aller ensuite :' },
       { type: 'cmd', text: '$ m1nd.perspective_suggest' },
-      { type: 'suggest', file: 'refund/handler.rs', detail: '91% likely next dependency' },
+      { type: 'suggest', file: 'refund/handler.rs', detail: '91% probabilité de prochaine dépendance' },
       { type: 'blank' },
-      { type: 'success', text: 'Stateful. Branching. Undo. Zero tokens.' },
+      { type: 'success', text: 'Avec état. Branchement. Annulation. Zéro token.' },
     ],
   ];
 
@@ -1763,8 +2203,8 @@
     running = true;
 
     // Phase 1: QUERY ARRIVES
-    setPhase('PHASE 1 — QUERY RECEIVED');
-    setComment('Agent asks: "What handles authentication?"');
+    setPhase('PHASE 1 — REQUÊTE REÇUE');
+    setComment('L'agent demande : "Qu'est-ce qui gère l'authentification ?"');
     core.setAttribute('fill', '#00E5A0');
     core.setAttribute('opacity', '0.9');
     core.style.transition = 'all 400ms ease';
@@ -1773,7 +2213,7 @@
 
     // Phase 2: SPREADING ACTIVATION — Hop 1
     setPhase('PHASE 2 — SPREADING ACTIVATION (HOP 1)');
-    setComment('Wavefront: seed node → 4 direct neighbors');
+    setComment('Front d'onde : nœud de départ → 4 voisins directs');
     edges.style.transition = 'opacity 500ms ease';
     edges.setAttribute('opacity', '0.4');
     setGroupColor(d1, '#00E5A0', '0.8');
@@ -1781,21 +2221,21 @@
 
     // Phase 3: Hop 2
     setPhase('PHASE 3 — SPREADING ACTIVATION (HOP 2)');
-    setComment('Wavefront expands: 4 → 7 nodes, weighted by 4 dimensions');
+    setComment('Front d'onde s'étend : 4 → 7 nœuds, pondérés en 4 dimensions');
     setGroupColor(d2, '#60A5FA', '0.65');
     edges.setAttribute('opacity', '0.55');
     await new Promise(r => setTimeout(r, 2200));
 
     // Phase 4: Hop 3
     setPhase('PHASE 4 — SPREADING ACTIVATION (HOP 3)');
-    setComment('7 → 8 outer nodes. XLR cancels 14 false-positive edges.');
+    setComment('7 → 8 nœuds extérieurs. XLR annule 14 arêtes faux-positifs.');
     setGroupColor(d3, '#F5A623', '0.5');
     edges.setAttribute('opacity', '0.65');
     await new Promise(r => setTimeout(r, 2200));
 
     // Phase 5: STRUCTURAL HOLE
-    setPhase('PHASE 5 — STRUCTURAL HOLE DETECTED');
-    setComment('Missing connection found: rate_limit.rs should exist but doesn\'t!');
+    setPhase('PHASE 5 — TROU STRUCTUREL DÉTECTÉ');
+    setComment('Connexion manquante trouvée : rate_limit.rs devrait exister mais n'existe pas !');
     ghost.setAttribute('opacity', '0.6');
     ghost.style.transition = 'opacity 400ms ease';
     // Flash the hole area
@@ -1804,240 +2244,27 @@
     await new Promise(r => setTimeout(r, 2800));
 
     // Phase 6: RESULTS
-    setPhase('PHASE 6 — RESULTS RANKED');
-    setComment('127 nodes activated in 31ms · 0 LLM tokens · 2,847 weights updated');
+    setPhase('PHASE 6 — RÉSULTATS CLASSÉS');
+    setComment('127 nœuds activés en 31ms · 0 token LLM · 2 847 poids mis à jour');
     labels.style.transition = 'opacity 500ms ease';
     labels.setAttribute('opacity', '1');
     await new Promise(r => setTimeout(r, 3500));
 
     // Phase 7: LEARN
-    setPhase('PHASE 7 — HEBBIAN LEARNING');
-    setComment('Agent confirms results correct → connections strengthen for next query');
+    setPhase('PHASE 7 — APPRENTISSAGE HEBBIEN');
+    setComment('L'agent confirme les résultats corrects → les connexions se renforcent pour la prochaine requête');
     // Brighten edges to show strengthening
     edges.setAttribute('opacity', '0.8');
     d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '10'); c.style.transition = 'r 600ms ease, fill 600ms ease'; });
     await new Promise(r => setTimeout(r, 4000));
 
     // Reset
-    setPhase('COMPLETE — CLICK TO REPLAY');
-    setComment('The graph is now smarter. Next query will be more accurate.');
+    setPhase('TERMINÉ — CLIQUEZ POUR REJOUER');
+    setComment('Le graphe est maintenant plus intelligent. La prochaine requête sera plus précise.');
     await new Promise(r => setTimeout(r, 4000));
 
     // Fade back to dormant
-    setPhase('DORMANT — CLICK TO ACTIVATE');
-    setComment('');
-    edges.setAttribute('opacity', '0.12');
-    setGroupColor(d1, '#5A6577', '0.25');
-    setGroupColor(d2, '#5A6577', '0.2');
-    setGroupColor(d3, '#5A6577', '0.15');
-    d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '8'); });
-    core.setAttribute('fill', '#5A6577');
-    core.setAttribute('opacity', '0.3');
-    document.getElementById('viz-core').querySelector('circle').setAttribute('stroke', '#5A6577');
-    labels.setAttribute('opacity', '0');
-    ghost.setAttribute('opacity', '0');
-    running = false;
-  }
-
-  svg.addEventListener('click', activate);
-  let animCancel = false;
-
-  function renderLine(item, idx) {
-    const d = (item.delay || 0) + idx * 180;
-    const s = `animation-delay: ${d}ms;`;
-    switch (item.type) {
-      case 'comment':
-        return `<div class="line" style="${s}"><span class="comment">${esc(item.text)}</span></div>`;
-      case 'cmd':
-        return `<div class="line" style="${s}"><span class="prompt">${esc(item.text.substring(0,1))}</span><span style="color:var(--text)">${esc(item.text.substring(1))}</span></div>`;
-      case 'dim':
-        return `<div class="line" style="${s}"><span class="dim">${esc(item.text)}</span></div>`;
-      case 'result':
-        return `<div class="line" style="${s}"><span class="val">${item.score}</span> <span style="color:var(--text)">file::${esc(item.file)}</span> <span class="dim">(${esc(item.detail)})</span></div>`;
-      case 'hole':
-        return `<div class="line" style="${s}"><span class="warn">${item.score}</span> <span class="warn">file::${esc(item.file)}</span> <span class="dim">${esc(item.detail)}</span></div>`;
-      case 'critical':
-        return `<div class="line" style="${s}"><span class="err">${esc(item.text)}</span></div>`;
-      case 'warn':
-        return `<div class="line" style="${s}"><span class="warn">${esc(item.text)}</span></div>`;
-      case 'suggest':
-        return `<div class="line" style="${s}"><span class="val">→ ${esc(item.file)}</span> <span class="dim">(${esc(item.detail)})</span></div>`;
-      case 'success':
-        return `<div class="line" style="${s}"><span class="val">✓ ${esc(item.text)}</span></div>`;
-      case 'blank':
-        return `<div class="line" style="${s}">&nbsp;</div>`;
-      default:
-        return '';
-    }
-  }
-
-  function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  function playScene(idx) {
-    currentScene = idx;
-    tabs.forEach(t => t.classList.toggle('active', +t.dataset.scene === idx));
-    const scene = scenes[idx];
-    const el = sceneEls[idx];
-
-    // Reset all scenes
-    sceneEls.forEach(s => { s.classList.remove('active'); s.innerHTML = ''; });
-    el.classList.add('active');
-
-    // Render lines with staggered animation
-    el.innerHTML = scene.map((item, i) => renderLine(item, i)).join('');
-
-    // Progress bar
-    const totalTime = scene.length * 180 + 2000;
-    progressBar.style.transition = 'none';
-    progressBar.style.width = '0%';
-    requestAnimationFrame(() => {
-      progressBar.style.transition = `width ${totalTime}ms linear`;
-      progressBar.style.width = '100%';
-    });
-  }
-
-  // Tab clicks
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => playScene(+tab.dataset.scene));
-  });
-
-  // Replay
-  playBtn.addEventListener('click', () => playScene(currentScene));
-
-  // Auto-cycle every 8s
-  let cycleTimer;
-  function startCycle() {
-    clearInterval(cycleTimer);
-    cycleTimer = setInterval(() => {
-      playScene((currentScene + 1) % scenes.length);
-    }, 12000);
-  }
-
-  // Pause auto-cycle on manual interaction
-  container.addEventListener('click', () => { clearInterval(cycleTimer); setTimeout(startCycle, 20000); });
-
-  // Init
-  playScene(0);
-  startCycle();
-
-  // Intersection observer: only animate when visible
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) startCycle();
-      else clearInterval(cycleTimer);
-    });
-  }, { threshold: 0.3 });
-  obs.observe(container);
-})();
-
-// ── Core Loop Visualization ──
-(function() {
-  const svg = document.getElementById('coreLoopViz');
-  if (!svg) return;
-  const phase = document.getElementById('viz-phase');
-  const edges = document.getElementById('viz-edges');
-  const d1 = document.getElementById('viz-d1');
-  const d2 = document.getElementById('viz-d2');
-  const d3 = document.getElementById('viz-d3');
-  const core = document.getElementById('viz-core-inner');
-  const labels = document.getElementById('viz-labels');
-  const ghost = document.getElementById('viz-ghost');
-  const comment = document.getElementById('viz-c1');
-  let running = false;
-
-  function ani(el, props, dur) {
-    return new Promise(r => {
-      el.style.transition = `all ${dur}ms ease`;
-      Object.entries(props).forEach(([k,v]) => {
-        if (k === 'opacity' || k === 'r') el.setAttribute(k, v);
-        else el.style[k] = v;
-      });
-      setTimeout(r, dur);
-    });
-  }
-
-  function setPhase(text) { phase.textContent = text; }
-  function setComment(text) {
-    comment.textContent = text;
-    comment.setAttribute('opacity', text ? '1' : '0');
-  }
-
-  function setGroupColor(g, color, opacity) {
-    g.querySelectorAll('circle').forEach(c => {
-      c.setAttribute('fill', color);
-      c.style.transition = 'all 600ms ease';
-    });
-    g.style.transition = 'opacity 600ms ease';
-    g.setAttribute('opacity', opacity);
-  }
-
-  async function activate() {
-    if (running) return;
-    running = true;
-
-    // Phase 1: QUERY ARRIVES
-    setPhase('PHASE 1 — QUERY RECEIVED');
-    setComment('Agent asks: "What handles authentication?"');
-    core.setAttribute('fill', '#00E5A0');
-    core.setAttribute('opacity', '0.9');
-    core.style.transition = 'all 400ms ease';
-    document.getElementById('viz-core').querySelector('circle').setAttribute('stroke', '#00E5A0');
-    await new Promise(r => setTimeout(r, 2200));
-
-    // Phase 2: SPREADING ACTIVATION — Hop 1
-    setPhase('PHASE 2 — SPREADING ACTIVATION (HOP 1)');
-    setComment('Wavefront: seed node → 4 direct neighbors');
-    edges.style.transition = 'opacity 500ms ease';
-    edges.setAttribute('opacity', '0.4');
-    setGroupColor(d1, '#00E5A0', '0.8');
-    await new Promise(r => setTimeout(r, 2200));
-
-    // Phase 3: Hop 2
-    setPhase('PHASE 3 — SPREADING ACTIVATION (HOP 2)');
-    setComment('Wavefront expands: 4 → 7 nodes, weighted by 4 dimensions');
-    setGroupColor(d2, '#60A5FA', '0.65');
-    edges.setAttribute('opacity', '0.55');
-    await new Promise(r => setTimeout(r, 2200));
-
-    // Phase 4: Hop 3
-    setPhase('PHASE 4 — SPREADING ACTIVATION (HOP 3)');
-    setComment('7 → 8 outer nodes. XLR cancels 14 false-positive edges.');
-    setGroupColor(d3, '#F5A623', '0.5');
-    edges.setAttribute('opacity', '0.65');
-    await new Promise(r => setTimeout(r, 2200));
-
-    // Phase 5: STRUCTURAL HOLE
-    setPhase('PHASE 5 — STRUCTURAL HOLE DETECTED');
-    setComment('Missing connection found: rate_limit.rs should exist but doesn\'t!');
-    ghost.setAttribute('opacity', '0.6');
-    ghost.style.transition = 'opacity 400ms ease';
-    // Flash the hole area
-    d2.querySelectorAll('circle')[1].setAttribute('fill', '#FF3366');
-    d2.querySelectorAll('circle')[4].setAttribute('fill', '#FF3366');
-    await new Promise(r => setTimeout(r, 2800));
-
-    // Phase 6: RESULTS
-    setPhase('PHASE 6 — RESULTS RANKED');
-    setComment('127 nodes activated in 31ms · 0 LLM tokens · 2,847 weights updated');
-    labels.style.transition = 'opacity 500ms ease';
-    labels.setAttribute('opacity', '1');
-    await new Promise(r => setTimeout(r, 3500));
-
-    // Phase 7: LEARN
-    setPhase('PHASE 7 — HEBBIAN LEARNING');
-    setComment('Agent confirms results correct → connections strengthen for next query');
-    // Brighten edges to show strengthening
-    edges.setAttribute('opacity', '0.8');
-    d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '10'); c.style.transition = 'r 600ms ease, fill 600ms ease'; });
-    await new Promise(r => setTimeout(r, 4000));
-
-    // Reset
-    setPhase('COMPLETE — CLICK TO REPLAY');
-    setComment('The graph is now smarter. Next query will be more accurate.');
-    await new Promise(r => setTimeout(r, 4000));
-
-    // Fade back to dormant
-    setPhase('DORMANT — CLICK TO ACTIVATE');
+    setPhase('EN VEILLE — CLIQUEZ POUR ACTIVER');
     setComment('');
     edges.setAttribute('opacity', '0.12');
     setGroupColor(d1, '#5A6577', '0.25');
