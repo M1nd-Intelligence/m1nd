@@ -4,7 +4,7 @@
   <img src=".github/m1nd-logo.svg" alt="m1nd" width="360" />
 </p>
 
-<h3 align="center">Your AI agent has amnesia. m1nd remembers.</h3>
+<h3 align="center">Votre agent IA souffre d'amnesie. m1nd se souvient.</h3>
 
 <p align="center">
   <a href="https://crates.io/crates/m1nd-core"><img src="https://img.shields.io/crates/v/m1nd-core.svg" alt="crates.io" /></a>
@@ -44,7 +44,7 @@
 
 ---
 
-## Why m1nd exists
+## Pourquoi m1nd existe
 
 Every time an AI agent needs context, it runs grep, gets 200 lines of noise, feeds them to an LLM to interpret, decides it needs more context, greps again. Repeat 3-5 times. **$0.30-$0.50 burned per search cycle. 10 seconds gone. Structural blind spots remain.**
 
@@ -61,7 +61,7 @@ The slop cycle:                          m1nd:
   $0.30-$0.50 / 10 seconds                 $0.00 / 31ms
 ```
 
-## Quick start
+## Demarrage rapide
 
 ```bash
 # Build from source (requires Rust toolchain)
@@ -106,9 +106,9 @@ First query -- ingest your codebase and ask a question:
   740 edges strengthened via Hebbian LTP. Next query is smarter.
 ```
 
-## Three workflows
+## Trois workflows
 
-### 1. Research -- understand a codebase
+### 1. Recherche -- comprendre un codebase
 
 ```
 ingest("/your/project")              → build the graph (910ms)
@@ -120,7 +120,7 @@ learn(correct, [nodes_that_helped])  → strengthen those paths (<1ms)
 
 The graph now knows more about how you think about payments. Next session, `activate("payment")` returns better results. Over weeks, the graph adapts to your team's mental model.
 
-### 2. Code change -- safe modification
+### 2. Changement de code -- modification sure
 
 ```
 impact("file::payment.py")                → 2,100 nodes affected at depth 3 (5ms)
@@ -130,13 +130,13 @@ validate_plan(["payment.py","billing.py"]) → blast radius + gap analysis (10ms
 warmup("refactor payment flow")            → prime graph for the task (82ms)
 ```
 
-After coding:
+Apres avoir code :
 
 ```
 learn(correct, [files_you_touched])   → next time, these paths are stronger
 ```
 
-### 3. Investigation -- debug across sessions
+### 3. Investigation -- debug entre sessions
 
 ```
 activate("memory leak worker pool")              → 15 ranked suspects (31ms)
@@ -155,7 +155,7 @@ trail.resume("worker-pool-leak")                  → exact context restored (0.
 
 Two agents investigating the same bug? `trail.merge` combines their findings and flags conflicts.
 
-## Why $0.00 is real
+## Pourquoi $0.00 est reel
 
 When an AI agent searches code via LLM: your code is sent to a cloud API, tokenized, processed, and returned. Each cycle costs $0.05-$0.50 in API tokens. Agents repeat this 3-5 times per question.
 
@@ -169,7 +169,7 @@ m1nd uses **zero LLM calls**. The codebase lives as a weighted graph in local RA
 | **Learns** | No | Yes (Hebbian plasticity) |
 | **Data privacy** | Code sent to cloud | Nothing leaves your machine |
 
-## The 43 tools
+## Les 43 outils
 
 Six categories. Every tool callable via MCP JSON-RPC stdio.
 
@@ -184,19 +184,19 @@ Six categories. Every tool callable via MCP JSON-RPC stdio.
 
 Full tool reference: [Wiki](https://github.com/maxkle1nz/m1nd/wiki)
 
-## What makes it different
+## Ce qui le rend different
 
-**The graph learns.** Hebbian plasticity. Confirm results are useful -- edges strengthen. Mark results as wrong -- edges weaken. Over time, the graph evolves to match how your team thinks about your codebase. No other code intelligence tool does this. Zero prior art in code.
+**Le graphe apprend.** Hebbian plasticity. Confirm results are useful -- edges strengthen. Mark results as wrong -- edges weaken. Over time, the graph evolves to match how your team thinks about your codebase. No other code intelligence tool does this. Zero prior art in code.
 
-**The graph cancels noise.** XLR differential processing, borrowed from professional audio engineering. Signal on two inverted channels, common-mode noise subtracted at the receiver. Activation queries return signal, not the noise that grep drowns you in. Zero prior art published anywhere.
+**Le graphe annule le bruit.** XLR differential processing, borrowed from professional audio engineering. Signal on two inverted channels, common-mode noise subtracted at the receiver. Activation queries return signal, not the noise that grep drowns you in. Zero prior art published anywhere.
 
-**The graph finds what's missing.** Structural hole detection based on Burt's theory from network sociology. m1nd identifies positions in the graph where a connection *should* exist but doesn't -- the function that was never written, the module nobody connected. Zero prior art in code.
+**Le graphe trouve ce qui manque.** Structural hole detection based on Burt's theory from network sociology. m1nd identifies positions in the graph where a connection *should* exist but doesn't -- the function that was never written, the module nobody connected. Zero prior art in code.
 
-**The graph remembers investigations.** Save mid-investigation state -- hypotheses, weights, open questions. Resume days later from the exact cognitive position. Two agents on the same bug? Merge their trails with automatic conflict detection.
+**Le graphe se souvient des investigations.** Save mid-investigation state -- hypotheses, weights, open questions. Resume days later from the exact cognitive position. Two agents on the same bug? Merge their trails with automatic conflict detection.
 
-**The graph tests claims.** "Does the worker pool depend on WhatsApp?" -- m1nd explores 25,015 paths in 58ms, returns a verdict with Bayesian confidence. Invisible dependencies found in milliseconds.
+**Le graphe teste les affirmations.** "Does the worker pool depend on WhatsApp?" -- m1nd explores 25,015 paths in 58ms, returns a verdict with Bayesian confidence. Invisible dependencies found in milliseconds.
 
-**The graph simulates deletion.** Zero-allocation counterfactual engine. "What breaks if I delete `spawner.py`?" -- full cascade computed in 3ms using bitset RemovalMask, O(1) per edge check vs O(V+E) for materialized copies.
+**Le graphe simule la suppression.** Zero-allocation counterfactual engine. "What breaks if I delete `spawner.py`?" -- full cascade computed in 3ms using bitset RemovalMask, O(1) per edge check vs O(V+E) for materialized copies.
 
 ## Architecture
 
@@ -307,21 +307,21 @@ Capabilities: spreading activation, Hebbian plasticity, structural holes, counte
 
 Full competitive analysis: [Wiki - Competitive Report](https://github.com/maxkle1nz/m1nd/wiki)
 
-## When NOT to use m1nd
+## Quand NE PAS utiliser m1nd
 
 - **You need neural semantic search.** m1nd uses trigram TF-IDF, not embeddings. "Find code that *means* authentication but never uses the word" is not a strength yet.
 - **You need 50+ language support.** Extractors exist for Python, Rust, TypeScript/JavaScript, Go, Java, plus a generic fallback. Tree-sitter integration is planned.
 - **You need dataflow analysis.** m1nd tracks structural and co-change relationships, not data flow through variables. Use a dedicated SAST tool for taint analysis.
 - **You need distributed mode.** Federation stitches multiple repos, but the server runs on one machine. Distributed graph is not yet implemented.
 
-## Environment variables
+## Variables d'environnement
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
 | `M1ND_GRAPH_SOURCE` | Path to persist graph state | In-memory only |
 | `M1ND_PLASTICITY_STATE` | Path to persist plasticity weights | In-memory only |
 
-## Building from source
+## Compilation depuis les sources
 
 ```bash
 # Prerequisites: Rust stable toolchain
@@ -347,7 +347,7 @@ The workspace has three crates:
 | `m1nd-ingest` | Language extractors, reference resolution |
 | `m1nd-mcp` | MCP server, 43 tool handlers, JSON-RPC stdio |
 
-## Contributing
+## Contribuer
 
 m1nd is early-stage and evolving fast. Contributions welcome in these areas:
 
@@ -359,7 +359,7 @@ m1nd is early-stage and evolving fast. Contributions welcome in these areas:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-## License
+## Licence
 
 MIT -- see [LICENSE](LICENSE).
 
@@ -370,6 +370,6 @@ MIT -- see [LICENSE](LICENSE).
 </p>
 
 <p align="center">
-  Created by <a href="https://github.com/maxkle1nz">Max Kleinschmidt</a> &#x1F1E7;&#x1F1F7;<br/>
-  <em>Every tool finds what exists. m1nd finds what's missing.</em>
+  Cree par <a href="https://github.com/maxkle1nz">Max Kleinschmidt</a> &#x1F1E7;&#x1F1F7; &mdash; fierement bresilien<br/>
+  <em>Chaque outil trouve ce qui existe. m1nd trouve ce qui manque.</em>
 </p>

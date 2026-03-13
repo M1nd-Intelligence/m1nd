@@ -4,7 +4,7 @@
   <img src=".github/m1nd-logo.svg" alt="m1nd" width="360" />
 </p>
 
-<h3 align="center">Your AI agent has amnesia. m1nd remembers.</h3>
+<h3 align="center">Seu agente de IA tem amnesia. m1nd lembra.</h3>
 
 <p align="center">
   <a href="https://crates.io/crates/m1nd-core"><img src="https://img.shields.io/crates/v/m1nd-core.svg" alt="crates.io" /></a>
@@ -44,13 +44,13 @@
 
 ---
 
-## Why m1nd exists
+## Por que m1nd existe
 
-Every time an AI agent needs context, it runs grep, gets 200 lines of noise, feeds them to an LLM to interpret, decides it needs more context, greps again. Repeat 3-5 times. **$0.30-$0.50 burned per search cycle. 10 seconds gone. Structural blind spots remain.**
+Toda vez que um agente de IA precisa de contexto, ele roda grep, recebe 200 linhas de ruido, alimenta para um LLM interpretar, decide que precisa de mais contexto, faz grep de novo. Repete 3-5 vezes. **$0.30-$0.50 queimados por ciclo de busca. 10 segundos perdidos. Pontos cegos estruturais permanecem.**
 
-This is the slop cycle: agents brute-forcing their way through codebases with text search, burning tokens like kindling. grep, ripgrep, tree-sitter -- brilliant tools. For *humans*. An AI agent doesn't want 200 lines to parse linearly. It wants a weighted graph with a direct answer: *what matters and what's missing*.
+Este e o ciclo slop: agentes forcando seu caminho por bases de codigo com busca textual, queimando tokens como lenha. grep, ripgrep, tree-sitter -- ferramentas brilhantes. Para *humanos*. Um agente de IA nao quer 200 linhas para parsear linearmente. Ele quer um grafo ponderado com uma resposta direta: *o que importa e o que esta faltando*.
 
-**m1nd replaces the slop cycle with a single call.** Fire a query into a weighted code graph. Signal propagates across four dimensions. Noise cancels out. Relevant connections amplify. The graph learns from every interaction. 31ms, $0.00, zero tokens.
+**m1nd substitui o ciclo slop com uma unica chamada.** Dispare uma consulta no grafo de codigo ponderado. O sinal se propaga em quatro dimensoes. O ruido se cancela. Conexoes relevantes se amplificam. O grafo aprende com cada interacao. 31ms, $0.00, zero tokens.
 
 ```
 The slop cycle:                          m1nd:
@@ -61,18 +61,18 @@ The slop cycle:                          m1nd:
   $0.30-$0.50 / 10 seconds                 $0.00 / 31ms
 ```
 
-## Quick start
+## Inicio rapido
 
 ```bash
-# Build from source (requires Rust toolchain)
+# Compilar do fonte (requer toolchain Rust)
 git clone https://github.com/maxkle1nz/m1nd.git
 cd m1nd && cargo build --release
 
-# The binary is a JSON-RPC stdio server — works with any MCP client
+# O binario e um servidor JSON-RPC stdio — funciona com qualquer cliente MCP
 ./target/release/m1nd-mcp
 ```
 
-Add to your MCP client config (Claude Code, Cursor, Windsurf, etc.):
+Adicione a configuracao do seu cliente MCP (Claude Code, Cursor, Windsurf, etc.):
 
 ```json
 {
@@ -88,7 +88,7 @@ Add to your MCP client config (Claude Code, Cursor, Windsurf, etc.):
 }
 ```
 
-First query -- ingest your codebase and ask a question:
+Primeira consulta -- ingira sua base de codigo e faca uma pergunta:
 
 ```
 > m1nd.ingest path=/your/project agent_id=dev
@@ -106,9 +106,9 @@ First query -- ingest your codebase and ask a question:
   740 edges strengthened via Hebbian LTP. Next query is smarter.
 ```
 
-## Three workflows
+## Tres workflows
 
-### 1. Research -- understand a codebase
+### 1. Pesquisa -- entender uma base de codigo
 
 ```
 ingest("/your/project")              → build the graph (910ms)
@@ -118,9 +118,9 @@ missing("payment processing")        → what SHOULD exist but doesn't? (44ms)
 learn(correct, [nodes_that_helped])  → strengthen those paths (<1ms)
 ```
 
-The graph now knows more about how you think about payments. Next session, `activate("payment")` returns better results. Over weeks, the graph adapts to your team's mental model.
+O grafo agora sabe mais sobre como voce pensa sobre pagamentos. Na proxima sessao, `activate("payment")` retorna resultados melhores. Ao longo de semanas, o grafo se adapta ao modelo mental do seu time.
 
-### 2. Code change -- safe modification
+### 2. Mudanca de codigo -- modificacao segura
 
 ```
 impact("file::payment.py")                → 2,100 nodes affected at depth 3 (5ms)
@@ -130,13 +130,13 @@ validate_plan(["payment.py","billing.py"]) → blast radius + gap analysis (10ms
 warmup("refactor payment flow")            → prime graph for the task (82ms)
 ```
 
-After coding:
+Apos codificar:
 
 ```
 learn(correct, [files_you_touched])   → next time, these paths are stronger
 ```
 
-### 3. Investigation -- debug across sessions
+### 3. Investigacao -- debug entre sessoes
 
 ```
 activate("memory leak worker pool")              → 15 ranked suspects (31ms)
@@ -153,52 +153,52 @@ trail.resume("worker-pool-leak")                  → exact context restored (0.
                                                      all weights, hypotheses, open questions intact
 ```
 
-Two agents investigating the same bug? `trail.merge` combines their findings and flags conflicts.
+Dois agentes investigando o mesmo bug? `trail.merge` combina suas descobertas e sinaliza conflitos.
 
-## Why $0.00 is real
+## Por que $0.00 e real
 
-When an AI agent searches code via LLM: your code is sent to a cloud API, tokenized, processed, and returned. Each cycle costs $0.05-$0.50 in API tokens. Agents repeat this 3-5 times per question.
+Quando um agente de IA busca codigo via LLM: seu codigo e enviado para uma API na nuvem, tokenizado, processado e retornado. Cada ciclo custa $0.05-$0.50 em tokens de API. Agentes repetem isso 3-5 vezes por pergunta.
 
-m1nd uses **zero LLM calls**. The codebase lives as a weighted graph in local RAM. Queries are pure math -- spreading activation, graph traversal, linear algebra -- executed by a Rust binary on your machine. No API. No tokens. No data leaves your computer.
+m1nd usa **zero chamadas LLM**. A base de codigo vive como um grafo ponderado na RAM local. Consultas sao pura matematica -- ativacao por propagacao, travessia de grafo, algebra linear -- executadas por um binario Rust na sua maquina. Sem API. Sem tokens. Nenhum dado sai do seu computador.
 
 | | LLM-based search | m1nd |
 |---|---|---|
-| **Mechanism** | Send code to cloud, pay per token | Weighted graph in local RAM |
-| **Per query** | $0.05-$0.50 | $0.00 |
-| **Latency** | 500ms-3s | 31ms |
-| **Learns** | No | Yes (Hebbian plasticity) |
-| **Data privacy** | Code sent to cloud | Nothing leaves your machine |
+| **Mecanismo** | Envia codigo para nuvem, paga por token | Grafo ponderado na RAM local |
+| **Por consulta** | $0.05-$0.50 | $0.00 |
+| **Latencia** | 500ms-3s | 31ms |
+| **Aprende** | Nao | Sim (plasticidade Hebbiana) |
+| **Privacidade** | Codigo enviado para nuvem | Nada sai da sua maquina |
 
-## The 43 tools
+## As 43 ferramentas
 
-Six categories. Every tool callable via MCP JSON-RPC stdio.
+Seis categorias. Toda ferramenta chamavel via MCP JSON-RPC stdio.
 
-| Category | Tools | What they do |
+| Categoria | Ferramentas | O que fazem |
 |----------|-------|-------------|
-| **Activation & Queries** (5) | `activate`, `seek`, `scan`, `trace`, `timeline` | Fire signals into the graph. Get ranked, multi-dimensional results. |
-| **Analysis & Prediction** (7) | `impact`, `predict`, `counterfactual`, `fingerprint`, `resonate`, `hypothesize`, `differential` | Blast radius, co-change prediction, what-if simulation, hypothesis testing. |
-| **Memory & Learning** (4) | `learn`, `ingest`, `drift`, `warmup` | Build graphs, give feedback, recover session context, prime for tasks. |
-| **Exploration & Discovery** (4) | `missing`, `diverge`, `why`, `federate` | Find structural holes, trace paths, unify multi-repo graphs. |
-| **Perspective Navigation** (12) | `start`, `follow`, `branch`, `back`, `close`, `inspect`, `list`, `peek`, `compare`, `suggest`, `routes`, `affinity` | Stateful codebase exploration. History, branching, undo. |
-| **Lifecycle & Coordination** (11) | `health`, 5 `lock.*`, 4 `trail.*`, `validate_plan` | Multi-agent locks, investigation persistence, pre-flight checks. |
+| **Ativacao & Consultas** (5) | `activate`, `seek`, `scan`, `trace`, `timeline` | Disparar sinais no grafo. Obter resultados ranqueados e multi-dimensionais. |
+| **Analise & Previsao** (7) | `impact`, `predict`, `counterfactual`, `fingerprint`, `resonate`, `hypothesize`, `differential` | Raio de impacto, previsao de co-mudanca, simulacao "e se", teste de hipoteses. |
+| **Memoria & Aprendizado** (4) | `learn`, `ingest`, `drift`, `warmup` | Construir grafos, dar feedback, recuperar contexto de sessao, preparar para tarefas. |
+| **Exploracao & Descoberta** (4) | `missing`, `diverge`, `why`, `federate` | Encontrar lacunas estruturais, rastrear caminhos, unificar grafos multi-repo. |
+| **Navegacao por Perspectivas** (12) | `start`, `follow`, `branch`, `back`, `close`, `inspect`, `list`, `peek`, `compare`, `suggest`, `routes`, `affinity` | Exploracao com estado da base de codigo. Historico, ramificacao, desfazer. |
+| **Ciclo de Vida & Coordenacao** (11) | `health`, 5 `lock.*`, 4 `trail.*`, `validate_plan` | Locks multi-agente, persistencia de investigacao, verificacoes pre-voo. |
 
-Full tool reference: [Wiki](https://github.com/maxkle1nz/m1nd/wiki)
+Referencia completa: [Wiki](https://github.com/maxkle1nz/m1nd/wiki)
 
-## What makes it different
+## O que o torna diferente
 
-**The graph learns.** Hebbian plasticity. Confirm results are useful -- edges strengthen. Mark results as wrong -- edges weaken. Over time, the graph evolves to match how your team thinks about your codebase. No other code intelligence tool does this. Zero prior art in code.
+**O grafo aprende.** Hebbian plasticity. Confirme que resultados sao uteis -- arestas se fortalecem. Marque resultados como errados -- arestas enfraquecem. Com o tempo, o grafo evolui para refletir como seu time pensa sobre a base de codigo. Nenhuma outra ferramenta de inteligencia de codigo faz isso. Zero estado da arte em codigo.
 
-**The graph cancels noise.** XLR differential processing, borrowed from professional audio engineering. Signal on two inverted channels, common-mode noise subtracted at the receiver. Activation queries return signal, not the noise that grep drowns you in. Zero prior art published anywhere.
+**O grafo cancela ruido.** XLR differential processing, borrowed from professional audio engineering. Sinal em dois canais invertidos, ruido de modo comum subtraido no receptor. Consultas de ativacao retornam sinal, nao o ruido em que grep te afoga. Zero estado da arte publicado em qualquer lugar.
 
-**The graph finds what's missing.** Structural hole detection based on Burt's theory from network sociology. m1nd identifies positions in the graph where a connection *should* exist but doesn't -- the function that was never written, the module nobody connected. Zero prior art in code.
+**O grafo encontra o que esta faltando.** Structural hole detection based on Burt's theory from network sociology. m1nd identifica posicoes no grafo onde uma conexao *deveria* existir mas nao existe -- a funcao que nunca foi escrita, o modulo que ninguem conectou. Zero estado da arte em codigo.
 
-**The graph remembers investigations.** Save mid-investigation state -- hypotheses, weights, open questions. Resume days later from the exact cognitive position. Two agents on the same bug? Merge their trails with automatic conflict detection.
+**O grafo lembra investigacoes.** Salve estado no meio da investigacao -- hipoteses, pesos, questoes abertas. Retome dias depois da posicao cognitiva exata. Dois agentes no mesmo bug? Mescle suas trilhas com deteccao automatica de conflitos.
 
-**The graph tests claims.** "Does the worker pool depend on WhatsApp?" -- m1nd explores 25,015 paths in 58ms, returns a verdict with Bayesian confidence. Invisible dependencies found in milliseconds.
+**O grafo testa afirmacoes.** "Does the worker pool depend on WhatsApp?" -- m1nd explora 25.015 caminhos em 58ms, retorna um veredito com confianca Bayesiana. Dependencias invisiveis encontradas em milissegundos.
 
-**The graph simulates deletion.** Zero-allocation counterfactual engine. "What breaks if I delete `spawner.py`?" -- full cascade computed in 3ms using bitset RemovalMask, O(1) per edge check vs O(V+E) for materialized copies.
+**O grafo simula delecao.** Zero-allocation counterfactual engine. "What breaks if I delete `spawner.py`?" -- cascata completa calculada em 3ms usando bitset RemovalMask, O(1) por verificacao de aresta vs O(V+E) para copias materializadas.
 
-## Architecture
+## Arquitetura
 
 ```
 m1nd/
@@ -207,22 +207,22 @@ m1nd/
   m1nd-mcp/      MCP server, 43 tool handlers, JSON-RPC over stdio
 ```
 
-**Pure Rust. No runtime dependencies. No LLM calls. No API keys.** The binary is ~8MB and runs anywhere Rust compiles.
+**Rust puro. Sem dependencias de runtime. Sem chamadas LLM. Sem chaves de API.** O binario tem ~8MB e roda em qualquer lugar que Rust compila.
 
-### Four activation dimensions
+### Quatro dimensoes de ativacao
 
-Every query scores nodes across four independent dimensions:
+Cada consulta pontua nos em quatro dimensoes independentes:
 
-| Dimension | Measures | Source |
+| Dimensao | Mede | Fonte |
 |-----------|---------|--------|
 | **Structural** | Graph distance, edge types, PageRank centrality | CSR adjacency + reverse index |
 | **Semantic** | Token overlap, naming patterns, identifier similarity | Trigram TF-IDF matching |
 | **Temporal** | Co-change history, velocity, recency decay | Git history + Hebbian feedback |
 | **Causal** | Suspiciousness, error proximity, call chain depth | Stacktrace mapping + trace analysis |
 
-Hebbian plasticity shifts these dimension weights based on feedback. The graph converges toward your team's reasoning patterns.
+A plasticidade Hebbiana ajusta os pesos destas dimensoes baseado no feedback. O grafo converge para os padroes de raciocinio do seu time.
 
-### Internals
+### Internos
 
 - **Graph representation**: Compressed Sparse Row (CSR) with forward + reverse adjacency. 9,767 nodes / 26,557 edges in ~2MB RAM.
 - **Plasticity**: Per-edge `SynapticState` with LTP/LTD thresholds and homeostatic normalization. Weights persist to disk.
@@ -263,9 +263,9 @@ graph LR
 
 ## Benchmarks
 
-All numbers from real execution against a production codebase (335 files, ~52K lines, Python + Rust + TypeScript):
+Todos os numeros de execucao real contra uma base de codigo de producao (335 arquivos, ~52K linhas, Python + Rust + TypeScript):
 
-| Operation | Time | Scale |
+| Operacao | Tempo | Escala |
 |-----------|------|-------|
 | Full ingest | 910ms | 335 files -> 9,767 nodes, 26,557 edges |
 | Spreading activation | 31-77ms | 15 results from 9,767 nodes |
@@ -280,9 +280,9 @@ All numbers from real execution against a production codebase (335 files, ~52K l
 | Multi-repo federation | 1.3s | 11,217 nodes, 18,203 cross-repo edges |
 | Hebbian learn | <1ms | 740 edges updated |
 
-### Cost comparison
+### Comparacao de custo
 
-| Tool | Latency | Cost | Learns | Finds missing |
+| Ferramenta | Latencia | Custo | Aprende | Encontra faltante |
 |------|---------|------|--------|--------------|
 | **m1nd** | **31ms** | **$0.00** | **Yes** | **Yes** |
 | Cursor | 320ms+ | $20-40/mo | No | No |
@@ -291,7 +291,7 @@ All numbers from real execution against a production codebase (335 files, ~52K l
 | Greptile | seconds | $30/dev/mo | No | No |
 | RAG pipeline | 500ms-3s | per-token | No | No |
 
-### Capability coverage (16 criteria)
+### Cobertura de capacidades (16 criterios)
 
 | Tool | Score |
 |------|-------|
@@ -303,65 +303,65 @@ All numbers from real execution against a production codebase (335 files, ~52K l
 | Cursor | 0/16 |
 | GitHub Copilot | 0/16 |
 
-Capabilities: spreading activation, Hebbian plasticity, structural holes, counterfactual simulation, hypothesis testing, perspective navigation, trail persistence, multi-agent locks, XLR noise cancellation, co-change prediction, resonance analysis, multi-repo federation, 4D scoring, plan validation, fingerprint detection, temporal intelligence.
+Capacidades: spreading activation, Hebbian plasticity, structural holes, counterfactual simulation, hypothesis testing, perspective navigation, trail persistence, multi-agent locks, XLR noise cancellation, co-change prediction, resonance analysis, multi-repo federation, 4D scoring, plan validation, fingerprint detection, temporal intelligence.
 
-Full competitive analysis: [Wiki - Competitive Report](https://github.com/maxkle1nz/m1nd/wiki)
+Analise competitiva completa: [Wiki - Competitive Report](https://github.com/maxkle1nz/m1nd/wiki)
 
-## When NOT to use m1nd
+## Quando NAO usar m1nd
 
-- **You need neural semantic search.** m1nd uses trigram TF-IDF, not embeddings. "Find code that *means* authentication but never uses the word" is not a strength yet.
-- **You need 50+ language support.** Extractors exist for Python, Rust, TypeScript/JavaScript, Go, Java, plus a generic fallback. Tree-sitter integration is planned.
-- **You need dataflow analysis.** m1nd tracks structural and co-change relationships, not data flow through variables. Use a dedicated SAST tool for taint analysis.
-- **You need distributed mode.** Federation stitches multiple repos, but the server runs on one machine. Distributed graph is not yet implemented.
+- **Voce precisa de busca semantica neural.** m1nd uses trigram TF-IDF, not embeddings. "Encontrar codigo que *significa* autenticacao mas nunca usa a palavra" nao e um ponto forte ainda.
+- **Voce precisa de suporte a 50+ linguagens.** Extratores existem para Python, Rust, TypeScript/JavaScript, Go, Java, mais um fallback generico. Integracao com tree-sitter esta planejada.
+- **Voce precisa de analise de fluxo de dados.** m1nd rastreia relacoes estruturais e de co-mudanca, nao fluxo de dados por variaveis. Use uma ferramenta SAST dedicada para analise de taint.
+- **Voce precisa de modo distribuido.** Federacao costura multiplos repos, mas o servidor roda em uma maquina. Grafo distribuido ainda nao esta implementado.
 
-## Environment variables
+## Variaveis de ambiente
 
-| Variable | Purpose | Default |
+| Variavel | Proposito | Padrao |
 |----------|---------|---------|
-| `M1ND_GRAPH_SOURCE` | Path to persist graph state | In-memory only |
-| `M1ND_PLASTICITY_STATE` | Path to persist plasticity weights | In-memory only |
+| `M1ND_GRAPH_SOURCE` | Caminho para persistir estado do grafo | Somente em memoria |
+| `M1ND_PLASTICITY_STATE` | Caminho para persistir pesos de plasticidade | Somente em memoria |
 
-## Building from source
+## Compilando do fonte
 
 ```bash
-# Prerequisites: Rust stable toolchain
+# Pre-requisitos: toolchain Rust stable
 rustup update stable
 
-# Clone and build
+# Clonar e compilar
 git clone https://github.com/maxkle1nz/m1nd.git
 cd m1nd
 cargo build --release
 
-# Run tests
+# Rodar testes
 cargo test --workspace
 
-# Binary location
+# Localizacao do binario
 ./target/release/m1nd-mcp
 ```
 
-The workspace has three crates:
+O workspace tem tres crates:
 
-| Crate | Purpose |
+| Crate | Proposito |
 |-------|---------|
 | `m1nd-core` | Graph engine, plasticity, activation, hypothesis engine |
 | `m1nd-ingest` | Language extractors, reference resolution |
 | `m1nd-mcp` | MCP server, 43 tool handlers, JSON-RPC stdio |
 
-## Contributing
+## Contribuindo
 
-m1nd is early-stage and evolving fast. Contributions welcome in these areas:
+m1nd esta em estagio inicial e evoluindo rapido. Contribuicoes sao bem-vindas nestas areas:
 
-- **Language extractors** -- add parsers in `m1nd-ingest` for more languages
-- **Graph algorithms** -- improve activation, add detection patterns
-- **MCP tools** -- propose new tools that leverage the graph
-- **Benchmarks** -- test on different codebases, report numbers
-- **Docs** -- improve examples, add tutorials
+- **Extratores de linguagem** -- adicionar parsers em `m1nd-ingest` para mais linguagens
+- **Algoritmos de grafo** -- melhorar ativacao, adicionar padroes de deteccao
+- **Ferramentas MCP** -- propor novas ferramentas que aproveitem o grafo
+- **Benchmarks** -- testar em diferentes bases de codigo, reportar numeros
+- **Docs** -- melhorar exemplos, adicionar tutoriais
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Veja [CONTRIBUTING.md](CONTRIBUTING.md) para diretrizes.
 
-## License
+## Licenca
 
-MIT -- see [LICENSE](LICENSE).
+MIT -- veja [LICENSE](LICENSE).
 
 ---
 
@@ -370,6 +370,6 @@ MIT -- see [LICENSE](LICENSE).
 </p>
 
 <p align="center">
-  Created by <a href="https://github.com/maxkle1nz">Max Kleinschmidt</a> &#x1F1E7;&#x1F1F7;<br/>
-  <em>Every tool finds what exists. m1nd finds what's missing.</em>
+  Criado por <a href="https://github.com/maxkle1nz">Max Kleinschmidt</a> &#x1F1E7;&#x1F1F7; &mdash; orgulhosamente brasileiro<br/>
+  <em>Toda ferramenta encontra o que existe. m1nd encontra o que falta.</em>
 </p>
