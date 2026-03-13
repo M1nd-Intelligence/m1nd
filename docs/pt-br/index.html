@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>m1nd — Grep encontra o que existe. m1nd encontra o que falta.</title>
+  <meta name="description" content="m1nd: um binario Rust local que da aos agentes de IA entendimento estrutural da sua base de codigo. Consultas em 31ms, zero tokens LLM, custo zero. 43 ferramentas MCP. 16/16 capacidades vs 0/16 do Cursor. 3-4 anos a frente.">
+  <meta property="og:title" content="m1nd — Seu agente de IA tem amnesia. m1nd lembra.">
+  <meta property="og:description" content="m1nd: um binario Rust local que da aos agentes de IA entendimento estrutural da sua base de codigo. Consultas em 31ms, zero tokens LLM, custo zero. 43 ferramentas MCP. 3-4 anos a frente de qualquer concorrente.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/maxkle1nz/m1nd/main/.github/social-preview.jpg">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0A0E17;
+      --bg-raised: #0F1420;
+      --bg-card: #141924;
+      --green: #00E5A0;
+      --green-dim: rgba(0, 229, 160, 0.15);
+      --green-glow: rgba(0, 229, 160, 0.08);
+      --red: #FF3366;
+      --gold: #F5A623;
+      --text: #F0F2F5;
+      --text-dim: #8B9DAF;
+      --text-faint: #5A6577;
+      --border: #1E2433;
+      --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Grid background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(30, 36, 51, 0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 36, 51, 0.3) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Layout ── */
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+    section { padding: 100px 0; }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(10, 14, 23, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    nav .container {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-logo {
+      font-family: var(--mono); font-weight: 700; font-size: 22px;
+      text-decoration: none; color: var(--text); letter-spacing: -0.5px;
+    }
+    .nav-logo span { color: var(--green); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 14px;
+      font-weight: 500; transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--green); }
+    .nav-cta {
+      background: var(--green) !important; color: var(--bg) !important;
+      padding: 8px 20px; border-radius: 8px; font-weight: 600 !important;
+      transition: opacity 0.2s !important;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* ── Hero Logo ── */
+    .hero-logo { margin: 0 auto 40px; width: 180px; height: 180px; }
+    .hero-logo svg { width: 100%; height: 100%; }
+    @keyframes logo-pulse-core {
+      0%, 100% { r: 9; opacity: 1; }
+      50% { r: 11; opacity: 0.85; }
+    }
+    @keyframes logo-ring-rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes logo-ray-pulse {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.5; }
+    }
+    @keyframes logo-node-fire {
+      0%, 100% { opacity: 0.35; }
+      30% { opacity: 0.9; }
+    }
+    @keyframes logo-ghost-dash {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: 16; }
+    }
+
+    /* ── Animated Terminal ── */
+    .live-terminal {
+      max-width: 780px; margin: 48px auto 0;
+      background: var(--bg-raised); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .live-terminal .term-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      background: rgba(15, 20, 32, 0.8);
+    }
+    .term-tabs {
+      display: flex; gap: 2px; margin-left: auto;
+    }
+    .term-tab {
+      font-family: var(--mono); font-size: 11px; padding: 4px 14px;
+      border-radius: 6px 6px 0 0; cursor: pointer;
+      color: var(--text-faint); background: transparent;
+      border: 1px solid transparent; border-bottom: none;
+      transition: all 0.2s;
+    }
+    .term-tab.active {
+      color: var(--green); background: var(--bg-raised);
+      border-color: var(--border);
+    }
+    .term-tab:hover:not(.active) { color: var(--text-dim); }
+    .term-scene {
+      display: none; padding: 20px 24px; min-height: 280px;
+      font-family: var(--mono); font-size: 13px; line-height: 1.9;
+    }
+    .term-scene.active { display: block; }
+    .term-scene .comment {
+      color: #5A6577; font-style: italic;
+    }
+    .term-scene .typing-cursor {
+      display: inline-block; width: 8px; height: 16px;
+      background: var(--green); vertical-align: middle;
+      animation: blink-cursor 1s step-end infinite;
+      margin-left: 2px;
+    }
+    @keyframes blink-cursor {
+      50% { opacity: 0; }
+    }
+    .term-scene .line {
+      opacity: 0; transform: translateY(4px);
+      animation: line-appear 0.3s ease forwards;
+    }
+    @keyframes line-appear {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .term-progress {
+      height: 2px; background: var(--border);
+      margin-top: 0;
+    }
+    .term-progress-bar {
+      height: 100%; background: var(--green);
+      width: 0; transition: width 0.3s linear;
+    }
+    .term-controls {
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 16px; border-top: 1px solid var(--border);
+      font-family: var(--mono); font-size: 11px; color: var(--text-faint);
+    }
+    .term-play-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--green); padding: 4px 12px; cursor: pointer;
+      font-family: var(--mono); font-size: 11px;
+      transition: all 0.2s;
+    }
+    .term-play-btn:hover { border-color: var(--green); background: var(--green-dim); }
+
+    /* ── Hero ── */
+    .hero {
+      padding-top: 160px; padding-bottom: 80px; text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--green-dim); border: 1px solid rgba(0, 229, 160, 0.2);
+      border-radius: 100px; padding: 6px 16px;
+      font-family: var(--mono); font-size: 13px; color: var(--green);
+      margin-bottom: 32px;
+    }
+    .hero-badge .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .hero h1 {
+      font-family: var(--mono); font-size: clamp(48px, 8vw, 80px);
+      font-weight: 700; letter-spacing: -3px; margin-bottom: 24px;
+      line-height: 1.05;
+    }
+    .hero h1 .one { color: var(--green); }
+    .hero .tagline {
+      font-size: clamp(20px, 3vw, 28px); color: var(--text);
+      font-weight: 600; margin-bottom: 16px; letter-spacing: -0.5px;
+    }
+    .hero .subtitle {
+      font-size: clamp(15px, 2vw, 17px); color: var(--text-dim);
+      max-width: 680px; margin: 0 auto 48px; line-height: 1.6;
+    }
+    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 10px; font-weight: 600;
+      font-size: 15px; text-decoration: none; transition: all 0.2s;
+      font-family: var(--sans);
+    }
+    .btn-primary {
+      background: var(--green); color: var(--bg);
+    }
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-secondary {
+      background: var(--bg-card); color: var(--text); border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--green); color: var(--green); }
+
+    /* ── Compatible badges ── */
+    .compat {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      justify-content: center; margin-top: 48px;
+    }
+    .compat img { height: 28px; border-radius: 4px; }
+
+    /* ── Activation demo ── */
+    .demo-block {
+      max-width: 680px; margin: 48px auto 0;
+      background: var(--bg-raised); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .demo-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+    }
+    .demo-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+    }
+    .demo-dot.r { background: #FF5F57; }
+    .demo-dot.y { background: #FEBC2E; }
+    .demo-dot.g { background: #28C840; }
+    .demo-title {
+      font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+      margin-left: 8px;
+    }
+    .demo-body {
+      padding: 20px 24px; font-family: var(--mono); font-size: 13px;
+      line-height: 1.8; overflow-x: auto;
+    }
+    .demo-body .prompt { color: var(--green); }
+    .demo-body .dim { color: var(--text-faint); }
+    .demo-body .val { color: var(--green); }
+    .demo-body .warn { color: var(--gold); }
+    .demo-body .err { color: var(--red); }
+
+    /* ── Section titles ── */
+    .section-label {
+      font-family: var(--mono); font-size: 13px; color: var(--green);
+      text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(28px, 4vw, 40px); font-weight: 700;
+      letter-spacing: -1px; margin-bottom: 16px;
+    }
+    .section-desc {
+      color: var(--text-dim); font-size: 17px; max-width: 600px;
+      margin-bottom: 56px; line-height: 1.6;
+    }
+
+    /* ── Problem cards ── */
+    .problems {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px; margin-top: 48px;
+    }
+    .problem-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px;
+      transition: border-color 0.2s;
+    }
+    .problem-card:hover { border-color: rgba(0, 229, 160, 0.3); }
+    .problem-card .question {
+      font-weight: 600; font-size: 15px; margin-bottom: 8px;
+    }
+    .problem-card .answer {
+      font-size: 14px; color: var(--text-dim); line-height: 1.5;
+    }
+    .problem-card .tool {
+      display: inline-block; margin-top: 12px; font-family: var(--mono);
+      font-size: 12px; color: var(--green); background: var(--green-dim);
+      padding: 4px 10px; border-radius: 6px;
+    }
+
+    /* ── Comparison table ── */
+    .comparison-table {
+      width: 100%; border-collapse: collapse; margin-top: 40px;
+      font-size: 14px;
+    }
+    .comparison-table th {
+      text-align: left; padding: 12px 16px;
+      font-family: var(--mono); font-size: 12px; color: var(--green);
+      text-transform: uppercase; letter-spacing: 1px;
+      border-bottom: 2px solid var(--border);
+    }
+    .comparison-table td {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .comparison-table tr td:first-child {
+      font-weight: 600; color: var(--text);
+    }
+
+    /* ── Differentiator cards ── */
+    .diff-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; margin-top: 48px;
+    }
+    .diff-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px;
+      transition: border-color 0.2s;
+    }
+    .diff-card:hover { border-color: rgba(0, 229, 160, 0.3); }
+    .diff-card .diff-title {
+      font-family: var(--mono); font-weight: 700; font-size: 15px;
+      color: var(--green); margin-bottom: 8px;
+    }
+    .diff-card .diff-mechanism {
+      font-size: 13px; color: var(--text-faint);
+      font-family: var(--mono); margin-bottom: 8px;
+    }
+    .diff-card .diff-desc {
+      font-size: 14px; color: var(--text-dim); line-height: 1.5;
+    }
+
+    /* ── How it works ── */
+    .loop-steps {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 2px; margin: 48px 0;
+    }
+    .loop-step {
+      background: var(--bg-card); padding: 32px 24px; text-align: center;
+    }
+    .loop-step:first-child { border-radius: 12px 0 0 12px; }
+    .loop-step:last-child { border-radius: 0 12px 12px 0; }
+    .loop-step .num {
+      font-family: var(--mono); font-size: 32px; font-weight: 700;
+      color: var(--green); opacity: 0.6; margin-bottom: 8px;
+    }
+    .loop-step .name {
+      font-family: var(--mono); font-weight: 700; font-size: 14px;
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+    }
+    .loop-step .desc {
+      font-size: 13px; color: var(--text-dim); line-height: 1.5;
+    }
+
+    /* ── Dimensions ── */
+    .dimensions {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px; margin-top: 40px;
+    }
+    .dim-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px;
+    }
+    .dim-card .dim-name {
+      font-family: var(--mono); font-weight: 700; font-size: 15px;
+      margin-bottom: 6px;
+    }
+    .dim-card .dim-desc {
+      font-size: 13px; color: var(--text-dim); line-height: 1.5;
+    }
+
+    /* ── Perspectives ── */
+    .perspective-flow {
+      display: flex; gap: 0; align-items: stretch; margin-top: 48px;
+      overflow-x: auto; padding-bottom: 8px;
+    }
+    .p-step {
+      flex: 1; min-width: 160px; position: relative;
+      background: var(--bg-card); border: 1px solid var(--border);
+      padding: 24px 20px; text-align: center;
+    }
+    .p-step:first-child { border-radius: 12px 0 0 12px; }
+    .p-step:last-child { border-radius: 0 12px 12px 0; }
+    .p-step:not(:last-child)::after {
+      content: '→'; position: absolute; right: -14px; top: 50%;
+      transform: translateY(-50%); color: var(--green); font-size: 20px;
+      font-weight: 700; z-index: 2;
+    }
+    .p-step .p-icon { font-size: 28px; margin-bottom: 8px; }
+    .p-step .p-name {
+      font-family: var(--mono); font-weight: 700; font-size: 13px;
+      color: var(--green); margin-bottom: 4px;
+    }
+    .p-step .p-desc {
+      font-size: 12px; color: var(--text-dim); line-height: 1.4;
+    }
+    .p-step.p-highlight {
+      border-color: rgba(124, 58, 237, 0.4);
+      background: linear-gradient(180deg, rgba(124, 58, 237, 0.08) 0%, var(--bg-card) 100%);
+    }
+    .perspective-demo {
+      max-width: 680px; margin: 40px auto 0;
+      background: var(--bg-raised); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .perspective-demo .demo-body { padding: 20px 24px; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+    .perspective-tagline {
+      font-size: clamp(17px, 2.5vw, 22px); color: var(--text-dim);
+      max-width: 640px; margin: 24px auto 0; line-height: 1.5; text-align: center;
+    }
+    .perspective-tagline strong { color: var(--text); }
+    @media (max-width: 768px) {
+      .perspective-flow { flex-direction: column; }
+      .p-step { border-radius: 0 !important; }
+      .p-step:first-child { border-radius: 12px 12px 0 0 !important; }
+      .p-step:last-child { border-radius: 0 0 12px 12px !important; }
+      .p-step:not(:last-child)::after { content: '↓'; right: 50%; top: auto; bottom: -14px; transform: translateX(50%); }
+    }
+
+    /* ── Tools grid ── */
+    .tools-group { margin-bottom: 40px; }
+    .tools-group-title {
+      font-family: var(--mono); font-size: 12px; color: var(--text-faint);
+      text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    }
+    .tools-group-title span {
+      color: var(--green); font-weight: 700;
+    }
+    .tools-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 12px;
+    }
+    .tool-card {
+      display: flex; align-items: flex-start; gap: 16px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .tool-card:hover { border-color: rgba(0, 229, 160, 0.3); }
+    .tool-name {
+      font-family: var(--mono); font-weight: 600; font-size: 14px;
+      color: var(--green); white-space: nowrap;
+    }
+    .tool-desc {
+      font-size: 13px; color: var(--text-dim);
+    }
+
+    /* ── Benchmarks ── */
+    .bench-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px; margin-top: 48px;
+    }
+    .bench-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px;
+    }
+    .bench-card .bench-label {
+      font-size: 13px; color: var(--text-faint); margin-bottom: 4px;
+    }
+    .bench-card .bench-value {
+      font-family: var(--mono); font-size: 28px; font-weight: 700;
+      color: var(--green); margin-bottom: 4px;
+    }
+    .bench-card .bench-detail {
+      font-size: 12px; color: var(--text-dim); font-family: var(--mono);
+    }
+
+    /* ── Competitor comparison table ── */
+    .vs-table {
+      width: 100%; border-collapse: collapse; margin-top: 48px;
+      font-size: 13px;
+    }
+    .vs-table th {
+      text-align: center; padding: 12px 10px;
+      font-family: var(--mono); font-size: 11px; color: var(--text-faint);
+      text-transform: uppercase; letter-spacing: 1px;
+      border-bottom: 2px solid var(--border);
+    }
+    .vs-table th:first-child { text-align: left; }
+    .vs-table th.highlight { color: var(--green); }
+    .vs-table td {
+      padding: 10px; border-bottom: 1px solid var(--border);
+      text-align: center; color: var(--text-dim);
+    }
+    .vs-table tr td:first-child {
+      text-align: left; font-weight: 500; color: var(--text);
+    }
+    .vs-table .yes { color: var(--green); font-weight: 600; }
+    .vs-table .no { color: var(--text-faint); }
+    .vs-table .partial { color: var(--gold); }
+
+    /* ── Limitations ── */
+    .limits-list {
+      margin-top: 32px; display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .limit-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px;
+    }
+    .limit-item .limit-title {
+      font-weight: 600; font-size: 14px; margin-bottom: 6px;
+      color: var(--gold);
+    }
+    .limit-item .limit-desc {
+      font-size: 13px; color: var(--text-dim); line-height: 1.5;
+    }
+
+    /* ── CLI session ── */
+    .session { margin-top: 48px; }
+    .session .demo-block { max-width: 100%; margin: 0; }
+    .session .demo-body { font-size: 12.5px; line-height: 1.7; }
+    .session .step-label {
+      display: block; margin: 16px 0 4px;
+      color: var(--text-faint); font-size: 11px;
+      text-transform: uppercase; letter-spacing: 1.5px;
+    }
+    .session .step-label:first-child { margin-top: 0; }
+
+    /* ── Quick start ── */
+    .steps {
+      display: grid; grid-template-columns: 1fr; gap: 24px;
+      margin-top: 48px; counter-reset: step;
+    }
+    .step {
+      display: grid; grid-template-columns: 48px 1fr;
+      gap: 20px; align-items: start;
+    }
+    .step-num {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--green-dim); border: 1px solid rgba(0, 229, 160, 0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-weight: 700; font-size: 18px;
+      color: var(--green);
+    }
+    .step-content h3 {
+      font-size: 16px; font-weight: 600; margin-bottom: 8px;
+    }
+    .step-content p {
+      font-size: 14px; color: var(--text-dim); margin-bottom: 12px;
+    }
+    .code-block {
+      background: var(--bg-raised); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px 20px;
+      font-family: var(--mono); font-size: 13px;
+      overflow-x: auto; line-height: 1.7;
+    }
+    .code-block .comment { color: var(--text-faint); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 48px 0; text-align: center;
+    }
+    footer .footer-logo {
+      font-family: var(--mono); font-weight: 700; font-size: 20px;
+      margin-bottom: 8px;
+    }
+    footer .footer-logo span { color: var(--green); }
+    footer .footer-desc {
+      color: var(--text-faint); font-size: 13px; margin-bottom: 24px;
+    }
+    footer .footer-links {
+      display: flex; gap: 24px; justify-content: center; margin-bottom: 32px; flex-wrap: wrap;
+    }
+    footer .footer-links a {
+      color: var(--text-dim); font-size: 13px; text-decoration: none;
+      transition: color 0.2s;
+    }
+    footer .footer-links a:hover { color: var(--green); }
+    footer .author {
+      font-family: var(--mono); font-size: 11px; color: var(--text-faint);
+      letter-spacing: 2px; text-transform: uppercase;
+    }
+
+    /* ── Sponsor Banner ── */
+    .sponsor-banner {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.12) 0%, rgba(0, 229, 160, 0.08) 100%);
+      border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+      padding: 12px 0;
+      text-align: center;
+      position: fixed; top: 64px; left: 0; right: 0; z-index: 99;
+    }
+    .sponsor-banner a {
+      color: var(--text); text-decoration: none; font-size: 14px;
+      font-weight: 500; display: inline-flex; align-items: center; gap: 10px;
+      transition: color 0.2s;
+    }
+    .sponsor-banner a:hover { color: var(--green); }
+    .sponsor-banner .heart { color: #FF3366; font-size: 16px; }
+    .sponsor-banner .cta-pill {
+      background: rgba(124, 58, 237, 0.25); border: 1px solid rgba(124, 58, 237, 0.4);
+      padding: 3px 12px; border-radius: 100px; font-size: 12px;
+      font-family: var(--mono); color: #a78bfa; font-weight: 600;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      section { padding: 64px 0; }
+      .hero { padding-top: 160px !important; }
+      .sponsor-banner { font-size: 12px; }
+      .sponsor-banner .cta-pill { display: none; }
+      .loop-steps { grid-template-columns: 1fr; }
+      .loop-step { border-radius: 0; }
+      .loop-step:first-child { border-radius: 12px 12px 0 0; }
+      .loop-step:last-child { border-radius: 0 0 12px 12px; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .step { grid-template-columns: 1fr; }
+      .step-num { margin-bottom: -12px; }
+      .vs-table { font-size: 11px; }
+      .vs-table th, .vs-table td { padding: 8px 6px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Nav ── -->
+  <nav>
+    <div class="container">
+      <a href="#" class="nav-logo">m<span>1</span>nd</a>
+      <div class="nav-links">
+        <a href="#why">Por qu&ecirc;</a>
+        <a href="#different">Diferencial</a>
+        <a href="#agents-first">Agent-Native</a>
+        <a href="#perspectives">Perspectivas</a>
+        <a href="#tools">Ferramentas</a>
+        <a href="#benchmarks">Benchmarks</a>
+        <a href="#advantage">A Dist&acirc;ncia</a>
+        <a href="#start">Come&ccedil;ar</a>
+        <a href="../wiki-build/index.html">Wiki</a>
+        <a href="../wiki-build/faq.html">FAQ</a>
+        <a href="https://github.com/maxkle1nz/m1nd" class="nav-cta">GitHub</a>
+        <div class="lang-selector" style="display: flex; gap: 8px; align-items: center; margin-left: 8px; font-size: 16px;">
+          <a href="/m1nd/" title="English" style="text-decoration:none;">&#x1F1EC;&#x1F1E7;</a>
+          <a href="/m1nd/pt-br/" title="Portugu&ecirc;s" style="text-decoration:none;">&#x1F1E7;&#x1F1F7;</a>
+          <a href="/m1nd/es/" title="Espa&ntilde;ol" style="text-decoration:none;">&#x1F1EA;&#x1F1F8;</a>
+          <a href="/m1nd/it/" title="Italiano" style="text-decoration:none;">&#x1F1EE;&#x1F1F9;</a>
+          <a href="/m1nd/fr/" title="Fran&ccedil;ais" style="text-decoration:none;">&#x1F1EB;&#x1F1F7;</a>
+          <a href="/m1nd/de/" title="Deutsch" style="text-decoration:none;">&#x1F1E9;&#x1F1EA;</a>
+          <a href="/m1nd/zh/" title="&#x4E2D;&#x6587;" style="text-decoration:none;">&#x1F1E8;&#x1F1F3;</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Sponsor Banner ── -->
+  <div class="sponsor-banner">
+    <a href="https://github.com/sponsors/maxkle1nz" target="_blank">
+      <span class="heart">&hearts;</span>
+      m1nd economiza milhares em custos de tokens para seus agentes. &Eacute; gratuito, local e open source &mdash; feito por um dev que acredita que IA merece ferramentas melhores. Ajude a manter assim.
+      <span class="cta-pill">Seja um Patrocinador</span>
+    </a>
+  </div>
+
+  <!-- ── Hero ── -->
+  <section class="hero" style="padding-top: 200px;">
+    <div class="container">
+      <!-- Animated Logo -->
+      <div class="hero-logo">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="lg-core" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#00E5A0"/>
+              <stop offset="60%" stop-color="#00B87A"/>
+              <stop offset="100%" stop-color="#006644" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="lg-halo" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#00E5A0" stop-opacity="0.2"/>
+              <stop offset="100%" stop-color="#00E5A0" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="lg-glow">
+              <feGaussianBlur stdDeviation="3" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="lg-glow-strong">
+              <feGaussianBlur stdDeviation="6" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          <!-- Outer activation ring (slow rotate) -->
+          <g style="transform-origin: 100px 100px; animation: logo-ring-rotate 60s linear infinite;">
+            <circle cx="100" cy="100" r="88" fill="none" stroke="#00E5A0" stroke-width="0.5" opacity="0.1" stroke-dasharray="4,8"/>
+          </g>
+
+          <!-- Depth-3 ring: 12 faint outer nodes -->
+          <g opacity="0.2">
+            <circle cx="100" cy="20" r="2.5" fill="#00E5A0"/><circle cx="143" cy="25" r="2" fill="#00E5A0"/>
+            <circle cx="175" cy="57" r="2.5" fill="#00E5A0"/><circle cx="180" cy="100" r="2" fill="#00E5A0"/>
+            <circle cx="175" cy="143" r="2.5" fill="#00E5A0"/><circle cx="143" cy="175" r="2" fill="#00E5A0"/>
+            <circle cx="100" cy="180" r="2.5" fill="#00E5A0"/><circle cx="57" cy="175" r="2" fill="#00E5A0"/>
+            <circle cx="25" cy="143" r="2.5" fill="#00E5A0"/><circle cx="20" cy="100" r="2" fill="#00E5A0"/>
+            <circle cx="25" cy="57" r="2.5" fill="#00E5A0"/><circle cx="57" cy="25" r="2" fill="#00E5A0"/>
+          </g>
+
+          <!-- Signal rays from core to depth-1 (6 rays, animated) -->
+          <line x1="100" y1="100" x2="100" y2="42" stroke="#00E5A0" stroke-width="1.5" opacity="0.15" style="animation: logo-ray-pulse 3s ease-in-out infinite;"/>
+          <line x1="100" y1="100" x2="150" y2="71" stroke="#00E5A0" stroke-width="1.5" opacity="0.15" style="animation: logo-ray-pulse 3s ease-in-out 0.5s infinite;"/>
+          <line x1="100" y1="100" x2="150" y2="129" stroke="#00E5A0" stroke-width="1.5" opacity="0.15" style="animation: logo-ray-pulse 3s ease-in-out 1s infinite;"/>
+          <line x1="100" y1="100" x2="100" y2="158" stroke="#00E5A0" stroke-width="1.5" opacity="0.15" style="animation: logo-ray-pulse 3s ease-in-out 1.5s infinite;"/>
+          <line x1="100" y1="100" x2="50" y2="129" stroke="#00E5A0" stroke-width="1.5" opacity="0.15" style="animation: logo-ray-pulse 3s ease-in-out 2s infinite;"/>
+          <line x1="100" y1="100" x2="50" y2="71" stroke="#00E5A0" stroke-width="1.5" opacity="0.15" style="animation: logo-ray-pulse 3s ease-in-out 2.5s infinite;"/>
+
+          <!-- Hexagonal web (depth-1 connections) -->
+          <polygon points="100,42 150,71 150,129 100,158 50,129 50,71" fill="none" stroke="#00E5A0" stroke-width="0.6" opacity="0.12"/>
+
+          <!-- Cross connections (depth-1 to depth-2) -->
+          <line x1="100" y1="42" x2="143" y2="25" stroke="#00E5A0" stroke-width="0.5" opacity="0.08"/>
+          <line x1="150" y1="71" x2="175" y2="57" stroke="#00E5A0" stroke-width="0.5" opacity="0.08"/>
+          <line x1="150" y1="129" x2="175" y2="143" stroke="#00E5A0" stroke-width="0.5" opacity="0.08"/>
+          <line x1="100" y1="158" x2="100" y2="180" stroke="#00E5A0" stroke-width="0.5" opacity="0.08"/>
+          <line x1="50" y1="129" x2="25" y2="143" stroke="#00E5A0" stroke-width="0.5" opacity="0.08"/>
+          <line x1="50" y1="71" x2="25" y2="57" stroke="#00E5A0" stroke-width="0.5" opacity="0.08"/>
+
+          <!-- Ghost edge (structural hole indicator) -->
+          <line x1="100" y1="42" x2="100" y2="158" stroke="#FF3366" stroke-width="0.8" stroke-dasharray="3,5" opacity="0.15" style="animation: logo-ghost-dash 2s linear infinite;"/>
+          <line x1="50" y1="71" x2="150" y2="129" stroke="#F5A623" stroke-width="0.6" stroke-dasharray="2,6" opacity="0.1" style="animation: logo-ghost-dash 3s linear infinite reverse;"/>
+
+          <!-- Depth-1 nodes (6, animated firing) -->
+          <circle cx="100" cy="42" r="5" fill="#00E5A0" opacity="0.35" filter="url(#lg-glow)" style="animation: logo-node-fire 3s ease-in-out infinite;"/>
+          <circle cx="150" cy="71" r="4.5" fill="#00E5A0" opacity="0.35" filter="url(#lg-glow)" style="animation: logo-node-fire 3s ease-in-out 0.5s infinite;"/>
+          <circle cx="150" cy="129" r="5" fill="#00E5A0" opacity="0.35" filter="url(#lg-glow)" style="animation: logo-node-fire 3s ease-in-out 1s infinite;"/>
+          <circle cx="100" cy="158" r="4.5" fill="#00E5A0" opacity="0.35" filter="url(#lg-glow)" style="animation: logo-node-fire 3s ease-in-out 1.5s infinite;"/>
+          <circle cx="50" cy="129" r="5" fill="#00E5A0" opacity="0.35" filter="url(#lg-glow)" style="animation: logo-node-fire 3s ease-in-out 2s infinite;"/>
+          <circle cx="50" cy="71" r="4.5" fill="#00E5A0" opacity="0.35" filter="url(#lg-glow)" style="animation: logo-node-fire 3s ease-in-out 2.5s infinite;"/>
+
+          <!-- Core: halo + activated node + hot center -->
+          <circle cx="100" cy="100" r="22" fill="url(#lg-halo)"/>
+          <circle cx="100" cy="100" r="12" fill="url(#lg-core)" filter="url(#lg-glow-strong)" style="animation: logo-pulse-core 4s ease-in-out infinite;"/>
+          <circle cx="100" cy="100" r="5" fill="#00E5A0" filter="url(#lg-glow)"/>
+          <circle cx="100" cy="100" r="2.2" fill="#F0F2F5"/>
+        </svg>
+      </div>
+
+      <div class="hero-badge"><span class="dot"></span> 43 ferramentas MCP &middot; Rust &middot; $0.00/consulta</div>
+      <h1 style="font-size: clamp(32px, 5vw, 56px); letter-spacing: -2px; line-height: 1.15;">Seu agente de IA tem <span style="color: var(--red);">amn&eacute;sia</span>.<br>m<span class="one">1</span>nd <span class="one">lembra</span>.</h1>
+      <p class="tagline">Toda ferramenta encontra o que existe. m1nd encontra o que falta.</p>
+      <p class="subtitle">A cada sess&atilde;o, seu agente rel&ecirc; toda a base de c&oacute;digo &mdash; queimando <strong style="color: var(--red);">$0.05&ndash;$0.50 por ciclo de busca</strong> em tokens LLM, esquecendo tudo na pr&oacute;xima sess&atilde;o. m1nd substitui esse loop por um grafo de c&oacute;digo persistente que <strong style="color: var(--green);">aprende com o uso</strong>, detecta <strong style="color: var(--green);">lacunas estruturais</strong> que nenhum grep jamais encontraria, e responde em <strong style="color: var(--green);">31ms a $0.00</strong>. Bin&aacute;rio Rust local. Sem chaves de API. Sem tax&iacute;metro.</p>
+      <div class="hero-actions">
+        <a href="#start" class="btn btn-primary">In&iacute;cio R&aacute;pido</a>
+        <a href="https://github.com/maxkle1nz/m1nd" class="btn btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+
+      <!-- Compatible With -->
+      <div class="compat">
+        <img src="https://img.shields.io/badge/Claude_Code-f0ebe3?logo=claude&logoColor=d97706" alt="Claude Code">
+        <img src="https://img.shields.io/badge/Cursor-000?logo=cursor&logoColor=fff" alt="Cursor">
+        <img src="https://img.shields.io/badge/Windsurf-0d1117?logo=windsurf&logoColor=3ec9a7" alt="Windsurf">
+        <img src="https://img.shields.io/badge/GitHub_Copilot-000?logo=githubcopilot&logoColor=fff" alt="GitHub Copilot">
+        <img src="https://img.shields.io/badge/Zed-084ccf?logo=zedindustries&logoColor=fff" alt="Zed">
+        <img src="https://img.shields.io/badge/Cline-000?logo=cline&logoColor=fff" alt="Cline">
+        <img src="https://img.shields.io/badge/Roo_Code-6d28d9" alt="Roo Code">
+        <img src="https://img.shields.io/badge/Continue-000" alt="Continue">
+        <img src="https://img.shields.io/badge/OpenCode-18181b" alt="OpenCode">
+        <img src="https://img.shields.io/badge/Amazon_Q-232f3e?logo=amazonaws&logoColor=f90" alt="Amazon Q">
+      </div>
+
+      <!-- Interactive Animated Terminal -->
+      <div class="live-terminal" id="liveTerminal">
+        <div class="term-header">
+          <span class="demo-dot r"></span>
+          <span class="demo-dot y"></span>
+          <span class="demo-dot g"></span>
+          <span class="term-tabs">
+            <div class="term-tab active" data-scene="0">find</div>
+            <div class="term-tab" data-scene="1">what's missing</div>
+            <div class="term-tab" data-scene="2">what if?</div>
+            <div class="term-tab" data-scene="3">navigate</div>
+          </span>
+        </div>
+
+        <!-- Scene 0: Spreading Activation -->
+        <div class="term-scene active" data-scene="0"></div>
+
+        <!-- Scene 1: Structural Holes -->
+        <div class="term-scene" data-scene="1"></div>
+
+        <!-- Scene 2: Counterfactual -->
+        <div class="term-scene" data-scene="2"></div>
+
+        <!-- Scene 3: Perspective Navigation -->
+        <div class="term-scene" data-scene="3"></div>
+
+        <div class="term-progress"><div class="term-progress-bar" id="termProgress"></div></div>
+        <div class="term-controls">
+          <button class="term-play-btn" id="termPlayBtn">&#9654; Replay</button>
+          <span id="termStatus">9,767 nodes &middot; 26,557 edges &middot; 335 files</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Why ── -->
+  <section id="why">
+    <div class="container">
+      <div class="section-label">O problema</div>
+      <h2 class="section-title">Agentes de IA s&atilde;o raciocinadores poderosos.<br>P&eacute;ssimos navegadores.</h2>
+      <p class="section-desc">Toda vez que um agente precisa de contexto, ele dispara chamadas LLM para buscar, ler e adivinhar. Em uma base de 10.000 arquivos, s&atilde;o centenas de d&oacute;lares por semana &mdash; e ainda perde o que n&atilde;o est&aacute; l&aacute;.</p>
+
+      <div class="problems">
+        <div class="problem-card">
+          <div class="question">"O que essa mudan&ccedil;a afeta?"</div>
+          <div class="answer">O raio de impacto &eacute; invis&iacute;vel sem an&aacute;lise estrutural.</div>
+          <span class="tool">m1nd.impact</span>
+        </div>
+        <div class="problem-card">
+          <div class="question">"O que est&aacute; faltando?"</div>
+          <div class="answer">Lacunas estruturais s&atilde;o indetect&aacute;veis por busca de palavras-chave.</div>
+          <span class="tool">m1nd.missing</span>
+        </div>
+        <div class="problem-card">
+          <div class="question">"O que mais vai mudar?"</div>
+          <div class="answer">Padr&otilde;es de co-mudan&ccedil;a requerem contexto hist&oacute;rico.</div>
+          <span class="tool">m1nd.predict</span>
+        </div>
+        <div class="problem-card">
+          <div class="question">"Como est&atilde;o conectados?"</div>
+          <div class="answer">Cadeias de depend&ecirc;ncia atravessam arquivos, m&oacute;dulos e camadas de abstra&ccedil;&atilde;o.</div>
+          <span class="tool">m1nd.why</span>
+        </div>
+      </div>
+
+      <!-- Approach comparison -->
+      <table class="comparison-table" style="margin-top: 64px;">
+        <thead>
+          <tr>
+            <th>Abordagem</th>
+            <th>O que faz</th>
+            <th>Por que falha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Busca textual</td>
+            <td>Encontra tokens</td>
+            <td>Encontra o que voc&ecirc; disse, n&atilde;o o que quis dizer</td>
+          </tr>
+          <tr>
+            <td>RAG</td>
+            <td>Incorpora fragmentos, top-K</td>
+            <td>Cada recupera&ccedil;&atilde;o &eacute; amn&eacute;sica. Sem rela&ccedil;&otilde;es.</td>
+          </tr>
+          <tr>
+            <td>An&aacute;lise est&aacute;tica</td>
+            <td>AST, grafos de chamada</td>
+            <td>Snapshot congelado. N&atilde;o responde "e se?". N&atilde;o aprende.</td>
+          </tr>
+          <tr>
+            <td>Grafos de conhecimento</td>
+            <td>Triplas armazenadas</td>
+            <td>Curadoria manual. S&oacute; retorna o que foi explicitamente codificado.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── What Makes It Different ── -->
+  <section id="different">
+    <div class="container">
+      <div class="section-label">O que o torna diferente</div>
+      <h2 class="section-title">Seis capacidades que nenhuma outra ferramenta tem.</h2>
+      <p class="section-desc">N&atilde;o s&atilde;o melhorias incrementais. Diferen&ccedil;as estruturais.</p>
+
+      <div class="diff-cards">
+        <div class="diff-card">
+          <div class="diff-title">O grafo aprende</div>
+          <div class="diff-mechanism">Hebbian Plasticity</div>
+          <div class="diff-desc">Quando os resultados est&atilde;o corretos, os caminhos se fortalecem. Quando errados, enfraquecem. Cada consulta torna a pr&oacute;xima mais precisa. O grafo se adapta &agrave; sua base de c&oacute;digo, n&atilde;o o contr&aacute;rio.</div>
+        </div>
+        <div class="diff-card">
+          <div class="diff-title">O grafo cancela ru&iacute;do</div>
+          <div class="diff-mechanism">XLR Differential Processing</div>
+          <div class="diff-desc">Emprestado da engenharia de &aacute;udio. Dois sinais percorrem o mesmo caminho -- a diferen&ccedil;a revela a verdade. Arestas falso-positivas s&atilde;o canceladas antes de poluir os resultados.</div>
+        </div>
+        <div class="diff-card">
+          <div class="diff-title">O grafo lembra</div>
+          <div class="diff-mechanism">Trail System</div>
+          <div class="diff-desc">Salve, retome e mescle estados de investiga&ccedil;&atilde;o entre sess&otilde;es. Um agente pode continuar exatamente de onde outro parou. Sem redescoberta. Sem contexto perdido.</div>
+        </div>
+        <div class="diff-card">
+          <div class="diff-title">O grafo testa afirma&ccedil;&otilde;es</div>
+          <div class="diff-mechanism">Hypothesis Engine</div>
+          <div class="diff-desc">25.015 caminhos explorados em 58ms. Pontua&ccedil;&atilde;o de confian&ccedil;a Bayesiana. O grafo n&atilde;o apenas recupera -- ele avalia se uma afirma&ccedil;&atilde;o estrutural &eacute; plaus&iacute;vel.</div>
+        </div>
+        <div class="diff-card">
+          <div class="diff-title">O grafo simula alternativas</div>
+          <div class="diff-mechanism">Counterfactual Engine</div>
+          <div class="diff-desc">4.189 n&oacute;s afetados analisados em 3ms. Remova um m&oacute;dulo virtualmente, veja o que quebra, me&ccedil;a a profundidade da cascata -- antes de tocar uma &uacute;nica linha de c&oacute;digo.</div>
+        </div>
+        <div class="diff-card">
+          <div class="diff-title">O grafo permite navegar</div>
+          <div class="diff-mechanism"><a href="#perspectives" style="color: inherit; text-decoration: underline;">Perspective System</a></div>
+          <div class="diff-desc">Explora&ccedil;&atilde;o com estado, hist&oacute;rico, ramifica&ccedil;&atilde;o e desfazer. Entre em uma perspectiva, siga rotas, bifurque sua investiga&ccedil;&atilde;o, compare caminhos. 12 ferramentas. Como um cirurgi&atilde;o dentro da sua base de c&oacute;digo.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── How ── -->
+  <section id="how">
+    <div class="container">
+      <div class="section-label">Como funciona</div>
+      <h2 class="section-title">O loop central</h2>
+      <p class="section-desc">m1nd n&atilde;o busca seus dados -- ele os ativa. Consulte um conceito e o grafo se ilumina.</p>
+
+      <!-- Interactive Graph Activation Visualization -->
+      <div style="max-width: 720px; margin: 0 auto 48px; position: relative;">
+        <svg id="coreLoopViz" viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" style="width: 100%; border-radius: 16px; background: #080C14; border: 1px solid #1E2433; cursor: pointer;">
+          <defs>
+            <radialGradient id="viz-glow-g" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#00E5A0" stop-opacity="0.6"/>
+              <stop offset="100%" stop-color="#00E5A0" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="viz-glow-r" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FF3366" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#FF3366" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="viz-glow-b" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#60A5FA" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#60A5FA" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="viz-blur"><feGaussianBlur stdDeviation="3"/></filter>
+            <filter id="viz-blur-lg"><feGaussianBlur stdDeviation="8"/></filter>
+          </defs>
+
+          <!-- Phase labels -->
+          <text id="viz-phase" x="360" y="28" text-anchor="middle" fill="#5A6577" font-family="'JetBrains Mono',monospace" font-size="12" letter-spacing="2">DORMANT — CLICK TO ACTIVATE</text>
+
+          <!-- Edges (dormant = dim, activated = bright) -->
+          <g id="viz-edges" opacity="0.12">
+            <!-- Core cluster -->
+            <line x1="360" y1="190" x2="280" y2="140" stroke="#00E5A0" stroke-width="1.5"/>
+            <line x1="360" y1="190" x2="440" y2="140" stroke="#00E5A0" stroke-width="1.5"/>
+            <line x1="360" y1="190" x2="300" y2="260" stroke="#00E5A0" stroke-width="1.5"/>
+            <line x1="360" y1="190" x2="420" y2="260" stroke="#00E5A0" stroke-width="1.5"/>
+            <line x1="360" y1="190" x2="360" y2="100" stroke="#00E5A0" stroke-width="1.5"/>
+            <!-- Depth 2 -->
+            <line x1="280" y1="140" x2="200" y2="100" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="280" y1="140" x2="200" y2="180" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="440" y1="140" x2="520" y2="100" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="440" y1="140" x2="520" y2="180" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="300" y1="260" x2="220" y2="300" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="420" y1="260" x2="500" y2="300" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="360" y1="100" x2="320" y2="60" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="360" y1="100" x2="400" y2="60" stroke="#00E5A0" stroke-width="1"/>
+            <!-- Depth 3 -->
+            <line x1="200" y1="100" x2="130" y2="70" stroke="#00E5A0" stroke-width="0.7"/>
+            <line x1="200" y1="100" x2="140" y2="140" stroke="#00E5A0" stroke-width="0.7"/>
+            <line x1="520" y1="100" x2="590" y2="70" stroke="#00E5A0" stroke-width="0.7"/>
+            <line x1="520" y1="100" x2="580" y2="140" stroke="#00E5A0" stroke-width="0.7"/>
+            <line x1="220" y1="300" x2="160" y2="330" stroke="#00E5A0" stroke-width="0.7"/>
+            <line x1="500" y1="300" x2="560" y2="330" stroke="#00E5A0" stroke-width="0.7"/>
+            <!-- Cross-links -->
+            <line x1="200" y1="180" x2="300" y2="260" stroke="#00E5A0" stroke-width="0.5"/>
+            <line x1="520" y1="180" x2="420" y2="260" stroke="#00E5A0" stroke-width="0.5"/>
+            <!-- Ghost edge (structural hole) -->
+            <line id="viz-ghost" x1="200" y1="180" x2="220" y2="300" stroke="#FF3366" stroke-width="1" stroke-dasharray="4,6" opacity="0"/>
+          </g>
+
+          <!-- Nodes grouped by depth -->
+          <!-- Depth 3 (outermost) -->
+          <g id="viz-d3" opacity="0.15">
+            <circle cx="130" cy="70" r="4" fill="#5A6577"/><circle cx="140" cy="140" r="3.5" fill="#5A6577"/>
+            <circle cx="590" cy="70" r="4" fill="#5A6577"/><circle cx="580" cy="140" r="3.5" fill="#5A6577"/>
+            <circle cx="160" cy="330" r="4" fill="#5A6577"/><circle cx="560" cy="330" r="3.5" fill="#5A6577"/>
+            <circle cx="320" cy="60" r="3.5" fill="#5A6577"/><circle cx="400" cy="60" r="3.5" fill="#5A6577"/>
+          </g>
+          <!-- Depth 2 -->
+          <g id="viz-d2" opacity="0.2">
+            <circle cx="200" cy="100" r="6" fill="#5A6577"/><circle cx="200" cy="180" r="5.5" fill="#5A6577"/>
+            <circle cx="520" cy="100" r="6" fill="#5A6577"/><circle cx="520" cy="180" r="5.5" fill="#5A6577"/>
+            <circle cx="220" cy="300" r="6" fill="#5A6577"/><circle cx="500" cy="300" r="5.5" fill="#5A6577"/>
+            <circle cx="360" cy="100" r="6" fill="#5A6577"/>
+          </g>
+          <!-- Depth 1 -->
+          <g id="viz-d1" opacity="0.25">
+            <circle cx="280" cy="140" r="8" fill="#5A6577"/>
+            <circle cx="440" cy="140" r="8" fill="#5A6577"/>
+            <circle cx="300" cy="260" r="8" fill="#5A6577"/>
+            <circle cx="420" cy="260" r="8" fill="#5A6577"/>
+          </g>
+          <!-- Core (seed node) -->
+          <g id="viz-core">
+            <circle cx="360" cy="190" r="18" fill="#0F1420" stroke="#5A6577" stroke-width="1" opacity="0.4"/>
+            <circle id="viz-core-inner" cx="360" cy="190" r="10" fill="#5A6577" opacity="0.3"/>
+          </g>
+
+          <!-- Activation labels (hidden initially) -->
+          <g id="viz-labels" opacity="0" font-family="'JetBrains Mono',monospace" font-size="10" fill="#00E5A0">
+            <text x="280" y="126">0.94</text>
+            <text x="440" y="126">0.89</text>
+            <text x="300" y="280">0.83</text>
+            <text x="420" y="280">0.71</text>
+            <text x="200" y="90" fill="#F5A623" font-size="9">0.23 hole!</text>
+          </g>
+
+          <!-- Comment annotations (appear during phases) -->
+          <g id="viz-comments" font-family="'Inter',sans-serif" font-size="11">
+            <text id="viz-c1" x="360" y="362" text-anchor="middle" fill="#5A6577" opacity="0"></text>
+          </g>
+        </svg>
+        <p style="text-align: center; color: var(--text-faint); font-size: 12px; font-family: var(--mono); margin-top: 8px;">Clique no grafo para ver a ativa&ccedil;&atilde;o em a&ccedil;&atilde;o</p>
+      </div>
+
+      <div class="loop-steps">
+        <div class="loop-step">
+          <div class="num">01</div>
+          <div class="name">Ingerir</div>
+          <div class="desc">Construir grafo de propriedades a partir dos dados fonte. C&oacute;digo, JSON, qualquer dom&iacute;nio.</div>
+        </div>
+        <div class="loop-step">
+          <div class="num">02</div>
+          <div class="name">Ativar</div>
+          <div class="desc">Ativa&ccedil;&atilde;o em 4 dimens&otilde;es com cancelamento de ru&iacute;do XLR.</div>
+        </div>
+        <div class="loop-step">
+          <div class="num">03</div>
+          <div class="name">Aprender</div>
+          <div class="desc">Plasticidade Hebbiana: resultados corretos fortalecem conex&otilde;es, resultados errados as enfraquecem.</div>
+        </div>
+        <div class="loop-step">
+          <div class="num">04</div>
+          <div class="name">Persistir</div>
+          <div class="desc">Grafo + estado de plasticidade salvos em disco. Pr&oacute;xima sess&atilde;o come&ccedil;a de onde esta parou.</div>
+        </div>
+      </div>
+
+      <h3 class="section-title" style="font-size: 24px; margin-top: 64px;">Quatro dimens&otilde;es de ativa&ccedil;&atilde;o</h3>
+      <div class="dimensions">
+        <div class="dim-card">
+          <div class="dim-name" style="color: var(--green);">Estrutural</div>
+          <div class="dim-desc">Topologia do grafo: arestas, PageRank, estrutura de comunidade. Como as coisas est&atilde;o conectadas.</div>
+        </div>
+        <div class="dim-card">
+          <div class="dim-name" style="color: #60A5FA;">Sem&acirc;ntica</div>
+          <div class="dim-desc">Similaridade de r&oacute;tulos: n-gramas de caracteres, co-ocorr&ecirc;ncia (PPMI), expans&atilde;o de sin&ocirc;nimos.</div>
+        </div>
+        <div class="dim-card">
+          <div class="dim-name" style="color: var(--gold);">Temporal</div>
+          <div class="dim-desc">Din&acirc;mica temporal: decaimento por rec&ecirc;ncia, velocidade de mudan&ccedil;a, hist&oacute;rico de co-mudan&ccedil;a.</div>
+        </div>
+        <div class="dim-card">
+          <div class="dim-name" style="color: var(--red);">Causal</div>
+          <div class="dim-desc">Fluxo de depend&ecirc;ncia: causalidade direcionada ao longo de arestas de importa&ccedil;&atilde;o, chamada e conten&ccedil;&atilde;o.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Built for Agents ── -->
+  <section id="agents-first" style="padding: 80px 0;">
+    <div class="container" style="text-align: center;">
+      <div class="section-label">A mudan&ccedil;a de paradigma</div>
+      <h2 class="section-title">Toda ferramenta de busca foi feita para humanos.<br>m1nd foi feito para <span style="color: var(--green);">agentes</span>.</h2>
+      <p class="section-desc" style="max-width: 720px; margin: 0 auto 20px;">
+        2026 &eacute; o ano do slop de IA &mdash; agentes for&ccedil;ando seu caminho por bases de c&oacute;digo com loops de grep, queimando tokens como lenha. grep, ripgrep, tree-sitter: ferramentas brilhantes. Para <em>humanos</em> que leem terminais. Mas um agente de IA n&atilde;o quer 200 linhas de output para interpretar linearmente. Ele quer um grafo com pesos, dimens&otilde;es e uma resposta direta: <strong style="color: var(--text);">"o que importa e o que est&aacute; faltando"</strong> &mdash; pronto para decidir, n&atilde;o para parsear.
+      </p>
+      <p style="color: var(--text-faint); font-size: 14px; font-family: var(--mono); margin-bottom: 48px;">O fim do teatro de janela de contexto. Chega de alimentar resultados de busca para um LLM para que ele busque de novo.</p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; text-align: left;">
+        <div class="problem-card" style="border-color: rgba(255, 51, 102, 0.3); background: linear-gradient(180deg, rgba(255, 51, 102, 0.04) 0%, var(--bg-card) 100%);">
+          <div class="question" style="color: var(--red); font-size: 16px;">O ciclo slop</div>
+          <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 12px; line-height: 1.8;">
+            <span style="color: var(--text-faint);">1.</span> Agente chama grep <span style="color: var(--text-faint);">&rarr;</span> 200 linhas de ru&iacute;do<br>
+            <span style="color: var(--text-faint);">2.</span> Alimenta toda a sa&iacute;da para o LLM <span style="color: var(--text-faint);">&rarr;</span> queima tokens parseando texto<br>
+            <span style="color: var(--text-faint);">3.</span> LLM decide fazer grep de novo <span style="color: var(--text-faint);">&rarr;</span> repete 3&ndash;5 vezes<br>
+            <span style="color: var(--text-faint);">4.</span> Finalmente age sobre quadro incompleto<br>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 51, 102, 0.15);">
+              <strong style="color: var(--red);">$0.30&ndash;$0.50 queimados por busca. 10 segundos perdidos. Pontos cegos estruturais permanecem.</strong>
+            </div>
+          </div>
+        </div>
+        <div class="problem-card" style="border-color: rgba(0, 229, 160, 0.3); background: linear-gradient(180deg, rgba(0, 229, 160, 0.04) 0%, var(--bg-card) 100%);">
+          <div class="question" style="color: var(--green); font-size: 16px;">Cirurgia de precis&atilde;o</div>
+          <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 12px; line-height: 1.8;">
+            <span style="color: var(--text-faint);">1.</span> Agente chama m1nd.activate<br>
+            <span style="color: var(--text-faint);">2.</span> Recebe subgrafo ranqueado com scores de confian&ccedil;a<br>
+            <span style="color: var(--text-faint);">3.</span> V&ecirc; lacunas estruturais que nenhuma busca textual encontraria<br>
+            <span style="color: var(--text-faint);">4.</span> Age imediatamente com o quadro completo<br>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0, 229, 160, 0.15);">
+              <strong style="color: var(--green);">1 chamada. 31ms. $0.00. Zero tokens. Entendimento estrutural completo.</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p style="color: var(--text-dim); font-size: 15px; margin-top: 40px; max-width: 640px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+        m1nd n&atilde;o produz texto para um LLM reinterpretar. Ele produz <strong style="color: var(--text);">decis&otilde;es estruturadas</strong> &mdash; n&oacute;s ponderados, scores de confian&ccedil;a, rankings dimensionais, lacunas estruturais. O formato que um agente realmente precisa para agir, n&atilde;o mais slop para mastigar.
+      </p>
+
+      <!-- Why $0.00 explainer -->
+      <div style="margin-top: 56px; max-width: 760px; margin-left: auto; margin-right: auto; background: linear-gradient(135deg, rgba(0, 229, 160, 0.04) 0%, rgba(0, 153, 255, 0.04) 100%); border: 1px solid rgba(0, 229, 160, 0.15); border-radius: 12px; padding: 32px 36px; text-align: left;">
+        <div style="font-family: var(--mono); font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;">Por que $0.00 &eacute; real &mdash; n&atilde;o marketing</div>
+        <p style="color: var(--text); font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+          Quando um agente de IA busca no seu c&oacute;digo com um LLM, ele <strong>envia seu c&oacute;digo para uma API na nuvem</strong>, paga por token (entrada + sa&iacute;da), espera a resposta, e frequentemente repete 3&ndash;5 vezes. Cada ciclo custa $0.05&ndash;$0.50.
+        </p>
+        <p style="color: var(--text); font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">
+          m1nd usa <strong>zero chamadas LLM</strong>. Sua base de c&oacute;digo vive como um grafo ponderado na RAM local. Consultas s&atilde;o pura matem&aacute;tica &mdash; ativa&ccedil;&atilde;o por propaga&ccedil;&atilde;o, travessia de grafo, &aacute;lgebra linear &mdash; executadas por um bin&aacute;rio Rust na sua m&aacute;quina. Sem chamada de API. Sem tokens. Nenhum dado sai do seu computador. Por isso custa $0.00 e roda em 31ms.
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div style="background: rgba(255, 51, 102, 0.06); border-radius: 8px; padding: 16px;">
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--red); margin-bottom: 8px;">Ciclo grep LLM</div>
+            <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.6;">
+              Seu c&oacute;digo &rarr; API na nuvem &rarr; tokens &rarr; $$<br>
+              <span style="color: var(--text-faint);">Como pedir ao Google dire&ccedil;&otilde;es toda vez que precisa atravessar a rua</span>
+            </div>
+          </div>
+          <div style="background: rgba(0, 229, 160, 0.06); border-radius: 8px; padding: 16px;">
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">Consulta m1nd</div>
+            <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.6;">
+              Grafo na RAM &rarr; matem&aacute;tica &rarr; resposta &rarr; $0<br>
+              <span style="color: var(--text-faint);">Como olhar um mapa que j&aacute; est&aacute; na sua mesa</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Perspectives ── -->
+  <section id="perspectives">
+    <div class="container">
+      <div class="section-label">Perspectivas</div>
+      <h2 class="section-title">Navegue no c&oacute;digo como um cirurgi&atilde;o.</h2>
+      <p class="section-desc">grep n&atilde;o tem estado. Cada busca come&ccedil;a do zero. Perspectivas m1nd mant&ecirc;m uma sess&atilde;o de navega&ccedil;&atilde;o viva &mdash; com hist&oacute;rico, ramifica&ccedil;&otilde;es e sugest&otilde;es.</p>
+
+      <div class="perspective-flow">
+        <div class="p-step">
+          <div class="p-icon">&#x1F50D;</div>
+          <div class="p-name">start</div>
+          <div class="p-desc">Entre em uma perspectiva. Uma superf&iacute;cie naveg&aacute;vel se forma ao redor da sua consulta.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x1F9ED;</div>
+          <div class="p-name">routes</div>
+          <div class="p-desc">Navegue por rotas ranqueadas &mdash; caminhos ponderados pelo grafo.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x1F3AF;</div>
+          <div class="p-name">follow</div>
+          <div class="p-desc">Mova o foco para um alvo. Novas rotas se sintetizam automaticamente.</div>
+        </div>
+        <div class="p-step p-highlight">
+          <div class="p-icon">&#x1F500;</div>
+          <div class="p-name">branch</div>
+          <div class="p-desc">Bifurque sua explora&ccedil;&atilde;o. Como branches do git, mas para investiga&ccedil;&atilde;o.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x1F4A1;</div>
+          <div class="p-name">suggest</div>
+          <div class="p-desc">m1nd recomenda seu pr&oacute;ximo movimento baseado no hist&oacute;rico de navega&ccedil;&atilde;o.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x2696;&#xFE0F;</div>
+          <div class="p-name">compare</div>
+          <div class="p-desc">Diff de duas perspectivas. N&oacute;s compartilhados, caminhos &uacute;nicos, deltas dimensionais.</div>
+        </div>
+      </div>
+
+      <p class="perspective-tagline">12 ferramentas. <strong>Explora&ccedil;&atilde;o com estado, mem&oacute;ria, ramifica&ccedil;&atilde;o e desfazer.</strong><br>Nenhuma outra ferramenta de navega&ccedil;&atilde;o de c&oacute;digo no mercado faz isso.</p>
+
+      <!-- Perspective session demo -->
+      <div class="perspective-demo">
+        <div class="demo-header">
+          <span class="demo-dot r"></span>
+          <span class="demo-dot y"></span>
+          <span class="demo-dot g"></span>
+          <span class="demo-title">perspective session</span>
+        </div>
+        <div class="demo-body">
+          <span class="prompt">$</span> m1nd.perspective_start <span class="dim">--query</span> "payment flow"<br>
+          <span class="dim">Perspective p-7a3f opened &middot; 6 routes synthesized</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_follow <span class="dim">--route</span> "checkout &rarr; stripe"<br>
+          <span class="dim">Focus moved to stripe/client.rs &middot; 4 new routes from this node</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_branch <span class="dim">--name</span> "refund-path"<br>
+          <span class="dim">Branch created &middot; forked from stripe/client.rs</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_suggest<br>
+          <span class="val">&#x2192;</span> <span class="val">refund/handler.rs</span> <span class="dim">(affinity: 0.91, structural + causal)</span><br>
+          <span class="dim">&nbsp;&nbsp;"Based on 3 hops: this is the most likely next dependency"</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_compare <span class="dim">--a</span> "main" <span class="dim">--b</span> "refund-path"<br>
+          <span class="dim">Shared: 12 nodes &middot; Unique to refund-path: 5 nodes &middot; Divergence: 0.34</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Tools ── -->
+  <section id="tools">
+    <div class="container">
+      <div class="section-label">43 ferramentas MCP</div>
+      <h2 class="section-title">Tudo que um agente precisa.</h2>
+      <p class="section-desc">Cham&aacute;veis por qualquer cliente MCP via JSON-RPC stdio. Sem SDK necess&aacute;rio.</p>
+
+      <div class="tools-group">
+        <div class="tools-group-title">Funda&ccedil;&atilde;o <span>(13)</span></div>
+        <div class="tools-grid">
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.ingest</div>
+              <div class="tool-desc">Carregar dados no grafo. Extrator de c&oacute;digo ou descritor JSON.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.activate</div>
+              <div class="tool-desc">Consulta por ativa&ccedil;&atilde;o -- "o que est&aacute; relacionado a X?"</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.impact</div>
+              <div class="tool-desc">Raio de impacto -- "o que mudar X afeta?"</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.why</div>
+              <div class="tool-desc">Explica&ccedil;&atilde;o de caminho -- "como A e B est&atilde;o conectados?"</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.learn</div>
+              <div class="tool-desc">Feedback Hebbiano -- "este resultado estava correto / errado / parcial."</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.drift</div>
+              <div class="tool-desc">An&aacute;lise de drift de pesos -- "o que mudou desde a &uacute;ltima sess&atilde;o?"</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.health</div>
+              <div class="tool-desc">Diagn&oacute;sticos -- contagens de n&oacute;s/arestas, sess&otilde;es, status de persist&ecirc;ncia.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.seek</div>
+              <div class="tool-desc">Busca direcionada de n&oacute;s -- encontrar entidades espec&iacute;ficas por ID ou padr&atilde;o.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.scan</div>
+              <div class="tool-desc">Varredura ampla do grafo -- enumerar n&oacute;s por tipo, r&oacute;tulo ou vizinhan&ccedil;a.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.timeline</div>
+              <div class="tool-desc">Sequ&ecirc;ncia temporal -- como os n&oacute;s mudaram ao longo do tempo.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.diverge</div>
+              <div class="tool-desc">An&aacute;lise de diverg&ecirc;ncia -- onde dois caminhos divergem?</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.warmup</div>
+              <div class="tool-desc">Prepara&ccedil;&atilde;o de contexto -- "prepare-se para a tarefa X."</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.federate</div>
+              <div class="tool-desc">Federa&ccedil;&atilde;o multi-repo -- unificar grafos entre reposit&oacute;rios.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tools-group">
+        <div class="tools-group-title">Navega&ccedil;&atilde;o por Perspectivas <span>(12)</span></div>
+        <div class="tools-grid">
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.start</div>
+              <div class="tool-desc">Abrir uma nova perspectiva -- uma vis&atilde;o filtrada e com escopo do grafo.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.routes</div>
+              <div class="tool-desc">Encontrar todos os caminhos entre dois n&oacute;s dentro da perspectiva.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.follow</div>
+              <div class="tool-desc">Navegar para frente -- seguir uma aresta da posi&ccedil;&atilde;o atual.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.back</div>
+              <div class="tool-desc">Navegar para tr&aacute;s -- voltar a uma posi&ccedil;&atilde;o anterior.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.peek</div>
+              <div class="tool-desc">Pr&eacute;-visualizar vizinhos sem se mover -- olhar antes de saltar.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.inspect</div>
+              <div class="tool-desc">Detalhe completo do n&oacute; atual -- arestas, pesos, metadados.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.suggest</div>
+              <div class="tool-desc">Navega&ccedil;&atilde;o guiada -- "para onde devo ir agora?"</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.affinity</div>
+              <div class="tool-desc">Pontuar qu&atilde;o relacionados dois n&oacute;s s&atilde;o deste ponto de vista.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.branch</div>
+              <div class="tool-desc">Bifurcar a perspectiva atual em explora&ccedil;&otilde;es paralelas.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.compare</div>
+              <div class="tool-desc">Diff de duas perspectivas -- o que cada uma v&ecirc; que a outra n&atilde;o?</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.list</div>
+              <div class="tool-desc">Listar todas as perspectivas ativas e suas posi&ccedil;&otilde;es.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">perspective.close</div>
+              <div class="tool-desc">Fechar uma perspectiva e liberar seus recursos.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tools-group">
+        <div class="tools-group-title">Sistema de Locks <span>(5)</span></div>
+        <div class="tools-grid">
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">lock.create</div>
+              <div class="tool-desc">Snapshot do estado do grafo -- criar uma linha base para compara&ccedil;&atilde;o.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">lock.watch</div>
+              <div class="tool-desc">Monitorar mudan&ccedil;as contra o lock -- detec&ccedil;&atilde;o de drift em tempo real.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">lock.diff</div>
+              <div class="tool-desc">Diff do estado atual contra o lock -- o que mudou?</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">lock.rebase</div>
+              <div class="tool-desc">Atualizar o lock para o estado atual -- aceitar todas as mudan&ccedil;as.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">lock.release</div>
+              <div class="tool-desc">Liberar o lock e a mem&oacute;ria do snapshot.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tools-group">
+        <div class="tools-group-title">Superpoderes <span>(13)</span></div>
+        <div class="tools-grid">
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.hypothesize</div>
+              <div class="tool-desc">Testar uma afirma&ccedil;&atilde;o estrutural -- confian&ccedil;a Bayesiana sobre 25K+ caminhos.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.counterfactual</div>
+              <div class="tool-desc">Simula&ccedil;&atilde;o de remo&ccedil;&atilde;o -- "o que quebra se removermos X?"</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.missing</div>
+              <div class="tool-desc">Detec&ccedil;&atilde;o de lacunas estruturais -- "o que est&aacute; faltando neste quadro?"</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.resonate</div>
+              <div class="tool-desc">An&aacute;lise harm&ocirc;nica -- ondas estacion&aacute;rias, frequ&ecirc;ncias ressonantes.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.fingerprint</div>
+              <div class="tool-desc">Detec&ccedil;&atilde;o de equival&ecirc;ncia -- "essas duas coisas s&atilde;o duplicatas?"</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.trace</div>
+              <div class="tool-desc">Trace completo de ativa&ccedil;&atilde;o -- cada salto, cada peso, cada decis&atilde;o.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.validate_plan</div>
+              <div class="tool-desc">Validar um plano de implementa&ccedil;&atilde;o contra a estrutura do grafo.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.predict</div>
+              <div class="tool-desc">Previs&atilde;o de co-mudan&ccedil;a -- "o que mais vai precisar mudar?"</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.differential</div>
+              <div class="tool-desc">Diferencial XLR -- separar sinal de ru&iacute;do entre duas consultas.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">trail.save</div>
+              <div class="tool-desc">Salvar estado atual da investiga&ccedil;&atilde;o -- todas as ativa&ccedil;&otilde;es, perspectivas, contexto.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">trail.resume</div>
+              <div class="tool-desc">Retomar uma trilha salva -- continuar exatamente de onde parou.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">trail.merge</div>
+              <div class="tool-desc">Mesclar duas trilhas -- combinar investiga&ccedil;&otilde;es paralelas.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">trail.list</div>
+              <div class="tool-desc">Listar todas as trilhas salvas com metadados e timestamps.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Benchmarks ── -->
+  <section id="benchmarks">
+    <div class="container">
+      <div class="section-label">Benchmarks de produ&ccedil;&atilde;o</div>
+      <h2 class="section-title">N&uacute;meros reais de uma base real.</h2>
+      <p class="section-desc">Medidos em um projeto real de 335 arquivos Rust + Python + TypeScript. Sem cherry-picking.</p>
+
+      <div class="bench-grid">
+        <div class="bench-card">
+          <div class="bench-label">Ingest&atilde;o completa</div>
+          <div class="bench-value">910ms</div>
+          <div class="bench-detail">335 files &rarr; 9,767 nodes &rarr; 26,557 edges</div>
+        </div>
+        <div class="bench-card">
+          <div class="bench-label">Ativa&ccedil;&atilde;o por propaga&ccedil;&atilde;o</div>
+          <div class="bench-value">31-77ms</div>
+          <div class="bench-detail">Frente de onda 4-dimensional, gate de ru&iacute;do XLR</div>
+        </div>
+        <div class="bench-card">
+          <div class="bench-label">Raio de impacto</div>
+          <div class="bench-value">5-52ms</div>
+          <div class="bench-detail">An&aacute;lise de cascata completa com profundidade de saltos</div>
+        </div>
+        <div class="bench-card">
+          <div class="bench-label">Simula&ccedil;&atilde;o contrafactual</div>
+          <div class="bench-value">3ms</div>
+          <div class="bench-detail">4.189 n&oacute;s afetados avaliados</div>
+        </div>
+        <div class="bench-card">
+          <div class="bench-label">Diff de lock</div>
+          <div class="bench-value">0.08&micro;s</div>
+          <div class="bench-detail">Compara&ccedil;&atilde;o de snapshot, quase instant&acirc;neo</div>
+        </div>
+        <div class="bench-card">
+          <div class="bench-label">Federa&ccedil;&atilde;o (2 repos)</div>
+          <div class="bench-value">1.3s</div>
+          <div class="bench-detail">18.203 arestas cross-repo costuradas</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Comparison ── -->
+  <section id="comparison">
+    <div class="container">
+      <div class="section-label">Como se compara</div>
+      <h2 class="section-title">m1nd vs. as alternativas.</h2>
+      <p class="section-desc">Categoria diferente, n&atilde;o apenas uma vers&atilde;o melhor.</p>
+
+      <!-- Cost Reality Callout -->
+      <div style="background: linear-gradient(135deg, rgba(255, 51, 102, 0.06) 0%, rgba(0, 229, 160, 0.06) 100%); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 48px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px; align-items: center;">
+          <div>
+            <div style="font-family: var(--mono); font-size: 12px; color: var(--red); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">O imposto de tokens &eacute; real</div>
+            <p style="font-size: 15px; color: var(--text-dim); line-height: 1.6; margin-bottom: 16px;">
+              Toda vez que um agente de IA faz grep na sua base e alimenta os resultados a um LLM, voc&ecirc; paga. Usu&aacute;rios do Cursor reportaram <strong style="color: var(--red);">$22K/m&ecirc;s</strong> em excedentes. Times rodando Copilot + modelos frontier em repos grandes veem <strong style="color: var(--red);">$200&ndash;$500/m&ecirc;s</strong> em custos invis&iacute;veis de busca.
+            </p>
+            <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.8;">
+              <span style="color: var(--red);">100 searches/day</span> &times; $0.30/search = <strong style="color: var(--red);">$9/day</strong> = <strong style="color: var(--red);">$270/month</strong><br>
+              <span style="color: var(--red);">That's $3,240/year</span> <span style="color: var(--text-faint);">on search alone. Per developer.</span>
+            </div>
+          </div>
+          <div style="text-align: center; padding: 24px; background: var(--bg-card); border-radius: 12px; border: 1px solid rgba(0, 229, 160, 0.2);">
+            <div style="font-family: var(--mono); font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">m1nd</div>
+            <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1;">$0</div>
+            <div style="font-family: var(--mono); font-size: 14px; color: var(--text-dim); margin-top: 8px;">/consulta. /dia. /m&ecirc;s. /para sempre.</div>
+            <div style="font-size: 13px; color: var(--text-faint); margin-top: 12px;">Bin&aacute;rio Rust local. Sem chaves de API. Sem nuvem.<br>Nenhum dado sai da sua m&aacute;quina. Nunca.</div>
+          </div>
+        </div>
+      </div>
+
+      <table class="vs-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="highlight">m1nd</th>
+            <th>Sourcegraph</th>
+            <th>Cursor</th>
+            <th>Copilot</th>
+            <th>Greptile</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Grafo de c&oacute;digo</td>
+            <td class="yes">Grafo de propriedades completo</td>
+            <td class="partial">Symbol index</td>
+            <td class="no">None</td>
+            <td class="no">None</td>
+            <td class="partial">AST index</td>
+          </tr>
+          <tr>
+            <td>Aprende com uso</td>
+            <td class="yes">Hebbian plasticity</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td>Persiste investiga&ccedil;&otilde;es</td>
+            <td class="yes">Trail system</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td>Testa hip&oacute;teses</td>
+            <td class="yes">Bayesian engine</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td>Simula remo&ccedil;&atilde;o</td>
+            <td class="yes">Counterfactual</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td>Locks multi-agente</td>
+            <td class="yes">Sistema de lock (funciona)</td>
+            <td class="no">No</td>
+            <td class="no">Tentou, falhou</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td>Multi-repo</td>
+            <td class="yes">Federation</td>
+            <td class="yes">Yes</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="partial">Per-repo</td>
+          </tr>
+          <tr>
+            <td>Lat&ecirc;ncia de busca</td>
+            <td class="yes">31ms (local)</td>
+            <td class="partial">~200ms (cloud)</td>
+            <td class="partial">320ms+ (cloud)</td>
+            <td class="partial">500&ndash;800ms</td>
+            <td class="partial">Cloud-dependent</td>
+          </tr>
+          <tr>
+            <td>Interface de agente</td>
+            <td class="yes">43 MCP tools</td>
+            <td class="partial">API</td>
+            <td class="no">Built-in only</td>
+            <td class="no">Built-in only</td>
+            <td class="partial">API</td>
+          </tr>
+          <tr>
+            <td>Custo mensal</td>
+            <td class="yes">$0 (forever)</td>
+            <td class="no">$59/user/mo</td>
+            <td class="no">$20+/mo (overages to $22K)</td>
+            <td class="no">$19+/mo</td>
+            <td class="no">$30/dev/mo</td>
+          </tr>
+          <tr>
+            <td>Capacidades (de 16)</td>
+            <td class="yes" style="font-size: 15px; font-weight: 700;">16/16</td>
+            <td class="no">1/16</td>
+            <td class="no">0/16</td>
+            <td class="no">0/16</td>
+            <td class="no">1/16</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Competitive Advantage ── -->
+  <section id="advantage" style="border-top: 1px solid var(--border);">
+    <div class="container">
+      <div class="section-label">A dist&acirc;ncia medida</div>
+      <h2 class="section-title">3&ndash;4 anos &agrave; frente. Medidos.</h2>
+      <p class="section-desc">Medimos m1nd contra todas as ferramentas da categoria em 16 capacidades. m1nd pontua 16/16. O melhor concorrente pontua 3. Cursor e Copilot pontuam zero.</p>
+
+      <!-- ── Feature coverage bars ── -->
+      <div style="margin-bottom: 64px;">
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Capacidades cobertas (de 16)</div>
+
+        <!-- m1nd -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--green);">m1nd</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 32px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 100%; height: 100%; background: linear-gradient(90deg, var(--green) 0%, rgba(0, 229, 160, 0.7) 100%); border-radius: 5px; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;">
+              <span style="font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--bg);">16/16</span>
+            </div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--green);">100%</div>
+        </div>
+
+        <!-- CodeGraphContext -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">CodeGraphCtx</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 18.75%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">3/16</div>
+        </div>
+
+        <!-- Joern -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Joern</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- CodeQL -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">CodeQL</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- ast-grep -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">ast-grep</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- Letta Code -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Letta Code</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- Sourcegraph Cody -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Sourcegraph</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
+        </div>
+
+        <!-- Augment -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Augment</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
+        </div>
+
+        <!-- Greptile -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Greptile</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
+        </div>
+
+        <!-- Cursor -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Cursor</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 0%; height: 100%;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">0/16</div>
+        </div>
+
+        <!-- Copilot -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Copilot</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 0%; height: 100%;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">0/16</div>
+        </div>
+      </div>
+
+      <!-- ── 5 Defensible Claims ── -->
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Seis coisas que ningu&eacute;m mais pode afirmar</div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 64px;">
+        <!-- Claim 1 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">01 &mdash; ZERO CONCORRENTES</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Plasticidade Hebbiana em grafos de c&oacute;digo</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">O grafo se reconecta baseado em quais caminhos de consulta levam a resultados corretos. Nenhuma outra ferramenta faz isso. Nenhum artigo publicado descreve isso para c&oacute;digo.</div>
+        </div>
+
+        <!-- Claim 2 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">02 &mdash; 10-30x MAIS R&Aacute;PIDO</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">$0.00/consulta em 31ms</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Bin&aacute;rio Rust local. Sem tokens LLM queimados por consulta. Toda ferramenta dependente de LLM paga $0.10-$0.50 por busca e espera 300ms-2s.</div>
+        </div>
+
+        <!-- Claim 3 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">03 &mdash; ZERO ESTADO DA ARTE</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Encontra o que FALTA no c&oacute;digo</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Detec&ccedil;&atilde;o de lacunas estruturais baseada na teoria de Burt da sociologia, aplicada a grafos de c&oacute;digo. Encontra gaps na sua arquitetura que nenhuma busca pode revelar.</div>
+        </div>
+
+        <!-- Claim 4 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">04 &mdash; MAIOR SUPERF&Iacute;CIE</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">43 ferramentas MCP = ciclo cognitivo completo</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Ingerir, ativar, hipotetizar, simular, aprender, navegar, federar. O maior concorrente oferece ~15 ferramentas. A maioria oferece 3-5.</div>
+        </div>
+
+        <!-- Claim 5 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">05 &mdash; T&Eacute;CNICA IN&Eacute;DITA</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Cancelamento de ru&iacute;do XLR</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Emprestado da engenharia de &aacute;udio: filtragem Cross-Layer Resonance suprime arestas falso-positivas durante a ativa&ccedil;&atilde;o. Sem estado da arte para grafos de c&oacute;digo. Zero concorrentes, zero artigos.</div>
+        </div>
+
+        <!-- Claim 6 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">06 &mdash; OUTROS TENTARAM E FALHARAM</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Locking de grafo multi-agente</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Cursor tentou locking de arquivos multi-agente e abandonou. m1nd entrega 5 ferramentas de lock que funcionam: snapshot, watch, diff, rebase, release. M&uacute;ltiplos agentes, um grafo consistente.</div>
+        </div>
+      </div>
+
+      <!-- ── Compact Verdict ── -->
+      <div style="text-align: center; margin-top: 48px;">
+        <div style="display: inline-block; background: linear-gradient(135deg, rgba(0, 229, 160, 0.08) 0%, rgba(0, 229, 160, 0.03) 100%); border: 1px solid rgba(0, 229, 160, 0.2); border-radius: 16px; padding: 32px 56px;">
+          <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1;">3&ndash;4 years ahead</div>
+          <div style="font-size: 15px; color: var(--text-dim); margin-top: 12px; max-width: 500px;">Built on 6 disciplines no single competitor covers: cognitive science, sociology, neuroscience, signal processing, physics, and distributed systems.</div>
+          <a href="https://github.com/maxkle1nz/m1nd/blob/main/docs/m1nd/M1ND-COMPETITIVE-INTELLIGENCE-2026-03-13.md" style="display: inline-block; margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--green); text-decoration: underline;">Read the full competitive analysis &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Live session ── -->
+  <section id="session" style="padding-top: 0;">
+    <div class="container">
+      <div class="section-label">Output real</div>
+      <h2 class="section-title">Uma sess&atilde;o completa, do in&iacute;cio ao fim.</h2>
+      <p class="section-desc">m1nd ingerindo e analisando uma base de c&oacute;digo de produ&ccedil;&atilde;o. Cada n&uacute;mero &eacute; real.</p>
+
+      <div class="session">
+        <div class="demo-block" style="max-width: 100%;">
+          <div class="demo-header">
+            <span class="demo-dot r"></span>
+            <span class="demo-dot y"></span>
+            <span class="demo-dot g"></span>
+            <span class="demo-title">sess&atilde;o de produ&ccedil;&atilde;o m1nd</span>
+          </div>
+          <div class="demo-body">
+            <span class="step-label">1. Ingest</span>
+            <span class="prompt">&gt;</span> m1nd.ingest <span class="dim">path=./</span><br>
+            <span class="dim">Scanned 335 source files across 3 languages</span><br>
+            <span class="val">9,767 nodes</span>, <span class="val">26,557 edges</span> <span class="dim">built in 910ms</span><br>
+            <span class="dim">Co-change history: 214 commit groups analyzed</span><br><br>
+
+            <span class="step-label">2. Activate</span>
+            <span class="prompt">&gt;</span> m1nd.activate <span class="dim">query="spreading activation"</span><br>
+            <span class="dim">Seeds: activation.rs, graph.rs, xlr.rs</span><br>
+            <span class="dim">Wavefront: 3 &rarr; 18 &rarr; 47 nodes</span><br>
+            <span class="val">0.94</span> fn::propagate_wavefront <span class="dim">(structural 0.97)</span><br>
+            <span class="val">0.91</span> fn::score_candidates <span class="dim">(semantic 0.93)</span><br>
+            <span class="val">0.87</span> fn::xlr_gate <span class="dim">(causal 0.89)</span><br>
+            <span class="val">0.72</span> fn::compute_pagerank <span class="dim">(structural 0.78)</span><br>
+            <span class="dim">XLR cancelled 12 noise edges &middot; 31ms</span><br><br>
+
+            <span class="step-label">3. Impact</span>
+            <span class="prompt">&gt;</span> m1nd.impact <span class="dim">targets=["graph.rs"]</span><br>
+            <span class="dim">Blast radius: <span class="val">23 nodes</span> across 4 hops</span><br>
+            <span class="val">Direct:</span> activation.rs, xlr.rs, temporal.rs, builder.rs<br>
+            <span class="val">Indirect:</span> server.rs, tools.rs, session.rs<br>
+            <span class="warn">High-impact:</span> graph.rs is a keystone (PageRank top 3%)<br><br>
+
+            <span class="step-label">4. Hypothesize</span>
+            <span class="prompt">&gt;</span> m1nd.hypothesize <span class="dim">"graph.rs depends on temporal.rs"</span><br>
+            <span class="dim">Explored 25,015 paths in 58ms</span><br>
+            <span class="val">Confidence: 0.87</span> <span class="dim">(strong structural + temporal evidence)</span><br>
+            <span class="dim">Supporting: 14 direct paths, 3 co-change clusters</span><br>
+            <span class="warn">Weakening:</span> 2 paths through deprecated module<br><br>
+
+            <span class="step-label">5. Counterfactual</span>
+            <span class="prompt">&gt;</span> m1nd.counterfactual <span class="dim">remove=["graph.rs"]</span><br>
+            <span class="err">CASCADE:</span> 4,189 affected nodes in 3ms<br>
+            <span class="err">ORPHANED:</span> 8 functions become unreachable<br>
+            <span class="val">RESILIENT:</span> temporal.rs, domain.rs survive via alternate paths<br>
+            <span class="dim">Simulation complete: graph.rs is load-bearing</span><br><br>
+
+            <span class="step-label">6. Learn</span>
+            <span class="prompt">&gt;</span> m1nd.learn <span class="dim">feedback=correct nodes=[activation.rs, xlr.rs]</span><br>
+            <span class="val">LTP applied:</span> 14 edges strengthened (avg +0.12)<br>
+            <span class="dim">Plasticity state persisted &middot; 2,847 modified weights total</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Quick Start ── -->
+  <section id="start">
+    <div class="container">
+      <div class="section-label">Comece</div>
+      <h2 class="section-title">Funcionando em 60 segundos.</h2>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h3>Compilar</h3>
+            <div class="code-block">
+              cargo build --release
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h3>Executar</h3>
+            <p>m1nd inicia como um servidor JSON-RPC stdio. Compat&iacute;vel com MCP de f&aacute;brica.</p>
+            <div class="code-block">
+              ./target/release/m1nd-mcp
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h3>Ingerir &amp; Consultar</h3>
+            <p>Envie mensagens MCP via stdin. Estado persiste automaticamente.</p>
+            <div class="code-block">
+              <span class="comment">// Ingest a codebase</span><br>
+              {"method":"tools/call","params":{"name":"m1nd.ingest",<br>
+              &nbsp;&nbsp;"arguments":{"path":"/your/project","agent_id":"my-agent"}}}<br><br>
+              <span class="comment">// Query</span><br>
+              {"method":"tools/call","params":{"name":"m1nd.activate",<br>
+              &nbsp;&nbsp;"arguments":{"query":"authentication","agent_id":"my-agent"}}}<br><br>
+              <span class="comment">// Learn from results</span><br>
+              {"method":"tools/call","params":{"name":"m1nd.learn",<br>
+              &nbsp;&nbsp;"arguments":{"feedback":"correct","node_ids":["file::src/auth.rs"]}}}
+            </div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h3>Qualquer dom&iacute;nio</h3>
+            <p>N&atilde;o s&oacute; c&oacute;digo. Ingira qualquer grafo de conhecimento a partir de JSON.</p>
+            <div class="code-block">
+              <span class="comment">// JSON descriptor -- works for any domain</span><br>
+              {"nodes": [<br>
+              &nbsp;&nbsp;{"id":"concept::activation", "label":"Spreading Activation", "type":"Concept"},<br>
+              &nbsp;&nbsp;{"id":"concept::plasticity", "label":"Hebbian Plasticity", "type":"Process"}<br>
+              ],<br>
+              "edges": [<br>
+              &nbsp;&nbsp;{"source":"concept::activation", "target":"concept::plasticity",<br>
+              &nbsp;&nbsp;&nbsp;"relation":"enables", "weight":0.8}<br>
+              ]}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Limitations ── -->
+  <section id="limitations">
+    <div class="container">
+      <div class="section-label">Limita&ccedil;&otilde;es honestas</div>
+      <h2 class="section-title">O que m1nd n&atilde;o &eacute;.</h2>
+      <p class="section-desc">Nenhuma ferramenta &eacute; tudo. Aqui &eacute; onde m1nd tem seus limites.</p>
+
+      <div class="limits-list">
+        <div class="limit-item">
+          <div class="limit-title">N&atilde;o &eacute; um editor de c&oacute;digo</div>
+          <div class="limit-desc">m1nd navega e analisa. Ele n&atilde;o escreve, refatora ou aplica patches. Combine-o com um agente que fa&ccedil;a isso.</div>
+        </div>
+        <div class="limit-item">
+          <div class="limit-title">N&atilde;o &eacute; um motor de busca</div>
+          <div class="limit-desc">Ele encontra rela&ccedil;&otilde;es estruturais, n&atilde;o correspond&ecirc;ncias de strings. Para busca textual literal, use grep. Para entendimento estrutural, use m1nd.</div>
+        </div>
+        <div class="limit-item">
+          <div class="limit-title">Grafo vive na mem&oacute;ria</div>
+          <div class="limit-desc">O grafo completo fica na RAM para velocidade. Monorepos grandes (100K+ arquivos) precisar&atilde;o de mem&oacute;ria significativa. Persist&ecirc;ncia &eacute; para disco no shutdown.</div>
+        </div>
+        <div class="limit-item">
+          <div class="limit-title">M&aacute;quina &uacute;nica hoje</div>
+          <div class="limit-desc">Federa&ccedil;&atilde;o costura grafos de m&uacute;ltiplos repos, mas o servidor roda em uma m&aacute;quina. Modo distribu&iacute;do ainda n&atilde;o implementado.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Metrics bar ── -->
+  <section style="padding: 48px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div class="container" style="display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; text-align: center;">
+      <div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~15,500</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Linhas de Rust</div>
+      </div>
+      <div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">159</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Testes</div>
+      </div>
+      <div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">43</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Ferramentas MCP</div>
+      </div>
+      <div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">6+1</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Linguagens</div>
+      </div>
+      <div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~8 MB</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Bin&aacute;rio (ARM64)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Final CTA ── -->
+  <section style="padding: 80px 0; text-align: center;">
+    <div class="container">
+      <h2 class="section-title" style="max-width: 700px; margin: 0 auto 16px;">Pare de pagar por amn&eacute;sia.<br>D&ecirc; uma <span style="color: var(--green);">m1nd</span> aos seus agentes.</h2>
+      <p style="color: var(--text-dim); font-size: 16px; max-width: 560px; margin: 0 auto 40px; line-height: 1.6;">
+        Open source. Local. Custo zero. Um bin&aacute;rio. 43 ferramentas.<br>Sua base de c&oacute;digo nunca sai da sua m&aacute;quina.
+      </p>
+      <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+        <a href="https://github.com/maxkle1nz/m1nd" class="btn btn-primary" style="font-size: 16px; padding: 16px 36px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Get m1nd on GitHub
+        </a>
+        <a href="https://github.com/sponsors/maxkle1nz" class="btn btn-secondary" style="font-size: 16px; padding: 16px 36px;">
+          <span style="color: #FF3366;">&hearts;</span> Patrocinar este projeto
+        </a>
+      </div>
+      <p style="font-family: var(--mono); font-size: 12px; color: var(--text-faint); margin-top: 24px;">Licen&ccedil;a MIT &middot; Rust &middot; ~8 MB bin&aacute;rio &middot; Funciona com qualquer cliente MCP</p>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <div class="container">
+      <div class="footer-logo">m<span>1</span>nd</div>
+      <div class="footer-desc">O grafo de c&oacute;digo adaptativo</div>
+      <div class="footer-links">
+        <a href="https://github.com/maxkle1nz/m1nd">GitHub</a>
+        <a href="../wiki-build/index.html">Wiki</a>
+        <a href="../wiki-build/faq.html">FAQ</a>
+        <a href="../wiki-build/api-reference/overview.html">API Reference</a>
+        <a href="https://github.com/maxkle1nz/m1nd/blob/main/EXAMPLES.md">Examples</a>
+        <a href="https://github.com/sponsors/maxkle1nz">Sponsor</a>
+        <a href="https://github.com/maxkle1nz/m1nd/blob/main/LICENSE">MIT License</a>
+      </div>
+      <div class="author">MAX ELIAS KLEINSCHMIDT &#x1F1E7;&#x1F1F7; &mdash; COSMOPHONIX INTELLIGENCE &mdash; orgulhosamente brasileiro</div>
+    </div>
+  </footer>
+
+<script>
+// ── Live Terminal Animation Engine ──
+(function() {
+  const scenes = [
+    // Scene 0: Find what matters
+    [
+      { type: 'comment', text: '# You ask: "What handles authentication in this project?"' },
+      { type: 'blank' },
+      { type: 'cmd', text: '$ m1nd.activate --query "authentication"' },
+      { type: 'blank' },
+      { type: 'comment', text: '# m1nd lights up the graph. No grepping. No reading files.' },
+      { type: 'comment', text: '# It finds the 4 most relevant files instantly:' },
+      { type: 'blank' },
+      { type: 'result', score: '94%', file: 'auth/middleware.rs', detail: 'the main auth layer' },
+      { type: 'result', score: '89%', file: 'auth/jwt.rs', detail: 'token validation' },
+      { type: 'result', score: '83%', file: 'session/manager.rs', detail: 'session handling' },
+      { type: 'result', score: '71%', file: 'middleware/cors.rs', detail: 'related security' },
+      { type: 'blank' },
+      { type: 'success', text: 'Done in 31ms. Zero LLM tokens. Zero cost.' },
+    ],
+    // Scene 1: Find what's missing
+    [
+      { type: 'comment', text: '# The feature no other tool has:' },
+      { type: 'comment', text: '# find what SHOULD exist in your code but DOESN\'T.' },
+      { type: 'blank' },
+      { type: 'cmd', text: '$ m1nd.missing --query "payment processing"' },
+      { type: 'blank' },
+      { type: 'comment', text: '# m1nd found 3 gaps in your payment system:' },
+      { type: 'blank' },
+      { type: 'hole', score: '!', file: 'payment/refund_handler.rs', detail: 'no refund logic exists' },
+      { type: 'hole', score: '!', file: 'payment/webhook_validator.rs', detail: 'Stripe webhooks are unverified' },
+      { type: 'hole', score: '!', file: 'payment/idempotency.rs', detail: 'retries can charge twice' },
+      { type: 'blank' },
+      { type: 'comment', text: '# grep can\'t find these. They\'re files that don\'t exist yet.' },
+      { type: 'success', text: '3 missing pieces found in 18ms. $0.00.' },
+    ],
+    // Scene 2: Simulate before you break
+    [
+      { type: 'comment', text: '# Before deleting a file, ask:' },
+      { type: 'comment', text: '# "What breaks if I remove this?"' },
+      { type: 'blank' },
+      { type: 'cmd', text: '$ m1nd.counterfactual --remove "auth/middleware.rs"' },
+      { type: 'blank' },
+      { type: 'comment', text: '# m1nd simulates the removal without touching your code:' },
+      { type: 'blank' },
+      { type: 'critical', text: 'BREAKS  api.rs — 47 endpoints lose authentication' },
+      { type: 'critical', text: 'BREAKS  session/manager.rs — sessions stop validating' },
+      { type: 'warn', text: 'RISK    cors.rs — security rules become orphaned' },
+      { type: 'warn', text: 'RISK    jwt.rs — token validator has no consumer' },
+      { type: 'blank' },
+      { type: 'comment', text: '# 23 files affected. You see the full blast radius.' },
+      { type: 'success', text: 'Simulated in 3ms. No tests needed. No runtime.' },
+    ],
+    // Scene 3: Navigate like a surgeon
+    [
+      { type: 'comment', text: '# Explore your code like navigating a map.' },
+      { type: 'comment', text: '# m1nd remembers where you\'ve been.' },
+      { type: 'blank' },
+      { type: 'cmd', text: '$ m1nd.perspective_start --query "payment flow"' },
+      { type: 'dim', text: 'Opened. 6 paths to explore.', delay: 300 },
+      { type: 'blank' },
+      { type: 'cmd', text: '$ m1nd.perspective_follow "checkout → stripe"' },
+      { type: 'dim', text: 'Moved to stripe/client.rs. 4 new paths appeared.', delay: 300 },
+      { type: 'blank' },
+      { type: 'comment', text: '# Fork your exploration — like git branches for investigation' },
+      { type: 'cmd', text: '$ m1nd.perspective_branch "refund-path"' },
+      { type: 'blank' },
+      { type: 'comment', text: '# m1nd suggests where to go next:' },
+      { type: 'cmd', text: '$ m1nd.perspective_suggest' },
+      { type: 'suggest', file: 'refund/handler.rs', detail: '91% likely next dependency' },
+      { type: 'blank' },
+      { type: 'success', text: 'Stateful. Branching. Undo. Zero tokens.' },
+    ],
+  ];
+
+  const container = document.getElementById('liveTerminal');
+  const sceneEls = container.querySelectorAll('.term-scene');
+  const tabs = container.querySelectorAll('.term-tab');
+  const progressBar = document.getElementById('termProgress');
+  const playBtn = document.getElementById('termPlayBtn');
+  let currentScene = 0;
+  let animating = false;
+  let animCancel = false;
+
+  function renderLine(item, idx) {
+    const d = (item.delay || 0) + idx * 180;
+    const s = `animation-delay: ${d}ms;`;
+    switch (item.type) {
+      case 'comment':
+        return `<div class="line" style="${s}"><span class="comment">${esc(item.text)}</span></div>`;
+      case 'cmd':
+        return `<div class="line" style="${s}"><span class="prompt">${esc(item.text.substring(0,1))}</span><span style="color:var(--text)">${esc(item.text.substring(1))}</span></div>`;
+      case 'dim':
+        return `<div class="line" style="${s}"><span class="dim">${esc(item.text)}</span></div>`;
+      case 'result':
+        return `<div class="line" style="${s}"><span class="val">${item.score}</span> <span style="color:var(--text)">file::${esc(item.file)}</span> <span class="dim">(${esc(item.detail)})</span></div>`;
+      case 'hole':
+        return `<div class="line" style="${s}"><span class="warn">${item.score}</span> <span class="warn">file::${esc(item.file)}</span> <span class="dim">${esc(item.detail)}</span></div>`;
+      case 'critical':
+        return `<div class="line" style="${s}"><span class="err">${esc(item.text)}</span></div>`;
+      case 'warn':
+        return `<div class="line" style="${s}"><span class="warn">${esc(item.text)}</span></div>`;
+      case 'suggest':
+        return `<div class="line" style="${s}"><span class="val">→ ${esc(item.file)}</span> <span class="dim">(${esc(item.detail)})</span></div>`;
+      case 'success':
+        return `<div class="line" style="${s}"><span class="val">✓ ${esc(item.text)}</span></div>`;
+      case 'blank':
+        return `<div class="line" style="${s}">&nbsp;</div>`;
+      default:
+        return '';
+    }
+  }
+
+  function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function playScene(idx) {
+    currentScene = idx;
+    tabs.forEach(t => t.classList.toggle('active', +t.dataset.scene === idx));
+    const scene = scenes[idx];
+    const el = sceneEls[idx];
+
+    // Reset all scenes
+    sceneEls.forEach(s => { s.classList.remove('active'); s.innerHTML = ''; });
+    el.classList.add('active');
+
+    // Render lines with staggered animation
+    el.innerHTML = scene.map((item, i) => renderLine(item, i)).join('');
+
+    // Progress bar
+    const totalTime = scene.length * 180 + 2000;
+    progressBar.style.transition = 'none';
+    progressBar.style.width = '0%';
+    requestAnimationFrame(() => {
+      progressBar.style.transition = `width ${totalTime}ms linear`;
+      progressBar.style.width = '100%';
+    });
+  }
+
+  // Tab clicks
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => playScene(+tab.dataset.scene));
+  });
+
+  // Replay
+  playBtn.addEventListener('click', () => playScene(currentScene));
+
+  // Auto-cycle every 8s
+  let cycleTimer;
+  function startCycle() {
+    clearInterval(cycleTimer);
+    cycleTimer = setInterval(() => {
+      playScene((currentScene + 1) % scenes.length);
+    }, 12000);
+  }
+
+  // Pause auto-cycle on manual interaction
+  container.addEventListener('click', () => { clearInterval(cycleTimer); setTimeout(startCycle, 20000); });
+
+  // Init
+  playScene(0);
+  startCycle();
+
+  // Intersection observer: only animate when visible
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) startCycle();
+      else clearInterval(cycleTimer);
+    });
+  }, { threshold: 0.3 });
+  obs.observe(container);
+})();
+
+// ── Core Loop Visualization ──
+(function() {
+  const svg = document.getElementById('coreLoopViz');
+  if (!svg) return;
+  const phase = document.getElementById('viz-phase');
+  const edges = document.getElementById('viz-edges');
+  const d1 = document.getElementById('viz-d1');
+  const d2 = document.getElementById('viz-d2');
+  const d3 = document.getElementById('viz-d3');
+  const core = document.getElementById('viz-core-inner');
+  const labels = document.getElementById('viz-labels');
+  const ghost = document.getElementById('viz-ghost');
+  const comment = document.getElementById('viz-c1');
+  let running = false;
+
+  function ani(el, props, dur) {
+    return new Promise(r => {
+      el.style.transition = `all ${dur}ms ease`;
+      Object.entries(props).forEach(([k,v]) => {
+        if (k === 'opacity' || k === 'r') el.setAttribute(k, v);
+        else el.style[k] = v;
+      });
+      setTimeout(r, dur);
+    });
+  }
+
+  function setPhase(text) { phase.textContent = text; }
+  function setComment(text) {
+    comment.textContent = text;
+    comment.setAttribute('opacity', text ? '1' : '0');
+  }
+
+  function setGroupColor(g, color, opacity) {
+    g.querySelectorAll('circle').forEach(c => {
+      c.setAttribute('fill', color);
+      c.style.transition = 'all 600ms ease';
+    });
+    g.style.transition = 'opacity 600ms ease';
+    g.setAttribute('opacity', opacity);
+  }
+
+  async function activate() {
+    if (running) return;
+    running = true;
+
+    // Phase 1: QUERY ARRIVES
+    setPhase('PHASE 1 — QUERY RECEIVED');
+    setComment('Agent asks: "What handles authentication?"');
+    core.setAttribute('fill', '#00E5A0');
+    core.setAttribute('opacity', '0.9');
+    core.style.transition = 'all 400ms ease';
+    document.getElementById('viz-core').querySelector('circle').setAttribute('stroke', '#00E5A0');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 2: SPREADING ACTIVATION — Hop 1
+    setPhase('PHASE 2 — SPREADING ACTIVATION (HOP 1)');
+    setComment('Wavefront: seed node → 4 direct neighbors');
+    edges.style.transition = 'opacity 500ms ease';
+    edges.setAttribute('opacity', '0.4');
+    setGroupColor(d1, '#00E5A0', '0.8');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 3: Hop 2
+    setPhase('PHASE 3 — SPREADING ACTIVATION (HOP 2)');
+    setComment('Wavefront expands: 4 → 7 nodes, weighted by 4 dimensions');
+    setGroupColor(d2, '#60A5FA', '0.65');
+    edges.setAttribute('opacity', '0.55');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 4: Hop 3
+    setPhase('PHASE 4 — SPREADING ACTIVATION (HOP 3)');
+    setComment('7 → 8 outer nodes. XLR cancels 14 false-positive edges.');
+    setGroupColor(d3, '#F5A623', '0.5');
+    edges.setAttribute('opacity', '0.65');
+    await new Promise(r => setTimeout(r, 2200));
+
+    // Phase 5: STRUCTURAL HOLE
+    setPhase('PHASE 5 — STRUCTURAL HOLE DETECTED');
+    setComment('Missing connection found: rate_limit.rs should exist but doesn\'t!');
+    ghost.setAttribute('opacity', '0.6');
+    ghost.style.transition = 'opacity 400ms ease';
+    // Flash the hole area
+    d2.querySelectorAll('circle')[1].setAttribute('fill', '#FF3366');
+    d2.querySelectorAll('circle')[4].setAttribute('fill', '#FF3366');
+    await new Promise(r => setTimeout(r, 2800));
+
+    // Phase 6: RESULTS
+    setPhase('PHASE 6 — RESULTS RANKED');
+    setComment('127 nodes activated in 31ms · 0 LLM tokens · 2,847 weights updated');
+    labels.style.transition = 'opacity 500ms ease';
+    labels.setAttribute('opacity', '1');
+    await new Promise(r => setTimeout(r, 3500));
+
+    // Phase 7: LEARN
+    setPhase('PHASE 7 — HEBBIAN LEARNING');
+    setComment('Agent confirms results correct → connections strengthen for next query');
+    // Brighten edges to show strengthening
+    edges.setAttribute('opacity', '0.8');
+    d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '10'); c.style.transition = 'r 600ms ease, fill 600ms ease'; });
+    await new Promise(r => setTimeout(r, 4000));
+
+    // Reset
+    setPhase('COMPLETE — CLICK TO REPLAY');
+    setComment('The graph is now smarter. Next query will be more accurate.');
+    await new Promise(r => setTimeout(r, 4000));
+
+    // Fade back to dormant
+    setPhase('DORMANT — CLICK TO ACTIVATE');
+    setComment('');
+    edges.setAttribute('opacity', '0.12');
+    setGroupColor(d1, '#5A6577', '0.25');
+    setGroupColor(d2, '#5A6577', '0.2');
+    setGroupColor(d3, '#5A6577', '0.15');
+    d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '8'); });
+    core.setAttribute('fill', '#5A6577');
+    core.setAttribute('opacity', '0.3');
+    document.getElementById('viz-core').querySelector('circle').setAttribute('stroke', '#5A6577');
+    labels.setAttribute('opacity', '0');
+    ghost.setAttribute('opacity', '0');
+    running = false;
+  }
+
+  svg.addEventListener('click', activate);
+
+  // Auto-play when visible
+  const vizObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !running) {
+        setTimeout(activate, 500);
+        vizObs.unobserve(svg);
+      }
+    });
+  }, { threshold: 0.5 });
+  vizObs.observe(svg);
+})();
+</script>
+</html>
