@@ -293,6 +293,54 @@
       font-size: 13px; color: var(--text-dim); line-height: 1.5;
     }
 
+    /* ── Perspectives ── */
+    .perspective-flow {
+      display: flex; gap: 0; align-items: stretch; margin-top: 48px;
+      overflow-x: auto; padding-bottom: 8px;
+    }
+    .p-step {
+      flex: 1; min-width: 160px; position: relative;
+      background: var(--bg-card); border: 1px solid var(--border);
+      padding: 24px 20px; text-align: center;
+    }
+    .p-step:first-child { border-radius: 12px 0 0 12px; }
+    .p-step:last-child { border-radius: 0 12px 12px 0; }
+    .p-step:not(:last-child)::after {
+      content: '→'; position: absolute; right: -14px; top: 50%;
+      transform: translateY(-50%); color: var(--green); font-size: 20px;
+      font-weight: 700; z-index: 2;
+    }
+    .p-step .p-icon { font-size: 28px; margin-bottom: 8px; }
+    .p-step .p-name {
+      font-family: var(--mono); font-weight: 700; font-size: 13px;
+      color: var(--green); margin-bottom: 4px;
+    }
+    .p-step .p-desc {
+      font-size: 12px; color: var(--text-dim); line-height: 1.4;
+    }
+    .p-step.p-highlight {
+      border-color: rgba(124, 58, 237, 0.4);
+      background: linear-gradient(180deg, rgba(124, 58, 237, 0.08) 0%, var(--bg-card) 100%);
+    }
+    .perspective-demo {
+      max-width: 680px; margin: 40px auto 0;
+      background: var(--bg-raised); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .perspective-demo .demo-body { padding: 20px 24px; font-family: var(--mono); font-size: 13px; line-height: 1.8; }
+    .perspective-tagline {
+      font-size: clamp(17px, 2.5vw, 22px); color: var(--text-dim);
+      max-width: 640px; margin: 24px auto 0; line-height: 1.5; text-align: center;
+    }
+    .perspective-tagline strong { color: var(--text); }
+    @media (max-width: 768px) {
+      .perspective-flow { flex-direction: column; }
+      .p-step { border-radius: 0 !important; }
+      .p-step:first-child { border-radius: 12px 12px 0 0 !important; }
+      .p-step:last-child { border-radius: 0 0 12px 12px !important; }
+      .p-step:not(:last-child)::after { content: '↓'; right: 50%; top: auto; bottom: -14px; transform: translateX(50%); }
+    }
+
     /* ── Tools grid ── */
     .tools-group { margin-bottom: 40px; }
     .tools-group-title {
@@ -499,6 +547,7 @@
       <div class="nav-links">
         <a href="#why">Why</a>
         <a href="#different">Different</a>
+        <a href="#perspectives">Perspectives</a>
         <a href="#tools">Tools</a>
         <a href="#benchmarks">Benchmarks</a>
         <a href="#start">Start</a>
@@ -638,7 +687,7 @@
   <section id="different">
     <div class="container">
       <div class="section-label">What makes it different</div>
-      <h2 class="section-title">Five capabilities no other tool has.</h2>
+      <h2 class="section-title">Six capabilities no other tool has.</h2>
       <p class="section-desc">Not incremental improvements. Structural differences.</p>
 
       <div class="diff-cards">
@@ -666,6 +715,11 @@
           <div class="diff-title">The graph simulates alternatives</div>
           <div class="diff-mechanism">Counterfactual Engine</div>
           <div class="diff-desc">4,189 affected nodes analyzed in 3ms. Remove a module virtually, see what breaks, measure cascade depth -- before touching a single line of code.</div>
+        </div>
+        <div class="diff-card">
+          <div class="diff-title">The graph lets you navigate</div>
+          <div class="diff-mechanism"><a href="#perspectives" style="color: inherit; text-decoration: underline;">Perspective System</a></div>
+          <div class="diff-desc">Stateful exploration with history, branching, and undo. Enter a perspective, follow routes, fork your investigation, compare paths. 12 tools. Like a surgeon inside your codebase.</div>
         </div>
       </div>
     </div>
@@ -718,6 +772,73 @@
         <div class="dim-card">
           <div class="dim-name" style="color: var(--red);">Causal</div>
           <div class="dim-desc">Dependency flow: directed causation along import, call, and contain edges.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Perspectives ── -->
+  <section id="perspectives">
+    <div class="container">
+      <div class="section-label">Perspectives</div>
+      <h2 class="section-title">Navigate code like a surgeon.</h2>
+      <p class="section-desc">grep is stateless. Every search starts from zero. m1nd Perspectives maintain a living navigation session &mdash; with history, branches, and suggestions.</p>
+
+      <div class="perspective-flow">
+        <div class="p-step">
+          <div class="p-icon">&#x1F50D;</div>
+          <div class="p-name">start</div>
+          <div class="p-desc">Enter a perspective. A navigable surface forms around your query.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x1F9ED;</div>
+          <div class="p-name">routes</div>
+          <div class="p-desc">Browse ranked routes &mdash; weighted paths through the graph.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x1F3AF;</div>
+          <div class="p-name">follow</div>
+          <div class="p-desc">Move focus to a target. New routes synthesize automatically.</div>
+        </div>
+        <div class="p-step p-highlight">
+          <div class="p-icon">&#x1F500;</div>
+          <div class="p-name">branch</div>
+          <div class="p-desc">Fork your exploration. Like git branches, but for investigation.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x1F4A1;</div>
+          <div class="p-name">suggest</div>
+          <div class="p-desc">m1nd recommends your next move based on navigation history.</div>
+        </div>
+        <div class="p-step">
+          <div class="p-icon">&#x2696;&#xFE0F;</div>
+          <div class="p-name">compare</div>
+          <div class="p-desc">Diff two perspectives. Shared nodes, unique paths, dimension deltas.</div>
+        </div>
+      </div>
+
+      <p class="perspective-tagline">12 tools. <strong>Stateful exploration with memory, branching, and undo.</strong><br>No other code navigation tool on the market does this.</p>
+
+      <!-- Perspective session demo -->
+      <div class="perspective-demo">
+        <div class="demo-header">
+          <span class="demo-dot r"></span>
+          <span class="demo-dot y"></span>
+          <span class="demo-dot g"></span>
+          <span class="demo-title">perspective session</span>
+        </div>
+        <div class="demo-body">
+          <span class="prompt">$</span> m1nd.perspective_start <span class="dim">--query</span> "payment flow"<br>
+          <span class="dim">Perspective p-7a3f opened &middot; 6 routes synthesized</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_follow <span class="dim">--route</span> "checkout &rarr; stripe"<br>
+          <span class="dim">Focus moved to stripe/client.rs &middot; 4 new routes from this node</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_branch <span class="dim">--name</span> "refund-path"<br>
+          <span class="dim">Branch created &middot; forked from stripe/client.rs</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_suggest<br>
+          <span class="val">&#x2192;</span> <span class="val">refund/handler.rs</span> <span class="dim">(affinity: 0.91, structural + causal)</span><br>
+          <span class="dim">&nbsp;&nbsp;"Based on 3 hops: this is the most likely next dependency"</span><br><br>
+          <span class="prompt">$</span> m1nd.perspective_compare <span class="dim">--a</span> "main" <span class="dim">--b</span> "refund-path"<br>
+          <span class="dim">Shared: 12 nodes &middot; Unique to refund-path: 5 nodes &middot; Divergence: 0.34</span>
         </div>
       </div>
     </div>
