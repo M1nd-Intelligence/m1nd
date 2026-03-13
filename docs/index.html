@@ -451,10 +451,33 @@
       letter-spacing: 2px; text-transform: uppercase;
     }
 
+    /* ── Sponsor Banner ── */
+    .sponsor-banner {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.12) 0%, rgba(0, 229, 160, 0.08) 100%);
+      border-bottom: 1px solid rgba(124, 58, 237, 0.2);
+      padding: 12px 0;
+      text-align: center;
+      position: fixed; top: 64px; left: 0; right: 0; z-index: 99;
+    }
+    .sponsor-banner a {
+      color: var(--text); text-decoration: none; font-size: 14px;
+      font-weight: 500; display: inline-flex; align-items: center; gap: 10px;
+      transition: color 0.2s;
+    }
+    .sponsor-banner a:hover { color: var(--green); }
+    .sponsor-banner .heart { color: #FF3366; font-size: 16px; }
+    .sponsor-banner .cta-pill {
+      background: rgba(124, 58, 237, 0.25); border: 1px solid rgba(124, 58, 237, 0.4);
+      padding: 3px 12px; border-radius: 100px; font-size: 12px;
+      font-family: var(--mono); color: #a78bfa; font-weight: 600;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 768px) {
       section { padding: 64px 0; }
-      .hero { padding-top: 120px; }
+      .hero { padding-top: 160px !important; }
+      .sponsor-banner { font-size: 12px; }
+      .sponsor-banner .cta-pill { display: none; }
       .loop-steps { grid-template-columns: 1fr; }
       .loop-step { border-radius: 0; }
       .loop-step:first-child { border-radius: 12px 12px 0 0; }
@@ -484,13 +507,22 @@
     </div>
   </nav>
 
+  <!-- ── Sponsor Banner ── -->
+  <div class="sponsor-banner">
+    <a href="https://github.com/sponsors/maxkle1nz" target="_blank">
+      <span class="heart">&hearts;</span>
+      We're building the future of AI navigation &mdash; open source, zero cost. But we can't do it alone.
+      <span class="cta-pill">Sponsor m1nd</span>
+    </a>
+  </div>
+
   <!-- ── Hero ── -->
-  <section class="hero">
+  <section class="hero" style="padding-top: 200px;">
     <div class="container">
       <div class="hero-badge"><span class="dot"></span> 43 MCP tools &middot; Rust &middot; Zero LLM cost</div>
       <h1 style="font-size: clamp(32px, 5vw, 56px); letter-spacing: -2px; line-height: 1.15;">Grep finds what exists.<br>m<span class="one">1</span>nd finds what's <span class="one">missing</span>.</h1>
       <p class="tagline">The code graph that learns. Built in Rust for AI agents.</p>
-      <p class="subtitle">Your AI agent burns <strong style="color: var(--red);">$0.50</strong> every time it greps a codebase to understand it. m1nd replaces those calls with a <strong style="color: var(--green);">$0.00</strong> local graph query in <strong style="color: var(--green);">31ms</strong> &mdash; and finds structural holes no text search ever could.</p>
+      <p class="subtitle">Every time your AI agent investigates your codebase &mdash; grep, read, analyze, grep again &mdash; it burns <strong style="color: var(--red);">$0.05&ndash;$0.50</strong> in LLM tokens per cycle. 50 cycles a day on a frontier model = <strong style="color: var(--red);">$3&ndash;$17 wasted</strong>. m1nd replaces those cycles with a <strong style="color: var(--green);">$0.00</strong> local graph query in <strong style="color: var(--green);">31ms</strong> &mdash; and finds structural holes no text search ever could.</p>
       <div class="hero-actions">
         <a href="#start" class="btn btn-primary">Quick Start</a>
         <a href="https://github.com/maxkle1nz/m1nd" class="btn btn-secondary">
