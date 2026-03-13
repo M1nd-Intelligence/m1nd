@@ -664,8 +664,8 @@ pub const DIMENSION_WEIGHTS: [f32; 4] = [0.35, 0.25, 0.15, 0.25];
 <p><code>SeedFinder</code> resolves query strings to graph nodes via a 5-level matching cascade:</p>
 <ol>
 <li><strong>Exact label match</strong> (highest priority)</li>
-<li><strong>Prefix match</strong> (e.g., “chat_” matches “chat_handler”)</li>
-<li><strong>Substring match</strong> (e.g., “handler” matches “chat_handler”)</li>
+<li><strong>Prefix match</strong> (e.g., “auth_” matches “auth_handler”)</li>
+<li><strong>Substring match</strong> (e.g., “handler” matches “auth_handler”)</li>
 <li><strong>Tag match</strong> (e.g., “#api” tag)</li>
 <li><strong>Fuzzy trigram</strong> (cosine similarity of trigram vectors, lowest priority)</li>
 </ol>
@@ -2945,7 +2945,7 @@ if fallback {
   "changed_node": "file::pool.py",
   "predictions": [
     { "node_id": "file::worker.py", "label": "worker.py", "confidence": 0.89, "velocity": 0.72, "reason": "high co-change frequency + structural coupling" },
-    { "node_id": "file::process_manager.py", "label": "process_manager.py", "confidence": 0.76, "velocity": 0.65, "reason": "imports session_pool" },
+    { "node_id": "file::process_manager.py", "label": "process_manager.py", "confidence": 0.76, "velocity": 0.65, "reason": "imports pool" },
     { "node_id": "file::tests/test_pool.py", "label": "test_pool.py", "confidence": 0.71, "velocity": 0.80, "reason": "test file" },
     { "node_id": "file::worker.py", "label": "worker.py", "confidence": 0.54, "velocity": 0.41, "reason": "2-hop dependency" },
     { "node_id": "file::config.py", "label": "config.py", "confidence": 0.32, "velocity": 0.28, "reason": "shared configuration" }
@@ -3086,7 +3086,7 @@ if fallback {
 <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr>
 </thead>
 <tbody>
-<tr><td><code>claim</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Natural language claim about the codebase. Examples: <code>"chat_handler never validates session tokens"</code>, <code>"all external calls go through the router"</code>, <code>"auditor is independent of messaging"</code>.</td></tr>
+<tr><td><code>claim</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Natural language claim about the codebase. Examples: <code>"handler never validates session tokens"</code>, <code>"all external calls go through the router"</code>, <code>"auditor is independent of messaging"</code>.</td></tr>
 <tr><td><code>agent_id</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Calling agent identifier.</td></tr>
 <tr><td><code>max_hops</code></td><td><code>integer</code></td><td>No</td><td><code>5</code></td><td>Maximum BFS hops for evidence search.</td></tr>
 <tr><td><code>include_ghost_edges</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Include ghost edges as weak evidence. Ghost edges count as lower-weight supporting evidence.</td></tr>
@@ -3104,14 +3104,14 @@ if fallback {
     "name": "m1nd.hypothesize",
     "arguments": {
       "agent_id": "orchestrator",
-      "claim": "worker_pool depends on whatsapp_manager at runtime"
+      "claim": "worker depends on messaging at runtime"
     }
   }
 }
 </code></pre>
 <h3 id="example-response-4"><a class="header" href="#example-response-4">Example Response</a></h3>
 <pre><code class="language-json">{
-  "claim": "worker_pool depends on whatsapp_manager at runtime",
+  "claim": "worker depends on messaging at runtime",
   "claim_type": "depends_on",
   "subject_nodes": ["file::worker.py"],
   "object_nodes": ["file::messaging.py"],
@@ -5331,7 +5331,7 @@ if fallback {
     {
       "file_path": "backend/process_manager.py",
       "node_id": "file::process_manager.py",
-      "reason": "in blast radius of worker.py -- calls worker_pool.submit",
+      "reason": "in blast radius of worker.py -- calls worker.submit",
       "severity": "info",
       "signal_strength": 0.45
     }
@@ -6136,7 +6136,7 @@ cargo build --release
   "params": {
     "name": "m1nd.hypothesize",
     "arguments": {
-      "claim": "worker_pool depends on whatsapp_manager at runtime",
+      "claim": "worker depends on messaging at runtime",
       "agent_id": "dev"
     }
   }

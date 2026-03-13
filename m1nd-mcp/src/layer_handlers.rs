@@ -663,8 +663,8 @@ fn is_auto_sync_commit(subject: &str) -> bool {
     subject.starts_with("auto-sync from ")
 }
 
-/// Convert a node external_id (e.g. "file::backend/chat_handler.py") to a
-/// relative file path (e.g. "backend/chat_handler.py").
+/// Convert a node external_id (e.g. "file::backend/handler.py") to a
+/// relative file path (e.g. "backend/handler.py").
 fn node_to_file_path(node_id: &str) -> String {
     if let Some(rest) = node_id.strip_prefix("file::") {
         rest.to_string()

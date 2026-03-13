@@ -414,8 +414,8 @@ pub const DIMENSION_WEIGHTS: [f32; 4] = [0.35, 0.25, 0.15, 0.25];
 <p><code>SeedFinder</code> resolves query strings to graph nodes via a 5-level matching cascade:</p>
 <ol>
 <li><strong>Exact label match</strong> (highest priority)</li>
-<li><strong>Prefix match</strong> (e.g., “chat_” matches “chat_handler”)</li>
-<li><strong>Substring match</strong> (e.g., “handler” matches “chat_handler”)</li>
+<li><strong>Prefix match</strong> (e.g., “auth_” matches “auth_handler”)</li>
+<li><strong>Substring match</strong> (e.g., “handler” matches “auth_handler”)</li>
 <li><strong>Tag match</strong> (e.g., “#api” tag)</li>
 <li><strong>Fuzzy trigram</strong> (cosine similarity of trigram vectors, lowest priority)</li>
 </ol>

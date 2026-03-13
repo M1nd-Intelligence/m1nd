@@ -140,7 +140,7 @@ learn(correct, [files_you_touched])   → next time, these paths are stronger
 
 ```
 activate("memory leak worker pool")              → 15 ranked suspects (31ms)
-perspective.start(anchor="file::worker_pool.py")  → open navigation session
+perspective.start(anchor="file::worker.py")  → open navigation session
 perspective.follow → perspective.peek              → read source, follow edges
 hypothesize("pool leaks on task cancellation")    → test claim against graph structure (58ms)
                                                      25,015 paths explored, verdict: likely_true
@@ -196,7 +196,7 @@ Full tool reference: [Wiki](https://github.com/maxkle1nz/m1nd/wiki)
 
 **Der Graph testet Behauptungen.** "Does the worker pool depend on WhatsApp?" -- m1nd explores 25,015 paths in 58ms, returns a verdict with Bayesian confidence. Invisible dependencies found in milliseconds.
 
-**Der Graph simuliert Loschung.** Zero-allocation counterfactual engine. "What breaks if I delete `spawner.py`?" -- full cascade computed in 3ms using bitset RemovalMask, O(1) per edge check vs O(V+E) for materialized copies.
+**Der Graph simuliert Loschung.** Zero-allocation counterfactual engine. "What breaks if I delete `worker.py`?" -- full cascade computed in 3ms using bitset RemovalMask, O(1) per edge check vs O(V+E) for materialized copies.
 
 ## Architektur
 

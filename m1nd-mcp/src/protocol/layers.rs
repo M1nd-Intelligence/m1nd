@@ -199,7 +199,7 @@ pub struct ScanContextNode {
 /// Returns change history, co-change partners, velocity, and stability.
 #[derive(Clone, Debug, Deserialize)]
 pub struct TimelineInput {
-    /// Node external_id (e.g. "file::backend/chat_handler.py").
+    /// Node external_id (e.g. "file::backend/handler.py").
     pub node: String,
     pub agent_id: String,
     /// Time depth: "7d", "30d", "90d", "all". Default: "30d".
@@ -568,9 +568,9 @@ pub struct TrailListOutput {
 pub struct HypothesizeInput {
     /// Natural language claim about the codebase.
     /// Examples:
-    ///   "chat_handler never validates session tokens"
-    ///   "all external calls go through smart_router"
-    ///   "critic is independent of whatsapp"
+    ///   "handler never validates session tokens"
+    ///   "all external calls go through the router"
+    ///   "auditor is independent of messaging"
     pub claim: String,
     pub agent_id: String,
     /// Max BFS hops for evidence search. Default: 5.
@@ -1099,11 +1099,11 @@ mod tests {
     #[test]
     fn hypothesize_input_minimal() {
         let json = r#"{
-            "claim": "chat_handler never validates session tokens",
+            "claim": "handler never validates session tokens",
             "agent_id": "jimi"
         }"#;
         let input: HypothesizeInput = serde_json::from_str(json).unwrap();
-        assert_eq!(input.claim, "chat_handler never validates session tokens");
+        assert_eq!(input.claim, "handler never validates session tokens");
         assert_eq!(input.max_hops, 5);
         assert!(input.include_ghost_edges);
         assert!(input.include_partial_flow);

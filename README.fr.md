@@ -140,7 +140,7 @@ learn(correct, [files_you_touched])   → la prochaine fois, ces chemins seront 
 
 ```
 activate("memory leak worker pool")              → 15 suspects classés (31ms)
-perspective.start(anchor="file::worker_pool.py")  → ouvrir une session de navigation
+perspective.start(anchor="file::worker.py")  → ouvrir une session de navigation
 perspective.follow → perspective.peek              → lire la source, suivre les arêtes
 hypothesize("pool leaks on task cancellation")    → tester l'hypothèse contre la structure du graphe (58ms)
                                                      25 015 chemins explorés, verdict : likely_true
@@ -196,7 +196,7 @@ R&eacute;f&eacute;rence compl&egrave;te des outils : [Wiki](https://github.com/m
 
 **Le graphe teste les affirmations.** "Le worker pool d&eacute;pend-il de WhatsApp ?" -- m1nd explore 25 015 chemins en 58ms, retourne un verdict avec confiance bay&eacute;sienne. D&eacute;pendances invisibles trouv&eacute;es en millisecondes.
 
-**Le graphe simule les suppressions.** Moteur counterfactual &agrave; z&eacute;ro allocation. "Que casse-t-on si on supprime `spawner.py` ?" -- cascade compl&egrave;te calcul&eacute;e en 3ms avec RemovalMask &agrave; bitset, O(1) par v&eacute;rification d'ar&ecirc;te vs O(V+E) pour les copies mat&eacute;rialis&eacute;es.
+**Le graphe simule les suppressions.** Moteur counterfactual &agrave; z&eacute;ro allocation. "Que casse-t-on si on supprime `worker.py` ?" -- cascade compl&egrave;te calcul&eacute;e en 3ms avec RemovalMask &agrave; bitset, O(1) par v&eacute;rification d'ar&ecirc;te vs O(V+E) pour les copies mat&eacute;rialis&eacute;es.
 
 ## Architecture
 

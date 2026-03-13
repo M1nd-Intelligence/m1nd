@@ -705,7 +705,7 @@ fn tool_schemas() -> serde_json::Value {
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "node": { "type": "string", "description": "Node external_id (e.g. file::backend/chat_handler.py)" },
+                        "node": { "type": "string", "description": "Node external_id (e.g. file::backend/handler.py)" },
                         "agent_id": { "type": "string", "description": "Calling agent identifier" },
                         "depth": { "type": "string", "default": "30d", "description": "Time depth: 7d, 30d, 90d, all" },
                         "include_co_changes": { "type": "boolean", "default": true, "description": "Include co-changed files with coupling scores" },
@@ -801,7 +801,7 @@ fn tool_schemas() -> serde_json::Value {
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "claim": { "type": "string", "description": "Natural language claim (e.g. 'chat_handler never validates session tokens')" },
+                        "claim": { "type": "string", "description": "Natural language claim (e.g. 'handler never validates session tokens')" },
                         "agent_id": { "type": "string", "description": "Calling agent identifier" },
                         "max_hops": { "type": "integer", "default": 5, "description": "Max BFS hops for evidence search" },
                         "include_ghost_edges": { "type": "boolean", "default": true, "description": "Include ghost edges as weak evidence" },
