@@ -1,27 +1,26 @@
 <p align="center">
-  <img src=".github/m1nd-logo.svg" alt="m1nd" width="400" />
+  <img src=".github/m1nd-logo.svg" alt="m1nd" width="360" />
 </p>
 
-<h3 align="center">The adaptive code graph. It learns.</h3>
-
-<p align="center">
-  Neuro-symbolic connectome engine with Hebbian plasticity, spreading activation,<br/>
-  and 43 MCP tools. Built in Rust for AI agents.
-</p>
+<h3 align="center">Your AI agent has amnesia. m1nd remembers.</h3>
 
 <p align="center">
   <a href="https://crates.io/crates/m1nd-core"><img src="https://img.shields.io/crates/v/m1nd-core.svg" alt="crates.io" /></a>
   <a href="https://github.com/maxkle1nz/m1nd/actions"><img src="https://github.com/maxkle1nz/m1nd/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
   <a href="https://docs.rs/m1nd-core"><img src="https://img.shields.io/docsrs/m1nd-core" alt="docs.rs" /></a>
+  <img src="https://img.shields.io/badge/rust-stable-orange?logo=rust" alt="Rust" />
+  <img src="https://img.shields.io/badge/MCP-43_tools-00E5A0" alt="43 MCP Tools" />
+  <img src="https://img.shields.io/badge/cost-$0.00/query-00E5A0" alt="$0.00/query" />
 </p>
 
 <p align="center">
-  <a href="#30-seconds-to-first-query">Quick Start</a> &middot;
+  <a href="#quick-start">Quick Start</a> &middot;
+  <a href="#three-workflows">Workflows</a> &middot;
   <a href="#the-43-tools">43 Tools</a> &middot;
-  <a href="#why-m1nd-exists">Why m1nd</a> &middot;
   <a href="#architecture">Architecture</a> &middot;
-  <a href="EXAMPLES.md">Examples</a>
+  <a href="#benchmarks">Benchmarks</a> &middot;
+  <a href="https://github.com/maxkle1nz/m1nd/wiki">Wiki</a>
 </p>
 
 ---
@@ -41,49 +40,37 @@
   <a href="https://aws.amazon.com/q/developer"><img src="https://img.shields.io/badge/Amazon_Q-232f3e?logo=amazonaws&logoColor=f90" alt="Amazon Q" /></a>
 </p>
 
-<!--
-<p align="center">
-  <img src=".github/demo.gif" alt="m1nd spreading activation demo" width="720" />
-</p>
--->
+---
 
-m1nd doesn't search your codebase -- it *activates* it. Fire a query into the graph and watch
-signal propagate across structural, semantic, temporal, and causal dimensions. Noise cancels out.
-Relevant connections amplify. And the graph *learns* from every interaction via Hebbian plasticity.
+## Why m1nd exists
+
+Every time an AI agent needs context, it runs grep, gets 200 lines of noise, feeds them to an LLM to interpret, decides it needs more context, greps again. Repeat 3-5 times. **$0.30-$0.50 burned per search cycle. 10 seconds gone. Structural blind spots remain.**
+
+This is the slop cycle: agents brute-forcing their way through codebases with text search, burning tokens like kindling. grep, ripgrep, tree-sitter -- brilliant tools. For *humans*. An AI agent doesn't want 200 lines to parse linearly. It wants a weighted graph with a direct answer: *what matters and what's missing*.
+
+**m1nd replaces the slop cycle with a single call.** Fire a query into a weighted code graph. Signal propagates across four dimensions. Noise cancels out. Relevant connections amplify. The graph learns from every interaction. 31ms, $0.00, zero tokens.
 
 ```
-335 files → 9,767 nodes → 26,557 edges in 0.91 seconds.
-Then: activate in 31ms. impact in 5ms. trace in 3.5ms. learn in <1ms.
+The slop cycle:                          m1nd:
+  grep → 200 lines of noise                activate("auth") → ranked subgraph
+  → feed to LLM → burn tokens              → confidence scores per node
+  → LLM greps again → repeat 3-5x          → structural holes found
+  → act on incomplete picture               → act immediately
+  $0.30-$0.50 / 10 seconds                 $0.00 / 31ms
 ```
 
-## 30 Seconds to First Query
+## Quick start
 
 ```bash
-# Build from source
-git clone https://github.com/cosmophonix/m1nd.git
+# Build from source (requires Rust toolchain)
+git clone https://github.com/maxkle1nz/m1nd.git
 cd m1nd && cargo build --release
 
-# Run (starts JSON-RPC stdio server — works with any MCP client)
+# The binary is a JSON-RPC stdio server — works with any MCP client
 ./target/release/m1nd-mcp
 ```
 
-```jsonc
-// 1. Ingest your codebase (910ms for 335 files)
-{"method":"tools/call","params":{"name":"m1nd.ingest","arguments":{"path":"/your/project","agent_id":"dev"}}}
-// → 9,767 nodes, 26,557 edges, PageRank computed
-
-// 2. Ask: "What's related to authentication?"
-{"method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"authentication","agent_id":"dev"}}}
-// → auth module fires → propagates to session, middleware, JWT, user model
-//   ghost edges reveal undocumented connections
-//   4-dimensional relevance ranking in 31ms
-
-// 3. Tell the graph what was useful
-{"method":"tools/call","params":{"name":"m1nd.learn","arguments":{"feedback":"correct","node_ids":["file::auth.py","file::middleware.py"],"agent_id":"dev"}}}
-// → 740 edges strengthened via Hebbian LTP. Next query is smarter.
-```
-
-### Add to Claude Code
+Add to your MCP client config (Claude Code, Cursor, Windsurf, etc.):
 
 ```json
 {
@@ -99,158 +86,150 @@ cd m1nd && cargo build --release
 }
 ```
 
-Works with any MCP client: Claude Code, Cursor, Windsurf, Zed, or your own.
-
-## Why m1nd Exists
-
-AI agents are powerful reasoners but terrible navigators. They can analyze what you show them,
-but they can't *find* what matters in a codebase of 10,000 files.
-
-Current tools fail them:
-
-| Approach | What It Does | Why It Fails |
-|----------|-------------|--------------|
-| **Full-text search** | Matches tokens | Finds what you *said*, not what you *meant* |
-| **RAG** | Embeds chunks, top-K similarity | Each retrieval is amnesiac. No relationships between results. |
-| **Static analysis** | AST, call graphs | Frozen snapshot. Can't answer "what if?". Can't learn. |
-| **Knowledge graphs** | Triple stores, SPARQL | Manual curation. Only returns what was explicitly encoded. |
-
-**m1nd does something none of these can do:** it fires a signal into a weighted graph and watches
-where the energy goes. The signal propagates, reflects, interferes, and decays according to
-physics-inspired rules. The graph learns which paths matter. And the answer is not a list of files --
-it's an *activation pattern*.
-
-## What Makes It Different
-
-### 1. The graph learns (Hebbian Plasticity)
-
-When you confirm results are useful, edge weights strengthen along those paths. When you mark results as wrong, they weaken. Over time, the graph evolves to match how *your* team thinks about *your* codebase.
-
-No other code intelligence tool does this.
-
-### 2. The graph cancels noise (XLR Differential Processing)
-
-Borrowed from professional audio engineering. Like a balanced XLR cable, m1nd transmits signal on two inverted channels and subtracts the common-mode noise at the receiver. The result: activation queries return signal, not the noise that grep drowns you in.
-
-### 3. The graph remembers investigations (Trail System)
-
-Save mid-investigation state -- hypotheses, graph weights, open questions. End the session. Resume days later from the exact same cognitive position. Two agents investigating the same bug? Merge their trails -- the system automatically detects where their independent investigations converged and flags conflicts.
+First query -- ingest your codebase and ask a question:
 
 ```
-trail.save   → persist investigation state          ~0ms
-trail.resume → restore exact context                0.2ms
-trail.merge  → combine multi-agent findings         1.2ms
-               (conflict detection on shared nodes)
+> m1nd.ingest path=/your/project agent_id=dev
+  9,767 nodes, 26,557 edges built in 910ms. PageRank computed.
+
+> m1nd.activate query="authentication" agent_id=dev
+  15 results in 31ms:
+    file::auth.py           0.94  (structural=0.91, semantic=0.97, temporal=0.88, causal=0.82)
+    file::middleware.py      0.87  (structural=0.85, semantic=0.72, temporal=0.91, causal=0.78)
+    file::session.py         0.81  ...
+    func::verify_token       0.79  ...
+    ghost_edge → user_model  0.73  (undocumented dependency detected)
+
+> m1nd.learn feedback=correct node_ids=["file::auth.py","file::middleware.py"] agent_id=dev
+  740 edges strengthened via Hebbian LTP. Next query is smarter.
 ```
 
-### 4. The graph tests claims (Hypothesis Engine)
+## Three workflows
 
-"Does the worker pool have a hidden runtime dependency on the WhatsApp manager?"
+### 1. Research -- understand a codebase
 
-m1nd explores 25,015 paths in 58ms and returns a verdict with Bayesian confidence scoring. In this case: `likely_true` -- a 2-hop dependency via a cancel function, invisible to grep.
+```
+ingest("/your/project")              → build the graph (910ms)
+activate("payment processing")       → what's structurally related? (31ms)
+why("file::payment.py", "file::db")  → how are they connected? (5ms)
+missing("payment processing")        → what SHOULD exist but doesn't? (44ms)
+learn(correct, [nodes_that_helped])  → strengthen those paths (<1ms)
+```
 
-### 5. The graph simulates alternatives (Counterfactual Engine)
+The graph now knows more about how you think about payments. Next session, `activate("payment")` returns better results. Over weeks, the graph adapts to your team's mental model.
 
-"What breaks if I delete `spawner.py`?" In 3ms, m1nd computes the full cascade: 4,189 affected nodes, cascade explosion at depth 3. Compare: `config.py` removal affects only 2,531 nodes despite being universally imported. These numbers are impossible to derive from text search.
+### 2. Code change -- safe modification
 
-## The 43 Tools
+```
+impact("file::payment.py")                → 2,100 nodes affected at depth 3 (5ms)
+predict("file::payment.py")               → co-change prediction: billing.py, invoice.py (<1ms)
+counterfactual(["mod::payment"])           → what breaks if I delete this? full cascade (3ms)
+validate_plan(["payment.py","billing.py"]) → blast radius + gap analysis (10ms)
+warmup("refactor payment flow")            → prime graph for the task (82ms)
+```
 
-### Foundation (13 tools)
+After coding:
 
-| Tool | What It Does | Speed |
-|------|-------------|-------|
-| `ingest` | Parse codebase into semantic graph | 910ms / 335 files |
-| `activate` | Spreading activation with 4D scoring | 31-77ms |
-| `impact` | Blast radius of a code change | 5-52ms |
-| `why` | Shortest path between two nodes | 5-6ms |
-| `learn` | Hebbian feedback -- graph gets smarter | <1ms |
-| `drift` | What changed since last session | 23ms |
-| `health` | Server diagnostics | <1ms |
-| `seek` | Find code by natural language intent | 10-15ms |
-| `scan` | 8 structural patterns (concurrency, auth, errors...) | 3-5ms each |
-| `timeline` | Temporal evolution of a node | ~ms |
-| `diverge` | Git-based divergence analysis | varies |
-| `warmup` | Prime graph for an upcoming task | 82-89ms |
-| `federate` | Unify multiple repos into one graph | 1.3s / 2 repos |
+```
+learn(correct, [files_you_touched])   → next time, these paths are stronger
+```
 
-### Perspective Navigation (12 tools)
+### 3. Investigation -- debug across sessions
 
-Navigate the graph like a filesystem. Start at a node, follow structural routes, peek at source code, branch explorations, compare perspectives between agents.
+```
+activate("memory leak worker pool")              → 15 ranked suspects (31ms)
+perspective.start(anchor="file::worker_pool.py")  → open navigation session
+perspective.follow → perspective.peek              → read source, follow edges
+hypothesize("pool leaks on task cancellation")    → test claim against graph structure (58ms)
+                                                     25,015 paths explored, verdict: likely_true
 
-| Tool | Purpose |
-|------|---------|
-| `perspective.start` | Open a perspective anchored to a node |
-| `perspective.routes` | List available routes from current focus |
-| `perspective.follow` | Move focus to a route target |
-| `perspective.back` | Navigate backward |
-| `perspective.peek` | Read source code at the focused node |
-| `perspective.inspect` | Deep metadata + 5-factor score breakdown |
-| `perspective.suggest` | AI navigation recommendation |
-| `perspective.affinity` | Check route relevance to current investigation |
-| `perspective.branch` | Fork an independent perspective copy |
-| `perspective.compare` | Diff two perspectives (shared/unique nodes) |
-| `perspective.list` | All active perspectives + memory usage |
-| `perspective.close` | Release perspective state |
+trail.save(label="worker-pool-leak")              → persist investigation state (~0ms)
 
-### Lock System (5 tools)
+--- next day, new session ---
 
-Pin a subgraph region and watch for changes. `lock.diff` runs in **0.00008ms** -- essentially free change detection.
+trail.resume("worker-pool-leak")                  → exact context restored (0.2ms)
+                                                     all weights, hypotheses, open questions intact
+```
 
-| Tool | Purpose | Speed |
-|------|---------|-------|
-| `lock.create` | Snapshot a subgraph region | 24ms |
-| `lock.watch` | Register change strategy | ~0ms |
-| `lock.diff` | Compare current vs baseline | 0.08μs |
-| `lock.rebase` | Advance baseline to current | 22ms |
-| `lock.release` | Free lock state | ~0ms |
+Two agents investigating the same bug? `trail.merge` combines their findings and flags conflicts.
 
-### Superpowers (13 tools)
+## Why $0.00 is real
 
-| Tool | What It Does | Speed |
-|------|-------------|-------|
-| `hypothesize` | Test claims against graph structure | 28-58ms |
-| `counterfactual` | Simulate module removal -- full cascade | 3ms |
-| `missing` | Find structural holes -- what SHOULD exist | 44-67ms |
-| `resonate` | Standing wave analysis -- find structural hubs | 37-52ms |
-| `fingerprint` | Find structural twins by topology | 1-107ms |
-| `trace` | Map stacktraces to root causes | 3.5-5.8ms |
-| `validate_plan` | Pre-flight risk assessment for changes | 0.5-10ms |
-| `predict` | Co-change prediction | <1ms |
-| `trail.save` | Persist investigation state | ~0ms |
-| `trail.resume` | Restore exact investigation context | 0.2ms |
-| `trail.merge` | Combine multi-agent investigations | 1.2ms |
-| `trail.list` | Browse saved investigations | ~0ms |
-| `differential` | XLR noise-cancelling activation | ~ms |
+When an AI agent searches code via LLM: your code is sent to a cloud API, tokenized, processed, and returned. Each cycle costs $0.05-$0.50 in API tokens. Agents repeat this 3-5 times per question.
+
+m1nd uses **zero LLM calls**. The codebase lives as a weighted graph in local RAM. Queries are pure math -- spreading activation, graph traversal, linear algebra -- executed by a Rust binary on your machine. No API. No tokens. No data leaves your computer.
+
+| | LLM-based search | m1nd |
+|---|---|---|
+| **Mechanism** | Send code to cloud, pay per token | Weighted graph in local RAM |
+| **Per query** | $0.05-$0.50 | $0.00 |
+| **Latency** | 500ms-3s | 31ms |
+| **Learns** | No | Yes (Hebbian plasticity) |
+| **Data privacy** | Code sent to cloud | Nothing leaves your machine |
+
+## The 43 tools
+
+Six categories. Every tool callable via MCP JSON-RPC stdio.
+
+| Category | Tools | What they do |
+|----------|-------|-------------|
+| **Activation & Queries** (5) | `activate`, `seek`, `scan`, `trace`, `timeline` | Fire signals into the graph. Get ranked, multi-dimensional results. |
+| **Analysis & Prediction** (7) | `impact`, `predict`, `counterfactual`, `fingerprint`, `resonate`, `hypothesize`, `differential` | Blast radius, co-change prediction, what-if simulation, hypothesis testing. |
+| **Memory & Learning** (4) | `learn`, `ingest`, `drift`, `warmup` | Build graphs, give feedback, recover session context, prime for tasks. |
+| **Exploration & Discovery** (4) | `missing`, `diverge`, `why`, `federate` | Find structural holes, trace paths, unify multi-repo graphs. |
+| **Perspective Navigation** (12) | `start`, `follow`, `branch`, `back`, `close`, `inspect`, `list`, `peek`, `compare`, `suggest`, `routes`, `affinity` | Stateful codebase exploration. History, branching, undo. |
+| **Lifecycle & Coordination** (11) | `health`, 5 `lock.*`, 4 `trail.*`, `validate_plan` | Multi-agent locks, investigation persistence, pre-flight checks. |
+
+Full tool reference: [Wiki](https://github.com/maxkle1nz/m1nd/wiki)
+
+## What makes it different
+
+**The graph learns.** Hebbian plasticity. Confirm results are useful -- edges strengthen. Mark results as wrong -- edges weaken. Over time, the graph evolves to match how your team thinks about your codebase. No other code intelligence tool does this. Zero prior art in code.
+
+**The graph cancels noise.** XLR differential processing, borrowed from professional audio engineering. Signal on two inverted channels, common-mode noise subtracted at the receiver. Activation queries return signal, not the noise that grep drowns you in. Zero prior art published anywhere.
+
+**The graph finds what's missing.** Structural hole detection based on Burt's theory from network sociology. m1nd identifies positions in the graph where a connection *should* exist but doesn't -- the function that was never written, the module nobody connected. Zero prior art in code.
+
+**The graph remembers investigations.** Save mid-investigation state -- hypotheses, weights, open questions. Resume days later from the exact cognitive position. Two agents on the same bug? Merge their trails with automatic conflict detection.
+
+**The graph tests claims.** "Does the worker pool depend on WhatsApp?" -- m1nd explores 25,015 paths in 58ms, returns a verdict with Bayesian confidence. Invisible dependencies found in milliseconds.
+
+**The graph simulates deletion.** Zero-allocation counterfactual engine. "What breaks if I delete `spawner.py`?" -- full cascade computed in 3ms using bitset RemovalMask, O(1) per edge check vs O(V+E) for materialized copies.
 
 ## Architecture
 
 ```
 m1nd/
-  m1nd-core/     Graph engine, plasticity, spreading activation, hypothesis engine
+  m1nd-core/     Graph engine, plasticity, activation, hypothesis engine
   m1nd-ingest/   Language extractors (Python, Rust, TS/JS, Go, Java, generic)
   m1nd-mcp/      MCP server, 43 tool handlers, JSON-RPC over stdio
 ```
 
-**Pure Rust.** No runtime dependencies. No LLM calls. No API keys. The binary is ~8MB and runs anywhere Rust compiles.
+**Pure Rust. No runtime dependencies. No LLM calls. No API keys.** The binary is ~8MB and runs anywhere Rust compiles.
 
-### Four Activation Dimensions
+### Four activation dimensions
 
-Every spreading activation query scores nodes across four dimensions:
+Every query scores nodes across four independent dimensions:
 
-| Dimension | What It Measures | Source |
-|-----------|-----------------|--------|
-| **Structural** | Graph distance, edge types, PageRank | CSR adjacency + reverse index |
-| **Semantic** | Token overlap, naming patterns | Trigram matching on identifiers |
-| **Temporal** | Co-change history, velocity, decay | Git history + learn feedback |
-| **Causal** | Suspiciousness, error proximity | Stacktrace mapping + call chains |
+| Dimension | Measures | Source |
+|-----------|---------|--------|
+| **Structural** | Graph distance, edge types, PageRank centrality | CSR adjacency + reverse index |
+| **Semantic** | Token overlap, naming patterns, identifier similarity | Trigram TF-IDF matching |
+| **Temporal** | Co-change history, velocity, recency decay | Git history + Hebbian feedback |
+| **Causal** | Suspiciousness, error proximity, call chain depth | Stacktrace mapping + trace analysis |
 
-The final score is a weighted combination. Hebbian plasticity shifts these weights based on feedback.
+Hebbian plasticity shifts these dimension weights based on feedback. The graph converges toward your team's reasoning patterns.
 
-### Graph Representation
+### Internals
 
-Compressed Sparse Row (CSR) with forward + reverse adjacency. PageRank computed on ingest. Plasticity layer tracks per-edge weights with Hebbian LTP/LTD and homeostatic normalization.
-
-9,767 nodes with 26,557 edges occupies ~2MB in memory. Queries traverse the graph directly -- no database, no network, no serialization overhead.
+- **Graph representation**: Compressed Sparse Row (CSR) with forward + reverse adjacency. 9,767 nodes / 26,557 edges in ~2MB RAM.
+- **Plasticity**: Per-edge `SynapticState` with LTP/LTD thresholds and homeostatic normalization. Weights persist to disk.
+- **Concurrency**: CAS-based atomic weight updates. Multiple agents write to the same graph simultaneously without locks.
+- **Counterfactuals**: Zero-allocation `RemovalMask` (bitset). O(1) per-edge exclusion check. No graph copies.
+- **Noise cancellation**: XLR differential processing. Balanced signal channels, common-mode rejection.
+- **Community detection**: Louvain algorithm on the weighted graph.
+- **Query memory**: Ring buffer with bigram analysis for activation pattern prediction.
+- **Persistence**: Auto-save every 50 queries + on shutdown. JSON serialization.
 
 ```mermaid
 graph LR
@@ -280,125 +259,101 @@ graph LR
     end
 ```
 
-## How Does m1nd Compare?
-
-| Capability | Sourcegraph | Cursor | Aider | RAG | m1nd |
-|------------|-------------|--------|-------|-----|------|
-| Code graph | SCIP (static) | Embeddings | tree-sitter + PageRank | None | CSR + 4D activation |
-| Learns from use | No | No | No | No | **Hebbian plasticity** |
-| Persists investigations | No | No | No | No | **Trail save/resume/merge** |
-| Tests hypotheses | No | No | No | No | **Bayesian on graph paths** |
-| Simulates removal | No | No | No | No | **Counterfactual cascade** |
-| Multi-repo graph | Search only | No | No | No | **Federated graph** |
-| Temporal intelligence | git blame | No | No | No | **Co-change + velocity + decay** |
-| Agent interface | API | N/A | CLI | N/A | **43 MCP tools** |
-| Cost per query | Hosted SaaS | Subscription | LLM tokens | LLM tokens | **Zero** |
-
-## When NOT to Use m1nd
-
-Honest about what m1nd isn't:
-
-- **You need neural semantic search.** V1 uses trigram matching, not embeddings. If you need "find code that *means* authentication but never uses the word," m1nd won't do it yet.
-- **You need 64-language support.** m1nd has extractors for Python, Rust, TypeScript/JavaScript, Go, Java, plus a generic fallback. Tree-sitter integration is planned.
-- **You have 400K+ files.** The graph lives in memory. At ~2MB for 10K nodes, a 400K-file codebase would need ~80MB. It works, but it's not where m1nd was optimized.
-- **You need dataflow or taint analysis.** m1nd tracks structural and co-change relationships, not data flow through variables. Use a dedicated SAST tool for that.
-
-## Use Cases
-
-### AI Agent Memory
-
-```
-Session 1:
-  ingest → activate("auth") → agent uses results → learn(correct)
-
-Session 2:
-  drift(since=session_1) → auth paths are now stronger
-  activate("auth") → better results, faster convergence
-
-Session N:
-  the graph has adapted to how your team thinks about auth
-```
-
-### Build Orchestration
-
-```
-Before coding:
-  warmup("refactor payment flow") → 50 seed nodes primed
-  validate_plan(["payment.py", "billing.py"]) → blast_radius + gaps
-  impact("file::payment.py") → 2,100 affected nodes at depth 3
-
-During coding:
-  predict("file::payment.py") → ["file::billing.py", "file::invoice.py"]
-  trace(error_text) → suspects ranked by suspiciousness
-
-After coding:
-  learn(feedback="correct") → strengthen the paths you used
-```
-
-### Code Investigation
-
-```
-Start:
-  activate("memory leak in worker pool") → 15 ranked suspects
-
-Investigate:
-  perspective.start(anchor="file::worker_pool.py")
-  perspective.follow → perspective.peek → read source
-  hypothesize("worker pool leaks when tasks cancel")
-
-Save progress:
-  trail.save(label="worker-pool-leak", hypotheses=[...])
-
-Next day:
-  trail.resume → exact context restored, all weights intact
-```
-
-### Multi-Repo Analysis
-
-```
-federate(repos=[
-  {path: "/app/backend", label: "backend"},
-  {path: "/app/frontend", label: "frontend"}
-])
-→ 11,217 unified nodes, 18,203 cross-repo edges in 1.3s
-
-activate("API contract") → finds backend handlers + frontend consumers
-impact("file::backend::api.py") → blast radius includes frontend components
-```
-
 ## Benchmarks
 
-All numbers from real execution against a production Python backend (335 files, ~52K lines):
+All numbers from real execution against a production codebase (335 files, ~52K lines, Python + Rust + TypeScript):
 
 | Operation | Time | Scale |
 |-----------|------|-------|
-| Full ingest | 910ms | 335 files → 9,767 nodes, 26,557 edges |
+| Full ingest | 910ms | 335 files -> 9,767 nodes, 26,557 edges |
 | Spreading activation | 31-77ms | 15 results from 9,767 nodes |
+| Structural hole detection | 44-67ms | Gaps no text search could find |
 | Blast radius (depth=3) | 5-52ms | Up to 4,271 affected nodes |
-| Stacktrace analysis | 3.5ms | 5 frames → 4 suspects ranked |
-| Plan validation | 10ms | 7 files → 43,152 blast radius |
 | Counterfactual cascade | 3ms | Full BFS on 26,557 edges |
 | Hypothesis testing | 58ms | 25,015 paths explored |
-| Pattern scan (all 8) | 38ms | 335 files, 50 findings per pattern |
+| Stacktrace analysis | 3.5ms | 5 frames -> 4 suspects ranked |
+| Co-change prediction | <1ms | Top co-change candidates |
+| Lock diff | 0.08us | 1,639-node subgraph comparison |
+| Trail merge | 1.2ms | 5 hypotheses, conflict detection |
 | Multi-repo federation | 1.3s | 11,217 nodes, 18,203 cross-repo edges |
-| Lock diff | 0.08μs | 1,639-node subgraph comparison |
-| Trail merge | 1.2ms | 5 hypotheses, 3 conflicts detected |
+| Hebbian learn | <1ms | 740 edges updated |
 
-## Environment Variables
+### Cost comparison
+
+| Tool | Latency | Cost | Learns | Finds missing |
+|------|---------|------|--------|--------------|
+| **m1nd** | **31ms** | **$0.00** | **Yes** | **Yes** |
+| Cursor | 320ms+ | $20-40/mo | No | No |
+| GitHub Copilot | 500-800ms | $10-39/mo | No | No |
+| Sourcegraph | 500ms+ | $59/user/mo | No | No |
+| Greptile | seconds | $30/dev/mo | No | No |
+| RAG pipeline | 500ms-3s | per-token | No | No |
+
+### Capability coverage (16 criteria)
+
+| Tool | Score |
+|------|-------|
+| **m1nd** | **16/16** |
+| CodeGraphContext | 3/16 |
+| Joern | 2/16 |
+| CodeQL | 2/16 |
+| ast-grep | 2/16 |
+| Cursor | 0/16 |
+| GitHub Copilot | 0/16 |
+
+Capabilities: spreading activation, Hebbian plasticity, structural holes, counterfactual simulation, hypothesis testing, perspective navigation, trail persistence, multi-agent locks, XLR noise cancellation, co-change prediction, resonance analysis, multi-repo federation, 4D scoring, plan validation, fingerprint detection, temporal intelligence.
+
+Full competitive analysis: [Wiki - Competitive Report](https://github.com/maxkle1nz/m1nd/wiki)
+
+## When NOT to use m1nd
+
+- **You need neural semantic search.** m1nd uses trigram TF-IDF, not embeddings. "Find code that *means* authentication but never uses the word" is not a strength yet.
+- **You need 50+ language support.** Extractors exist for Python, Rust, TypeScript/JavaScript, Go, Java, plus a generic fallback. Tree-sitter integration is planned.
+- **You need dataflow analysis.** m1nd tracks structural and co-change relationships, not data flow through variables. Use a dedicated SAST tool for taint analysis.
+- **You need distributed mode.** Federation stitches multiple repos, but the server runs on one machine. Distributed graph is not yet implemented.
+
+## Environment variables
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
 | `M1ND_GRAPH_SOURCE` | Path to persist graph state | In-memory only |
 | `M1ND_PLASTICITY_STATE` | Path to persist plasticity weights | In-memory only |
 
+## Building from source
+
+```bash
+# Prerequisites: Rust stable toolchain
+rustup update stable
+
+# Clone and build
+git clone https://github.com/maxkle1nz/m1nd.git
+cd m1nd
+cargo build --release
+
+# Run tests
+cargo test --workspace
+
+# Binary location
+./target/release/m1nd-mcp
+```
+
+The workspace has three crates:
+
+| Crate | Purpose |
+|-------|---------|
+| `m1nd-core` | Graph engine, plasticity, activation, hypothesis engine |
+| `m1nd-ingest` | Language extractors, reference resolution |
+| `m1nd-mcp` | MCP server, 43 tool handlers, JSON-RPC stdio |
+
 ## Contributing
 
-m1nd is early-stage and evolving fast. Contributions welcome:
+m1nd is early-stage and evolving fast. Contributions welcome in these areas:
 
-- **Language extractors**: Add parsers for more languages in `m1nd-ingest`
-- **Graph algorithms**: Improve spreading activation, add community detection
-- **MCP tools**: Propose new tools that leverage the graph
-- **Benchmarks**: Test on different codebases, report performance
+- **Language extractors** -- add parsers in `m1nd-ingest` for more languages
+- **Graph algorithms** -- improve activation, add detection patterns
+- **MCP tools** -- propose new tools that leverage the graph
+- **Benchmarks** -- test on different codebases, report numbers
+- **Docs** -- improve examples, add tutorials
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
@@ -409,6 +364,10 @@ MIT -- see [LICENSE](LICENSE).
 ---
 
 <p align="center">
-  Created by <a href="https://github.com/cosmophonix">Max Elias Kleinschmidt</a><br/>
-  <em>The graph must learn.</em>
+  <sub>~15,500 lines of Rust &middot; 159 tests &middot; 43 tools &middot; 6+1 languages &middot; ~8MB binary</sub>
+</p>
+
+<p align="center">
+  Created by <a href="https://github.com/maxkle1nz">Max Kleinschmidt</a><br/>
+  <em>Every tool finds what exists. m1nd finds what's missing.</em>
 </p>

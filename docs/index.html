@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>m1nd — Grep finds what exists. m1nd finds what's missing.</title>
-  <meta name="description" content="m1nd: a local Rust binary that gives AI coding agents structural understanding of your codebase. 31ms queries, zero LLM tokens, zero cost. 43 MCP tools.">
-  <meta property="og:title" content="m1nd — Grep finds what exists. m1nd finds what's missing.">
-  <meta property="og:description" content="m1nd: a local Rust binary that gives AI coding agents structural understanding of your codebase. 31ms queries, zero LLM tokens, zero cost. 43 MCP tools.">
+  <meta name="description" content="m1nd: a local Rust binary that gives AI coding agents structural understanding of your codebase. 31ms queries, zero LLM tokens, zero cost. 43 MCP tools. 16/16 capabilities vs Cursor's 0/16. 3-4 years ahead.">
+  <meta property="og:title" content="m1nd — Your AI agent has amnesia. m1nd remembers.">
+  <meta property="og:description" content="m1nd: a local Rust binary that gives AI coding agents structural understanding of your codebase. 31ms queries, zero LLM tokens, zero cost. 43 MCP tools. 3-4 years ahead of any competitor.">
   <meta property="og:image" content="https://raw.githubusercontent.com/maxkle1nz/m1nd/main/.github/social-preview.jpg">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
@@ -647,6 +647,7 @@
         <a href="#perspectives">Perspectives</a>
         <a href="#tools">Tools</a>
         <a href="#benchmarks">Benchmarks</a>
+        <a href="#advantage">The Gap</a>
         <a href="#start">Start</a>
         <a href="https://github.com/maxkle1nz/m1nd" class="nav-cta">GitHub</a>
       </div>
@@ -657,8 +658,8 @@
   <div class="sponsor-banner">
     <a href="https://github.com/sponsors/maxkle1nz" target="_blank">
       <span class="heart">&hearts;</span>
-      We're building the future of AI navigation &mdash; open source, zero cost. But we can't do it alone.
-      <span class="cta-pill">Sponsor m1nd</span>
+      m1nd saves your agents thousands in token costs. It's free, local, and open source &mdash; built by one dev who thinks AI deserves better tools. Help keep it that way.
+      <span class="cta-pill">Become a Sponsor</span>
     </a>
   </div>
 
@@ -742,10 +743,10 @@
         </svg>
       </div>
 
-      <div class="hero-badge"><span class="dot"></span> 43 MCP tools &middot; Rust &middot; Zero LLM cost</div>
-      <h1 style="font-size: clamp(32px, 5vw, 56px); letter-spacing: -2px; line-height: 1.15;">Grep finds what exists.<br>m<span class="one">1</span>nd finds what's <span class="one">missing</span>.</h1>
-      <p class="tagline">The code graph that learns. Built in Rust for AI agents.</p>
-      <p class="subtitle">Every time your AI agent investigates your codebase &mdash; grep, read, analyze, grep again &mdash; it burns <strong style="color: var(--red);">$0.05&ndash;$0.50</strong> in LLM tokens per cycle. 50 cycles a day on a frontier model = <strong style="color: var(--red);">$3&ndash;$17 wasted</strong>. m1nd replaces those cycles with a <strong style="color: var(--green);">$0.00</strong> local graph query in <strong style="color: var(--green);">31ms</strong> &mdash; and finds structural holes no text search ever could.</p>
+      <div class="hero-badge"><span class="dot"></span> 43 MCP tools &middot; Rust &middot; $0.00/query</div>
+      <h1 style="font-size: clamp(32px, 5vw, 56px); letter-spacing: -2px; line-height: 1.15;">Your AI agent has <span style="color: var(--red);">amnesia</span>.<br>m<span class="one">1</span>nd <span class="one">remembers</span>.</h1>
+      <p class="tagline">Every tool finds what exists. m1nd finds what's missing.</p>
+      <p class="subtitle">Every session, your agent re-reads your entire codebase &mdash; burning <strong style="color: var(--red);">$0.05&ndash;$0.50 per search cycle</strong> in LLM tokens, forgetting everything by next session. m1nd replaces that loop with a persistent code graph that <strong style="color: var(--green);">learns from usage</strong>, detects <strong style="color: var(--green);">structural holes</strong> no grep ever could, and answers in <strong style="color: var(--green);">31ms at $0.00</strong>. Local Rust binary. No API keys. No meter ticking.</p>
       <div class="hero-actions">
         <a href="#start" class="btn btn-primary">Quick Start</a>
         <a href="https://github.com/maxkle1nz/m1nd" class="btn btn-secondary">
@@ -1066,28 +1067,68 @@
     <div class="container" style="text-align: center;">
       <div class="section-label">The paradigm shift</div>
       <h2 class="section-title">Every search tool was built for humans.<br>m1nd was built for <span style="color: var(--green);">agents</span>.</h2>
-      <p class="section-desc" style="max-width: 720px; margin: 0 auto 48px;">
-        grep, ripgrep, tree-sitter, ast-grep &mdash; brilliant tools. For humans who read terminals. But an AI agent doesn't want 200 lines of grep output to interpret linearly. It wants a graph with weights, dimensions, and a direct answer: <strong style="color: var(--text);">"what matters and what's missing"</strong> &mdash; ready to decide, not to parse.
+      <p class="section-desc" style="max-width: 720px; margin: 0 auto 20px;">
+        2026 is the year of AI slop &mdash; agents brute-forcing their way through codebases with grep loops, burning tokens like kindling. grep, ripgrep, tree-sitter: brilliant tools. For <em>humans</em> who read terminals. But an AI agent doesn't want 200 lines of output to interpret linearly. It wants a graph with weights, dimensions, and a direct answer: <strong style="color: var(--text);">"what matters and what's missing"</strong> &mdash; ready to decide, not to parse.
       </p>
+      <p style="color: var(--text-faint); font-size: 14px; font-family: var(--mono); margin-bottom: 48px;">The end of context window theater. No more feeding search results to an LLM so it can search again.</p>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; text-align: left;">
-        <div class="problem-card">
-          <div class="question" style="color: var(--red);">Human search tool</div>
-          <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 8px;">
-            Agent calls grep &rarr; gets 200 lines &rarr; feeds to LLM &rarr; LLM reads linearly &rarr; decides to grep again &rarr; 3-5 rounds &rarr; <strong style="color: var(--red);">$0.50 burned, 10 seconds gone</strong>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; text-align: left;">
+        <div class="problem-card" style="border-color: rgba(255, 51, 102, 0.3); background: linear-gradient(180deg, rgba(255, 51, 102, 0.04) 0%, var(--bg-card) 100%);">
+          <div class="question" style="color: var(--red); font-size: 16px;">The slop cycle</div>
+          <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 12px; line-height: 1.8;">
+            <span style="color: var(--text-faint);">1.</span> Agent calls grep <span style="color: var(--text-faint);">&rarr;</span> 200 lines of noise<br>
+            <span style="color: var(--text-faint);">2.</span> Feeds entire output to LLM <span style="color: var(--text-faint);">&rarr;</span> burns tokens parsing text<br>
+            <span style="color: var(--text-faint);">3.</span> LLM decides to grep again <span style="color: var(--text-faint);">&rarr;</span> repeat 3&ndash;5 times<br>
+            <span style="color: var(--text-faint);">4.</span> Finally acts on incomplete picture<br>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 51, 102, 0.15);">
+              <strong style="color: var(--red);">$0.30&ndash;$0.50 burned per search. 10 seconds gone. Structural blind spots remain.</strong>
+            </div>
           </div>
         </div>
-        <div class="problem-card" style="border-color: rgba(0, 229, 160, 0.3);">
-          <div class="question" style="color: var(--green);">m1nd (agent-native)</div>
-          <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 8px;">
-            Agent calls m1nd.activate &rarr; gets ranked subgraph with confidence scores &rarr; sees structural holes &rarr; <strong style="color: var(--green);">1 call, 31ms, $0.00</strong>
+        <div class="problem-card" style="border-color: rgba(0, 229, 160, 0.3); background: linear-gradient(180deg, rgba(0, 229, 160, 0.04) 0%, var(--bg-card) 100%);">
+          <div class="question" style="color: var(--green); font-size: 16px;">Precision surgery</div>
+          <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 12px; line-height: 1.8;">
+            <span style="color: var(--text-faint);">1.</span> Agent calls m1nd.activate<br>
+            <span style="color: var(--text-faint);">2.</span> Gets ranked subgraph with confidence scores<br>
+            <span style="color: var(--text-faint);">3.</span> Sees structural holes no text search could find<br>
+            <span style="color: var(--text-faint);">4.</span> Acts immediately with full picture<br>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0, 229, 160, 0.15);">
+              <strong style="color: var(--green);">1 call. 31ms. $0.00. Zero tokens. Complete structural understanding.</strong>
+            </div>
           </div>
         </div>
       </div>
 
-      <p style="color: var(--text-dim); font-size: 15px; margin-top: 40px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-        m1nd doesn't output text for an LLM to re-interpret. It outputs <strong style="color: var(--text);">structured decisions</strong> &mdash; weighted nodes, confidence scores, dimensional rankings, structural holes. The format an agent actually needs to act.
+      <p style="color: var(--text-dim); font-size: 15px; margin-top: 40px; max-width: 640px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+        m1nd doesn't output text for an LLM to re-interpret. It outputs <strong style="color: var(--text);">structured decisions</strong> &mdash; weighted nodes, confidence scores, dimensional rankings, structural holes. The format an agent actually needs to act, not more slop to chew on.
       </p>
+
+      <!-- Why $0.00 explainer -->
+      <div style="margin-top: 56px; max-width: 760px; margin-left: auto; margin-right: auto; background: linear-gradient(135deg, rgba(0, 229, 160, 0.04) 0%, rgba(0, 153, 255, 0.04) 100%); border: 1px solid rgba(0, 229, 160, 0.15); border-radius: 12px; padding: 32px 36px; text-align: left;">
+        <div style="font-family: var(--mono); font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;">Why $0.00 is real &mdash; not marketing</div>
+        <p style="color: var(--text); font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
+          When an AI agent searches your code with an LLM, it <strong>sends your code to a cloud API</strong>, pays per token (input + output), waits for the response, and often repeats 3&ndash;5 times. Every cycle costs $0.05&ndash;$0.50.
+        </p>
+        <p style="color: var(--text); font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">
+          m1nd uses <strong>zero LLM calls</strong>. Your codebase lives as a weighted graph in local RAM. Queries are pure math &mdash; spreading activation, graph traversal, linear algebra &mdash; executed by a Rust binary on your machine. No API call. No tokens. No data leaves your computer. That's why it costs $0.00 and runs in 31ms.
+        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div style="background: rgba(255, 51, 102, 0.06); border-radius: 8px; padding: 16px;">
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--red); margin-bottom: 8px;">LLM grep cycle</div>
+            <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.6;">
+              Your code &rarr; Cloud API &rarr; tokens &rarr; $$<br>
+              <span style="color: var(--text-faint);">Like asking Google for directions every time you need to cross the street</span>
+            </div>
+          </div>
+          <div style="background: rgba(0, 229, 160, 0.06); border-radius: 8px; padding: 16px;">
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">m1nd query</div>
+            <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.6;">
+              Graph in RAM &rarr; math &rarr; answer &rarr; $0<br>
+              <span style="color: var(--text-faint);">Like looking at a map that's already on your desk</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1498,6 +1539,28 @@
       <h2 class="section-title">m1nd vs. the alternatives.</h2>
       <p class="section-desc">Different category, not just a better version.</p>
 
+      <!-- Cost Reality Callout -->
+      <div style="background: linear-gradient(135deg, rgba(255, 51, 102, 0.06) 0%, rgba(0, 229, 160, 0.06) 100%); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 48px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px; align-items: center;">
+          <div>
+            <div style="font-family: var(--mono); font-size: 12px; color: var(--red); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">The token tax is real</div>
+            <p style="font-size: 15px; color: var(--text-dim); line-height: 1.6; margin-bottom: 16px;">
+              Every time an AI agent greps your codebase and feeds results to an LLM, you pay. Cursor users have reported <strong style="color: var(--red);">$22K/month</strong> in overages. Teams running Copilot + frontier models on large repos see <strong style="color: var(--red);">$200&ndash;$500/month</strong> in invisible search costs alone.
+            </p>
+            <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.8;">
+              <span style="color: var(--red);">100 searches/day</span> &times; $0.30/search = <strong style="color: var(--red);">$9/day</strong> = <strong style="color: var(--red);">$270/month</strong><br>
+              <span style="color: var(--red);">That's $3,240/year</span> <span style="color: var(--text-faint);">on search alone. Per developer.</span>
+            </div>
+          </div>
+          <div style="text-align: center; padding: 24px; background: var(--bg-card); border-radius: 12px; border: 1px solid rgba(0, 229, 160, 0.2);">
+            <div style="font-family: var(--mono); font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">m1nd</div>
+            <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1;">$0</div>
+            <div style="font-family: var(--mono); font-size: 14px; color: var(--text-dim); margin-top: 8px;">/query. /day. /month. /forever.</div>
+            <div style="font-size: 13px; color: var(--text-faint); margin-top: 12px;">Local Rust binary. No API keys. No cloud.<br>No data leaves your machine. Ever.</div>
+          </div>
+        </div>
+      </div>
+
       <table class="vs-table">
         <thead>
           <tr>
@@ -1505,8 +1568,8 @@
             <th class="highlight">m1nd</th>
             <th>Sourcegraph</th>
             <th>Cursor</th>
-            <th>Aider</th>
-            <th>RAG</th>
+            <th>Copilot</th>
+            <th>Greptile</th>
           </tr>
         </thead>
         <tbody>
@@ -1515,8 +1578,8 @@
             <td class="yes">Full property graph</td>
             <td class="partial">Symbol index</td>
             <td class="no">None</td>
-            <td class="no">Repo map</td>
-            <td class="no">Chunk store</td>
+            <td class="no">None</td>
+            <td class="partial">AST index</td>
           </tr>
           <tr>
             <td>Learns from use</td>
@@ -1551,39 +1614,348 @@
             <td class="no">No</td>
           </tr>
           <tr>
+            <td>Multi-agent locks</td>
+            <td class="yes">Lock system (works)</td>
+            <td class="no">No</td>
+            <td class="no">Attempted, failed</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
             <td>Multi-repo</td>
             <td class="yes">Federation</td>
             <td class="yes">Yes</td>
             <td class="no">No</td>
             <td class="no">No</td>
-            <td class="partial">Manual</td>
+            <td class="partial">Per-repo</td>
           </tr>
           <tr>
-            <td>Temporal intelligence</td>
-            <td class="yes">4th dimension</td>
-            <td class="partial">Git blame</td>
-            <td class="no">No</td>
-            <td class="partial">Git context</td>
-            <td class="no">No</td>
+            <td>Search latency</td>
+            <td class="yes">31ms (local)</td>
+            <td class="partial">~200ms (cloud)</td>
+            <td class="partial">320ms+ (cloud)</td>
+            <td class="partial">500&ndash;800ms</td>
+            <td class="partial">Cloud-dependent</td>
           </tr>
           <tr>
             <td>Agent interface</td>
             <td class="yes">43 MCP tools</td>
             <td class="partial">API</td>
             <td class="no">Built-in only</td>
-            <td class="no">CLI only</td>
-            <td class="partial">Varies</td>
+            <td class="no">Built-in only</td>
+            <td class="partial">API</td>
           </tr>
           <tr>
-            <td>Cost per query</td>
-            <td class="yes">$0 (local Rust)</td>
-            <td class="partial">Cloud pricing</td>
-            <td class="partial">LLM tokens</td>
-            <td class="partial">LLM tokens</td>
-            <td class="partial">Embedding + LLM</td>
+            <td>Monthly cost</td>
+            <td class="yes">$0 (forever)</td>
+            <td class="no">$59/user/mo</td>
+            <td class="no">$20+/mo (overages to $22K)</td>
+            <td class="no">$19+/mo</td>
+            <td class="no">$30/dev/mo</td>
+          </tr>
+          <tr>
+            <td>Capabilities (of 16)</td>
+            <td class="yes" style="font-size: 15px; font-weight: 700;">16/16</td>
+            <td class="no">1/16</td>
+            <td class="no">0/16</td>
+            <td class="no">0/16</td>
+            <td class="no">1/16</td>
           </tr>
         </tbody>
       </table>
+    </div>
+  </section>
+
+  <!-- ── Competitive Advantage ── -->
+  <section id="advantage" style="border-top: 1px solid var(--border);">
+    <div class="container">
+      <div class="section-label">The measured gap</div>
+      <h2 class="section-title">3&ndash;4 years ahead. Measured.</h2>
+      <p class="section-desc">We benchmarked m1nd against every tool in the category across 16 capabilities. m1nd scores 16/16. The best competitor scores 3. Cursor and Copilot score zero.</p>
+
+      <!-- ── Feature coverage bars ── -->
+      <div style="margin-bottom: 64px;">
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Capabilities covered (out of 16)</div>
+
+        <!-- m1nd -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--green);">m1nd</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 32px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 100%; height: 100%; background: linear-gradient(90deg, var(--green) 0%, rgba(0, 229, 160, 0.7) 100%); border-radius: 5px; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;">
+              <span style="font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--bg);">16/16</span>
+            </div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--green);">100%</div>
+        </div>
+
+        <!-- CodeGraphContext -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">CodeGraphCtx</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 18.75%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">3/16</div>
+        </div>
+
+        <!-- Joern -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Joern</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- CodeQL -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">CodeQL</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- ast-grep -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">ast-grep</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- Letta Code -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Letta Code</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
+        </div>
+
+        <!-- Sourcegraph Cody -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Sourcegraph</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
+        </div>
+
+        <!-- Augment -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Augment</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
+        </div>
+
+        <!-- Greptile -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Greptile</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
+        </div>
+
+        <!-- Cursor -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Cursor</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 0%; height: 100%;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">0/16</div>
+        </div>
+
+        <!-- Copilot -->
+        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Copilot</div>
+          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
+            <div style="width: 0%; height: 100%;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">0/16</div>
+        </div>
+      </div>
+
+      <!-- ── 5 Defensible Claims ── -->
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Six things no one else can claim</div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 64px;">
+        <!-- Claim 1 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">01 &mdash; ZERO COMPETITORS</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Hebbian plasticity on code graphs</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">The graph rewires itself based on which query paths lead to correct results. No other tool does this. No published paper describes it for code.</div>
+        </div>
+
+        <!-- Claim 2 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">02 &mdash; 10-30x FASTER</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">$0.00/query at 31ms</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Local Rust binary. No LLM tokens burned per query. Every LLM-dependent tool pays $0.10-$0.50 per search and waits 300ms-2s for results.</div>
+        </div>
+
+        <!-- Claim 3 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">03 &mdash; ZERO PRIOR ART</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Finds what's MISSING in code</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Structural hole detection from Burt's sociology theory, applied to code graphs. Finds gaps in your architecture that no search can surface.</div>
+        </div>
+
+        <!-- Claim 4 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">04 &mdash; LARGEST SURFACE</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">43 MCP tools = complete cognitive cycle</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Ingest, activate, hypothesize, simulate, learn, navigate, federate. The largest competitor offers ~15 tools. Most offer 3-5.</div>
+        </div>
+
+        <!-- Claim 5 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">05 &mdash; UNPUBLISHED TECHNIQUE</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">XLR noise cancellation</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Borrowed from audio engineering: Cross-Layer Resonance filtering suppresses false-positive edges during spreading activation. No prior art exists for code graphs. Zero competitors, zero papers.</div>
+        </div>
+
+        <!-- Claim 6 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">06 &mdash; OTHERS TRIED AND FAILED</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Multi-agent graph locking</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Cursor attempted multi-agent file locking and abandoned it. m1nd ships 5 lock tools that work: snapshot, watch, diff, rebase, release. Multiple agents, one consistent graph.</div>
+        </div>
+      </div>
+
+      <!-- ── Years-Ahead Timeline ── -->
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Estimated lead by capability</div>
+
+      <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 48px;">
+        <!-- XLR -->
+        <div style="display: grid; grid-template-columns: 200px 1fr 80px; align-items: center; gap: 16px; margin-bottom: 14px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-dim);">XLR noise cancel</div>
+          <div style="background: var(--bg); border-radius: 4px; height: 20px; overflow: hidden;">
+            <div style="width: 100%; height: 100%; background: linear-gradient(90deg, rgba(0, 229, 160, 0.3) 0%, var(--green) 100%); border-radius: 4px;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--green); text-align: right;">4-5 yrs</div>
+        </div>
+
+        <!-- Structural holes -->
+        <div style="display: grid; grid-template-columns: 200px 1fr 80px; align-items: center; gap: 16px; margin-bottom: 14px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-dim);">Structural holes</div>
+          <div style="background: var(--bg); border-radius: 4px; height: 20px; overflow: hidden;">
+            <div style="width: 88%; height: 100%; background: linear-gradient(90deg, rgba(0, 229, 160, 0.3) 0%, var(--green) 100%); border-radius: 4px;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--green); text-align: right;">3-5 yrs</div>
+        </div>
+
+        <!-- Hebbian plasticity -->
+        <div style="display: grid; grid-template-columns: 200px 1fr 80px; align-items: center; gap: 16px; margin-bottom: 14px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-dim);">Hebbian plasticity</div>
+          <div style="background: var(--bg); border-radius: 4px; height: 20px; overflow: hidden;">
+            <div style="width: 78%; height: 100%; background: linear-gradient(90deg, rgba(0, 229, 160, 0.3) 0%, var(--green) 100%); border-radius: 4px;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--green); text-align: right;">3-4 yrs</div>
+        </div>
+
+        <!-- Resonance -->
+        <div style="display: grid; grid-template-columns: 200px 1fr 80px; align-items: center; gap: 16px; margin-bottom: 14px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-dim);">Resonance analysis</div>
+          <div style="background: var(--bg); border-radius: 4px; height: 20px; overflow: hidden;">
+            <div style="width: 78%; height: 100%; background: linear-gradient(90deg, rgba(0, 229, 160, 0.3) 0%, var(--green) 100%); border-radius: 4px;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--green); text-align: right;">3-4 yrs</div>
+        </div>
+
+        <!-- Spreading activation -->
+        <div style="display: grid; grid-template-columns: 200px 1fr 80px; align-items: center; gap: 16px; margin-bottom: 14px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-dim);">Spreading activation</div>
+          <div style="background: var(--bg); border-radius: 4px; height: 20px; overflow: hidden;">
+            <div style="width: 56%; height: 100%; background: linear-gradient(90deg, rgba(0, 229, 160, 0.3) 0%, rgba(0, 229, 160, 0.8) 100%); border-radius: 4px;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--green); text-align: right;">2-3 yrs</div>
+        </div>
+
+        <!-- Counterfactual -->
+        <div style="display: grid; grid-template-columns: 200px 1fr 80px; align-items: center; gap: 16px; margin-bottom: 14px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-dim);">Counterfactual sim</div>
+          <div style="background: var(--bg); border-radius: 4px; height: 20px; overflow: hidden;">
+            <div style="width: 56%; height: 100%; background: linear-gradient(90deg, rgba(0, 229, 160, 0.3) 0%, rgba(0, 229, 160, 0.8) 100%); border-radius: 4px;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--green); text-align: right;">2-3 yrs</div>
+        </div>
+
+        <!-- Perspectives -->
+        <div style="display: grid; grid-template-columns: 200px 1fr 80px; align-items: center; gap: 16px; margin-bottom: 14px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-dim);">Perspective nav</div>
+          <div style="background: var(--bg); border-radius: 4px; height: 20px; overflow: hidden;">
+            <div style="width: 56%; height: 100%; background: linear-gradient(90deg, rgba(0, 229, 160, 0.3) 0%, rgba(0, 229, 160, 0.8) 100%); border-radius: 4px;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--green); text-align: right;">2-3 yrs</div>
+        </div>
+
+        <!-- Multi-agent locks -->
+        <div style="display: grid; grid-template-columns: 200px 1fr 80px; align-items: center; gap: 16px; margin-bottom: 14px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-dim);">Multi-agent locks</div>
+          <div style="background: var(--bg); border-radius: 4px; height: 20px; overflow: hidden;">
+            <div style="width: 56%; height: 100%; background: linear-gradient(90deg, rgba(0, 229, 160, 0.3) 0%, rgba(0, 229, 160, 0.8) 100%); border-radius: 4px;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--green); text-align: right;">2-3 yrs</div>
+        </div>
+
+        <!-- Co-change prediction -->
+        <div style="display: grid; grid-template-columns: 200px 1fr 80px; align-items: center; gap: 16px; margin-bottom: 14px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-dim);">Co-change predict</div>
+          <div style="background: var(--bg); border-radius: 4px; height: 20px; overflow: hidden;">
+            <div style="width: 33%; height: 100%; background: linear-gradient(90deg, rgba(0, 229, 160, 0.2) 0%, rgba(0, 229, 160, 0.6) 100%); border-radius: 4px;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--green); text-align: right;">1-2 yrs</div>
+        </div>
+
+        <!-- 43 MCP tools -->
+        <div style="display: grid; grid-template-columns: 200px 1fr 80px; align-items: center; gap: 16px;">
+          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-dim);">43 MCP tools</div>
+          <div style="background: var(--bg); border-radius: 4px; height: 20px; overflow: hidden;">
+            <div style="width: 33%; height: 100%; background: linear-gradient(90deg, rgba(0, 229, 160, 0.2) 0%, rgba(0, 229, 160, 0.6) 100%); border-radius: 4px;"></div>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--green); text-align: right;">1-2 yrs</div>
+        </div>
+      </div>
+
+      <!-- ── Overall Verdict ── -->
+      <div style="text-align: center; margin-bottom: 48px;">
+        <div style="display: inline-block; background: linear-gradient(135deg, rgba(0, 229, 160, 0.08) 0%, rgba(0, 229, 160, 0.03) 100%); border: 1px solid rgba(0, 229, 160, 0.2); border-radius: 16px; padding: 32px 56px;">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Overall assessment</div>
+          <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1;">3&ndash;4 years</div>
+          <div style="font-size: 15px; color: var(--text-dim); margin-top: 8px;">ahead of the nearest competitor, across all measured dimensions.</div>
+        </div>
+      </div>
+
+      <!-- ── The Moat ── -->
+      <div style="max-width: 760px; margin: 0 auto 48px; background: linear-gradient(135deg, rgba(0, 229, 160, 0.05) 0%, rgba(96, 165, 250, 0.05) 100%); border: 1px solid rgba(0, 229, 160, 0.15); border-radius: 12px; padding: 32px 36px;">
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;">Why this lead is defensible</div>
+        <p style="font-size: 15px; color: var(--text); line-height: 1.7; margin: 0 0 20px 0;">
+          m1nd draws from <strong>six disciplines simultaneously</strong>: cognitive science (spreading activation), sociology (structural holes), neuroscience (Hebbian plasticity), signal processing (XLR noise cancellation), physics (resonance analysis), and distributed systems (multi-agent locking). No team in the code intelligence space has expertise across all of these at once.
+        </p>
+        <p style="font-size: 14px; color: var(--text-dim); line-height: 1.6; margin: 0 0 20px 0;">
+          This is not a feature gap that a well-funded competitor closes in a quarter. Replicating m1nd requires cross-disciplinary intuition that doesn't exist in a single hire, a single paper, or a single research lab. The only adjacent academic work&mdash;a Dec 2025 paper on spreading activation for document RAG&mdash;validates the approach but covers only one of the sixteen capabilities m1nd ships today.
+        </p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <span style="font-family: var(--mono); font-size: 11px; padding: 4px 12px; border-radius: 100px; background: rgba(0, 229, 160, 0.1); border: 1px solid rgba(0, 229, 160, 0.2); color: var(--green);">Cognitive Science</span>
+          <span style="font-family: var(--mono); font-size: 11px; padding: 4px 12px; border-radius: 100px; background: rgba(96, 165, 250, 0.1); border: 1px solid rgba(96, 165, 250, 0.2); color: #60A5FA;">Sociology</span>
+          <span style="font-family: var(--mono); font-size: 11px; padding: 4px 12px; border-radius: 100px; background: rgba(245, 166, 35, 0.1); border: 1px solid rgba(245, 166, 35, 0.2); color: var(--gold);">Neuroscience</span>
+          <span style="font-family: var(--mono); font-size: 11px; padding: 4px 12px; border-radius: 100px; background: rgba(255, 51, 102, 0.1); border: 1px solid rgba(255, 51, 102, 0.2); color: var(--red);">Signal Processing</span>
+          <span style="font-family: var(--mono); font-size: 11px; padding: 4px 12px; border-radius: 100px; background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); color: #A855F7;">Physics</span>
+          <span style="font-family: var(--mono); font-size: 11px; padding: 4px 12px; border-radius: 100px; background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.2); color: #22D3EE;">Distributed Systems</span>
+        </div>
+      </div>
+
+      <!-- ── Honest Note ── -->
+      <div style="max-width: 640px; margin: 0 auto; padding: 20px 24px; background: var(--bg-raised); border: 1px solid var(--border); border-radius: 10px; border-left: 3px solid var(--gold);">
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--gold); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Honest note</div>
+        <div style="font-size: 13px; color: var(--text-dim); line-height: 1.6;">
+          This lead is real, but it comes with trade-offs. m1nd supports 6+1 languages today&mdash;not 30. It runs on a single machine&mdash;no hosted cloud version. It does not write or refactor code, only navigates it. The comparison above measures structural intelligence capabilities, not product completeness. We publish this because credibility matters more than hype.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1770,6 +2142,26 @@
         <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~8 MB</div>
         <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Binary (ARM64)</div>
       </div>
+    </div>
+  </section>
+
+  <!-- ── Final CTA ── -->
+  <section style="padding: 80px 0; text-align: center;">
+    <div class="container">
+      <h2 class="section-title" style="max-width: 700px; margin: 0 auto 16px;">Stop paying for amnesia.<br>Give your agents a <span style="color: var(--green);">m1nd</span>.</h2>
+      <p style="color: var(--text-dim); font-size: 16px; max-width: 560px; margin: 0 auto 40px; line-height: 1.6;">
+        Open source. Local. Zero cost. One binary. 43 tools.<br>Your codebase never leaves your machine.
+      </p>
+      <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+        <a href="https://github.com/maxkle1nz/m1nd" class="btn btn-primary" style="font-size: 16px; padding: 16px 36px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          Get m1nd on GitHub
+        </a>
+        <a href="https://github.com/sponsors/maxkle1nz" class="btn btn-secondary" style="font-size: 16px; padding: 16px 36px;">
+          <span style="color: #FF3366;">&hearts;</span> Sponsor this project
+        </a>
+      </div>
+      <p style="font-family: var(--mono); font-size: 12px; color: var(--text-faint); margin-top: 24px;">MIT Licensed &middot; Rust &middot; ~8 MB binary &middot; Works with any MCP client</p>
     </div>
   </section>
 

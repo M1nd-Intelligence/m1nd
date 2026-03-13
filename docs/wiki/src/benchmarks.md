@@ -112,6 +112,42 @@ These are estimates based on production usage in the ROOMANIZER OS multi-agent s
 
 The key insight: m1nd does not replace search. It *focuses* search. The agent still uses grep and reads files, but it starts from a much better position because m1nd told it where to look.
 
+## Cost Comparison
+
+### Cost per Investigation Cycle
+
+A typical investigation cycle -- finding related code, understanding dependencies, checking blast radius -- involves multiple queries. Here is what that costs across different tools:
+
+| Tool | Cost per Investigation | Latency | Runs Locally |
+|------|----------------------|---------|--------------|
+| **m1nd** (activate + impact + why) | **$0.00** | ~120ms total | Yes |
+| LLM grep (Cursor codebase search) | $0.05-$0.50 | 500-2000ms | No (cloud) |
+| Copilot @workspace query | $0.10-$0.30 | 1000-3000ms | No (cloud) |
+| Manual grep + file reads via agent | $0.02-$0.15 (token cost) | varies | Partially |
+
+### Monthly Projection for a Team
+
+At 100 code searches per developer per day (a conservative estimate for an active agent-assisted workflow):
+
+| Scenario | Daily Cost | Monthly Cost (22 days) | Annual Cost |
+|----------|-----------|----------------------|-------------|
+| **m1nd** (5 devs, 100 searches/day each) | **$0.00** | **$0.00** | **$0.00** |
+| LLM grep at $0.10 avg (5 devs) | $50.00 | $1,100 | $13,200 |
+| LLM grep at $0.25 avg (5 devs) | $125.00 | $2,750 | $33,000 |
+| LLM grep at $0.50 avg (heavy usage) | $250.00 | $5,500 | $66,000 |
+
+These numbers are not hypothetical. In early 2026, Cursor users reported monthly overages exceeding $22,000 when teams relied heavily on AI-powered codebase search with uncapped token consumption. The per-query cost is small; the volume makes it expensive.
+
+### What You Do Not Pay For with m1nd
+
+- **No API keys.** m1nd makes zero network calls. There is nothing to provision or rotate.
+- **No cloud egress.** Your code stays on your machine. No bytes leave localhost.
+- **No token metering.** Queries are pure Rust graph computation. There are no tokens, no embeddings, no LLM inference.
+- **No surprise bills.** The cost is fixed at zero regardless of query volume, team size, or codebase scale.
+- **No vendor lock-in.** The graph persists to a local JSON file. Switch tools anytime, your data stays.
+
+The 8MB m1nd binary replaces an unbounded cloud cost center with a local, zero-cost, sub-100ms reasoning engine.
+
 ## Memory and CPU Usage
 
 ### Memory

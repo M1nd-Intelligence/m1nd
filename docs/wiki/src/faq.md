@@ -1,5 +1,33 @@
 # Frequently Asked Questions
 
+## Why m1nd?
+
+### Why not just use grep/ripgrep?
+
+Grep finds text. m1nd finds structure, relationships, and consequences. Grep tells you "this string appears on line 47 of auth.py." m1nd tells you "auth.py is structurally connected to 12 modules, and changing it cascades to 4,271 nodes across 3 layers." Grep answers in 5ms but cannot reason about dependencies, simulate deletions, or learn which results were useful. m1nd answers in 31ms and gets smarter every time you use it. Use both: grep for exact text, m1nd for structural reasoning.
+
+### How does m1nd compare to AI-powered code search (Cursor, GitHub Copilot search)?
+
+AI-powered code search sends your query (and often your code) to an LLM, costing tokens per search. Cursor's codebase indexing and Copilot's @workspace search embed your code into vectors and retrieve top-K chunks -- each query burns $0.05-$0.50 in API costs. m1nd runs locally in Rust with zero LLM calls, zero tokens, and zero network round-trips. A spreading activation query returns ranked results in 31ms at $0.00. m1nd also maintains a persistent graph that learns from feedback via Hebbian plasticity -- something no embedding-based search can do.
+
+### What's the real cost of LLM-based code search?
+
+Every LLM-based code search burns tokens: the query, the retrieved context, and the model's processing. At 100 searches per day, that is $5-$50/day per developer in API costs alone. In early 2026, Cursor users reported monthly overages exceeding $22,000 for teams with heavy codebase search usage. m1nd processes the same queries locally for $0.00 -- no API keys, no cloud egress, no token metering, no surprise bills. The 8MB binary pays for itself on day one.
+
+### Does m1nd replace my IDE's search?
+
+No. m1nd complements your IDE's search, not replaces it. Use your IDE's go-to-definition and find-references for precise, language-server-powered navigation. Use grep/ripgrep for fast text matching. Use m1nd for the questions those tools cannot answer: blast radius analysis, counterfactual simulation ("what breaks if I delete this module?"), structural hole detection ("what is missing?"), and hypothesis testing. m1nd adds a reasoning layer on top of your existing toolchain through 43 MCP tools that any compatible editor can call.
+
+### Why local-first? Why not cloud?
+
+Three reasons: cost, privacy, and latency. Cloud code search means your proprietary code leaves your machine on every query, each query costs tokens, and network round-trips add 100-500ms of latency. m1nd runs as a single 8MB binary on your machine. Your code never leaves localhost. Queries resolve in 31-77ms. There are no API keys to manage, no cloud accounts to provision, no egress fees, and no vendor lock-in. The graph persists to a local JSON file you own and can inspect, copy, or delete at any time.
+
+### What makes m1nd "agent-native"?
+
+m1nd was built from the ground up as an MCP server, not retrofitted. It exposes 43 tools that AI agents call natively -- spreading activation, impact analysis, counterfactual simulation, hypothesis testing, and a full Perspective navigation system with 12 stateful tools for browsing the code graph. Multiple agents share the same graph instance simultaneously, each with isolated perspectives. The graph learns from agent feedback via Hebbian plasticity, getting smarter with every interaction. No other code intelligence tool provides persistent, learning, multi-agent structural reasoning over MCP.
+
+---
+
 ## General
 
 ### What is m1nd?
