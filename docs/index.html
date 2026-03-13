@@ -917,6 +917,105 @@
       <h2 class="section-title">The core loop</h2>
       <p class="section-desc">m1nd doesn't search your data -- it activates it. Query a concept, and the graph lights up.</p>
 
+      <!-- Interactive Graph Activation Visualization -->
+      <div style="max-width: 720px; margin: 0 auto 48px; position: relative;">
+        <svg id="coreLoopViz" viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" style="width: 100%; border-radius: 16px; background: #080C14; border: 1px solid #1E2433; cursor: pointer;">
+          <defs>
+            <radialGradient id="viz-glow-g" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#00E5A0" stop-opacity="0.6"/>
+              <stop offset="100%" stop-color="#00E5A0" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="viz-glow-r" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FF3366" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#FF3366" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="viz-glow-b" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#60A5FA" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#60A5FA" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="viz-blur"><feGaussianBlur stdDeviation="3"/></filter>
+            <filter id="viz-blur-lg"><feGaussianBlur stdDeviation="8"/></filter>
+          </defs>
+
+          <!-- Phase labels -->
+          <text id="viz-phase" x="360" y="28" text-anchor="middle" fill="#5A6577" font-family="'JetBrains Mono',monospace" font-size="12" letter-spacing="2">DORMANT — CLICK TO ACTIVATE</text>
+
+          <!-- Edges (dormant = dim, activated = bright) -->
+          <g id="viz-edges" opacity="0.12">
+            <!-- Core cluster -->
+            <line x1="360" y1="190" x2="280" y2="140" stroke="#00E5A0" stroke-width="1.5"/>
+            <line x1="360" y1="190" x2="440" y2="140" stroke="#00E5A0" stroke-width="1.5"/>
+            <line x1="360" y1="190" x2="300" y2="260" stroke="#00E5A0" stroke-width="1.5"/>
+            <line x1="360" y1="190" x2="420" y2="260" stroke="#00E5A0" stroke-width="1.5"/>
+            <line x1="360" y1="190" x2="360" y2="100" stroke="#00E5A0" stroke-width="1.5"/>
+            <!-- Depth 2 -->
+            <line x1="280" y1="140" x2="200" y2="100" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="280" y1="140" x2="200" y2="180" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="440" y1="140" x2="520" y2="100" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="440" y1="140" x2="520" y2="180" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="300" y1="260" x2="220" y2="300" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="420" y1="260" x2="500" y2="300" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="360" y1="100" x2="320" y2="60" stroke="#00E5A0" stroke-width="1"/>
+            <line x1="360" y1="100" x2="400" y2="60" stroke="#00E5A0" stroke-width="1"/>
+            <!-- Depth 3 -->
+            <line x1="200" y1="100" x2="130" y2="70" stroke="#00E5A0" stroke-width="0.7"/>
+            <line x1="200" y1="100" x2="140" y2="140" stroke="#00E5A0" stroke-width="0.7"/>
+            <line x1="520" y1="100" x2="590" y2="70" stroke="#00E5A0" stroke-width="0.7"/>
+            <line x1="520" y1="100" x2="580" y2="140" stroke="#00E5A0" stroke-width="0.7"/>
+            <line x1="220" y1="300" x2="160" y2="330" stroke="#00E5A0" stroke-width="0.7"/>
+            <line x1="500" y1="300" x2="560" y2="330" stroke="#00E5A0" stroke-width="0.7"/>
+            <!-- Cross-links -->
+            <line x1="200" y1="180" x2="300" y2="260" stroke="#00E5A0" stroke-width="0.5"/>
+            <line x1="520" y1="180" x2="420" y2="260" stroke="#00E5A0" stroke-width="0.5"/>
+            <!-- Ghost edge (structural hole) -->
+            <line id="viz-ghost" x1="200" y1="180" x2="220" y2="300" stroke="#FF3366" stroke-width="1" stroke-dasharray="4,6" opacity="0"/>
+          </g>
+
+          <!-- Nodes grouped by depth -->
+          <!-- Depth 3 (outermost) -->
+          <g id="viz-d3" opacity="0.15">
+            <circle cx="130" cy="70" r="4" fill="#5A6577"/><circle cx="140" cy="140" r="3.5" fill="#5A6577"/>
+            <circle cx="590" cy="70" r="4" fill="#5A6577"/><circle cx="580" cy="140" r="3.5" fill="#5A6577"/>
+            <circle cx="160" cy="330" r="4" fill="#5A6577"/><circle cx="560" cy="330" r="3.5" fill="#5A6577"/>
+            <circle cx="320" cy="60" r="3.5" fill="#5A6577"/><circle cx="400" cy="60" r="3.5" fill="#5A6577"/>
+          </g>
+          <!-- Depth 2 -->
+          <g id="viz-d2" opacity="0.2">
+            <circle cx="200" cy="100" r="6" fill="#5A6577"/><circle cx="200" cy="180" r="5.5" fill="#5A6577"/>
+            <circle cx="520" cy="100" r="6" fill="#5A6577"/><circle cx="520" cy="180" r="5.5" fill="#5A6577"/>
+            <circle cx="220" cy="300" r="6" fill="#5A6577"/><circle cx="500" cy="300" r="5.5" fill="#5A6577"/>
+            <circle cx="360" cy="100" r="6" fill="#5A6577"/>
+          </g>
+          <!-- Depth 1 -->
+          <g id="viz-d1" opacity="0.25">
+            <circle cx="280" cy="140" r="8" fill="#5A6577"/>
+            <circle cx="440" cy="140" r="8" fill="#5A6577"/>
+            <circle cx="300" cy="260" r="8" fill="#5A6577"/>
+            <circle cx="420" cy="260" r="8" fill="#5A6577"/>
+          </g>
+          <!-- Core (seed node) -->
+          <g id="viz-core">
+            <circle cx="360" cy="190" r="18" fill="#0F1420" stroke="#5A6577" stroke-width="1" opacity="0.4"/>
+            <circle id="viz-core-inner" cx="360" cy="190" r="10" fill="#5A6577" opacity="0.3"/>
+          </g>
+
+          <!-- Activation labels (hidden initially) -->
+          <g id="viz-labels" opacity="0" font-family="'JetBrains Mono',monospace" font-size="10" fill="#00E5A0">
+            <text x="280" y="126">0.94</text>
+            <text x="440" y="126">0.89</text>
+            <text x="300" y="280">0.83</text>
+            <text x="420" y="280">0.71</text>
+            <text x="200" y="90" fill="#F5A623" font-size="9">0.23 hole!</text>
+          </g>
+
+          <!-- Comment annotations (appear during phases) -->
+          <g id="viz-comments" font-family="'Inter',sans-serif" font-size="11">
+            <text id="viz-c1" x="360" y="362" text-anchor="middle" fill="#5A6577" opacity="0"></text>
+          </g>
+        </svg>
+        <p style="text-align: center; color: var(--text-faint); font-size: 12px; font-family: var(--mono); margin-top: 8px;">Click the graph to see spreading activation in action</p>
+      </div>
+
       <div class="loop-steps">
         <div class="loop-step">
           <div class="num">01</div>
@@ -1868,6 +1967,142 @@
     });
   }, { threshold: 0.3 });
   obs.observe(container);
+})();
+
+// ── Core Loop Visualization ──
+(function() {
+  const svg = document.getElementById('coreLoopViz');
+  if (!svg) return;
+  const phase = document.getElementById('viz-phase');
+  const edges = document.getElementById('viz-edges');
+  const d1 = document.getElementById('viz-d1');
+  const d2 = document.getElementById('viz-d2');
+  const d3 = document.getElementById('viz-d3');
+  const core = document.getElementById('viz-core-inner');
+  const labels = document.getElementById('viz-labels');
+  const ghost = document.getElementById('viz-ghost');
+  const comment = document.getElementById('viz-c1');
+  let running = false;
+
+  function ani(el, props, dur) {
+    return new Promise(r => {
+      el.style.transition = `all ${dur}ms ease`;
+      Object.entries(props).forEach(([k,v]) => {
+        if (k === 'opacity' || k === 'r') el.setAttribute(k, v);
+        else el.style[k] = v;
+      });
+      setTimeout(r, dur);
+    });
+  }
+
+  function setPhase(text) { phase.textContent = text; }
+  function setComment(text) {
+    comment.textContent = text;
+    comment.setAttribute('opacity', text ? '1' : '0');
+  }
+
+  function setGroupColor(g, color, opacity) {
+    g.querySelectorAll('circle').forEach(c => {
+      c.setAttribute('fill', color);
+      c.style.transition = 'all 600ms ease';
+    });
+    g.style.transition = 'opacity 600ms ease';
+    g.setAttribute('opacity', opacity);
+  }
+
+  async function activate() {
+    if (running) return;
+    running = true;
+
+    // Phase 1: QUERY ARRIVES
+    setPhase('PHASE 1 — QUERY RECEIVED');
+    setComment('Agent asks: "What handles authentication?"');
+    core.setAttribute('fill', '#00E5A0');
+    core.setAttribute('opacity', '0.9');
+    core.style.transition = 'all 400ms ease';
+    document.getElementById('viz-core').querySelector('circle').setAttribute('stroke', '#00E5A0');
+    await new Promise(r => setTimeout(r, 1200));
+
+    // Phase 2: SPREADING ACTIVATION — Hop 1
+    setPhase('PHASE 2 — SPREADING ACTIVATION (HOP 1)');
+    setComment('Wavefront: seed node → 4 direct neighbors');
+    edges.style.transition = 'opacity 500ms ease';
+    edges.setAttribute('opacity', '0.4');
+    setGroupColor(d1, '#00E5A0', '0.8');
+    await new Promise(r => setTimeout(r, 1200));
+
+    // Phase 3: Hop 2
+    setPhase('PHASE 3 — SPREADING ACTIVATION (HOP 2)');
+    setComment('Wavefront expands: 4 → 7 nodes, weighted by 4 dimensions');
+    setGroupColor(d2, '#60A5FA', '0.65');
+    edges.setAttribute('opacity', '0.55');
+    await new Promise(r => setTimeout(r, 1200));
+
+    // Phase 4: Hop 3
+    setPhase('PHASE 4 — SPREADING ACTIVATION (HOP 3)');
+    setComment('7 → 8 outer nodes. XLR cancels 14 false-positive edges.');
+    setGroupColor(d3, '#F5A623', '0.5');
+    edges.setAttribute('opacity', '0.65');
+    await new Promise(r => setTimeout(r, 1200));
+
+    // Phase 5: STRUCTURAL HOLE
+    setPhase('PHASE 5 — STRUCTURAL HOLE DETECTED');
+    setComment('Missing connection found: rate_limit.rs should exist but doesn\'t!');
+    ghost.setAttribute('opacity', '0.6');
+    ghost.style.transition = 'opacity 400ms ease';
+    // Flash the hole area
+    d2.querySelectorAll('circle')[1].setAttribute('fill', '#FF3366');
+    d2.querySelectorAll('circle')[4].setAttribute('fill', '#FF3366');
+    await new Promise(r => setTimeout(r, 1800));
+
+    // Phase 6: RESULTS
+    setPhase('PHASE 6 — RESULTS RANKED');
+    setComment('127 nodes activated in 31ms · 0 LLM tokens · 2,847 weights updated');
+    labels.style.transition = 'opacity 500ms ease';
+    labels.setAttribute('opacity', '1');
+    await new Promise(r => setTimeout(r, 2500));
+
+    // Phase 7: LEARN
+    setPhase('PHASE 7 — HEBBIAN LEARNING');
+    setComment('Agent confirms results correct → connections strengthen for next query');
+    // Brighten edges to show strengthening
+    edges.setAttribute('opacity', '0.8');
+    d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '10'); c.style.transition = 'r 600ms ease, fill 600ms ease'; });
+    await new Promise(r => setTimeout(r, 2000));
+
+    // Reset
+    setPhase('COMPLETE — CLICK TO REPLAY');
+    setComment('The graph is now smarter. Next query will be more accurate.');
+    await new Promise(r => setTimeout(r, 3000));
+
+    // Fade back to dormant
+    setPhase('DORMANT — CLICK TO ACTIVATE');
+    setComment('');
+    edges.setAttribute('opacity', '0.12');
+    setGroupColor(d1, '#5A6577', '0.25');
+    setGroupColor(d2, '#5A6577', '0.2');
+    setGroupColor(d3, '#5A6577', '0.15');
+    d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '8'); });
+    core.setAttribute('fill', '#5A6577');
+    core.setAttribute('opacity', '0.3');
+    document.getElementById('viz-core').querySelector('circle').setAttribute('stroke', '#5A6577');
+    labels.setAttribute('opacity', '0');
+    ghost.setAttribute('opacity', '0');
+    running = false;
+  }
+
+  svg.addEventListener('click', activate);
+
+  // Auto-play when visible
+  const vizObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !running) {
+        setTimeout(activate, 500);
+        vizObs.unobserve(svg);
+      }
+    });
+  }, { threshold: 0.5 });
+  vizObs.observe(svg);
 })();
 </script>
 </html>
