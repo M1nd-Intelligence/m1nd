@@ -2,7 +2,7 @@
 // === crates/m1nd-ingest/src/lib.rs ===
 
 use m1nd_core::error::{M1ndError, M1ndResult};
-use m1nd_core::graph::Graph;
+use m1nd_core::graph::{Graph, NodeProvenanceInput};
 use m1nd_core::types::*;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
@@ -10,8 +10,11 @@ use std::time::{Duration, Instant};
 pub mod walker;
 pub mod extract;
 pub mod resolve;
+pub mod cross_file;
 pub mod diff;
 pub mod json_adapter;
+pub mod memory_adapter;
+pub mod merge;
 
 // ---------------------------------------------------------------------------
 // IngestAdapter — generic trait for domain-specific ingestion
@@ -112,9 +115,19 @@ impl Ingestor {
         Self { config }
     }
 
+    fn source_path_from_node_id(node_id: &str) -> Option<&str> {
+        node_id
+            .strip_prefix("file::")
+            .map(|rest| rest.split("::").next().unwrap_or(rest))
+    }
+
     /// Select the appropriate extractor for a file extension.
+    /// Existing regex-based extractors are used for Python, TypeScript, Rust,
+    /// Go, and Java. Tree-sitter extractors handle Tier 1 languages (C, C++,
+    /// C#, Ruby, PHP, Swift, Kotlin, Scala, Bash, Lua, R, HTML, CSS, JSON).
     fn select_extractor(ext: &str) -> Box<dyn extract::Extractor> {
         match ext {
+            // --- Existing regex extractors (battle-tested) ---
             "py" | "pyi" => Box::new(extract::python::PythonExtractor::new()),
             "ts" | "tsx" | "js" | "jsx" | "mjs" | "cjs" => {
                 Box::new(extract::typescript::TypeScriptExtractor::new())
@@ -122,6 +135,57 @@ impl Ingestor {
             "rs" => Box::new(extract::rust_lang::RustExtractor::new()),
             "go" => Box::new(extract::go::GoExtractor::new()),
             "java" => Box::new(extract::java::JavaExtractor::new()),
+
+            // --- Tier 1: tree-sitter extractors ---
+            #[cfg(feature = "tier1")]
+            "c" | "h" => Box::new(extract::tree_sitter_ext::c_extractor()),
+            #[cfg(feature = "tier1")]
+            "cpp" | "cxx" | "cc" | "hpp" | "hxx" | "hh" => {
+                Box::new(extract::tree_sitter_ext::cpp_extractor())
+            }
+            #[cfg(feature = "tier1")]
+            "cs" => Box::new(extract::tree_sitter_ext::csharp_extractor()),
+            #[cfg(feature = "tier1")]
+            "rb" | "rake" | "gemspec" => Box::new(extract::tree_sitter_ext::ruby_extractor()),
+            #[cfg(feature = "tier1")]
+            "php" => Box::new(extract::tree_sitter_ext::php_extractor()),
+            #[cfg(feature = "tier1")]
+            "swift" => Box::new(extract::tree_sitter_ext::swift_extractor()),
+            #[cfg(feature = "tier1")]
+            "kt" | "kts" => Box::new(extract::tree_sitter_ext::kotlin_extractor()),
+            #[cfg(feature = "tier1")]
+            "scala" | "sc" => Box::new(extract::tree_sitter_ext::scala_extractor()),
+            #[cfg(feature = "tier1")]
+            "sh" | "bash" | "zsh" => Box::new(extract::tree_sitter_ext::bash_extractor()),
+            #[cfg(feature = "tier1")]
+            "lua" => Box::new(extract::tree_sitter_ext::lua_extractor()),
+            #[cfg(feature = "tier1")]
+            "r" | "R" | "Rmd" => Box::new(extract::tree_sitter_ext::r_extractor()),
+            #[cfg(feature = "tier1")]
+            "html" | "htm" => Box::new(extract::tree_sitter_ext::html_extractor()),
+            #[cfg(feature = "tier1")]
+            "css" => Box::new(extract::tree_sitter_ext::css_extractor()),
+            #[cfg(feature = "tier1")]
+            "json" => Box::new(extract::tree_sitter_ext::json_extractor()),
+
+            // --- Tier 2: tree-sitter extractors ---
+            #[cfg(feature = "tier2")]
+            "ex" | "exs" => Box::new(extract::tree_sitter_ext::elixir_extractor()),
+            #[cfg(feature = "tier2")]
+            "dart" => Box::new(extract::tree_sitter_ext::dart_extractor()),
+            #[cfg(feature = "tier2")]
+            "zig" => Box::new(extract::tree_sitter_ext::zig_extractor()),
+            #[cfg(feature = "tier2")]
+            "hs" | "lhs" => Box::new(extract::tree_sitter_ext::haskell_extractor()),
+            #[cfg(feature = "tier2")]
+            "ml" | "mli" => Box::new(extract::tree_sitter_ext::ocaml_extractor()),
+            #[cfg(feature = "tier2")]
+            "toml" => Box::new(extract::tree_sitter_ext::toml_extractor()),
+            #[cfg(feature = "tier2")]
+            "yml" | "yaml" => Box::new(extract::tree_sitter_ext::yaml_extractor()),
+            #[cfg(feature = "tier2")]
+            "sql" => Box::new(extract::tree_sitter_ext::sql_extractor()),
+            // --- Fallback ---
             _ => Box::new(extract::generic::GenericExtractor::new()),
         }
     }
@@ -262,7 +326,20 @@ impl Ingestor {
                 timestamp,
                 change_freq,
             ) {
-                Ok(_) => stats.nodes_created += 1,
+                Ok(node_id) => {
+                    graph.set_node_provenance(
+                        node_id,
+                        NodeProvenanceInput {
+                            source_path: Self::source_path_from_node_id(&node.id),
+                            line_start: Some(node.line),
+                            line_end: Some(node.end_line),
+                            excerpt: None,
+                            namespace: Some("code"),
+                            canonical: false,
+                        },
+                    );
+                    stats.nodes_created += 1
+                }
                 Err(M1ndError::DuplicateNode(_)) => {
                     stats.label_collisions += 1;
                 }
@@ -323,6 +400,24 @@ impl Ingestor {
         )?;
         stats.references_resolved = res_stats.resolved;
         stats.references_unresolved = res_stats.unresolved;
+
+        // Phase 4.5: Cross-file edges (L1 — imports, tests, registers)
+        // Resolves ref:: module paths to deterministic file-to-file edges.
+        match cross_file::resolve_cross_file_edges(&mut graph, &self.config.root) {
+            Ok(cf_stats) => {
+                stats.edges_created += cf_stats.total_edges_created;
+                eprintln!(
+                    "[m1nd-ingest] Cross-file edges: {} imports, {} tests, {} registers ({} total)",
+                    cf_stats.imports_resolved,
+                    cf_stats.test_edges_created,
+                    cf_stats.register_edges_created,
+                    cf_stats.total_edges_created,
+                );
+            }
+            Err(e) => {
+                eprintln!("[m1nd-ingest] Cross-file edge resolution failed (non-fatal): {}", e);
+            }
+        }
 
         // Phase 5: Finalize (CSR + PageRank)
         if graph.num_nodes() > 0 {
