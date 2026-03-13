@@ -7,10 +7,9 @@
 <h3 align="center">Your AI agent has amnesia. m1nd remembers.</h3>
 
 <p align="center">
-  <a href="https://crates.io/crates/m1nd-core"><img src="https://img.shields.io/crates/v/m1nd-core.svg" alt="crates.io" /></a>
   <a href="https://github.com/maxkle1nz/m1nd/actions"><img src="https://github.com/maxkle1nz/m1nd/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
-  <a href="https://docs.rs/m1nd-core"><img src="https://img.shields.io/docsrs/m1nd-core" alt="docs.rs" /></a>
+  <img src="https://img.shields.io/badge/languages-28-00E5A0" alt="28 Languages" />
   <img src="https://img.shields.io/badge/rust-stable-orange?logo=rust" alt="Rust" />
   <img src="https://img.shields.io/badge/MCP-43_tools-00E5A0" alt="43 MCP Tools" />
   <img src="https://img.shields.io/badge/cost-$0.00/query-00E5A0" alt="$0.00/query" />

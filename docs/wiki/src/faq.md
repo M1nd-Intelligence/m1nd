@@ -107,7 +107,14 @@ Approximately 8MB for a release build. No runtime dependencies, no shared librar
 
 ### Can I install from crates.io?
 
-Yes: `cargo install m1nd-mcp`
+Not yet. For now, build from source:
+
+```bash
+git clone https://github.com/maxkle1nz/m1nd.git
+cd m1nd && cargo build --release
+```
+
+crates.io publishing is planned.
 
 ---
 
