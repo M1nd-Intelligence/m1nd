@@ -1,15 +1,22 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>m1nd — Grep 找到存在的。m1nd 找到缺失的。</title>
-  <meta name="description" content="m1nd: a local Rust binary that gives AI coding agents structural understanding of your codebase. 31ms queries, zero LLM tokens, zero cost. 43 MCP tools. 16/16 capabilities vs Cursor's 0/16. 3-4 years ahead.">
-  <meta property="og:title" content="m1nd — 你的 AI 智能体患有失忆症。m1nd 记得。">
-  <meta property="og:description" content="m1nd: a local Rust binary that gives AI coding agents structural understanding of your codebase. 31ms queries, zero LLM tokens, zero cost. 43 MCP tools. 3-4 years ahead of any competitor.">
+  <title>m1nd — Grep 找到已有的。m1nd 找到缺失的。</title>
+  <meta name="description" content="m1nd：一个本地 Rust 二进制文件，赋予 AI 编码智能体对代码库的结构性理解。31ms 查询，零 LLM token，零成本。43 个 MCP 工具。16/16 能力 vs Cursor 的 0/16。领先 3-4 年。">
+  <meta property="og:title" content="m1nd — 你的 AI 智能体患有失忆症。m1nd 帮它记住一切。">
+  <meta property="og:description" content="m1nd：一个本地 Rust 二进制文件，赋予 AI 编码智能体对代码库的结构性理解。31ms 查询，零 LLM token，零成本。43 个 MCP 工具。领先任何竞品 3-4 年。">
   <meta property="og:image" content="https://raw.githubusercontent.com/maxkle1nz/m1nd/main/.github/social-preview.jpg">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
+  <link rel="alternate" hreflang="en" href="https://maxkle1nz.github.io/m1nd/">
+  <link rel="alternate" hreflang="pt-br" href="https://maxkle1nz.github.io/m1nd/pt-br/">
+  <link rel="alternate" hreflang="es" href="https://maxkle1nz.github.io/m1nd/es/">
+  <link rel="alternate" hreflang="it" href="https://maxkle1nz.github.io/m1nd/it/">
+  <link rel="alternate" hreflang="fr" href="https://maxkle1nz.github.io/m1nd/fr/">
+  <link rel="alternate" hreflang="de" href="https://maxkle1nz.github.io/m1nd/de/">
+  <link rel="alternate" hreflang="zh" href="https://maxkle1nz.github.io/m1nd/zh/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -642,15 +649,15 @@
       <a href="#" class="nav-logo">m<span>1</span>nd</a>
       <div class="nav-links">
         <a href="#why">为什么</a>
-        <a href="#different">差异</a>
-        <a href="#agents-first">Agent-Native</a>
-        <a href="#perspectives">透视</a>
-        <a href="#tools">工具</a>
-        <a href="#benchmarks">Benchmarks</a>
+        <a href="#different">独特之处</a>
+        <a href="#agents-first">智能体原生</a>
+        <a href="#perspectives">视角</a>
+        <a href="#tools">Tools</a>
+        <a href="#benchmarks">基准测试</a>
         <a href="#advantage">领先优势</a>
         <a href="#start">开始</a>
-        <a href="../wiki-build/index.html">Wiki</a>
-        <a href="../wiki-build/faq.html">FAQ</a>
+        <a href="wiki-build/index.html">Wiki</a>
+        <a href="wiki-build/faq.html">FAQ</a>
         <a href="https://github.com/maxkle1nz/m1nd" class="nav-cta">GitHub</a>
         <div class="lang-selector" style="display: flex; gap: 8px; align-items: center; margin-left: 8px; font-size: 16px;">
           <a href="/m1nd/" title="English" style="text-decoration:none;">&#x1F1EC;&#x1F1E7;</a>
@@ -669,7 +676,7 @@
   <div class="sponsor-banner">
     <a href="https://github.com/sponsors/maxkle1nz" target="_blank">
       <span class="heart">&hearts;</span>
-      m1nd 为你的智能体节省数千美元的 token 费用。它是免费的、本地的、开源的 &mdash; 由一位认为 AI 值得拥有更好工具的开发者构建。帮助我们继续保持。
+      m1nd 为你的智能体节省数千美元的 token 成本。免费、本地、开源——由一个认为 AI 值得拥有更好工具的开发者构建。帮助维持这一切。
       <span class="cta-pill">成为赞助者</span>
     </a>
   </div>
@@ -755,9 +762,9 @@
       </div>
 
       <div class="hero-badge"><span class="dot"></span> 43 个 MCP 工具 &middot; Rust &middot; $0.00/查询</div>
-      <h1 style="font-size: clamp(32px, 5vw, 56px); letter-spacing: -2px; line-height: 1.15;">你的 AI 智能体患有<span style="color: var(--red);">失忆症</span>。<br>m<span class="one">1</span>nd <span class="one">记得</span>。</h1>
-      <p class="tagline">每个工具都能找到存在的。m1nd 找到缺失的。</p>
-      <p class="subtitle">Every session, your agent re-reads your entire codebase &mdash; burning <strong style="color: var(--red);">$0.05&ndash;$0.50 per search cycle</strong> in LLM tokens, forgetting everything by next session. m1nd replaces that loop with a persistent code graph that <strong style="color: var(--green);">learns from usage</strong>, detects <strong style="color: var(--green);">structural holes</strong> no grep ever could, and answers in <strong style="color: var(--green);">31ms at $0.00</strong>. Local Rust binary. No API keys. No meter ticking.</p>
+      <h1 style="font-size: clamp(32px, 5vw, 56px); letter-spacing: -2px; line-height: 1.15;">你的 AI 智能体患有<span style="color: var(--red);">失忆症</span>。<br>m<span class="one">1</span>nd <span class="one">帮它记住一切</span>。</h1>
+      <p class="tagline">所有工具都能找到已有的。m1nd 能找到缺失的。</p>
+      <p class="subtitle">每次会话，你的智能体都要重新阅读整个代码库——以 LLM token 的形式<strong style="color: var(--red);">每个搜索周期烧掉 $0.05&ndash;$0.50</strong>，到下次会话时全部遗忘。m1nd 用一个持久化代码图谱替代了这个循环，它能<strong style="color: var(--green);">从使用中学习</strong>，检测 grep 永远无法发现的<strong style="color: var(--green);">结构性缺口</strong>，并在 <strong style="color: var(--green);">31ms 内以 $0.00 成本</strong>给出答案。本地 Rust 二进制文件。无需 API 密钥。没有计费器在跳动。</p>
       <div class="hero-actions">
         <a href="#start" class="btn btn-primary">快速开始</a>
         <a href="https://github.com/maxkle1nz/m1nd" class="btn btn-secondary">
@@ -819,28 +826,28 @@
   <section id="why">
     <div class="container">
       <div class="section-label">问题所在</div>
-      <h2 class="section-title">AI 智能体是强大的推理者。<br>糟糕的导航者。</h2>
-      <p class="section-desc">Every time an agent needs context, it fires LLM calls to search, read, and guess. On a 10,000-file codebase, that's hundreds of dollars a week &mdash; and it still misses what isn't there.</p>
+      <h2 class="section-title">AI 智能体是强大的推理者。<br>但糟糕的导航者。</h2>
+      <p class="section-desc">每当智能体需要上下文，它就发起 LLM 调用来搜索、读取和猜测。在一个 10,000 文件的代码库上，这意味着每周数百美元——而且它仍然会遗漏不存在的东西。</p>
 
       <div class="problems">
         <div class="problem-card">
-          <div class="question">"What does this change affect?"</div>
-          <div class="answer">Blast radius is invisible without structural analysis.</div>
+          <div class="question">"这个变更会影响什么？"</div>
+          <div class="answer">没有结构性分析，爆炸半径是不可见的。</div>
           <span class="tool">m1nd.impact</span>
         </div>
         <div class="problem-card">
-          <div class="question">"What am I missing?"</div>
-          <div class="answer">Structural holes are undetectable by keyword search.</div>
+          <div class="question">"我遗漏了什么？"</div>
+          <div class="answer">结构性缺口无法通过关键词搜索发现。</div>
           <span class="tool">m1nd.missing</span>
         </div>
         <div class="problem-card">
-          <div class="question">"What else will change?"</div>
-          <div class="answer">Co-change patterns require historical context.</div>
+          <div class="question">"还有什么会改变？"</div>
+          <div class="answer">协变模式需要历史上下文。</div>
           <span class="tool">m1nd.predict</span>
         </div>
         <div class="problem-card">
-          <div class="question">"How are these connected?"</div>
-          <div class="answer">Dependency chains span files, modules, and abstraction layers.</div>
+          <div class="question">"它们之间如何关联？"</div>
+          <div class="answer">依赖链横跨文件、模块和抽象层。</div>
           <span class="tool">m1nd.why</span>
         </div>
       </div>
@@ -849,31 +856,31 @@
       <table class="comparison-table" style="margin-top: 64px;">
         <thead>
           <tr>
-            <th>Approach</th>
-            <th>What It Does</th>
-            <th>Why It Fails</th>
+            <th>方法</th>
+            <th>功能</th>
+            <th>为何失败</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Full-text search</td>
-            <td>Matches tokens</td>
-            <td>Finds what you said, not what you meant</td>
+            <td>全文搜索</td>
+            <td>匹配 token</td>
+            <td>找到你说的，而非你想要的</td>
           </tr>
           <tr>
             <td>RAG</td>
-            <td>Embeds chunks, top-K</td>
-            <td>Each retrieval is amnesiac. No relationships.</td>
+            <td>嵌入分块，Top-K</td>
+            <td>每次检索都是失忆的。没有关系。</td>
           </tr>
           <tr>
-            <td>Static analysis</td>
-            <td>AST, call graphs</td>
-            <td>Frozen snapshot. Can't answer "what if?". Can't learn.</td>
+            <td>静态分析</td>
+            <td>AST、调用图</td>
+            <td>冻结的快照。无法回答"如果呢？"。无法学习。</td>
           </tr>
           <tr>
-            <td>Knowledge graphs</td>
-            <td>Triple stores</td>
-            <td>Manual curation. Only returns what was explicitly encoded.</td>
+            <td>知识图谱</td>
+            <td>三元组存储</td>
+            <td>手动维护。只返回被显式编码的内容。</td>
           </tr>
         </tbody>
       </table>
@@ -883,40 +890,40 @@
   <!-- ── What Makes It Different ── -->
   <section id="different">
     <div class="container">
-      <div class="section-label">独特之处</div>
-      <h2 class="section-title">六项其他工具没有的能力。</h2>
-      <p class="section-desc">Not incremental improvements. Structural differences.</p>
+      <div class="section-label">与众不同之处</div>
+      <h2 class="section-title">六项其他工具不具备的能力。</h2>
+      <p class="section-desc">不是渐进式改进。是结构性差异。</p>
 
       <div class="diff-cards">
         <div class="diff-card">
           <div class="diff-title">图谱会学习</div>
           <div class="diff-mechanism">Hebbian Plasticity</div>
-          <div class="diff-desc">When results are correct, paths strengthen. When wrong, they weaken. Every query makes the next one more accurate. The graph adapts to your codebase, not the other way around.</div>
+          <div class="diff-desc">结果正确时，路径被强化。错误时，路径被削弱。每次查询都让下一次更精准。图谱适应你的代码库，而非反过来。</div>
         </div>
         <div class="diff-card">
-          <div class="diff-title">图谱消除噪声</div>
+          <div class="diff-title">图谱会消除噪音</div>
           <div class="diff-mechanism">XLR Differential Processing</div>
-          <div class="diff-desc">Borrowed from audio engineering. Two signals travel the same path -- the difference reveals the truth. False-positive edges are cancelled before they pollute results.</div>
+          <div class="diff-desc">借鉴自音频工程。两个信号在同一路径上传输——差异揭示真相。假阳性边在污染结果之前被消除。</div>
         </div>
         <div class="diff-card">
           <div class="diff-title">图谱会记忆</div>
-          <div class="diff-mechanism">Trail System</div>
-          <div class="diff-desc">Save, resume, and merge investigation state across sessions. An agent can pick up exactly where another left off. No re-discovery. No lost context.</div>
+          <div class="diff-mechanism">Trail 系统</div>
+          <div class="diff-desc">跨会话保存、恢复和合并调查状态。一个智能体可以精确地从另一个停下的地方继续。无需重新发现。无上下文丢失。</div>
         </div>
         <div class="diff-card">
-          <div class="diff-title">图谱验证假设</div>
-          <div class="diff-mechanism">Hypothesis Engine</div>
-          <div class="diff-desc">25,015 paths explored in 58ms. Bayesian confidence scoring. The graph doesn't just retrieve -- it evaluates whether a structural claim is plausible.</div>
+          <div class="diff-title">图谱会验证假说</div>
+          <div class="diff-mechanism">假设引擎</div>
+          <div class="diff-desc">58ms 内探索了 25,015 条路径。贝叶斯置信度评分。图谱不仅检索——还评估结构性假说是否合理。</div>
         </div>
         <div class="diff-card">
-          <div class="diff-title">图谱模拟替代方案</div>
-          <div class="diff-mechanism">Counterfactual Engine</div>
-          <div class="diff-desc">4,189 affected nodes analyzed in 3ms. Remove a module virtually, see what breaks, measure cascade depth -- before touching a single line of code.</div>
+          <div class="diff-title">图谱会模拟替代方案</div>
+          <div class="diff-mechanism">反事实引擎</div>
+          <div class="diff-desc">3ms 内分析了 4,189 个受影响节点。虚拟移除一个模块，查看什么会崩溃，测量级联深度——在触碰任何一行代码之前。</div>
         </div>
         <div class="diff-card">
           <div class="diff-title">图谱支持导航</div>
           <div class="diff-mechanism"><a href="#perspectives" style="color: inherit; text-decoration: underline;">Perspective System</a></div>
-          <div class="diff-desc">Stateful exploration with history, branching, and undo. Enter a perspective, follow routes, fork your investigation, compare paths. 12 tools. Like a surgeon inside your codebase.</div>
+          <div class="diff-desc">有状态的探索，支持历史记录、分支和撤销。进入一个视角，追踪路由，分叉你的调查，比较路径。12 个工具。像一个在代码库中操作的外科医生。</div>
         </div>
       </div>
     </div>
@@ -927,7 +934,7 @@
     <div class="container">
       <div class="section-label">工作原理</div>
       <h2 class="section-title">核心循环</h2>
-      <p class="section-desc">m1nd doesn't search your data -- it activates it. Query a concept, and the graph lights up.</p>
+      <p class="section-desc">m1nd 不搜索你的数据——它激活数据。查询一个概念，图谱就会亮起来。</p>
 
       <!-- Interactive Graph Activation Visualization -->
       <div style="max-width: 720px; margin: 0 auto 48px; position: relative;">
@@ -950,7 +957,7 @@
           </defs>
 
           <!-- Phase labels -->
-          <text id="viz-phase" x="360" y="28" text-anchor="middle" fill="#5A6577" font-family="'JetBrains Mono',monospace" font-size="12" letter-spacing="2">DORMANT — CLICK TO ACTIVATE</text>
+          <text id="viz-phase" x="360" y="28" text-anchor="middle" fill="#5A6577" font-family="'JetBrains Mono',monospace" font-size="12" letter-spacing="2">休眠中 — 点击激活</text>
 
           <!-- Edges (dormant = dim, activated = bright) -->
           <g id="viz-edges" opacity="0.12">
@@ -1025,49 +1032,49 @@
             <text id="viz-c1" x="360" y="362" text-anchor="middle" fill="#5A6577" opacity="0"></text>
           </g>
         </svg>
-        <p style="text-align: center; color: var(--text-faint); font-size: 12px; font-family: var(--mono); margin-top: 8px;">Click the graph to see spreading activation in action</p>
+        <p style="text-align: center; color: var(--text-faint); font-size: 12px; font-family: var(--mono); margin-top: 8px;">点击图谱查看扩散激活的实际效果</p>
       </div>
 
       <div class="loop-steps">
         <div class="loop-step">
           <div class="num">01</div>
           <div class="name">Ingest</div>
-          <div class="desc">Build property graph from source data. Code, JSON, any domain.</div>
+          <div class="desc">从源数据构建属性图谱。代码、JSON、任何领域。</div>
         </div>
         <div class="loop-step">
           <div class="num">02</div>
           <div class="name">Activate</div>
-          <div class="desc">Spreading activation across 4 dimensions with XLR noise cancellation.</div>
+          <div class="desc">跨 4 个维度的扩散激活，配合 XLR 噪音消除。</div>
         </div>
         <div class="loop-step">
           <div class="num">03</div>
           <div class="name">Learn</div>
-          <div class="desc">Hebbian plasticity: correct results strengthen connections, wrong results weaken them.</div>
+          <div class="desc">Hebbian 可塑性：正确结果强化连接，错误结果削弱连接。</div>
         </div>
         <div class="loop-step">
           <div class="num">04</div>
           <div class="name">Persist</div>
-          <div class="desc">Graph + plasticity state saved to disk. Next session starts where this one left off.</div>
+          <div class="desc">图谱 + 可塑性状态保存到磁盘。下次会话从上次中断处开始。</div>
         </div>
       </div>
 
-      <h3 class="section-title" style="font-size: 24px; margin-top: 64px;">Four activation dimensions</h3>
+      <h3 class="section-title" style="font-size: 24px; margin-top: 64px;">四个激活维度</h3>
       <div class="dimensions">
         <div class="dim-card">
-          <div class="dim-name" style="color: var(--green);">Structural</div>
-          <div class="dim-desc">Graph topology: edges, PageRank, community structure. How things are wired.</div>
+          <div class="dim-name" style="color: var(--green);">结构性</div>
+          <div class="dim-desc">图拓扑：边、PageRank、社区结构。事物如何连接。</div>
         </div>
         <div class="dim-card">
-          <div class="dim-name" style="color: #60A5FA;">Semantic</div>
-          <div class="dim-desc">Label similarity: char n-grams, co-occurrence (PPMI), synonym expansion.</div>
+          <div class="dim-name" style="color: #60A5FA;">语义性</div>
+          <div class="dim-desc">标签相似度：字符 n-gram、共现（PPMI）、同义词扩展。</div>
         </div>
         <div class="dim-card">
-          <div class="dim-name" style="color: var(--gold);">Temporal</div>
-          <div class="dim-desc">Time dynamics: recency decay, change velocity, co-change history.</div>
+          <div class="dim-name" style="color: var(--gold);">时间性</div>
+          <div class="dim-desc">时间动态：时效衰减、变更速度、协变历史。</div>
         </div>
         <div class="dim-card">
-          <div class="dim-name" style="color: var(--red);">Causal</div>
-          <div class="dim-desc">Dependency flow: directed causation along import, call, and contain edges.</div>
+          <div class="dim-name" style="color: var(--red);">因果性</div>
+          <div class="dim-desc">依赖流：沿导入、调用和包含边的有向因果关系。</div>
         </div>
       </div>
     </div>
@@ -1077,65 +1084,65 @@
   <section id="agents-first" style="padding: 80px 0;">
     <div class="container" style="text-align: center;">
       <div class="section-label">范式转变</div>
-      <h2 class="section-title">每个搜索工具都是为人类构建的。<br>m1nd 是为 <span style="color: var(--green);">智能体</span> 构建的。</h2>
+      <h2 class="section-title">所有搜索工具都是为人类构建的。<br>m1nd 是为<span style="color: var(--green);">智能体</span>构建的。</h2>
       <p class="section-desc" style="max-width: 720px; margin: 0 auto 20px;">
-        2026 is the year of AI slop &mdash; agents brute-forcing their way through codebases with grep loops, burning tokens like kindling. grep, ripgrep, tree-sitter: brilliant tools. For <em>humans</em> who read terminals. But an AI agent doesn't want 200 lines of output to interpret linearly. It wants a graph with weights, dimensions, and a direct answer: <strong style="color: var(--text);">"what matters and what's missing"</strong> &mdash; ready to decide, not to parse.
+        2026 年是 AI 低效之年——智能体用 grep 循环暴力穿越代码库，像点火柴一样烧 token。grep、ripgrep、tree-sitter：出色的工具。给<em>人类</em>用来读终端的。但 AI 智能体不想线性解读 200 行输出。它想要一个带权重、维度和直接答案的图谱：<strong style="color: var(--text);">"什么重要，什么缺失"</strong>——准备好做决定，而不是去解析。
       </p>
-      <p style="color: var(--text-faint); font-size: 14px; font-family: var(--mono); margin-bottom: 48px;">The end of context window theater. No more feeding search results to an LLM so it can search again.</p>
+      <p style="color: var(--text-faint); font-size: 14px; font-family: var(--mono); margin-bottom: 48px;">上下文窗口作秀的终结。不再把搜索结果喂给 LLM 让它再搜一遍。</p>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; text-align: left;">
         <div class="problem-card" style="border-color: rgba(255, 51, 102, 0.3); background: linear-gradient(180deg, rgba(255, 51, 102, 0.04) 0%, var(--bg-card) 100%);">
-          <div class="question" style="color: var(--red); font-size: 16px;">The slop cycle</div>
+          <div class="question" style="color: var(--red); font-size: 16px;">低效循环</div>
           <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 12px; line-height: 1.8;">
-            <span style="color: var(--text-faint);">1.</span> Agent calls grep <span style="color: var(--text-faint);">&rarr;</span> 200 lines of noise<br>
-            <span style="color: var(--text-faint);">2.</span> Feeds entire output to LLM <span style="color: var(--text-faint);">&rarr;</span> burns tokens parsing text<br>
-            <span style="color: var(--text-faint);">3.</span> LLM decides to grep again <span style="color: var(--text-faint);">&rarr;</span> repeat 3&ndash;5 times<br>
-            <span style="color: var(--text-faint);">4.</span> Finally acts on incomplete picture<br>
+            <span style="color: var(--text-faint);">1.</span> 智能体调用 grep <span style="color: var(--text-faint);">&rarr;</span> 200 行噪音<br>
+            <span style="color: var(--text-faint);">2.</span> 把全部输出喂给 LLM <span style="color: var(--text-faint);">&rarr;</span> 烧 token 来解析文本<br>
+            <span style="color: var(--text-faint);">3.</span> LLM 决定再 grep 一次 <span style="color: var(--text-faint);">&rarr;</span> 重复 3&ndash;5 次<br>
+            <span style="color: var(--text-faint);">4.</span> 最终基于不完整的信息行动<br>
             <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 51, 102, 0.15);">
-              <strong style="color: var(--red);">$0.30&ndash;$0.50 burned per search. 10 seconds gone. Structural blind spots remain.</strong>
+              <strong style="color: var(--red);">每次搜索烧掉 $0.30&ndash;$0.50。10 秒白白流逝。结构性盲区依然存在。</strong>
             </div>
           </div>
         </div>
         <div class="problem-card" style="border-color: rgba(0, 229, 160, 0.3); background: linear-gradient(180deg, rgba(0, 229, 160, 0.04) 0%, var(--bg-card) 100%);">
-          <div class="question" style="color: var(--green); font-size: 16px;">Precision surgery</div>
+          <div class="question" style="color: var(--green); font-size: 16px;">精准手术</div>
           <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 12px; line-height: 1.8;">
-            <span style="color: var(--text-faint);">1.</span> Agent calls m1nd.activate<br>
-            <span style="color: var(--text-faint);">2.</span> Gets ranked subgraph with confidence scores<br>
-            <span style="color: var(--text-faint);">3.</span> Sees structural holes no text search could find<br>
-            <span style="color: var(--text-faint);">4.</span> Acts immediately with full picture<br>
+            <span style="color: var(--text-faint);">1.</span> 智能体调用 m1nd.activate<br>
+            <span style="color: var(--text-faint);">2.</span> 获得带置信度分数的加权子图<br>
+            <span style="color: var(--text-faint);">3.</span> 发现文本搜索无法找到的结构性缺口<br>
+            <span style="color: var(--text-faint);">4.</span> 立即基于完整信息行动<br>
             <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0, 229, 160, 0.15);">
-              <strong style="color: var(--green);">1 call. 31ms. $0.00. Zero tokens. Complete structural understanding.</strong>
+              <strong style="color: var(--green);">1 次调用。31ms。$0.00。零 token。完整的结构性理解。</strong>
             </div>
           </div>
         </div>
       </div>
 
       <p style="color: var(--text-dim); font-size: 15px; margin-top: 40px; max-width: 640px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-        m1nd doesn't output text for an LLM to re-interpret. It outputs <strong style="color: var(--text);">structured decisions</strong> &mdash; weighted nodes, confidence scores, dimensional rankings, structural holes. The format an agent actually needs to act, not more slop to chew on.
+        m1nd 不输出需要 LLM 重新解读的文本。它输出<strong style="color: var(--text);">结构化决策</strong>——加权节点、置信度分数、维度排名、结构性缺口。这才是智能体真正需要的行动格式，而不是更多需要咀嚼的低效输出。
       </p>
 
       <!-- Why $0.00 explainer -->
       <div style="margin-top: 56px; max-width: 760px; margin-left: auto; margin-right: auto; background: linear-gradient(135deg, rgba(0, 229, 160, 0.04) 0%, rgba(0, 153, 255, 0.04) 100%); border: 1px solid rgba(0, 229, 160, 0.15); border-radius: 12px; padding: 32px 36px; text-align: left;">
-        <div style="font-family: var(--mono); font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;">Why $0.00 is real &mdash; not marketing</div>
+        <div style="font-family: var(--mono); font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;">为什么 $0.00 是真的——不是营销</div>
         <p style="color: var(--text); font-size: 15px; line-height: 1.7; margin: 0 0 20px 0;">
-          When an AI agent searches your code with an LLM, it <strong>sends your code to a cloud API</strong>, pays per token (input + output), waits for the response, and often repeats 3&ndash;5 times. Every cycle costs $0.05&ndash;$0.50.
+          当 AI 智能体用 LLM 搜索你的代码时，它<strong>将你的代码发送到云端 API</strong>，按 token（输入 + 输出）付费，等待响应，通常重复 3&ndash;5 次。每个循环花费 $0.05&ndash;$0.50。
         </p>
         <p style="color: var(--text); font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">
-          m1nd uses <strong>zero LLM calls</strong>. Your codebase lives as a weighted graph in local RAM. Queries are pure math &mdash; spreading activation, graph traversal, linear algebra &mdash; executed by a Rust binary on your machine. No API call. No tokens. No data leaves your computer. That's why it costs $0.00 and runs in 31ms.
+          m1nd 使用<strong>零 LLM 调用</strong>。你的代码库作为加权图谱存在于本地 RAM 中。查询是纯数学——扩散激活、图遍历、线性代数——由本机 Rust 二进制文件执行。没有 API 调用。没有 token。没有数据离开你的计算机。这就是为什么它的成本是 $0.00，运行时间是 31ms。
         </p>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div style="background: rgba(255, 51, 102, 0.06); border-radius: 8px; padding: 16px;">
-            <div style="font-family: var(--mono); font-size: 11px; color: var(--red); margin-bottom: 8px;">LLM grep cycle</div>
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--red); margin-bottom: 8px;">LLM grep 循环</div>
             <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.6;">
-              Your code &rarr; Cloud API &rarr; tokens &rarr; $$<br>
-              <span style="color: var(--text-faint);">Like asking Google for directions every time you need to cross the street</span>
+              你的代码 &rarr; 云端 API &rarr; token &rarr; $$<br>
+              <span style="color: var(--text-faint);">就像每次过马路都要问 Google 地图怎么走</span>
             </div>
           </div>
           <div style="background: rgba(0, 229, 160, 0.06); border-radius: 8px; padding: 16px;">
-            <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">m1nd query</div>
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">m1nd 查询</div>
             <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.6;">
-              Graph in RAM &rarr; math &rarr; answer &rarr; $0<br>
-              <span style="color: var(--text-faint);">Like looking at a map that's already on your desk</span>
+              图谱在 RAM 中 &rarr; 数学 &rarr; 答案 &rarr; $0<br>
+              <span style="color: var(--text-faint);">就像看一张已经在你桌上的地图</span>
             </div>
           </div>
         </div>
@@ -1146,44 +1153,44 @@
   <!-- ── Perspectives ── -->
   <section id="perspectives">
     <div class="container">
-      <div class="section-label">透视系统</div>
+      <div class="section-label">视角</div>
       <h2 class="section-title">像外科医生一样导航代码。</h2>
-      <p class="section-desc">grep is stateless. Every search starts from zero. m1nd Perspectives maintain a living navigation session &mdash; with history, branches, and suggestions.</p>
+      <p class="section-desc">grep 是无状态的。每次搜索从零开始。m1nd 视角维持一个活跃的导航会话——带有历史记录、分支和建议。</p>
 
       <div class="perspective-flow">
         <div class="p-step">
           <div class="p-icon">&#x1F50D;</div>
           <div class="p-name">start</div>
-          <div class="p-desc">Enter a perspective. A navigable surface forms around your query.</div>
+          <div class="p-desc">进入一个视角。一个可导航的界面围绕你的查询形成。</div>
         </div>
         <div class="p-step">
           <div class="p-icon">&#x1F9ED;</div>
           <div class="p-name">routes</div>
-          <div class="p-desc">Browse ranked routes &mdash; weighted paths through the graph.</div>
+          <div class="p-desc">浏览排序的路由——图谱中的加权路径。</div>
         </div>
         <div class="p-step">
           <div class="p-icon">&#x1F3AF;</div>
           <div class="p-name">follow</div>
-          <div class="p-desc">Move focus to a target. New routes synthesize automatically.</div>
+          <div class="p-desc">将焦点移至目标。新路由自动生成。</div>
         </div>
         <div class="p-step p-highlight">
           <div class="p-icon">&#x1F500;</div>
           <div class="p-name">branch</div>
-          <div class="p-desc">Fork your exploration. Like git branches, but for investigation.</div>
+          <div class="p-desc">分叉你的探索。就像 git 分支，但用于调查。</div>
         </div>
         <div class="p-step">
           <div class="p-icon">&#x1F4A1;</div>
           <div class="p-name">suggest</div>
-          <div class="p-desc">m1nd recommends your next move based on navigation history.</div>
+          <div class="p-desc">m1nd 基于导航历史推荐你的下一步。</div>
         </div>
         <div class="p-step">
           <div class="p-icon">&#x2696;&#xFE0F;</div>
           <div class="p-name">compare</div>
-          <div class="p-desc">Diff two perspectives. Shared nodes, unique paths, dimension deltas.</div>
+          <div class="p-desc">对比两个视角。共享节点、唯一路径、维度差异。</div>
         </div>
       </div>
 
-      <p class="perspective-tagline">12 tools. <strong>Stateful exploration with memory, branching, and undo.</strong><br>No other code navigation tool on the market does this.</p>
+      <p class="perspective-tagline">12 个工具。<strong>有状态的探索，支持记忆、分支和撤销。</strong><br>市场上没有其他代码导航工具能做到这一点。</p>
 
       <!-- Perspective session demo -->
       <div class="perspective-demo">
@@ -1191,7 +1198,7 @@
           <span class="demo-dot r"></span>
           <span class="demo-dot y"></span>
           <span class="demo-dot g"></span>
-          <span class="demo-title">perspective session</span>
+          <span class="demo-title">视角会话</span>
         </div>
         <div class="demo-body">
           <span class="prompt">$</span> m1nd.perspective_start <span class="dim">--query</span> "payment flow"<br>
@@ -1215,7 +1222,7 @@
     <div class="container">
       <div class="section-label">43 个 MCP 工具</div>
       <h2 class="section-title">智能体所需的一切。</h2>
-      <p class="section-desc">Callable by any MCP client via JSON-RPC stdio. No SDK required.</p>
+      <p class="section-desc">任何 MCP 客户端均可通过 JSON-RPC stdio 调用。无需 SDK。</p>
 
       <div class="tools-group">
         <div class="tools-group-title">基础 <span>(13)</span></div>
@@ -1223,157 +1230,157 @@
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.ingest</div>
-              <div class="tool-desc">Load data into the graph. Code extractor or JSON descriptor.</div>
+              <div class="tool-desc">将数据加载到图谱中。代码提取器或 JSON 描述符。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.activate</div>
-              <div class="tool-desc">Spreading activation query -- "what's related to X?"</div>
+              <div class="tool-desc">扩散激活查询——"什么与 X 相关？"</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.impact</div>
-              <div class="tool-desc">Blast radius -- "what does changing X affect?"</div>
+              <div class="tool-desc">爆炸半径——"修改 X 会影响什么？"</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.why</div>
-              <div class="tool-desc">Path explanation -- "how are A and B connected?"</div>
+              <div class="tool-desc">路径解释——"A 和 B 如何关联？"</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.learn</div>
-              <div class="tool-desc">Hebbian feedback -- "this result was correct / wrong / partial."</div>
+              <div class="tool-desc">Hebbian 反馈——"这个结果是正确的/错误的/部分正确的。"</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.drift</div>
-              <div class="tool-desc">Weight drift analysis -- "what changed since last session?"</div>
+              <div class="tool-desc">权重漂移分析——"自上次会话以来发生了什么变化？"</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.health</div>
-              <div class="tool-desc">Diagnostics -- node/edge counts, sessions, persistence status.</div>
+              <div class="tool-desc">诊断——节点/边数量、会话、持久化状态。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.seek</div>
-              <div class="tool-desc">Targeted node lookup -- find specific entities by ID or pattern.</div>
+              <div class="tool-desc">定向节点查找——按 ID 或模式查找特定实体。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.scan</div>
-              <div class="tool-desc">Broad graph scan -- enumerate nodes by type, label, or neighborhood.</div>
+              <div class="tool-desc">广域图谱扫描——按类型、标签或邻域枚举节点。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.timeline</div>
-              <div class="tool-desc">Temporal sequence -- how nodes changed over time.</div>
+              <div class="tool-desc">时间序列——节点如何随时间变化。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.diverge</div>
-              <div class="tool-desc">Branch analysis -- where do two paths diverge?</div>
+              <div class="tool-desc">分支分析——两条路径在哪里分叉？</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.warmup</div>
-              <div class="tool-desc">Context priming -- "prepare for task X."</div>
+              <div class="tool-desc">上下文预热——"为任务 X 做准备。"</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.federate</div>
-              <div class="tool-desc">Multi-repo federation -- stitch graphs across repositories.</div>
+              <div class="tool-desc">多仓库联邦——跨仓库缝合图谱。</div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="tools-group">
-        <div class="tools-group-title">透视导航 <span>(12)</span></div>
+        <div class="tools-group-title">视角导航 <span>(12)</span></div>
         <div class="tools-grid">
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.start</div>
-              <div class="tool-desc">Open a new perspective -- a scoped, filterable view into the graph.</div>
+              <div class="tool-desc">打开新视角——图谱的限定范围、可过滤的视图。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.routes</div>
-              <div class="tool-desc">Find all paths between two nodes within the perspective.</div>
+              <div class="tool-desc">在视角内找到两个节点之间的所有路径。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.follow</div>
-              <div class="tool-desc">Navigate forward -- follow an edge from the current position.</div>
+              <div class="tool-desc">向前导航——从当前位置沿边前进。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.back</div>
-              <div class="tool-desc">Navigate backward -- retrace to a previous position.</div>
+              <div class="tool-desc">向后导航——回溯到先前位置。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.peek</div>
-              <div class="tool-desc">Preview neighbors without moving -- look before you leap.</div>
+              <div class="tool-desc">不移动即可预览邻居——三思而后行。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.inspect</div>
-              <div class="tool-desc">Full detail on the current node -- edges, weights, metadata.</div>
+              <div class="tool-desc">当前节点的完整详情——边、权重、元数据。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.suggest</div>
-              <div class="tool-desc">AI-guided navigation -- "where should I go next?"</div>
+              <div class="tool-desc">AI 引导的导航——"我下一步应该去哪里？"</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.affinity</div>
-              <div class="tool-desc">Score how related two nodes are from this vantage point.</div>
+              <div class="tool-desc">从此视角评分两个节点的关联度。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.branch</div>
-              <div class="tool-desc">Fork the current perspective into parallel explorations.</div>
+              <div class="tool-desc">将当前视角分叉为并行探索。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.compare</div>
-              <div class="tool-desc">Diff two perspectives -- what does each see that the other doesn't?</div>
+              <div class="tool-desc">对比两个视角——各自看到了对方没看到的什么？</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.list</div>
-              <div class="tool-desc">List all active perspectives and their positions.</div>
+              <div class="tool-desc">列出所有活跃视角及其位置。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">perspective.close</div>
-              <div class="tool-desc">Close a perspective and release its resources.</div>
+              <div class="tool-desc">关闭视角并释放其资源。</div>
             </div>
           </div>
         </div>
@@ -1385,115 +1392,115 @@
           <div class="tool-card">
             <div>
               <div class="tool-name">lock.create</div>
-              <div class="tool-desc">Snapshot the graph state -- create a baseline for comparison.</div>
+              <div class="tool-desc">对图谱状态做快照——创建比较基线。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">lock.watch</div>
-              <div class="tool-desc">Monitor changes against the lock -- real-time drift detection.</div>
+              <div class="tool-desc">监控相对于锁的变更——实时漂移检测。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">lock.diff</div>
-              <div class="tool-desc">Diff current state against lock -- what changed?</div>
+              <div class="tool-desc">将当前状态与锁进行对比——什么变了？</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">lock.rebase</div>
-              <div class="tool-desc">Update the lock to current state -- accept all changes.</div>
+              <div class="tool-desc">将锁更新到当前状态——接受所有变更。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">lock.release</div>
-              <div class="tool-desc">Release the lock and free the snapshot memory.</div>
+              <div class="tool-desc">释放锁并释放快照内存。</div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="tools-group">
-        <div class="tools-group-title">超级能力 <span>(13)</span></div>
+        <div class="tools-group-title">超能力 <span>(13)</span></div>
         <div class="tools-grid">
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.hypothesize</div>
-              <div class="tool-desc">Test a structural claim -- Bayesian confidence over 25K+ paths.</div>
+              <div class="tool-desc">验证结构性假说——基于 25K+ 路径的贝叶斯置信度。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.counterfactual</div>
-              <div class="tool-desc">Removal simulation -- "what breaks if we remove X?"</div>
+              <div class="tool-desc">移除模拟——"如果我们移除 X 会怎样？"</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.missing</div>
-              <div class="tool-desc">Structural hole detection -- "what's missing from this picture?"</div>
+              <div class="tool-desc">结构洞检测——"这幅图中缺少什么？"</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.resonate</div>
-              <div class="tool-desc">Harmonic analysis -- standing waves, resonant frequencies.</div>
+              <div class="tool-desc">谐波分析——驻波、共振频率。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.fingerprint</div>
-              <div class="tool-desc">Equivalence detection -- "are these two things duplicates?"</div>
+              <div class="tool-desc">等价检测——"这两个东西是重复的吗？"</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.trace</div>
-              <div class="tool-desc">Full activation trace -- every hop, every weight, every decision.</div>
+              <div class="tool-desc">完整激活追踪——每一跳、每个权重、每个决策。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.validate_plan</div>
-              <div class="tool-desc">Validate an implementation plan against the graph structure.</div>
+              <div class="tool-desc">根据图谱结构验证实现计划。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.predict</div>
-              <div class="tool-desc">Co-change prediction -- "what else will need to change?"</div>
+              <div class="tool-desc">协变预测——"还有什么需要改变？"</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">m1nd.differential</div>
-              <div class="tool-desc">XLR differential -- separate signal from noise between two queries.</div>
+              <div class="tool-desc">XLR 差分——在两个查询之间分离信号和噪音。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">trail.save</div>
-              <div class="tool-desc">Save current investigation state -- all activations, perspectives, context.</div>
+              <div class="tool-desc">保存当前调查状态——所有激活、视角、上下文。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">trail.resume</div>
-              <div class="tool-desc">Resume a saved trail -- pick up exactly where you left off.</div>
+              <div class="tool-desc">恢复已保存的调查轨迹——精确从中断处继续。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">trail.merge</div>
-              <div class="tool-desc">Merge two trails -- combine parallel investigations.</div>
+              <div class="tool-desc">合并两条调查轨迹——组合并行调查。</div>
             </div>
           </div>
           <div class="tool-card">
             <div>
               <div class="tool-name">trail.list</div>
-              <div class="tool-desc">List all saved trails with metadata and timestamps.</div>
+              <div class="tool-desc">列出所有已保存的调查轨迹及元数据和时间戳。</div>
             </div>
           </div>
         </div>
@@ -1504,40 +1511,40 @@
   <!-- ── Benchmarks ── -->
   <section id="benchmarks">
     <div class="container">
-      <div class="section-label">生产环境基准测试</div>
+      <div class="section-label">生产基准测试</div>
       <h2 class="section-title">来自真实代码库的真实数据。</h2>
-      <p class="section-desc">Measured on a 335-file Rust + Python + TypeScript project. No cherry-picking.</p>
+      <p class="section-desc">在一个 335 文件的 Rust + Python + TypeScript 项目上测量。没有数据挑选。</p>
 
       <div class="bench-grid">
         <div class="bench-card">
-          <div class="bench-label">Full ingest</div>
+          <div class="bench-label">完整导入</div>
           <div class="bench-value">910ms</div>
           <div class="bench-detail">335 files &rarr; 9,767 nodes &rarr; 26,557 edges</div>
         </div>
         <div class="bench-card">
-          <div class="bench-label">Spreading activation</div>
+          <div class="bench-label">扩散激活</div>
           <div class="bench-value">31-77ms</div>
-          <div class="bench-detail">4-dimensional wavefront, XLR noise gate</div>
+          <div class="bench-detail">4 维波前，XLR 噪声门</div>
         </div>
         <div class="bench-card">
-          <div class="bench-label">Blast radius (impact)</div>
+          <div class="bench-label">爆炸半径（影响）</div>
           <div class="bench-value">5-52ms</div>
-          <div class="bench-detail">Full cascade analysis with hop depth</div>
+          <div class="bench-detail">包含跳数深度的完整级联分析</div>
         </div>
         <div class="bench-card">
-          <div class="bench-label">Counterfactual simulation</div>
+          <div class="bench-label">反事实模拟</div>
           <div class="bench-value">3ms</div>
-          <div class="bench-detail">4,189 affected nodes evaluated</div>
+          <div class="bench-detail">评估了 4,189 个受影响节点</div>
         </div>
         <div class="bench-card">
           <div class="bench-label">Lock diff</div>
           <div class="bench-value">0.08&micro;s</div>
-          <div class="bench-detail">Snapshot comparison, near-instant</div>
+          <div class="bench-detail">快照比较，近乎即时</div>
         </div>
         <div class="bench-card">
-          <div class="bench-label">Federation (2 repos)</div>
+          <div class="bench-label">联邦（2 个仓库）</div>
           <div class="bench-value">1.3s</div>
-          <div class="bench-detail">18,203 cross-repo edges stitched</div>
+          <div class="bench-detail">缝合了 18,203 条跨仓库边</div>
         </div>
       </div>
     </div>
@@ -1546,28 +1553,28 @@
   <!-- ── Comparison ── -->
   <section id="comparison">
     <div class="container">
-      <div class="section-label">对比分析</div>
-      <h2 class="section-title">m1nd vs. the alternatives.</h2>
-      <p class="section-desc">Different category, not just a better version.</p>
+      <div class="section-label">横向对比</div>
+      <h2 class="section-title">m1nd vs. 替代方案。</h2>
+      <p class="section-desc">不同的品类，不仅仅是更好的版本。</p>
 
       <!-- Cost Reality Callout -->
       <div style="background: linear-gradient(135deg, rgba(255, 51, 102, 0.06) 0%, rgba(0, 229, 160, 0.06) 100%); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 48px;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 32px; align-items: center;">
           <div>
-            <div style="font-family: var(--mono); font-size: 12px; color: var(--red); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">The token tax is real</div>
+            <div style="font-family: var(--mono); font-size: 12px; color: var(--red); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Token 税是真实的</div>
             <p style="font-size: 15px; color: var(--text-dim); line-height: 1.6; margin-bottom: 16px;">
-              Every time an AI agent greps your codebase and feeds results to an LLM, you pay. Cursor users have reported <strong style="color: var(--red);">$22K/month</strong> in overages. Teams running Copilot + frontier models on large repos see <strong style="color: var(--red);">$200&ndash;$500/month</strong> in invisible search costs alone.
+              每当 AI 智能体 grep 你的代码库并将结果喂给 LLM 时，你都在付费。Cursor 用户报告了高达 <strong style="color: var(--red);">$22K/月</strong> 的超额费用。在大型仓库上运行 Copilot + 前沿模型的团队仅搜索成本就达 <strong style="color: var(--red);">$200&ndash;$500/月</strong>。
             </p>
             <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 1.8;">
-              <span style="color: var(--red);">100 searches/day</span> &times; $0.30/search = <strong style="color: var(--red);">$9/day</strong> = <strong style="color: var(--red);">$270/month</strong><br>
-              <span style="color: var(--red);">That's $3,240/year</span> <span style="color: var(--text-faint);">on search alone. Per developer.</span>
+              <span style="color: var(--red);">100 次搜索/天</span> &times; $0.30/次搜索 = <strong style="color: var(--red);">$9/天</strong> = <strong style="color: var(--red);">$270/月</strong><br>
+              <span style="color: var(--red);">即 $3,240/年</span> <span style="color: var(--text-faint);">仅搜索成本。每位开发者。</span>
             </div>
           </div>
           <div style="text-align: center; padding: 24px; background: var(--bg-card); border-radius: 12px; border: 1px solid rgba(0, 229, 160, 0.2);">
             <div style="font-family: var(--mono); font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">m1nd</div>
             <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1;">$0</div>
-            <div style="font-family: var(--mono); font-size: 14px; color: var(--text-dim); margin-top: 8px;">/query. /day. /month. /forever.</div>
-            <div style="font-size: 13px; color: var(--text-faint); margin-top: 12px;">Local Rust binary. No API keys. No cloud.<br>No data leaves your machine. Ever.</div>
+            <div style="font-family: var(--mono); font-size: 14px; color: var(--text-dim); margin-top: 8px;">/查询。/天。/月。/永远。</div>
+            <div style="font-size: 13px; color: var(--text-faint); margin-top: 12px;">本地 Rust 二进制文件。无需 API 密钥。无云端。<br>没有数据离开你的机器。永远不会。</div>
           </div>
         </div>
       </div>
@@ -1585,15 +1592,15 @@
         </thead>
         <tbody>
           <tr>
-            <td>Code graph</td>
-            <td class="yes">Full property graph</td>
-            <td class="partial">Symbol index</td>
-            <td class="no">None</td>
-            <td class="no">None</td>
-            <td class="partial">AST index</td>
+            <td>代码图谱</td>
+            <td class="yes">完整属性图谱</td>
+            <td class="partial">符号索引</td>
+            <td class="no">无</td>
+            <td class="no">无</td>
+            <td class="partial">AST 索引</td>
           </tr>
           <tr>
-            <td>Learns from use</td>
+            <td>从使用中学习</td>
             <td class="yes">Hebbian plasticity</td>
             <td class="no">No</td>
             <td class="no">No</td>
@@ -1601,7 +1608,7 @@
             <td class="no">No</td>
           </tr>
           <tr>
-            <td>Persists investigations</td>
+            <td>持久化调查</td>
             <td class="yes">Trail system</td>
             <td class="no">No</td>
             <td class="no">No</td>
@@ -1609,7 +1616,7 @@
             <td class="no">No</td>
           </tr>
           <tr>
-            <td>Tests hypotheses</td>
+            <td>验证假设</td>
             <td class="yes">Bayesian engine</td>
             <td class="no">No</td>
             <td class="no">No</td>
@@ -1617,7 +1624,7 @@
             <td class="no">No</td>
           </tr>
           <tr>
-            <td>Simulates removal</td>
+            <td>模拟移除</td>
             <td class="yes">Counterfactual</td>
             <td class="no">No</td>
             <td class="no">No</td>
@@ -1625,15 +1632,15 @@
             <td class="no">No</td>
           </tr>
           <tr>
-            <td>Multi-agent locks</td>
-            <td class="yes">Lock system (works)</td>
+            <td>多智能体锁</td>
+            <td class="yes">锁系统（可用）</td>
             <td class="no">No</td>
-            <td class="no">Attempted, failed</td>
+            <td class="no">尝试过，失败了</td>
             <td class="no">No</td>
             <td class="no">No</td>
           </tr>
           <tr>
-            <td>Multi-repo</td>
+            <td>多仓库</td>
             <td class="yes">Federation</td>
             <td class="yes">Yes</td>
             <td class="no">No</td>
@@ -1641,31 +1648,31 @@
             <td class="partial">Per-repo</td>
           </tr>
           <tr>
-            <td>Search latency</td>
-            <td class="yes">31ms (local)</td>
-            <td class="partial">~200ms (cloud)</td>
-            <td class="partial">320ms+ (cloud)</td>
+            <td>搜索延迟</td>
+            <td class="yes">31ms（本地）</td>
+            <td class="partial">~200ms（云端）</td>
+            <td class="partial">320ms+（云端）</td>
             <td class="partial">500&ndash;800ms</td>
-            <td class="partial">Cloud-dependent</td>
+            <td class="partial">依赖云端</td>
           </tr>
           <tr>
-            <td>Agent interface</td>
+            <td>智能体接口</td>
             <td class="yes">43 MCP tools</td>
             <td class="partial">API</td>
-            <td class="no">Built-in only</td>
-            <td class="no">Built-in only</td>
+            <td class="no">仅内置</td>
+            <td class="no">仅内置</td>
             <td class="partial">API</td>
           </tr>
           <tr>
-            <td>Monthly cost</td>
-            <td class="yes">$0 (forever)</td>
+            <td>月度成本</td>
+            <td class="yes">$0（永远）</td>
             <td class="no">$59/user/mo</td>
             <td class="no">$20+/mo (overages to $22K)</td>
             <td class="no">$19+/mo</td>
             <td class="no">$30/dev/mo</td>
           </tr>
           <tr>
-            <td>Capabilities (of 16)</td>
+            <td>能力（满分 16）</td>
             <td class="yes" style="font-size: 15px; font-weight: 700;">16/16</td>
             <td class="no">1/16</td>
             <td class="no">0/16</td>
@@ -1680,13 +1687,13 @@
   <!-- ── Competitive Advantage ── -->
   <section id="advantage" style="border-top: 1px solid var(--border);">
     <div class="container">
-      <div class="section-label">量化的领先优势</div>
-      <h2 class="section-title">领先 3&ndash;4 年。经过量化。</h2>
-      <p class="section-desc">We benchmarked m1nd against every tool in the category across 16 capabilities. m1nd scores 16/16. The best competitor scores 3. Cursor and Copilot score zero.</p>
+      <div class="section-label">可量化的差距</div>
+      <h2 class="section-title">领先 3&ndash;4 年。实测数据。</h2>
+      <p class="section-desc">我们在 16 项能力上将 m1nd 与该品类的每个工具进行了基准测试。m1nd 得分 16/16。最佳竞品得分 3。Cursor 和 Copilot 得分零。</p>
 
       <!-- ── Feature coverage bars ── -->
       <div style="margin-bottom: 64px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Capabilities covered (out of 16)</div>
+        <div style="font-family: var(--mono); font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">能力覆盖（满分 16）</div>
 
         <!-- m1nd -->
         <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 12px;">
@@ -1791,58 +1798,58 @@
       </div>
 
       <!-- ── 5 Defensible Claims ── -->
-      <div style="font-family: var(--mono); font-size: 11px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Six things no one else can claim</div>
+      <div style="font-family: var(--mono); font-size: 11px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">其他人无法宣称的六件事</div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 64px;">
         <!-- Claim 1 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">01 &mdash; ZERO COMPETITORS</div>
-          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Hebbian plasticity on code graphs</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">The graph rewires itself based on which query paths lead to correct results. No other tool does this. No published paper describes it for code.</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">01 &mdash; 零竞争者</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">代码图谱上的 Hebbian 可塑性</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">图谱基于哪些查询路径导致正确结果进行自我重新布线。没有其他工具能做到这一点。没有已发表的论文描述将此应用于代码。</div>
         </div>
 
         <!-- Claim 2 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">02 &mdash; 10-30x FASTER</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">02 &mdash; 快 10-30 倍</div>
           <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">$0.00/query at 31ms</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Local Rust binary. No LLM tokens burned per query. Every LLM-dependent tool pays $0.10-$0.50 per search and waits 300ms-2s for results.</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">本地 Rust 二进制文件。每次查询零 LLM token 消耗。每个依赖 LLM 的工具每次搜索支付 $0.10-$0.50 并等待 300ms-2s 获取结果。</div>
         </div>
 
         <!-- Claim 3 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">03 &mdash; ZERO PRIOR ART</div>
-          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Finds what's MISSING in code</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Structural hole detection from Burt's sociology theory, applied to code graphs. Finds gaps in your architecture that no search can surface.</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">03 &mdash; 零先例</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">发现代码中缺失的部分</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">基于 Burt 社会学理论的结构洞检测，应用于代码图谱。发现任何搜索都无法触及的架构缺口。</div>
         </div>
 
         <!-- Claim 4 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">04 &mdash; LARGEST SURFACE</div>
-          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">43 MCP tools = complete cognitive cycle</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Ingest, activate, hypothesize, simulate, learn, navigate, federate. The largest competitor offers ~15 tools. Most offer 3-5.</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">04 &mdash; 最大覆盖面</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">43 个 MCP 工具 = 完整的认知循环</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">导入、激活、假设、模拟、学习、导航、联邦。最大的竞品提供约 15 个工具。大多数只有 3-5 个。</div>
         </div>
 
         <!-- Claim 5 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">05 &mdash; UNPUBLISHED TECHNIQUE</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">05 &mdash; 未发表的技术</div>
           <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">XLR noise cancellation</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Borrowed from audio engineering: Cross-Layer Resonance filtering suppresses false-positive edges during spreading activation. No prior art exists for code graphs. Zero competitors, zero papers.</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">借鉴自音频工程：跨层共振过滤在扩散激活过程中抑制假阳性边。代码图谱领域无先例。零竞争者，零论文。</div>
         </div>
 
         <!-- Claim 6 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">06 &mdash; OTHERS TRIED AND FAILED</div>
-          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Multi-agent graph locking</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Cursor attempted multi-agent file locking and abandoned it. m1nd ships 5 lock tools that work: snapshot, watch, diff, rebase, release. Multiple agents, one consistent graph.</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">06 &mdash; 他人尝试并失败</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">多智能体图谱锁定</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Cursor 尝试了多智能体文件锁定但放弃了。m1nd 提供 5 个可用的锁工具：snapshot、watch、diff、rebase、release。多个智能体，一个一致的图谱。</div>
         </div>
       </div>
 
       <!-- ── Compact Verdict ── -->
       <div style="text-align: center; margin-top: 48px;">
         <div style="display: inline-block; background: linear-gradient(135deg, rgba(0, 229, 160, 0.08) 0%, rgba(0, 229, 160, 0.03) 100%); border: 1px solid rgba(0, 229, 160, 0.2); border-radius: 16px; padding: 32px 56px;">
-          <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1;">3&ndash;4 years ahead</div>
-          <div style="font-size: 15px; color: var(--text-dim); margin-top: 12px; max-width: 500px;">Built on 6 disciplines no single competitor covers: cognitive science, sociology, neuroscience, signal processing, physics, and distributed systems.</div>
-          <a href="https://github.com/maxkle1nz/m1nd/blob/main/docs/m1nd/M1ND-COMPETITIVE-INTELLIGENCE-2026-03-13.md" style="display: inline-block; margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--green); text-decoration: underline;">Read the full competitive analysis &rarr;</a>
+          <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1;">领先 3&ndash;4 年</div>
+          <div style="font-size: 15px; color: var(--text-dim); margin-top: 12px; max-width: 500px;">建立在没有单一竞品能覆盖的 6 个学科之上：认知科学、社会学、神经科学、信号处理、物理学和分布式系统。</div>
+          <a href="https://github.com/maxkle1nz/m1nd/blob/main/docs/m1nd/M1ND-COMPETITIVE-INTELLIGENCE-2026-03-13.md" style="display: inline-block; margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--green); text-decoration: underline;">阅读完整竞争分析 &rarr;</a>
         </div>
       </div>
     </div>
@@ -1853,7 +1860,7 @@
     <div class="container">
       <div class="section-label">真实输出</div>
       <h2 class="section-title">一个完整的会话，从头到尾。</h2>
-      <p class="section-desc">m1nd ingesting and analyzing a production codebase. Every number is real.</p>
+      <p class="section-desc">m1nd 导入并分析生产代码库。每个数字都是真实的。</p>
 
       <div class="session">
         <div class="demo-block" style="max-width: 100%;">
@@ -1861,7 +1868,7 @@
             <span class="demo-dot r"></span>
             <span class="demo-dot y"></span>
             <span class="demo-dot g"></span>
-            <span class="demo-title">m1nd production session</span>
+            <span class="demo-title">m1nd 生产会话</span>
           </div>
           <div class="demo-body">
             <span class="step-label">1. Ingest</span>
@@ -1921,7 +1928,7 @@
         <div class="step">
           <div class="step-num">1</div>
           <div class="step-content">
-            <h3>Build</h3>
+            <h3>构建</h3>
             <div class="code-block">
               cargo build --release
             </div>
@@ -1931,8 +1938,8 @@
         <div class="step">
           <div class="step-num">2</div>
           <div class="step-content">
-            <h3>Run</h3>
-            <p>m1nd starts as a JSON-RPC stdio server. MCP-compatible out of the box.</p>
+            <h3>运行</h3>
+            <p>m1nd 以 JSON-RPC stdio 服务器启动。开箱即用，兼容 MCP。</p>
             <div class="code-block">
               ./target/release/m1nd-mcp
             </div>
@@ -1942,8 +1949,8 @@
         <div class="step">
           <div class="step-num">3</div>
           <div class="step-content">
-            <h3>Ingest &amp; Query</h3>
-            <p>Send MCP messages over stdin. State persists automatically.</p>
+            <h3>导入 &amp; 查询</h3>
+            <p>通过 stdin 发送 MCP 消息。状态自动持久化。</p>
             <div class="code-block">
               <span class="comment">// Ingest a codebase</span><br>
               {"method":"tools/call","params":{"name":"m1nd.ingest",<br>
@@ -1961,8 +1968,8 @@
         <div class="step">
           <div class="step-num">4</div>
           <div class="step-content">
-            <h3>Any domain</h3>
-            <p>Not just code. Ingest any knowledge graph from JSON.</p>
+            <h3>任意领域</h3>
+            <p>不仅限于代码。从 JSON 导入任何知识图谱。</p>
             <div class="code-block">
               <span class="comment">// JSON descriptor -- works for any domain</span><br>
               {"nodes": [<br>
@@ -1983,26 +1990,26 @@
   <!-- ── Limitations ── -->
   <section id="limitations">
     <div class="container">
-      <div class="section-label">诚实的局限性</div>
+      <div class="section-label">坦诚的局限性</div>
       <h2 class="section-title">m1nd 不是什么。</h2>
-      <p class="section-desc">No tool is everything. Here is where m1nd has edges.</p>
+      <p class="section-desc">没有工具是万能的。以下是 m1nd 的边界。</p>
 
       <div class="limits-list">
         <div class="limit-item">
-          <div class="limit-title">Not a code editor</div>
-          <div class="limit-desc">m1nd navigates and analyzes. It does not write, refactor, or apply patches. Pair it with an agent that does.</div>
+          <div class="limit-title">不是代码编辑器</div>
+          <div class="limit-desc">m1nd 导航和分析。它不编写、不重构、不打补丁。把它与能做这些事的智能体配合使用。</div>
         </div>
         <div class="limit-item">
-          <div class="limit-title">Not a search engine</div>
-          <div class="limit-desc">It finds structural relationships, not string matches. For literal text search, use grep. For structural understanding, use m1nd.</div>
+          <div class="limit-title">不是搜索引擎</div>
+          <div class="limit-desc">它发现结构关系，而非字符串匹配。需要字面文本搜索用 grep。需要结构性理解用 m1nd。</div>
         </div>
         <div class="limit-item">
-          <div class="limit-title">Graph lives in memory</div>
-          <div class="limit-desc">The full graph is kept in RAM for speed. Large monorepos (100K+ files) will need significant memory. Persistence is to disk on shutdown.</div>
+          <div class="limit-title">图谱驻留在内存中</div>
+          <div class="limit-desc">完整图谱保存在 RAM 中以保证速度。大型单体仓库（100K+ 文件）需要大量内存。关闭时持久化到磁盘。</div>
         </div>
         <div class="limit-item">
-          <div class="limit-title">Single-machine today</div>
-          <div class="limit-desc">Federation stitches graphs from multiple repos, but the server itself runs on one machine. Distributed mode is not yet implemented.</div>
+          <div class="limit-title">目前仅支持单机</div>
+          <div class="limit-desc">Federation 可以缝合来自多个仓库的图谱，但服务器本身运行在一台机器上。分布式模式尚未实现。</div>
         </div>
       </div>
     </div>
@@ -2013,7 +2020,7 @@
     <div class="container" style="display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; text-align: center;">
       <div>
         <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~15,500</div>
-        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Rust 代码行数</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">行 Rust 代码</div>
       </div>
       <div>
         <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">159</div>
@@ -2029,7 +2036,7 @@
       </div>
       <div>
         <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~8 MB</div>
-        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">二进制文件 (ARM64)</div>
+        <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Binary (ARM64)</div>
       </div>
     </div>
   </section>
@@ -2037,9 +2044,9 @@
   <!-- ── Final CTA ── -->
   <section style="padding: 80px 0; text-align: center;">
     <div class="container">
-      <h2 class="section-title" style="max-width: 700px; margin: 0 auto 16px;">停止为失忆付费。<br>给你的智能体一个 <span style="color: var(--green);">m1nd</span>。</h2>
+      <h2 class="section-title" style="max-width: 700px; margin: 0 auto 16px;">别再为失忆症买单。<br>给你的智能体一个 <span style="color: var(--green);">m1nd</span>。</h2>
       <p style="color: var(--text-dim); font-size: 16px; max-width: 560px; margin: 0 auto 40px; line-height: 1.6;">
-        Open source. Local. Zero cost. One binary. 43 tools.<br>Your codebase never leaves your machine.
+        开源。本地。零成本。一个二进制文件。43 个工具。<br>你的代码库永远不会离开你的机器。
       </p>
       <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
         <a href="https://github.com/maxkle1nz/m1nd" class="btn btn-primary" style="font-size: 16px; padding: 16px 36px;">
@@ -2050,7 +2057,7 @@
           <span style="color: #FF3366;">&hearts;</span> 赞助此项目
         </a>
       </div>
-      <p style="font-family: var(--mono); font-size: 12px; color: var(--text-faint); margin-top: 24px;">MIT Licensed &middot; Rust &middot; ~8 MB binary &middot; Works with any MCP client</p>
+      <p style="font-family: var(--mono); font-size: 12px; color: var(--text-faint); margin-top: 24px;">MIT 许可证 &middot; Rust &middot; ~8 MB 二进制文件 &middot; 兼容任意 MCP 客户端</p>
     </div>
   </section>
 
@@ -2061,14 +2068,14 @@
       <div class="footer-desc">自适应代码图谱</div>
       <div class="footer-links">
         <a href="https://github.com/maxkle1nz/m1nd">GitHub</a>
-        <a href="../wiki-build/index.html">Wiki</a>
-        <a href="../wiki-build/faq.html">FAQ</a>
-        <a href="../wiki-build/api-reference/overview.html">API Reference</a>
+        <a href="wiki-build/index.html">Wiki</a>
+        <a href="wiki-build/faq.html">FAQ</a>
+        <a href="wiki-build/api-reference/overview.html">API Reference</a>
         <a href="https://github.com/maxkle1nz/m1nd/blob/main/EXAMPLES.md">Examples</a>
         <a href="https://github.com/sponsors/maxkle1nz">Sponsor</a>
         <a href="https://github.com/maxkle1nz/m1nd/blob/main/LICENSE">MIT License</a>
       </div>
-      <div class="author">MAX ELIAS KLEINSCHMIDT &#x1F1E7;&#x1F1F7; &mdash; COSMOPHONIX INTELLIGENCE &mdash; 自豪的巴西人</div>
+      <div class="author">MAX ELIAS KLEINSCHMIDT &#x1F1E7;&#x1F1F7; &mdash; 骄傲的巴西人</div>
     </div>
   </footer>
 
@@ -2078,72 +2085,72 @@
   const scenes = [
     // Scene 0: Find what matters
     [
-      { type: 'comment', text: '# You ask: "What handles authentication in this project?"' },
+      { type: 'comment', text: '# 你问："这个项目中什么处理认证？"' },
       { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.activate --query "authentication"' },
       { type: 'blank' },
-      { type: 'comment', text: '# m1nd lights up the graph. No grepping. No reading files.' },
-      { type: 'comment', text: '# It finds the 4 most relevant files instantly:' },
+      { type: 'comment', text: '# m1nd 点亮图谱。无需 grep。无需读文件。' },
+      { type: 'comment', text: '# 它立即找到 4 个最相关的文件：' },
       { type: 'blank' },
-      { type: 'result', score: '94%', file: 'auth/middleware.rs', detail: 'the main auth layer' },
-      { type: 'result', score: '89%', file: 'auth/jwt.rs', detail: 'token validation' },
-      { type: 'result', score: '83%', file: 'session/manager.rs', detail: 'session handling' },
-      { type: 'result', score: '71%', file: 'middleware/cors.rs', detail: 'related security' },
+      { type: 'result', score: '94%', file: 'auth/middleware.rs', detail: '主认证层' },
+      { type: 'result', score: '89%', file: 'auth/jwt.rs', detail: 'token 验证' },
+      { type: 'result', score: '83%', file: 'session/manager.rs', detail: '会话管理' },
+      { type: 'result', score: '71%', file: 'middleware/cors.rs', detail: '相关安全' },
       { type: 'blank' },
-      { type: 'success', text: 'Done in 31ms. Zero LLM tokens. Zero cost.' },
+      { type: 'success', text: '31ms 完成。零 LLM token。零成本。' },
     ],
     // Scene 1: Find what's missing
     [
-      { type: 'comment', text: '# The feature no other tool has:' },
-      { type: 'comment', text: '# find what SHOULD exist in your code but DOESN\'T.' },
+      { type: 'comment', text: '# 其他工具没有的功能：' },
+      { type: 'comment', text: '# 发现代码中应该存在但不存在的东西。' },
       { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.missing --query "payment processing"' },
       { type: 'blank' },
-      { type: 'comment', text: '# m1nd found 3 gaps in your payment system:' },
+      { type: 'comment', text: '# m1nd 在你的支付系统中发现了 3 个缺口：' },
       { type: 'blank' },
-      { type: 'hole', score: '!', file: 'payment/refund_handler.rs', detail: 'no refund logic exists' },
-      { type: 'hole', score: '!', file: 'payment/webhook_validator.rs', detail: 'Stripe webhooks are unverified' },
-      { type: 'hole', score: '!', file: 'payment/idempotency.rs', detail: 'retries can charge twice' },
+      { type: 'hole', score: '!', file: 'payment/refund_handler.rs', detail: '不存在退款逻辑' },
+      { type: 'hole', score: '!', file: 'payment/webhook_validator.rs', detail: 'Stripe webhook 未经验证' },
+      { type: 'hole', score: '!', file: 'payment/idempotency.rs', detail: '重试可能导致重复扣款' },
       { type: 'blank' },
-      { type: 'comment', text: '# grep can\'t find these. They\'re files that don\'t exist yet.' },
-      { type: 'success', text: '3 missing pieces found in 18ms. $0.00.' },
+      { type: 'comment', text: '# grep 找不到这些。它们是尚未存在的文件。' },
+      { type: 'success', text: '18ms 内发现了 3 个缺失部分。$0.00。' },
     ],
     // Scene 2: Simulate before you break
     [
-      { type: 'comment', text: '# Before deleting a file, ask:' },
-      { type: 'comment', text: '# "What breaks if I remove this?"' },
+      { type: 'comment', text: '# 删除文件之前，先问：' },
+      { type: 'comment', text: '# "如果我移除这个会怎样？"' },
       { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.counterfactual --remove "auth/middleware.rs"' },
       { type: 'blank' },
-      { type: 'comment', text: '# m1nd simulates the removal without touching your code:' },
+      { type: 'comment', text: '# m1nd 在不触碰代码的情况下模拟移除：' },
       { type: 'blank' },
-      { type: 'critical', text: 'BREAKS  api.rs — 47 endpoints lose authentication' },
-      { type: 'critical', text: 'BREAKS  session/manager.rs — sessions stop validating' },
-      { type: 'warn', text: 'RISK    cors.rs — security rules become orphaned' },
-      { type: 'warn', text: 'RISK    jwt.rs — token validator has no consumer' },
+      { type: 'critical', text: '崩溃  api.rs — 47 个端点失去认证' },
+      { type: 'critical', text: '崩溃  session/manager.rs — 会话停止验证' },
+      { type: 'warn', text: '风险  cors.rs — 安全规则变成孤儿' },
+      { type: 'warn', text: '风险  jwt.rs — token 验证器没有消费者' },
       { type: 'blank' },
-      { type: 'comment', text: '# 23 files affected. You see the full blast radius.' },
-      { type: 'success', text: 'Simulated in 3ms. No tests needed. No runtime.' },
+      { type: 'comment', text: '# 23 个文件受影响。你看到了完整的爆炸半径。' },
+      { type: 'success', text: '3ms 内完成模拟。无需测试。无需运行时。' },
     ],
     // Scene 3: Navigate like a surgeon
     [
-      { type: 'comment', text: '# Explore your code like navigating a map.' },
-      { type: 'comment', text: '# m1nd remembers where you\'ve been.' },
+      { type: 'comment', text: '# 像导航地图一样探索你的代码。' },
+      { type: 'comment', text: '# m1nd 记得你去过哪里。' },
       { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.perspective_start --query "payment flow"' },
-      { type: 'dim', text: 'Opened. 6 paths to explore.', delay: 300 },
+      { type: 'dim', text: '已打开。6 条路径可探索。', delay: 300 },
       { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.perspective_follow "checkout → stripe"' },
-      { type: 'dim', text: 'Moved to stripe/client.rs. 4 new paths appeared.', delay: 300 },
+      { type: 'dim', text: '移至 stripe/client.rs。出现了 4 条新路径。', delay: 300 },
       { type: 'blank' },
-      { type: 'comment', text: '# Fork your exploration — like git branches for investigation' },
+      { type: 'comment', text: '# 分叉你的探索——像 git 分支一样用于调查' },
       { type: 'cmd', text: '$ m1nd.perspective_branch "refund-path"' },
       { type: 'blank' },
-      { type: 'comment', text: '# m1nd suggests where to go next:' },
+      { type: 'comment', text: '# m1nd 建议下一步去哪里：' },
       { type: 'cmd', text: '$ m1nd.perspective_suggest' },
-      { type: 'suggest', file: 'refund/handler.rs', detail: '91% likely next dependency' },
+      { type: 'suggest', file: 'refund/handler.rs', detail: '91% 可能的下一个依赖' },
       { type: 'blank' },
-      { type: 'success', text: 'Stateful. Branching. Undo. Zero tokens.' },
+      { type: 'success', text: '有状态。可分支。可撤销。零 token。' },
     ],
   ];
 
@@ -2290,8 +2297,8 @@
     running = true;
 
     // Phase 1: QUERY ARRIVES
-    setPhase('PHASE 1 — QUERY RECEIVED');
-    setComment('Agent asks: "What handles authentication?"');
+    setPhase('阶段 1 — 接收查询');
+    setComment('智能体问："什么处理认证？"');
     core.setAttribute('fill', '#00E5A0');
     core.setAttribute('opacity', '0.9');
     core.style.transition = 'all 400ms ease';
@@ -2299,8 +2306,8 @@
     await new Promise(r => setTimeout(r, 2200));
 
     // Phase 2: SPREADING ACTIVATION — Hop 1
-    setPhase('PHASE 2 — SPREADING ACTIVATION (HOP 1)');
-    setComment('Wavefront: seed node → 4 direct neighbors');
+    setPhase('阶段 2 — 扩散激活（第 1 跳）');
+    setComment('波前：种子节点 → 4 个直接邻居');
     edges.style.transition = 'opacity 500ms ease';
     edges.setAttribute('opacity', '0.4');
     setGroupColor(d1, '#00E5A0', '0.8');
@@ -2308,21 +2315,21 @@
 
     // Phase 3: Hop 2
     setPhase('PHASE 3 — SPREADING ACTIVATION (HOP 2)');
-    setComment('Wavefront expands: 4 → 7 nodes, weighted by 4 dimensions');
+    setComment('波前扩展：4 → 7 个节点，按 4 个维度加权');
     setGroupColor(d2, '#60A5FA', '0.65');
     edges.setAttribute('opacity', '0.55');
     await new Promise(r => setTimeout(r, 2200));
 
     // Phase 4: Hop 3
     setPhase('PHASE 4 — SPREADING ACTIVATION (HOP 3)');
-    setComment('7 → 8 outer nodes. XLR cancels 14 false-positive edges.');
+    setComment('7 → 8 个外围节点。XLR 消除了 14 条假阳性边。');
     setGroupColor(d3, '#F5A623', '0.5');
     edges.setAttribute('opacity', '0.65');
     await new Promise(r => setTimeout(r, 2200));
 
     // Phase 5: STRUCTURAL HOLE
-    setPhase('PHASE 5 — STRUCTURAL HOLE DETECTED');
-    setComment('Missing connection found: rate_limit.rs should exist but doesn\'t!');
+    setPhase('阶段 5 — 检测到结构洞');
+    setComment('发现缺失连接：rate_limit.rs 应该存在但不存在！');
     ghost.setAttribute('opacity', '0.6');
     ghost.style.transition = 'opacity 400ms ease';
     // Flash the hole area
@@ -2331,27 +2338,27 @@
     await new Promise(r => setTimeout(r, 2800));
 
     // Phase 6: RESULTS
-    setPhase('PHASE 6 — RESULTS RANKED');
-    setComment('127 nodes activated in 31ms · 0 LLM tokens · 2,847 weights updated');
+    setPhase('阶段 6 — 结果排序');
+    setComment('31ms 内激活了 127 个节点 · 0 LLM token · 2,847 个权重已更新');
     labels.style.transition = 'opacity 500ms ease';
     labels.setAttribute('opacity', '1');
     await new Promise(r => setTimeout(r, 3500));
 
     // Phase 7: LEARN
-    setPhase('PHASE 7 — HEBBIAN LEARNING');
-    setComment('Agent confirms results correct → connections strengthen for next query');
+    setPhase('阶段 7 — HEBBIAN 学习');
+    setComment('智能体确认结果正确 → 连接为下次查询而强化');
     // Brighten edges to show strengthening
     edges.setAttribute('opacity', '0.8');
     d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '10'); c.style.transition = 'r 600ms ease, fill 600ms ease'; });
     await new Promise(r => setTimeout(r, 4000));
 
     // Reset
-    setPhase('COMPLETE — CLICK TO REPLAY');
-    setComment('The graph is now smarter. Next query will be more accurate.');
+    setPhase('完成 — 点击重播');
+    setComment('图谱现在更智能了。下次查询将更精准。');
     await new Promise(r => setTimeout(r, 4000));
 
     // Fade back to dormant
-    setPhase('DORMANT — CLICK TO ACTIVATE');
+    setPhase('休眠中 — 点击激活');
     setComment('');
     edges.setAttribute('opacity', '0.12');
     setGroupColor(d1, '#5A6577', '0.25');
