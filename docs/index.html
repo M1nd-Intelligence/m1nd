@@ -76,7 +76,7 @@
       text-decoration: none; color: var(--text); letter-spacing: -0.5px;
     }
     .nav-logo span { color: var(--green); }
-    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
     .nav-links a {
       color: var(--text-dim); text-decoration: none; font-size: 14px;
       font-weight: 500; transition: color 0.2s;
@@ -88,6 +88,25 @@
       transition: opacity 0.2s !important;
     }
     .nav-cta:hover { opacity: 0.85; }
+    /* ── Language dropdown ── */
+    .lang-dropdown { position: relative; }
+    .lang-dropdown-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text-dim); font-size: 14px; padding: 4px 10px; cursor: pointer;
+      display: flex; align-items: center; gap: 4px; transition: border-color 0.2s;
+    }
+    .lang-dropdown-btn:hover { border-color: var(--green); color: var(--green); }
+    .lang-dropdown-menu {
+      display: none; position: absolute; top: 100%; right: 0; margin-top: 8px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 0; min-width: 160px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 200;
+    }
+    .lang-dropdown:hover .lang-dropdown-menu { display: block; }
+    .lang-dropdown-menu a {
+      display: block; padding: 6px 16px; font-size: 13px; white-space: nowrap;
+    }
+    .lang-dropdown-menu a:hover { background: var(--green-dim); }
 
     /* ── Hero Logo ── */
     .hero-logo { margin: 0 auto 40px; width: 180px; height: 180px; }
@@ -641,26 +660,22 @@
     <div class="container">
       <a href="#" class="nav-logo">m<span>1</span>nd</a>
       <div class="nav-links">
-        <a href="#why">Why</a>
-        <a href="#different">Different</a>
-        <a href="#agents-first">Agent-Native</a>
-        <a href="#perspectives">Perspectives</a>
         <a href="#tools">Tools</a>
         <a href="#benchmarks">Benchmarks</a>
-        <a href="#advantage">The Gap</a>
-        <a href="#start">Start</a>
         <a href="wiki-build/index.html">Wiki</a>
-        <a href="wiki-build/faq.html">FAQ</a>
-        <a href="https://github.com/maxkle1nz/m1nd" class="nav-cta">GitHub</a>
-        <div class="lang-selector" style="display: flex; gap: 8px; align-items: center; margin-left: 8px; font-size: 16px;">
-          <a href="/m1nd/" title="English" style="text-decoration:none;">&#x1F1EC;&#x1F1E7;</a>
-          <a href="/m1nd/pt-br/" title="Portugu&ecirc;s" style="text-decoration:none;">&#x1F1E7;&#x1F1F7;</a>
-          <a href="/m1nd/es/" title="Espa&ntilde;ol" style="text-decoration:none;">&#x1F1EA;&#x1F1F8;</a>
-          <a href="/m1nd/it/" title="Italiano" style="text-decoration:none;">&#x1F1EE;&#x1F1F9;</a>
-          <a href="/m1nd/fr/" title="Fran&ccedil;ais" style="text-decoration:none;">&#x1F1EB;&#x1F1F7;</a>
-          <a href="/m1nd/de/" title="Deutsch" style="text-decoration:none;">&#x1F1E9;&#x1F1EA;</a>
-          <a href="/m1nd/zh/" title="&#x4E2D;&#x6587;" style="text-decoration:none;">&#x1F1E8;&#x1F1F3;</a>
+        <div class="lang-dropdown">
+          <button class="lang-dropdown-btn">&#x1F310; EN &#x25BE;</button>
+          <div class="lang-dropdown-menu">
+            <a href="/m1nd/">&#x1F1EC;&#x1F1E7; English</a>
+            <a href="/m1nd/pt-br/">&#x1F1E7;&#x1F1F7; Portugu&ecirc;s</a>
+            <a href="/m1nd/es/">&#x1F1EA;&#x1F1F8; Espa&ntilde;ol</a>
+            <a href="/m1nd/it/">&#x1F1EE;&#x1F1F9; Italiano</a>
+            <a href="/m1nd/fr/">&#x1F1EB;&#x1F1F7; Fran&ccedil;ais</a>
+            <a href="/m1nd/de/">&#x1F1E9;&#x1F1EA; Deutsch</a>
+            <a href="/m1nd/zh/">&#x1F1E8;&#x1F1F3; &#x4E2D;&#x6587;</a>
+          </div>
         </div>
+        <a href="https://github.com/maxkle1nz/m1nd" class="nav-cta">GitHub</a>
       </div>
     </div>
   </nav>
