@@ -1,0 +1,595 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Graph Engine (m1nd-core) - m1nd Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Complete documentation for m1nd — the neuro-symbolic connectome engine">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
+        <link rel="stylesheet" href="../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../theme/custom-a18dc32c.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex-7447e1d8.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc-72b55f3c.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">m1nd Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/maxkle1nz/m1nd" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/maxkle1nz/m1nd/edit/main/docs/wiki/src/src/architecture/graph-engine.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                            <span class=fa-svg id="git-edit-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M421.7 220.3l-11.3 11.3-22.6 22.6-205 205c-6.6 6.6-14.8 11.5-23.8 14.1L30.8 511c-8.4 2.5-17.5 .2-23.7-6.1S-1.5 489.7 1 481.2L38.7 353.1c2.6-9 7.5-17.2 14.1-23.8l205-205 22.6-22.6 11.3-11.3 33.9 33.9 62.1 62.1 33.9 33.9zM96 353.9l-9.3 9.3c-.9 .9-1.6 2.1-2 3.4l-25.3 86 86-25.3c1.3-.4 2.5-1.1 3.4-2l9.3-9.3H112c-8.8 0-16-7.2-16-16V353.9zM453.3 19.3l39.4 39.4c25 25 25 65.5 0 90.5l-14.5 14.5-22.6 22.6-11.3 11.3-33.9-33.9-62.1-62.1L314.3 67.7l11.3-11.3 22.6-22.6 14.5-14.5c25-25 65.5-25 90.5 0z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="graph-engine-m1nd-core"><a class="header" href="#graph-engine-m1nd-core">Graph Engine (m1nd-core)</a></h1>
+<p>m1nd-core is the computational core of the connectome. It owns the graph data structure, all activation and analysis engines, the plasticity system, and the type-safe numeric primitives that prevent NaN/Inf corruption system-wide.</p>
+<p>Source: <code>mcp/m1nd/m1nd-core/src/</code></p>
+<h2 id="type-system"><a class="header" href="#type-system">Type System</a></h2>
+<h3 id="numeric-primitives"><a class="header" href="#numeric-primitives">Numeric Primitives</a></h3>
+<p>Every floating-point value in m1nd flows through one of four newtype wrappers defined in <code>types.rs</code>:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Type</th><th>Invariant</th><th>Use</th></tr>
+</thead>
+<tbody>
+<tr><td><code>FiniteF32</code></td><td>Never NaN or Inf</td><td>All activation scores, edge weights, scores</td></tr>
+<tr><td><code>PosF32</code></td><td>Strictly positive, finite</td><td>Wavelength, frequency, half-life, decay rate, threshold</td></tr>
+<tr><td><code>LearningRate</code></td><td>(0.0, 1.0]</td><td>Plasticity learning rate</td></tr>
+<tr><td><code>DecayFactor</code></td><td>(0.0, 1.0]</td><td>Signal decay per hop</td></tr>
+</tbody>
+</table>
+</div>
+<p><code>FiniteF32</code> is the foundation. In debug builds, constructing one from a non-finite value panics. In release builds, it clamps to 0.0. Because NaN is excluded by construction, <code>FiniteF32</code> implements <code>Ord</code>, <code>Eq</code>, and <code>Hash</code> – all unsound on raw <code>f32</code>:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>impl Ord for FiniteF32 {
+    fn cmp(&amp;self, other: &amp;Self) -&gt; std::cmp::Ordering {
+        self.0.total_cmp(&amp;other.0)
+    }
+}
+<span class="boring">}</span></code></pre>
+<h3 id="index-types"><a class="header" href="#index-types">Index Types</a></h3>
+<p>Thin <code>#[repr(transparent)]</code> wrappers over <code>u32</code> provide type-safe indexing:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Type</th><th>Wraps</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td><code>NodeId(u32)</code></td><td>Node index</td><td>Index into <code>NodeStorage</code> parallel arrays</td></tr>
+<tr><td><code>EdgeIdx(u32)</code></td><td>Edge index</td><td>Index into CSR parallel arrays</td></tr>
+<tr><td><code>InternedStr(u32)</code></td><td>String handle</td><td>Opaque index into <code>StringInterner</code></td></tr>
+<tr><td><code>CommunityId(u32)</code></td><td>Community</td><td>Louvain community membership</td></tr>
+<tr><td><code>Generation(u64)</code></td><td>Mutation counter</td><td>Plasticity engine desync detection</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="node-and-edge-classification"><a class="header" href="#node-and-edge-classification">Node and Edge Classification</a></h3>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[repr(u8)]
+pub enum NodeType {
+    File = 0, Directory = 1, Function = 2, Class = 3,
+    Struct = 4, Enum = 5, Type = 6, Module = 7,
+    Reference = 8, Concept = 9, Material = 10, Process = 11,
+    Product = 12, Supplier = 13, Regulatory = 14, System = 15,
+    Cost = 16, Custom(u8),
+}
+
+#[repr(u8)]
+pub enum EdgeDirection {
+    Forward = 0,
+    Bidirectional = 1,
+}
+<span class="boring">}</span></code></pre>
+<p>Variants 0-8 are code-domain types. Variants 9-16 support non-code domains (supply chain, manufacturing). <code>Custom(u8)</code> is the extension point for future domains.</p>
+<h3 id="dimension-system"><a class="header" href="#dimension-system">Dimension System</a></h3>
+<p>Activation operates across four dimensions with fixed weights:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub enum Dimension {
+    Structural = 0,  // Graph topology (BFS/heap propagation)
+    Semantic = 1,    // Text similarity (trigram TF-IDF + co-occurrence)
+    Temporal = 2,    // Time-based (decay + velocity)
+    Causal = 3,      // Causal chains (forward/backward with discount)
+}
+
+pub const DIMENSION_WEIGHTS: [f32; 4] = [0.35, 0.25, 0.15, 0.25];
+<span class="boring">}</span></code></pre>
+<p>When fewer than 4 dimensions contribute to a result, weights are adaptively redistributed. Results that fire across multiple dimensions receive a resonance bonus: 1.5x for all 4, 1.3x for 3.</p>
+<h2 id="property-graph-model"><a class="header" href="#property-graph-model">Property Graph Model</a></h2>
+<h3 id="string-interner"><a class="header" href="#string-interner">String Interner</a></h3>
+<p>All strings pass through <code>StringInterner</code> before entering the graph. The interner maps strings to <code>InternedStr(u32)</code> handles via a <code>HashMap&lt;String, InternedStr&gt;</code> and resolves handles back via a <code>Vec&lt;String&gt;</code> indexed by the u32 value.</p>
+<p>Once interned, all string comparisons become integer comparisons – zero-allocation, single CPU cycle.</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct StringInterner {
+    strings: Vec&lt;String&gt;,
+    index: HashMap&lt;String, InternedStr&gt;,
+}
+<span class="boring">}</span></code></pre>
+<h3 id="csr-graph"><a class="header" href="#csr-graph">CSR Graph</a></h3>
+<p>The graph uses Compressed Sparse Row (CSR) format with both forward and reverse adjacency. For node <code>i</code>, outgoing edges span <code>offsets[i]..offsets[i+1]</code> into parallel arrays for targets, weights, inhibitory flags, relations, directions, and causal strengths.</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct CsrGraph {
+    // Forward CSR
+    pub offsets: Vec&lt;u64&gt;,              // num_nodes + 1
+    pub targets: Vec&lt;NodeId&gt;,           // total_edges
+    pub weights: Vec&lt;AtomicU32&gt;,        // bit-reinterpreted f32 for lock-free CAS
+    pub inhibitory: Vec&lt;bool&gt;,          // edge polarity
+    pub relations: Vec&lt;InternedStr&gt;,    // edge type (interned)
+    pub directions: Vec&lt;EdgeDirection&gt;, // forward or bidirectional
+    pub causal_strengths: Vec&lt;FiniteF32&gt;,
+
+    // Reverse CSR (built at finalize)
+    pub rev_offsets: Vec&lt;u64&gt;,
+    pub rev_sources: Vec&lt;NodeId&gt;,
+    pub rev_edge_idx: Vec&lt;EdgeIdx&gt;,     // maps back to forward arrays
+
+    // Pre-finalize staging
+    pub pending_edges: Vec&lt;PendingEdge&gt;,
+}
+<span class="boring">}</span></code></pre>
+<p>The CSR is immutable after finalization. Edges are added to <code>pending_edges</code> during graph building, then sorted by source and compacted into the CSR arrays by <code>Graph.finalize()</code>. Bidirectional edges are expanded into two forward entries during finalization.</p>
+<h3 id="atomic-weight-updates"><a class="header" href="#atomic-weight-updates">Atomic Weight Updates</a></h3>
+<p>Edge weights are stored as <code>AtomicU32</code> rather than <code>f32</code>. The plasticity engine updates weights concurrently with read queries using Compare-And-Swap:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn atomic_max_weight(
+    &amp;self, edge: EdgeIdx, new_val: FiniteF32, max_retries: u32,
+) -&gt; M1ndResult&lt;()&gt; {
+    let slot = &amp;self.weights[edge.as_usize()];
+    let new_bits = new_val.get().to_bits();
+    for _ in 0..max_retries {
+        let old_bits = slot.load(Ordering::Relaxed);
+        let old_val = f32::from_bits(old_bits);
+        if old_val &gt;= new_val.get() { return Ok(()); }
+        if slot.compare_exchange_weak(
+            old_bits, new_bits, Ordering::Release, Ordering::Relaxed
+        ).is_ok() { return Ok(()); }
+    }
+    Err(M1ndError::CasRetryExhausted { edge, limit: max_retries })
+}
+<span class="boring">}</span></code></pre>
+<p>Two CAS operations are provided: <code>atomic_max_weight</code> (only increases, for activation scatter-max) and <code>atomic_write_weight</code> (unconditional, for plasticity). Both retry up to 64 times (constant <code>CAS_RETRY_LIMIT</code>).</p>
+<h3 id="node-storage-soa"><a class="header" href="#node-storage-soa">Node Storage (SoA)</a></h3>
+<p>All per-node data lives in <code>NodeStorage</code>, organized as Struct-of-Arrays with explicit cache-path separation:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct NodeStorage {
+    pub count: u32,
+
+    // Hot path: activation engine reads every query
+    pub activation: Vec&lt;[FiniteF32; 4]&gt;,  // [structural, semantic, temporal, causal]
+    pub pagerank: Vec&lt;FiniteF32&gt;,
+
+    // Warm path: plasticity reads per query
+    pub plasticity: Vec&lt;PlasticityNode&gt;,
+
+    // Cold path: seed finding, display, export
+    pub label: Vec&lt;InternedStr&gt;,
+    pub node_type: Vec&lt;NodeType&gt;,
+    pub tags: Vec&lt;SmallVec&lt;[InternedStr; 6]&gt;&gt;,
+    pub last_modified: Vec&lt;f64&gt;,
+    pub change_frequency: Vec&lt;FiniteF32&gt;,
+    pub provenance: Vec&lt;NodeProvenance&gt;,
+}
+<span class="boring">}</span></code></pre>
+<p>The <code>SmallVec&lt;[InternedStr; 6]&gt;</code> for tags avoids heap allocation for nodes with 6 or fewer tags (the common case), while still supporting arbitrary tag counts.</p>
+<h3 id="node-provenance"><a class="header" href="#node-provenance">Node Provenance</a></h3>
+<p>Each node carries source metadata for tracing back to the original code:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct NodeProvenance {
+    pub source_path: Option&lt;InternedStr&gt;,
+    pub line_start: u32,
+    pub line_end: u32,
+    pub excerpt: Option&lt;InternedStr&gt;,
+    pub namespace: Option&lt;InternedStr&gt;,
+    pub canonical: bool,
+}
+<span class="boring">}</span></code></pre>
+<h3 id="generation-counter"><a class="header" href="#generation-counter">Generation Counter</a></h3>
+<p><code>Generation(u64)</code> tracks graph mutations. The plasticity engine stores the generation at initialization. Every plasticity operation asserts that the current graph generation matches; a mismatch (from concurrent ingestion) causes a controlled rebuild rather than operating on stale state.</p>
+<h2 id="activation-propagation"><a class="header" href="#activation-propagation">Activation Propagation</a></h2>
+<h3 id="engine-selection-hybridengine"><a class="header" href="#engine-selection-hybridengine">Engine Selection (HybridEngine)</a></h3>
+<p>The <code>HybridEngine</code> auto-selects between two propagation strategies based on graph characteristics:</p>
+<pre><code class="language-mermaid">flowchart TD
+    START["HybridEngine.propagate()"]
+    CHECK{"seed_ratio &lt; 0.001&lt;br/&gt;AND avg_degree &lt; 8?"}
+    HEAP["HeapEngine&lt;br/&gt;(priority queue)"]
+    WAVE["WavefrontEngine&lt;br/&gt;(BFS depth-parallel)"]
+    MERGE["Collect sparse results"]
+
+    START --&gt; CHECK
+    CHECK --&gt;|yes| HEAP
+    CHECK --&gt;|no| WAVE
+    HEAP --&gt; MERGE
+    WAVE --&gt; MERGE
+</code></pre>
+<ul>
+<li><strong>HeapEngine</strong>: Max-heap priority queue. Processes strongest signal first. Early-terminates when the heap top drops below threshold. Uses a double-hashing <code>BloomFilter</code> for O(1) amortized visited checks. Best for sparse queries with few seeds in low-degree graphs.</li>
+<li><strong>WavefrontEngine</strong>: BFS depth-parallel. All active nodes at current depth fire simultaneously. Signal accumulated via scatter-max into next depth’s buffer. Best for dense queries or high-degree graphs.</li>
+</ul>
+<h3 id="structural-propagation-d1"><a class="header" href="#structural-propagation-d1">Structural Propagation (D1)</a></h3>
+<p>The wavefront engine is the reference implementation. Signal propagates depth by depth:</p>
+<ol>
+<li>Seed nodes initialized with their scores (capped at <code>saturation_cap</code>).</li>
+<li>For each depth (up to <code>max_depth=5</code>, hard cap 20):
+<ul>
+<li>Each frontier node <code>src</code> with activation above <code>threshold=0.04</code> fires.</li>
+<li>For each outgoing edge: <code>signal = src_activation * weight * decay(0.55)</code>.</li>
+<li>Inhibitory edges: <code>signal = -signal * inhibitory_factor(0.5)</code>, subtracted from target (floored at 0).</li>
+<li>Excitatory edges: scatter-max into target (keep strongest arrival).</li>
+</ul>
+</li>
+<li>Collect all nodes with non-zero activation, sorted descending.</li>
+</ol>
+<h3 id="semantic-dimension-d2"><a class="header" href="#semantic-dimension-d2">Semantic Dimension (D2)</a></h3>
+<p>Two indexes power semantic matching:</p>
+<p><strong>CharNgramIndex</strong>: FNV-1a 24-bit trigram hashing over node labels with TF-IDF weighting. An inverted index maps trigram hashes to node lists, enabling O(K) query time (K = number of matching trigrams) instead of O(N) full scan.</p>
+<p><strong>CoOccurrenceIndex</strong>: DeepWalk-lite random walks (20 walks/node, length 10, window 4) generate co-occurrence counts, normalized to Positive Pointwise Mutual Information (PPMI). Sorted vectors enable O(D) merge-intersection for similarity queries. Disabled above 50K nodes to bound walk cost.</p>
+<p>The semantic engine also includes a <code>SynonymExpander</code> with 15 default groups covering code terminology and Portuguese domain terms.</p>
+<p>Query pipeline: Phase 1 ngram candidates (3x top_k) -&gt; Phase 2 multi-seed co-occurrence re-rank.</p>
+<h3 id="temporal-dimension-d3"><a class="header" href="#temporal-dimension-d3">Temporal Dimension (D3)</a></h3>
+<p>Three scorers combine:</p>
+<ul>
+<li><strong>TemporalDecayScorer</strong>: Per-NodeType half-lives (File=7 days, Function=14 days, Module/Directory=30 days). Formula: <code>exp(-ln(2) * age_hours / half_life)</code>. Dormant nodes (&gt;35 days) get a resurrection bonus with an additive floor.</li>
+<li><strong>VelocityScorer</strong>: Z-score based change velocity. Nodes changing faster than average receive higher scores.</li>
+<li><strong>CoChangeMatrix</strong>: Sparse matrix (budget: 500K entries, 100 per row) bootstrapped from BFS depth 3, refined with git co-change observations.</li>
+</ul>
+<h3 id="causal-dimension-d4"><a class="header" href="#causal-dimension-d4">Causal Dimension (D4)</a></h3>
+<p><code>CausalChainDetector</code>: Budget-limited priority-queue DFS along <code>causal_strength</code> edges. Forward propagation follows contains/imports/calls edges; backward propagation reverses direction. Discount factor 0.7 per hop. Chain depth capped at 6 by default.</p>
+<h3 id="dimension-merging"><a class="header" href="#dimension-merging">Dimension Merging</a></h3>
+<p><code>merge_dimensions()</code> combines all four dimension results:</p>
+<ol>
+<li>For each activated node, compute weighted sum: <code>score = sum(dim_score * DIMENSION_WEIGHTS[dim])</code>.</li>
+<li>If a dimension produced no results, redistribute its weight proportionally to active dimensions.</li>
+<li>Apply resonance bonus: 1.5x if all 4 dimensions contributed, 1.3x if 3 contributed.</li>
+<li>Sort by final score, truncate to top_k.</li>
+</ol>
+<h3 id="seed-finding"><a class="header" href="#seed-finding">Seed Finding</a></h3>
+<p><code>SeedFinder</code> resolves query strings to graph nodes via a 5-level matching cascade:</p>
+<ol>
+<li><strong>Exact label match</strong> (highest priority)</li>
+<li><strong>Prefix match</strong> (e.g., “chat_” matches “chat_handler”)</li>
+<li><strong>Substring match</strong> (e.g., “handler” matches “chat_handler”)</li>
+<li><strong>Tag match</strong> (e.g., “#api” tag)</li>
+<li><strong>Fuzzy trigram</strong> (cosine similarity of trigram vectors, lowest priority)</li>
+</ol>
+<p>A semantic re-ranking phase (0.6 basic score / 0.4 semantic blend) refines results when multiple candidates match.</p>
+<h2 id="weight-systems"><a class="header" href="#weight-systems">Weight Systems</a></h2>
+<h3 id="hebbian-plasticity"><a class="header" href="#hebbian-plasticity">Hebbian Plasticity</a></h3>
+<p>The <code>PlasticityEngine</code> implements biological Hebbian learning with 5 phases executed after every activation query:</p>
+<pre><code class="language-mermaid">flowchart LR
+    A["1. Hebbian Strengthen&lt;br/&gt;delta_w = lr * act_src * act_tgt"]
+    B["2. Synaptic Decay&lt;br/&gt;w *= (1 - decay_rate) for inactive"]
+    C["3. LTP/LTD&lt;br/&gt;permanent bonus/penalty&lt;br/&gt;after N consecutive"]
+    D["4. Homeostatic Normalize&lt;br/&gt;scale if total &gt; ceiling"]
+    E["5. Record Query&lt;br/&gt;ring buffer + bigrams"]
+
+    A --&gt; B --&gt; C --&gt; D --&gt; E
+</code></pre>
+<p><strong>Constants</strong> (from <code>plasticity.rs</code>):</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Parameter</th><th>Value</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td><code>DEFAULT_LEARNING_RATE</code></td><td>0.08</td><td>Hebbian weight change rate</td></tr>
+<tr><td><code>DEFAULT_DECAY_RATE</code></td><td>0.005</td><td>Inactive synapse decay per query</td></tr>
+<tr><td><code>LTP_THRESHOLD</code></td><td>5</td><td>Consecutive strengthens before permanent bonus</td></tr>
+<tr><td><code>LTD_THRESHOLD</code></td><td>5</td><td>Consecutive weakens before permanent penalty</td></tr>
+<tr><td><code>LTP_BONUS</code></td><td>0.15</td><td>Permanent weight increase</td></tr>
+<tr><td><code>LTD_PENALTY</code></td><td>0.15</td><td>Permanent weight decrease</td></tr>
+<tr><td><code>HOMEOSTATIC_CEILING</code></td><td>5.0</td><td>Max sum of incoming weights per node</td></tr>
+<tr><td><code>WEIGHT_FLOOR</code></td><td>0.05</td><td>Minimum edge weight (prevents extinction)</td></tr>
+<tr><td><code>WEIGHT_CAP</code></td><td>3.0</td><td>Maximum edge weight</td></tr>
+</tbody>
+</table>
+</div>
+<p><strong>Hebbian update</strong>: For each edge where both source and target were activated: <code>delta_w = learning_rate * activation_source * activation_target</code>. Applied via atomic CAS (<code>atomic_write_weight</code>).</p>
+<p><strong>Homeostatic normalization</strong>: If the sum of incoming weights for any node exceeds <code>HOMEOSTATIC_CEILING</code>, all incoming weights are scaled proportionally to bring the total back under the ceiling. This prevents runaway positive feedback.</p>
+<p><strong>Query Memory</strong>: A ring buffer of 1000 entries tracks recent queries. Each record stores the query text, seed nodes, activated nodes, and timestamp. The memory tracks:</p>
+<ul>
+<li>Node frequency: how often each node appears across recent queries.</li>
+<li>Seed bigrams: co-occurring seed pairs, used for priming signals.</li>
+</ul>
+<p>When the buffer wraps, evicted records have their frequency and bigram counts decremented – maintaining accurate sliding-window statistics.</p>
+<p><strong>Persistence</strong>: Plasticity state (per-edge <code>SynapticState</code>) is exported as JSON using triple-based identity matching (source_label, target_label, relation). This allows plasticity to survive graph rebuilds as long as the semantic structure remains similar.</p>
+<h3 id="xlr-differential-processing"><a class="header" href="#xlr-differential-processing">XLR Differential Processing</a></h3>
+<p>XLR (eXcitatory-Lateral-inhibitory Response) is a spectral noise cancellation system that separates signal from noise in activation results.</p>
+<p><strong>Constants</strong>:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Parameter</th><th>Value</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td><code>F_HOT</code></td><td>1.0</td><td>Hot signal frequency</td></tr>
+<tr><td><code>F_COLD</code></td><td>3.7</td><td>Cold signal frequency</td></tr>
+<tr><td><code>SPECTRAL_BANDWIDTH</code></td><td>0.8</td><td>Gaussian kernel bandwidth</td></tr>
+<tr><td><code>IMMUNITY_HOPS</code></td><td>2</td><td>BFS immunity radius</td></tr>
+<tr><td><code>SIGMOID_STEEPNESS</code></td><td>6.0</td><td>Gating function steepness</td></tr>
+</tbody>
+</table>
+</div>
+<p><strong>6-step pipeline</strong>:</p>
+<ol>
+<li><strong>Anti-seed selection</strong>: Pick nodes dissimilar to seeds (Jaccard similarity &lt; 0.2, degree ratio filter).</li>
+<li><strong>Immunity computation</strong>: BFS 2 hops from seeds. Immune nodes cannot be suppressed.</li>
+<li><strong>Hot propagation</strong>: Spread <code>SpectralPulse</code> with frequency <code>F_HOT=1.0</code> from seed nodes. Pulses carry amplitude, phase, frequency, and a bounded recent path (<code>[NodeId; 3]</code>, not unbounded Vec – FM-RES-007).</li>
+<li><strong>Cold propagation</strong>: Spread from anti-seeds with frequency <code>F_COLD=3.7</code>.</li>
+<li><strong>Spectral overlap + density modulation</strong>: Compute overlap between hot and cold spectra using Gaussian kernel (<code>bw=0.8</code>). Dense neighborhoods get modulated (clamped to <code>[0.3, 2.0]</code>).</li>
+<li><strong>Sigmoid gating</strong>: Apply <code>1 / (1 + exp(-steepness * (hot - cold)))</code> to produce final scores.</li>
+</ol>
+<p><strong>Over-cancellation fallback</strong> (FM-XLR-010): If all results score zero after gating (cold dominates everywhere), fall back to hot-only results. This prevents total signal erasure in adversarial topologies.</p>
+<h2 id="standing-wave-resonance"><a class="header" href="#standing-wave-resonance">Standing Wave Resonance</a></h2>
+<p>The resonance engine discovers structural harmonics by propagating wave pulses through the graph:</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct WavePulse {
+    pub node: NodeId,
+    pub amplitude: FiniteF32,   // can be negative for destructive interference
+    pub phase: FiniteF32,       // [0, 2*pi)
+    pub frequency: PosF32,      // MUST be positive (FM-RES-002)
+    pub wavelength: PosF32,     // MUST be positive (FM-RES-001)
+    pub hops: u8,
+    pub prev_node: NodeId,
+}
+<span class="boring">}</span></code></pre>
+<p><strong>Wave interference</strong>: Pulses accumulate at each node as complex numbers (real + imaginary). Constructive interference occurs when pulses arrive in phase; destructive when out of phase. The <code>WaveAccumulator</code> tracks <code>sum(amplitude * cos(phase))</code> and <code>sum(amplitude * sin(phase))</code>, with resultant amplitude <code>sqrt(real^2 + imag^2)</code>.</p>
+<p><strong>Reflection rules</strong>:</p>
+<ul>
+<li><strong>Dead-end reflection</strong>: At leaf nodes (degree 1), pulse reflects with a pi phase shift (<code>REFLECTION_PHASE_SHIFT</code>).</li>
+<li><strong>Hub partial reflection</strong>: At hub nodes (degree &gt; 4x average), 30% of amplitude reflects (<code>HUB_REFLECTION_COEFF</code>).</li>
+</ul>
+<p><strong>Budget</strong>: <code>DEFAULT_PULSE_BUDGET = 50,000</code> prevents combinatorial explosion in dense subgraphs. Pulses are processed in BFS order via a <code>VecDeque</code>.</p>
+<p><strong>Harmonic analysis</strong>: <code>HarmonicAnalyzer</code> sweeps across frequencies, groups nodes by harmonic response, and identifies resonant frequencies (local maxima in the sweep). <code>SympatheticResonanceDetector</code> finds nodes that resonate across regions (outside 2-hop seed neighborhood) – indicating structural coupling without direct edges.</p>
+<h2 id="pagerank"><a class="header" href="#pagerank">PageRank</a></h2>
+<p>Computed once at <code>Graph.finalize()</code> via power iteration:</p>
+<ul>
+<li>Damping factor: 0.85</li>
+<li>Max iterations: 50</li>
+<li>Convergence threshold: 1e-6</li>
+</ul>
+<p>PageRank scores are stored in <code>NodeStorage.pagerank</code> and used as a static importance signal in seed finding and result ranking.</p>
+<h2 id="persistence"><a class="header" href="#persistence">Persistence</a></h2>
+<h3 id="graph-snapshot"><a class="header" href="#graph-snapshot">Graph Snapshot</a></h3>
+<p><code>snapshot.rs</code> serializes the graph to JSON format (version 3):</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>struct GraphSnapshot {
+    version: u32,           // SNAPSHOT_VERSION = 3
+    nodes: Vec&lt;NodeSnapshot&gt;,
+    edges: Vec&lt;EdgeSnapshot&gt;,
+}
+<span class="boring">}</span></code></pre>
+<p>Each <code>NodeSnapshot</code> includes external_id, label, node_type, tags, timestamps, and optional provenance. Each <code>EdgeSnapshot</code> includes source/target IDs, relation, weight, direction, inhibitory flag, and causal strength.</p>
+<p><strong>Atomic write</strong> (FM-PL-008): Write to a temporary file, then <code>rename()</code> over the target. The rename is atomic on POSIX filesystems, so a crash mid-write leaves the previous snapshot intact.</p>
+<p><strong>NaN firewall</strong>: All values are checked for finiteness at the export boundary. Non-finite values are rejected before writing.</p>
+<h3 id="plasticity-state"><a class="header" href="#plasticity-state">Plasticity State</a></h3>
+<p>Per-edge <code>SynapticState</code> (original weight, current weight, strengthen/weaken counts, LTP/LTD flags) is serialized to a separate JSON file. Import uses triple-based matching (source_label, target_label, relation) to reconnect state to edges after graph rebuilds.</p>
+<h3 id="auto-persist"><a class="header" href="#auto-persist">Auto-Persist</a></h3>
+<p>The MCP server triggers persistence every <code>auto_persist_interval</code> queries (default: 50). Ordering: graph first (source of truth), then plasticity. If graph save fails, plasticity save is skipped to prevent inconsistent state.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../architecture/overview.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../architecture/ingest.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../architecture/overview.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../architecture/ingest.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../mark-09e88c2c.min.js"></script>
+        <script src="../searcher-c2a407aa.js"></script>
+
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>
