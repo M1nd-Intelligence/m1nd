@@ -4,7 +4,7 @@ m1nd exposes **43 MCP tools** over JSON-RPC 2.0 via stdio. Every tool requires `
 
 ## Tool Index
 
-### Core Activation (3 tools)
+### Core Activation
 
 | Tool | Description |
 |------|-------------|
@@ -12,7 +12,7 @@ m1nd exposes **43 MCP tools** over JSON-RPC 2.0 via stdio. Every tool requires `
 | [`m1nd.warmup`](activation.md#m1ndwarmup) | Task-based warmup and priming |
 | [`m1nd.resonate`](activation.md#m1ndresonate) | Resonance analysis: harmonics, sympathetic pairs, and resonant frequencies |
 
-### Analysis (7 tools)
+### Analysis
 
 | Tool | Description |
 |------|-------------|
@@ -24,7 +24,7 @@ m1nd exposes **43 MCP tools** over JSON-RPC 2.0 via stdio. Every tool requires `
 | [`m1nd.differential`](analysis.md#m1nddifferential) | Focused structural diff between two graph snapshots |
 | [`m1nd.diverge`](analysis.md#m1nddiverge) | Structural drift between a baseline and current graph state |
 
-### Memory & Learning (7 tools)
+### Memory & Learning
 
 | Tool | Description |
 |------|-------------|
@@ -36,7 +36,7 @@ m1nd exposes **43 MCP tools** over JSON-RPC 2.0 via stdio. Every tool requires `
 | [`m1nd.trail.list`](memory.md#m1ndtraillist) | List saved investigation trails |
 | [`m1nd.trail.merge`](memory.md#m1ndtrailmerge) | Combine two or more investigation trails |
 
-### Exploration (6 tools)
+### Exploration
 
 | Tool | Description |
 |------|-------------|
@@ -47,7 +47,7 @@ m1nd exposes **43 MCP tools** over JSON-RPC 2.0 via stdio. Every tool requires `
 | [`m1nd.timeline`](exploration.md#m1ndtimeline) | Git-based temporal history for a node |
 | [`m1nd.federate`](exploration.md#m1ndfederate) | Multi-repository federated graph ingestion |
 
-### Perspectives (12 tools)
+### Perspectives
 
 | Tool | Description |
 |------|-------------|
@@ -64,7 +64,7 @@ m1nd exposes **43 MCP tools** over JSON-RPC 2.0 via stdio. Every tool requires `
 | [`m1nd.perspective.list`](perspectives.md#m1ndperspectivelist) | List all perspectives for an agent |
 | [`m1nd.perspective.close`](perspectives.md#m1ndperspectiveclose) | Close a perspective and release associated locks |
 
-### Lifecycle & Locks (8 tools)
+### Lifecycle & Locks
 
 | Tool | Description |
 |------|-------------|

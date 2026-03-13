@@ -169,7 +169,7 @@ cargo build --release
 ./target/release/m1nd-mcp
 ```
 
-Then send the JSON-RPC calls from the [Examples](../EXAMPLES.md) document against your own codebase. Times will vary based on:
+Then send the JSON-RPC calls from the [Examples](https://github.com/maxkle1nz/m1nd/blob/main/EXAMPLES.md) document against your own codebase. Times will vary based on:
 
 - Hardware (CPU speed, memory bandwidth)
 - Codebase size and language

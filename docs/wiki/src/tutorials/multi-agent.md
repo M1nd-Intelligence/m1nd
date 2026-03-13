@@ -153,9 +153,9 @@ Each agent only sees its own:
 // -> [{"perspective_id": "persp-d4e5f6", "focus": "file::worker_pool.py", ...}]
 ```
 
-### Comparing Perspectives Across Agents
+### Comparing Perspectives
 
-You *can* explicitly compare two perspectives from different agents using `perspective.compare`. This is useful for discovering where two independent investigations overlap:
+You can compare two perspectives owned by the same agent using `perspective.compare`. This is useful for discovering where two investigation branches overlap:
 
 ```jsonc
 {
@@ -165,7 +165,7 @@ You *can* explicitly compare two perspectives from different agents using `persp
     "arguments": {
       "agent_id": "agent-a",
       "perspective_id_a": "persp-a1b2c3",
-      "perspective_id_b": "persp-d4e5f6"
+      "perspective_id_b": "persp-a4d5e6"
     }
   }
 }
@@ -185,6 +185,8 @@ Response:
   }
 }
 ```
+
+> **Note**: In V1, both perspectives must belong to the same agent. Cross-agent perspective comparison is planned for V2. To compare findings across agents, use the trail system (trail.save + trail.merge) instead.
 
 ## Lock System for Concurrent Access
 

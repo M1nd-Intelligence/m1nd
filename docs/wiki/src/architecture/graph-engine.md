@@ -331,7 +331,7 @@ XLR (eXcitatory-Lateral-inhibitory Response) is a spectral noise cancellation sy
 
 1. **Anti-seed selection**: Pick nodes dissimilar to seeds (Jaccard similarity < 0.2, degree ratio filter).
 2. **Immunity computation**: BFS 2 hops from seeds. Immune nodes cannot be suppressed.
-3. **Hot propagation**: Spread `SpectralPulse` with frequency `F_HOT=1.0` from seed nodes. Pulses carry amplitude, phase, frequency, and a bounded recent path (`[NodeId; 3]`, not unbounded Vec -- FM-RES-007).
+3. **Hot propagation**: Spread `SpectralPulse` (defined in xlr.rs) with frequency `F_HOT=1.0` from seed nodes. Pulses carry amplitude, phase, frequency, and a bounded recent path (`[NodeId; 3]`, not unbounded Vec).
 4. **Cold propagation**: Spread from anti-seeds with frequency `F_COLD=3.7`.
 5. **Spectral overlap + density modulation**: Compute overlap between hot and cold spectra using Gaussian kernel (`bw=0.8`). Dense neighborhoods get modulated (clamped to `[0.3, 2.0]`).
 6. **Sigmoid gating**: Apply `1 / (1 + exp(-steepness * (hot - cold)))` to produce final scores.

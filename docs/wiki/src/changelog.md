@@ -39,7 +39,7 @@ The first public release of m1nd: a neuro-symbolic connectome engine with Hebbia
   - Foundation (13): activate, impact, missing, why, learn, drift, health, seek, scan, timeline, diverge, warmup, federate
   - Perspective Navigation (12): start, routes, follow, back, peek, inspect, suggest, affinity, branch, compare, list, close
   - Lock System (5): create, watch, diff, rebase, release
-  - Superpowers (13): hypothesize, counterfactual, predict, fingerprint, resonate, trace, validate_plan, differential, trail.save, trail.resume, trail.merge, trail.list, seek
+  - Superpowers (12): hypothesize, counterfactual, predict, fingerprint, resonate, trace, validate_plan, differential, trail.save, trail.resume, trail.merge, trail.list
 - **JSON-RPC over stdio**: compatible with MCP protocol version 2024-11-05
 - **Dual transport**: framed (Content-Length headers) and line-delimited JSON-RPC
 - **Auto-persistence**: configurable interval (default: every 50 queries) + on shutdown

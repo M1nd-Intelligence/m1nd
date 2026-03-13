@@ -95,7 +95,7 @@ A typical `m1nd.activate` query flows through these stages:
 1. **Transport**: JSON-RPC message arrives on stdin (either Content-Length framed or raw line JSON).
 2. **Dispatch**: `McpServer.serve()` parses the JSON-RPC request, matches the tool name, extracts parameters.
 3. **Session**: The tool handler acquires a read lock on `SharedGraph` (`Arc<parking_lot::RwLock<Graph>>`).
-4. **Seed Finding**: `SeedFinder` locates matching nodes via a 5-level cascade: exact label, prefix, substring, tag, fuzzy trigram.
+4. **Seed Finding**: `SeedFinder` locates matching nodes via multi-strategy matching (exact label, prefix, substring, tag, fuzzy trigram -- all checked per token with early-continue on strong matches).
 5. **Activation**: `HybridEngine` auto-selects heap or wavefront strategy based on seed ratio and average degree.
 6. **Dimensions**: Four dimensions run: Structural (BFS/heap propagation), Semantic (trigram TF-IDF + co-occurrence PPMI), Temporal (decay + velocity), Causal (forward/backward with discount).
 7. **Merge**: `merge_dimensions()` combines results with adaptive weights `[0.35, 0.25, 0.15, 0.25]` and resonance bonus (4-dim: 1.5x, 3-dim: 1.3x).
@@ -162,7 +162,7 @@ Benchmarks on the ROOMANIZER OS codebase (~335 files, ~52K lines):
 | Full ingest | ~910ms | Walk + parallel extract + resolve + finalize (CSR + PageRank) |
 | Activate query | ~31ms | 4-dimension with XLR, top-20 results |
 | Impact analysis | ~5ms | BFS blast radius, 3-hop default |
-| Predict (co-change) | ~8ms | Co-change matrix lookup + velocity scoring |
+| Predict (co-change) | <1ms | Co-change matrix lookup + velocity scoring |
 | Graph persist | ~45ms | Atomic JSON write, ~2MB snapshot |
 | Plasticity update | ~2ms | 5-step Hebbian cycle on co-activated edges |
 
