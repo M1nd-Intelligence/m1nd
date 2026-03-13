@@ -319,6 +319,7 @@ Full competitive analysis: [Wiki - Competitive Report](https://github.com/maxkle
 |----------|---------|---------|
 | `M1ND_GRAPH_SOURCE` | Path to persist graph state | In-memory only |
 | `M1ND_PLASTICITY_STATE` | Path to persist plasticity weights | In-memory only |
+| `M1ND_XLR_ENABLED` | Enable XLR noise cancellation | `true` |
 
 ## Building from source
 
@@ -365,7 +366,7 @@ MIT -- see [LICENSE](LICENSE).
 ---
 
 <p align="center">
-  <sub>~15,500 lines of Rust &middot; 296 tests &middot; 43 tools &middot; 28 languages &middot; ~8MB binary</sub>
+  <sub>~15,500 lines of Rust · 280 tests · 43 tools · 28 languages · ~8MB binary</sub>
 </p>
 
 <p align="center">

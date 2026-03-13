@@ -263,8 +263,8 @@ Three scorers combine:
 `SeedFinder` resolves query strings to graph nodes via a 5-level matching cascade:
 
 1. **Exact label match** (highest priority)
-2. **Prefix match** (e.g., "chat_" matches "chat_handler")
-3. **Substring match** (e.g., "handler" matches "chat_handler")
+2. **Prefix match** (e.g., "chat_" matches "handler")
+3. **Substring match** (e.g., "handler" matches "handler")
 4. **Tag match** (e.g., "#api" tag)
 5. **Fuzzy trigram** (cosine similarity of trigram vectors, lowest priority)
 

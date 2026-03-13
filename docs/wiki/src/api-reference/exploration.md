@@ -137,9 +137,9 @@ Pattern-aware structural code analysis with graph-validated findings. Detects st
       "pattern": "error_handling",
       "status": "confirmed",
       "severity": 0.78,
-      "node_id": "file::spawner.py::fn::spawn_agent",
+      "node_id": "file::worker.py::fn::spawn_agent",
       "label": "spawn_agent",
-      "file_path": "backend/spawner.py",
+      "file_path": "backend/worker.py",
       "line": 89,
       "message": "Bare except clause catches all exceptions including KeyboardInterrupt",
       "graph_context": [
@@ -269,7 +269,7 @@ Map runtime errors to structural root causes via stacktrace analysis. Parses the
     "name": "m1nd.trace",
     "arguments": {
       "agent_id": "jimi",
-      "error_text": "Traceback (most recent call last):\n  File \"backend/chat_handler.py\", line 234, in handle_message\n  File \"backend/session_pool.py\", line 89, in acquire\n  File \"backend/worker_pool.py\", line 156, in submit\nTimeoutError: pool exhausted",
+      "error_text": "Traceback (most recent call last):\n  File \"backend/handler.py\", line 234, in handle_message\n  File \"backend/pool.py\", line 89, in acquire\n  File \"backend/worker.py\", line 156, in submit\nTimeoutError: pool exhausted",
       "language": "python",
       "top_k": 5
     }
@@ -288,34 +288,34 @@ Map runtime errors to structural root causes via stacktrace analysis. Parses the
   "frames_mapped": 3,
   "suspects": [
     {
-      "node_id": "file::worker_pool.py::fn::submit",
+      "node_id": "file::worker.py::fn::submit",
       "label": "submit",
       "type": "function",
       "suspiciousness": 0.91,
       "signals": { "trace_depth_score": 1.0, "recency_score": 0.85, "centrality_score": 0.88 },
-      "file_path": "backend/worker_pool.py",
+      "file_path": "backend/worker.py",
       "line_start": 150,
       "line_end": 175,
-      "related_callers": ["session_pool.py::acquire"]
+      "related_callers": ["pool.py::acquire"]
     },
     {
-      "node_id": "file::session_pool.py::fn::acquire",
+      "node_id": "file::pool.py::fn::acquire",
       "label": "acquire",
       "type": "function",
       "suspiciousness": 0.78,
       "signals": { "trace_depth_score": 0.67, "recency_score": 0.72, "centrality_score": 0.65 },
-      "file_path": "backend/session_pool.py",
+      "file_path": "backend/pool.py",
       "line_start": 80,
       "line_end": 110,
-      "related_callers": ["chat_handler.py::handle_message"]
+      "related_callers": ["handler.py::handle_message"]
     }
   ],
   "co_change_suspects": [
     { "node_id": "file::config.py", "label": "config.py", "modified_at": 1710295000.0, "reason": "Modified within 2h of top suspect" }
   ],
-  "causal_chain": ["worker_pool.py::submit", "session_pool.py::acquire", "chat_handler.py::handle_message"],
+  "causal_chain": ["worker.py::submit", "pool.py::acquire", "handler.py::handle_message"],
   "fix_scope": {
-    "files_to_inspect": ["backend/worker_pool.py", "backend/session_pool.py", "backend/config.py"],
+    "files_to_inspect": ["backend/worker.py", "backend/pool.py", "backend/config.py"],
     "estimated_blast_radius": 23,
     "risk_level": "medium"
   },
@@ -354,7 +354,7 @@ Git-based temporal history for a node. Returns the change history, co-change par
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `node` | `string` | Yes | -- | Node external_id. Example: `"file::backend/chat_handler.py"`. |
+| `node` | `string` | Yes | -- | Node external_id. Example: `"file::backend/handler.py"`. |
 | `agent_id` | `string` | Yes | -- | Calling agent identifier. |
 | `depth` | `string` | No | `"30d"` | Time depth. Values: `"7d"`, `"30d"`, `"90d"`, `"all"`. |
 | `include_co_changes` | `boolean` | No | `true` | Include co-changed files with coupling scores. |
@@ -372,7 +372,7 @@ Git-based temporal history for a node. Returns the change history, co-change par
     "name": "m1nd.timeline",
     "arguments": {
       "agent_id": "jimi",
-      "node": "file::backend/chat_handler.py",
+      "node": "file::backend/handler.py",
       "depth": "30d",
       "top_k": 5
     }
@@ -384,7 +384,7 @@ Git-based temporal history for a node. Returns the change history, co-change par
 
 ```json
 {
-  "node": "file::backend/chat_handler.py",
+  "node": "file::backend/handler.py",
   "depth": "30d",
   "changes": [
     {
@@ -392,20 +392,20 @@ Git-based temporal history for a node. Returns the change history, co-change par
       "commit": "a1b2c3d",
       "author": "cosmophonix",
       "delta": "+45/-12",
-      "co_changed": ["stream_parser.py", "chat_routes.py"]
+      "co_changed": ["parser.py", "routes.py"]
     },
     {
       "date": "2026-03-05",
       "commit": "e4f5g6h",
       "author": "cosmophonix",
       "delta": "+120/-30",
-      "co_changed": ["session_pool.py", "worker_pool.py"]
+      "co_changed": ["pool.py", "worker.py"]
     }
   ],
   "co_changed_with": [
-    { "file": "stream_parser.py", "times": 8, "coupling_degree": 0.72 },
-    { "file": "chat_routes.py", "times": 6, "coupling_degree": 0.55 },
-    { "file": "session_pool.py", "times": 4, "coupling_degree": 0.38 }
+    { "file": "parser.py", "times": 8, "coupling_degree": 0.72 },
+    { "file": "routes.py", "times": 6, "coupling_degree": 0.55 },
+    { "file": "pool.py", "times": 4, "coupling_degree": 0.38 }
   ],
   "velocity": "accelerating",
   "stability_score": 0.35,

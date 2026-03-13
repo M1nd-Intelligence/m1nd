@@ -168,9 +168,9 @@ Validate a proposed modification plan against the code graph. Detects gaps (affe
     "arguments": {
       "agent_id": "jimi",
       "actions": [
-        { "action_type": "modify", "file_path": "backend/session_pool.py", "description": "Add connection timeout" },
-        { "action_type": "modify", "file_path": "backend/worker_pool.py", "description": "Update pool acquire to use timeout" },
-        { "action_type": "test", "file_path": "backend/tests/test_session_pool.py" }
+        { "action_type": "modify", "file_path": "backend/pool.py", "description": "Add connection timeout" },
+        { "action_type": "modify", "file_path": "backend/worker.py", "description": "Update pool acquire to use timeout" },
+        { "action_type": "test", "file_path": "backend/tests/test_pool.py" }
       ]
     }
   }
@@ -188,14 +188,14 @@ Validate a proposed modification plan against the code graph. Detects gaps (affe
     {
       "file_path": "backend/config.py",
       "node_id": "file::config.py",
-      "reason": "imported by modified file session_pool.py -- timeout config likely needed here",
+      "reason": "imported by modified file pool.py -- timeout config likely needed here",
       "severity": "warning",
       "signal_strength": 0.72
     },
     {
       "file_path": "backend/process_manager.py",
       "node_id": "file::process_manager.py",
-      "reason": "in blast radius of worker_pool.py -- calls worker_pool.submit",
+      "reason": "in blast radius of worker.py -- calls worker.submit",
       "severity": "info",
       "signal_strength": 0.45
     }
@@ -205,12 +205,12 @@ Validate a proposed modification plan against the code graph. Detects gaps (affe
   "test_coverage": {
     "modified_files": 2,
     "tested_files": 1,
-    "untested_files": ["backend/worker_pool.py"],
+    "untested_files": ["backend/worker.py"],
     "coverage_ratio": 0.5
   },
   "suggested_additions": [
     { "action_type": "modify", "file_path": "backend/config.py", "reason": "Timeout configuration likely needed" },
-    { "action_type": "test", "file_path": "backend/tests/test_worker_pool.py", "reason": "Modified file has no test action in plan" }
+    { "action_type": "test", "file_path": "backend/tests/test_worker.py", "reason": "Modified file has no test action in plan" }
   ],
   "blast_radius_total": 47,
   "elapsed_ms": 35.0
@@ -277,7 +277,7 @@ Pin a subgraph region and capture a baseline snapshot for change monitoring. Loc
     "arguments": {
       "agent_id": "jimi",
       "scope": "subgraph",
-      "root_nodes": ["file::chat_handler.py"],
+      "root_nodes": ["file::handler.py"],
       "radius": 2
     }
   }
@@ -406,14 +406,14 @@ Compute what changed in a locked region since the baseline was captured. Returns
   "diff": {
     "lock_id": "lock_jimi_001",
     "no_changes": false,
-    "new_nodes": ["file::chat_handler.py::fn::new_method"],
+    "new_nodes": ["file::handler.py::fn::new_method"],
     "removed_nodes": [],
-    "new_edges": ["chat_handler.py|new_method->stream_parser.py|calls"],
+    "new_edges": ["handler.py|new_method->parser.py|calls"],
     "removed_edges": [],
     "boundary_edges_added": [],
     "boundary_edges_removed": [],
     "weight_changes": [
-      { "edge_key": "chat_handler.py|stream_parser.py|imports", "old_weight": 0.5, "new_weight": 0.72 }
+      { "edge_key": "handler.py|parser.py|imports", "old_weight": 0.5, "new_weight": 0.72 }
     ],
     "baseline_stale": false,
     "elapsed_ms": 0.08

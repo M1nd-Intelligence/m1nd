@@ -161,7 +161,7 @@ Each extracted node carries:
 
 ```rust
 pub struct ExtractedNode {
-    pub id: String,        // e.g. "file::backend/chat_handler.py::ChatHandler"
+    pub id: String,        // e.g. "file::backend/handler.py::ChatHandler"
     pub label: String,     // e.g. "ChatHandler"
     pub node_type: NodeType,
     pub tags: Vec<String>,
@@ -190,9 +190,9 @@ Supported: Rust (`//`, `/* */`), Python (`#`, `""" """`), C-style (`//`, `/* */`
 
 Extracted nodes use a hierarchical ID scheme: `file::{relative_path}::{entity_name}`. For example:
 
-- `file::backend/chat_handler.py` (file node)
-- `file::backend/chat_handler.py::ChatHandler` (class node)
-- `file::backend/chat_handler.py::ChatHandler::handle_message` (method node)
+- `file::backend/handler.py` (file node)
+- `file::backend/handler.py::ChatHandler` (class node)
+- `file::backend/handler.py::ChatHandler::handle_message` (method node)
 
 Unresolved references use the prefix `ref::`: `ref::Config`, `ref::react`. These are resolved to actual nodes in Phase 4.
 

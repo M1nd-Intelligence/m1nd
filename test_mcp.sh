@@ -15,7 +15,7 @@ echo -e '{"jsonrpc":"2.0","method":"initialize","id":1,"params":{"protocolVersio
 
 echo ""
 echo "--- Test 3: Health check ---"
-echo -e '{"jsonrpc":"2.0","method":"initialize","id":1,"params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.1"}}}\n{"jsonrpc":"2.0","method":"tools/call","id":3,"params":{"name":"m1nd.status","arguments":{}}}' | timeout 5 $BINARY 2>/dev/null
+echo -e '{"jsonrpc":"2.0","method":"initialize","id":1,"params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.1"}}}\n{"jsonrpc":"2.0","method":"tools/call","id":3,"params":{"name":"m1nd.health","arguments":{}}}' | timeout 5 $BINARY 2>/dev/null
 
 echo ""
 echo "=== Tests complete ==="

@@ -61,7 +61,7 @@ Response:
 {
   "activated": [
     {
-      "node_id": "file::session_pool.py",
+      "node_id": "file::pool.py",
       "score": 0.89,
       "dimension_scores": {
         "structural": 0.92,
@@ -70,15 +70,15 @@ Response:
         "causal": 0.71
       }
     },
-    {"node_id": "file::session_pool.py::class::SessionPool", "score": 0.84},
-    {"node_id": "file::worker_pool.py", "score": 0.61},
-    {"node_id": "file::session_pool.py::fn::acquire", "score": 0.58},
+    {"node_id": "file::pool.py::class::ConnectionPool", "score": 0.84},
+    {"node_id": "file::worker.py", "score": 0.61},
+    {"node_id": "file::pool.py::fn::acquire", "score": 0.58},
     {"node_id": "file::process_manager.py", "score": 0.45}
   ],
   "ghost_edges": [
     {
-      "from": "file::session_pool.py",
-      "to": "file::healing_manager.py",
+      "from": "file::pool.py",
+      "to": "file::recovery.py",
       "confidence": 0.34
     }
   ]
@@ -89,13 +89,13 @@ Response:
 
 - **`score`**: Combined 4-dimensional activation score (0.0 to 1.0)
 - **`dimension_scores`**: Breakdown by structural (graph distance, PageRank), semantic (token overlap), temporal (co-change history), and causal (suspiciousness)
-- **`ghost_edges`**: Connections the graph inferred but that are not explicit in code. Here, `session_pool.py` and `healing_manager.py` are structurally unconnected but co-activate together -- a hidden dependency worth investigating.
+- **`ghost_edges`**: Connections the graph inferred but that are not explicit in code. Here, `pool.py` and `recovery.py` are structurally unconnected but co-activate together -- a hidden dependency worth investigating.
 
 Note the scores. We will come back to this query after teaching the graph.
 
 ## Step 3: Teach the Graph (Hebbian Learning)
 
-The top two results (`session_pool.py` and the `SessionPool` class) were exactly what we needed. Tell the graph:
+The top two results (`pool.py` and the `ConnectionPool` class) were exactly what we needed. Tell the graph:
 
 ```jsonc
 {
@@ -107,8 +107,8 @@ The top two results (`session_pool.py` and the `SessionPool` class) were exactly
       "agent_id": "dev",
       "feedback": "correct",
       "node_ids": [
-        "file::session_pool.py",
-        "file::session_pool.py::class::SessionPool"
+        "file::pool.py",
+        "file::pool.py::class::ConnectionPool"
       ],
       "strength": 0.2
     }
@@ -129,7 +129,7 @@ Response:
 
 **What happened**: Hebbian Long-Term Potentiation (LTP) strengthened 740 edges along paths connecting the confirmed-useful nodes. "Neurons that fire together wire together." The next time anyone queries this region of the graph, those paths carry more signal.
 
-Now suppose `worker_pool.py` (score 0.61) was not actually relevant. Mark it wrong:
+Now suppose `worker.py` (score 0.61) was not actually relevant. Mark it wrong:
 
 ```jsonc
 {
@@ -140,7 +140,7 @@ Now suppose `worker_pool.py` (score 0.61) was not actually relevant. Mark it wro
       "query": "session pool management",
       "agent_id": "dev",
       "feedback": "wrong",
-      "node_ids": ["file::worker_pool.py"],
+      "node_ids": ["file::worker.py"],
       "strength": 0.2
     }
   }
@@ -158,7 +158,7 @@ Response:
 }
 ```
 
-Long-Term Depression (LTD) weakened 312 edges leading to `worker_pool.py` from this query region. The graph now knows: for session pool queries, `worker_pool.py` is noise.
+Long-Term Depression (LTD) weakened 312 edges leading to `worker.py` from this query region. The graph now knows: for session pool queries, `worker.py` is noise.
 
 ## Step 4: Activate Again -- See the Improvement
 
@@ -183,11 +183,11 @@ Expected changes:
 ```json
 {
   "activated": [
-    {"node_id": "file::session_pool.py", "score": 0.93},
-    {"node_id": "file::session_pool.py::class::SessionPool", "score": 0.88},
-    {"node_id": "file::session_pool.py::fn::acquire", "score": 0.65},
+    {"node_id": "file::pool.py", "score": 0.93},
+    {"node_id": "file::pool.py::class::ConnectionPool", "score": 0.88},
+    {"node_id": "file::pool.py::fn::acquire", "score": 0.65},
     {"node_id": "file::process_manager.py", "score": 0.47},
-    {"node_id": "file::healing_manager.py", "score": 0.39}
+    {"node_id": "file::recovery.py", "score": 0.39}
   ]
 }
 ```
@@ -196,12 +196,12 @@ Compare with Step 2:
 
 | Node | Before | After | Change |
 |------|--------|-------|--------|
-| `session_pool.py` | 0.89 | 0.93 | +0.04 (strengthened) |
-| `SessionPool` class | 0.84 | 0.88 | +0.04 (strengthened) |
-| `worker_pool.py` | 0.61 | dropped | Pushed below top-5 (weakened) |
-| `healing_manager.py` | ghost only | 0.39 | Promoted from ghost to main results |
+| `pool.py` | 0.89 | 0.93 | +0.04 (strengthened) |
+| `ConnectionPool` class | 0.84 | 0.88 | +0.04 (strengthened) |
+| `worker.py` | 0.61 | dropped | Pushed below top-5 (weakened) |
+| `recovery.py` | ghost only | 0.39 | Promoted from ghost to main results |
 
-The graph learned. `worker_pool.py` fell out of the top results. `healing_manager.py`, previously only a ghost edge, got promoted because the strengthened paths through `session_pool.py` now carry more signal to its neighborhood.
+The graph learned. `worker.py` fell out of the top results. `recovery.py`, previously only a ghost edge, got promoted because the strengthened paths through `pool.py` now carry more signal to its neighborhood.
 
 **This is the core value proposition of m1nd**: every interaction makes the graph smarter. No other code intelligence tool does this.
 
@@ -261,7 +261,7 @@ Before deleting or rewriting a module, simulate the consequences:
   "params": {
     "name": "m1nd.counterfactual",
     "arguments": {
-      "node_ids": ["file::spawner.py"],
+      "node_ids": ["file::worker.py"],
       "agent_id": "dev"
     }
   }
@@ -285,7 +285,7 @@ Response:
 
 **Reading the results**:
 
-- **Depth 1**: 23 nodes directly depend on `spawner.py`
+- **Depth 1**: 23 nodes directly depend on `worker.py`
 - **Depth 2**: 456 more nodes depend on those 23
 - **Depth 3**: 3,710 more -- a cascade explosion
 - **Total**: 4,189 nodes affected out of ~9,767 (42.9% of the graph)
@@ -321,7 +321,7 @@ Response:
 }
 ```
 
-Despite `config.py` having more direct dependents (89 vs 23), its total cascade is smaller (2,531 vs 4,189). `spawner.py` sits at a structural chokepoint where downstream nodes have more transitive dependencies. This insight is impossible to get from `grep` or import analysis alone -- it requires full graph traversal.
+Despite `config.py` having more direct dependents (89 vs 23), its total cascade is smaller (2,531 vs 4,189). `worker.py` sits at a structural chokepoint where downstream nodes have more transitive dependencies. This insight is impossible to get from `grep` or import analysis alone -- it requires full graph traversal.
 
 ## Step 7: Hypothesis Testing (Bonus)
 
@@ -333,7 +333,7 @@ Test a structural claim against the graph:
   "params": {
     "name": "m1nd.hypothesize",
     "arguments": {
-      "claim": "worker_pool depends on whatsapp_manager at runtime",
+      "claim": "worker depends on messaging at runtime",
       "agent_id": "dev"
     }
   }
@@ -350,9 +350,9 @@ Response:
   "evidence": [
     {
       "path": [
-        "file::worker_pool.py",
+        "file::worker.py",
         "file::process_manager.py::fn::cancel",
-        "file::whatsapp_manager.py"
+        "file::messaging.py"
       ],
       "hops": 2
     }

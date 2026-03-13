@@ -317,7 +317,7 @@ impl FiniteF32 {
 <h3 id="atomic-persistence"><a class="header" href="#atomic-persistence">Atomic Persistence</a></h3>
 <p>Graph and plasticity state are saved via atomic write: serialize to a temporary file, then <code>rename()</code> over the target. This prevents corruption on crash (FM-PL-008). The NaN firewall at the export boundary rejects any non-finite values that might have leaked through.</p>
 <h2 id="performance-characteristics"><a class="header" href="#performance-characteristics">Performance Characteristics</a></h2>
-<p>Benchmarks on the ROOMANIZER OS codebase (~335 files, ~52K lines):</p>
+<p>Benchmarks on the a production codebase (335 files, ~52K lines, Python + Rust + TypeScript):</p>
 <div class="table-wrapper">
 <table>
 <thead>

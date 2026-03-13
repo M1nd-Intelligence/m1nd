@@ -208,8 +208,8 @@
   "params": {
     "name": "m1nd.impact",
     "arguments": {
-      "agent_id": "jimi",
-      "node_id": "file::chat_handler.py",
+      "agent_id": "orchestrator",
+      "node_id": "file::handler.py",
       "direction": "forward",
       "include_causal_chains": true
     }
@@ -218,19 +218,19 @@
 </code></pre>
 <h3 id="example-response"><a class="header" href="#example-response">Example Response</a></h3>
 <pre><code class="language-json">{
-  "source": "file::chat_handler.py",
-  "source_label": "chat_handler.py",
+  "source": "file::handler.py",
+  "source_label": "handler.py",
   "direction": "forward",
   "blast_radius": [
     { "node_id": "file::chat_routes.py", "label": "chat_routes.py", "type": "file", "signal_strength": 0.91, "hop_distance": 1 },
     { "node_id": "file::ws_relay.py", "label": "ws_relay.py", "type": "file", "signal_strength": 0.78, "hop_distance": 1 },
-    { "node_id": "file::stream_parser.py", "label": "stream_parser.py", "type": "file", "signal_strength": 0.65, "hop_distance": 2 }
+    { "node_id": "file::parser.py", "label": "parser.py", "type": "file", "signal_strength": 0.65, "hop_distance": 2 }
   ],
   "total_energy": 4271.0,
   "max_hops_reached": 3,
   "causal_chains": [
     {
-      "path": ["chat_handler.py", "chat_routes.py", "main.py"],
+      "path": ["handler.py", "chat_routes.py", "main.py"],
       "relations": ["imported_by", "registered_in"],
       "cumulative_strength": 0.82
     }
@@ -275,8 +275,8 @@
   "params": {
     "name": "m1nd.predict",
     "arguments": {
-      "agent_id": "jimi",
-      "changed_node": "file::session_pool.py",
+      "agent_id": "orchestrator",
+      "changed_node": "file::pool.py",
       "top_k": 5
     }
   }
@@ -284,12 +284,12 @@
 </code></pre>
 <h3 id="example-response-1"><a class="header" href="#example-response-1">Example Response</a></h3>
 <pre><code class="language-json">{
-  "changed_node": "file::session_pool.py",
+  "changed_node": "file::pool.py",
   "predictions": [
-    { "node_id": "file::worker_pool.py", "label": "worker_pool.py", "confidence": 0.89, "velocity": 0.72, "reason": "high co-change frequency + structural coupling" },
+    { "node_id": "file::worker.py", "label": "worker.py", "confidence": 0.89, "velocity": 0.72, "reason": "high co-change frequency + structural coupling" },
     { "node_id": "file::process_manager.py", "label": "process_manager.py", "confidence": 0.76, "velocity": 0.65, "reason": "imports session_pool" },
-    { "node_id": "file::tests/test_session_pool.py", "label": "test_session_pool.py", "confidence": 0.71, "velocity": 0.80, "reason": "test file" },
-    { "node_id": "file::spawner.py", "label": "spawner.py", "confidence": 0.54, "velocity": 0.41, "reason": "2-hop dependency" },
+    { "node_id": "file::tests/test_pool.py", "label": "test_pool.py", "confidence": 0.71, "velocity": 0.80, "reason": "test file" },
+    { "node_id": "file::worker.py", "label": "worker.py", "confidence": 0.54, "velocity": 0.41, "reason": "2-hop dependency" },
     { "node_id": "file::config.py", "label": "config.py", "confidence": 0.32, "velocity": 0.28, "reason": "shared configuration" }
   ],
   "elapsed_ms": 8.3
@@ -331,8 +331,8 @@
   "params": {
     "name": "m1nd.counterfactual",
     "arguments": {
-      "agent_id": "jimi",
-      "node_ids": ["file::spawner.py"],
+      "agent_id": "orchestrator",
+      "node_ids": ["file::worker.py"],
       "include_cascade": true
     }
   }
@@ -340,7 +340,7 @@
 </code></pre>
 <h3 id="example-response-2"><a class="header" href="#example-response-2">Example Response</a></h3>
 <pre><code class="language-json">{
-  "removed_nodes": ["file::spawner.py"],
+  "removed_nodes": ["file::worker.py"],
   "cascade": [
     { "depth": 1, "affected": 23 },
     { "depth": 2, "affected": 456 },
@@ -388,8 +388,8 @@
   "params": {
     "name": "m1nd.fingerprint",
     "arguments": {
-      "agent_id": "jimi",
-      "target_node": "file::session_pool.py",
+      "agent_id": "orchestrator",
+      "target_node": "file::pool.py",
       "similarity_threshold": 0.7
     }
   }
@@ -397,10 +397,10 @@
 </code></pre>
 <h3 id="example-response-3"><a class="header" href="#example-response-3">Example Response</a></h3>
 <pre><code class="language-json">{
-  "target": "file::session_pool.py",
+  "target": "file::pool.py",
   "fingerprint": [0.92, 0.45, 0.78, 0.33, 0.67],
   "equivalents": [
-    { "node_id": "file::worker_pool.py", "label": "worker_pool.py", "similarity": 0.88, "reason": "similar pool lifecycle pattern" },
+    { "node_id": "file::worker.py", "label": "worker.py", "similarity": 0.88, "reason": "similar pool lifecycle pattern" },
     { "node_id": "file::fast_pool.py", "label": "fast_pool.py", "similarity": 0.74, "reason": "shared structural role" }
   ],
   "elapsed_ms": 55.2
@@ -428,7 +428,7 @@
 <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr>
 </thead>
 <tbody>
-<tr><td><code>claim</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Natural language claim about the codebase. Examples: <code>"chat_handler never validates session tokens"</code>, <code>"all external calls go through smart_router"</code>, <code>"critic is independent of whatsapp"</code>.</td></tr>
+<tr><td><code>claim</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Natural language claim about the codebase. Examples: <code>"chat_handler never validates session tokens"</code>, <code>"all external calls go through the router"</code>, <code>"auditor is independent of messaging"</code>.</td></tr>
 <tr><td><code>agent_id</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Calling agent identifier.</td></tr>
 <tr><td><code>max_hops</code></td><td><code>integer</code></td><td>No</td><td><code>5</code></td><td>Maximum BFS hops for evidence search.</td></tr>
 <tr><td><code>include_ghost_edges</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Include ghost edges as weak evidence. Ghost edges count as lower-weight supporting evidence.</td></tr>
@@ -445,7 +445,7 @@
   "params": {
     "name": "m1nd.hypothesize",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "claim": "worker_pool depends on whatsapp_manager at runtime"
     }
   }
@@ -455,8 +455,8 @@
 <pre><code class="language-json">{
   "claim": "worker_pool depends on whatsapp_manager at runtime",
   "claim_type": "depends_on",
-  "subject_nodes": ["file::worker_pool.py"],
-  "object_nodes": ["file::whatsapp_manager.py"],
+  "subject_nodes": ["file::worker.py"],
+  "object_nodes": ["file::messaging.py"],
   "verdict": "likely_true",
   "confidence": 0.72,
   "supporting_evidence": [
@@ -464,7 +464,7 @@
       "type": "path_found",
       "description": "2-hop path via process_manager.cancel",
       "likelihood_factor": 3.5,
-      "nodes": ["file::worker_pool.py", "file::process_manager.py", "file::whatsapp_manager.py"],
+      "nodes": ["file::worker.py", "file::process_manager.py", "file::messaging.py"],
       "relations": ["calls", "imports"],
       "path_weight": 0.68
     }
@@ -526,7 +526,7 @@
   "params": {
     "name": "m1nd.differential",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "snapshot_a": "/path/to/before.json",
       "snapshot_b": "current",
       "question": "what new coupling was introduced?"
@@ -539,16 +539,16 @@
   "snapshot_a": "/path/to/before.json",
   "snapshot_b": "current",
   "new_edges": [
-    { "source": "whatsapp_routes.py", "target": "chat_handler.py", "relation": "calls", "weight": 0.45 }
+    { "source": "messaging_routes.py", "target": "handler.py", "relation": "calls", "weight": 0.45 }
   ],
   "removed_edges": [],
   "weight_changes": [
-    { "source": "session_pool.py", "target": "worker_pool.py", "relation": "imports", "old_weight": 0.5, "new_weight": 0.78, "delta": 0.28 }
+    { "source": "pool.py", "target": "worker.py", "relation": "imports", "old_weight": 0.5, "new_weight": 0.78, "delta": 0.28 }
   ],
-  "new_nodes": ["file::whatsapp_chat_bridge.py"],
+  "new_nodes": ["file::messaging_bridge.py"],
   "removed_nodes": [],
   "coupling_deltas": [
-    { "community_a": "whatsapp", "community_b": "chat", "old_coupling": 0.2, "new_coupling": 0.65, "delta": 0.45 }
+    { "community_a": "messaging", "community_b": "handler", "old_coupling": 0.2, "new_coupling": 0.65, "delta": 0.45 }
   ],
   "summary": "1 new edge, 1 new node, 1 weight change, 1 coupling increase",
   "elapsed_ms": 120.5
@@ -577,7 +577,7 @@
 <tbody>
 <tr><td><code>agent_id</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Calling agent identifier.</td></tr>
 <tr><td><code>baseline</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Baseline reference. Values: ISO date (<code>"2026-03-01"</code>), git ref (SHA or tag), or <code>"last_session"</code> to use the saved GraphFingerprint.</td></tr>
-<tr><td><code>scope</code></td><td><code>string</code></td><td>No</td><td>–</td><td>File path glob to limit scope. Example: <code>"backend/stormender*"</code>. <code>None</code> = all nodes.</td></tr>
+<tr><td><code>scope</code></td><td><code>string</code></td><td>No</td><td>–</td><td>File path glob to limit scope. Example: <code>"backend/orchestrator*"</code>. <code>None</code> = all nodes.</td></tr>
 <tr><td><code>include_coupling_changes</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Include coupling matrix delta between communities.</td></tr>
 <tr><td><code>include_anomalies</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Detect anomalies: test deficits, velocity spikes, new coupling, isolation.</td></tr>
 </tbody>
@@ -591,9 +591,9 @@
   "params": {
     "name": "m1nd.diverge",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "baseline": "2026-03-01",
-      "scope": "backend/stormender*"
+      "scope": "backend/orchestrator*"
     }
   }
 }
@@ -602,21 +602,21 @@
 <pre><code class="language-json">{
   "baseline": "2026-03-01",
   "baseline_commit": "a1b2c3d",
-  "scope": "backend/stormender*",
+  "scope": "backend/orchestrator*",
   "structural_drift": 0.23,
-  "new_nodes": ["file::stormender_v2_runtime_guard.py"],
+  "new_nodes": ["file::orchestrator_runtime_guard.py"],
   "removed_nodes": [],
   "modified_nodes": [
-    { "file": "stormender_v2.py", "delta": "+450/-30", "growth_ratio": 1.85 }
+    { "file": "orchestrator_v2.py", "delta": "+450/-30", "growth_ratio": 1.85 }
   ],
   "coupling_changes": [
-    { "pair": ["stormender_v2.py", "stormender_v2_routes.py"], "was": 0.4, "now": 0.72, "direction": "strengthened" }
+    { "pair": ["orchestrator_v2.py", "orchestrator_routes.py"], "was": 0.4, "now": 0.72, "direction": "strengthened" }
   ],
   "anomalies": [
-    { "type": "test_deficit", "file": "stormender_v2_runtime_guard.py", "detail": "New file with 0 test files", "severity": "warning" },
-    { "type": "velocity_spike", "file": "stormender_v2.py", "detail": "450 lines added in 12 days", "severity": "info" }
+    { "type": "test_deficit", "file": "orchestrator_runtime_guard.py", "detail": "New file with 0 test files", "severity": "warning" },
+    { "type": "velocity_spike", "file": "orchestrator_v2.py", "detail": "450 lines added in 12 days", "severity": "info" }
   ],
-  "summary": "23% structural drift. 1 new file (untested). Stormender coupling strengthened.",
+  "summary": "23% structural drift. 1 new file (untested). orchestrator coupling strengthened.",
   "elapsed_ms": 85.0
 }
 </code></pre>

@@ -28,7 +28,7 @@ Impact radius / blast analysis for a node. Propagates signal outward from a sour
     "name": "m1nd.impact",
     "arguments": {
       "agent_id": "jimi",
-      "node_id": "file::chat_handler.py",
+      "node_id": "file::handler.py",
       "direction": "forward",
       "include_causal_chains": true
     }
@@ -40,19 +40,19 @@ Impact radius / blast analysis for a node. Propagates signal outward from a sour
 
 ```json
 {
-  "source": "file::chat_handler.py",
-  "source_label": "chat_handler.py",
+  "source": "file::handler.py",
+  "source_label": "handler.py",
   "direction": "forward",
   "blast_radius": [
-    { "node_id": "file::chat_routes.py", "label": "chat_routes.py", "type": "file", "signal_strength": 0.91, "hop_distance": 1 },
+    { "node_id": "file::routes.py", "label": "routes.py", "type": "file", "signal_strength": 0.91, "hop_distance": 1 },
     { "node_id": "file::ws_relay.py", "label": "ws_relay.py", "type": "file", "signal_strength": 0.78, "hop_distance": 1 },
-    { "node_id": "file::stream_parser.py", "label": "stream_parser.py", "type": "file", "signal_strength": 0.65, "hop_distance": 2 }
+    { "node_id": "file::parser.py", "label": "parser.py", "type": "file", "signal_strength": 0.65, "hop_distance": 2 }
   ],
   "total_energy": 4271.0,
   "max_hops_reached": 3,
   "causal_chains": [
     {
-      "path": ["chat_handler.py", "chat_routes.py", "main.py"],
+      "path": ["handler.py", "routes.py", "main.py"],
       "relations": ["imported_by", "registered_in"],
       "cumulative_strength": 0.82
     }
@@ -99,7 +99,7 @@ Co-change prediction for a modified node. Given a node that was just changed, pr
     "name": "m1nd.predict",
     "arguments": {
       "agent_id": "jimi",
-      "changed_node": "file::session_pool.py",
+      "changed_node": "file::pool.py",
       "top_k": 5
     }
   }
@@ -110,12 +110,12 @@ Co-change prediction for a modified node. Given a node that was just changed, pr
 
 ```json
 {
-  "changed_node": "file::session_pool.py",
+  "changed_node": "file::pool.py",
   "predictions": [
-    { "node_id": "file::worker_pool.py", "label": "worker_pool.py", "confidence": 0.89, "velocity": 0.72, "reason": "high co-change frequency + structural coupling" },
-    { "node_id": "file::process_manager.py", "label": "process_manager.py", "confidence": 0.76, "velocity": 0.65, "reason": "imports session_pool" },
-    { "node_id": "file::tests/test_session_pool.py", "label": "test_session_pool.py", "confidence": 0.71, "velocity": 0.80, "reason": "test file" },
-    { "node_id": "file::spawner.py", "label": "spawner.py", "confidence": 0.54, "velocity": 0.41, "reason": "2-hop dependency" },
+    { "node_id": "file::worker.py", "label": "worker.py", "confidence": 0.89, "velocity": 0.72, "reason": "high co-change frequency + structural coupling" },
+    { "node_id": "file::process_manager.py", "label": "process_manager.py", "confidence": 0.76, "velocity": 0.65, "reason": "imports pool" },
+    { "node_id": "file::tests/test_pool.py", "label": "test_pool.py", "confidence": 0.71, "velocity": 0.80, "reason": "test file" },
+    { "node_id": "file::worker.py", "label": "worker.py", "confidence": 0.54, "velocity": 0.41, "reason": "2-hop dependency" },
     { "node_id": "file::config.py", "label": "config.py", "confidence": 0.32, "velocity": 0.28, "reason": "shared configuration" }
   ],
   "elapsed_ms": 8.3
@@ -159,7 +159,7 @@ What-if node removal simulation. Simulates removing one or more nodes from the g
     "name": "m1nd.counterfactual",
     "arguments": {
       "agent_id": "jimi",
-      "node_ids": ["file::spawner.py"],
+      "node_ids": ["file::worker.py"],
       "include_cascade": true
     }
   }
@@ -170,7 +170,7 @@ What-if node removal simulation. Simulates removing one or more nodes from the g
 
 ```json
 {
-  "removed_nodes": ["file::spawner.py"],
+  "removed_nodes": ["file::worker.py"],
   "cascade": [
     { "depth": 1, "affected": 23 },
     { "depth": 2, "affected": 456 },
@@ -220,7 +220,7 @@ Activation fingerprint and equivalence detection. Computes a structural fingerpr
     "name": "m1nd.fingerprint",
     "arguments": {
       "agent_id": "jimi",
-      "target_node": "file::session_pool.py",
+      "target_node": "file::pool.py",
       "similarity_threshold": 0.7
     }
   }
@@ -231,10 +231,10 @@ Activation fingerprint and equivalence detection. Computes a structural fingerpr
 
 ```json
 {
-  "target": "file::session_pool.py",
+  "target": "file::pool.py",
   "fingerprint": [0.92, 0.45, 0.78, 0.33, 0.67],
   "equivalents": [
-    { "node_id": "file::worker_pool.py", "label": "worker_pool.py", "similarity": 0.88, "reason": "similar pool lifecycle pattern" },
+    { "node_id": "file::worker.py", "label": "worker.py", "similarity": 0.88, "reason": "similar pool lifecycle pattern" },
     { "node_id": "file::fast_pool.py", "label": "fast_pool.py", "similarity": 0.74, "reason": "shared structural role" }
   ],
   "elapsed_ms": 55.2
@@ -264,7 +264,7 @@ Supported claim patterns (auto-detected from natural language): `NEVER_CALLS`, `
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `claim` | `string` | Yes | -- | Natural language claim about the codebase. Examples: `"chat_handler never validates session tokens"`, `"all external calls go through smart_router"`, `"critic is independent of whatsapp"`. |
+| `claim` | `string` | Yes | -- | Natural language claim about the codebase. Examples: `"handler never validates session tokens"`, `"all external calls go through the router"`, `"auditor is independent of messaging"`. |
 | `agent_id` | `string` | Yes | -- | Calling agent identifier. |
 | `max_hops` | `integer` | No | `5` | Maximum BFS hops for evidence search. |
 | `include_ghost_edges` | `boolean` | No | `true` | Include ghost edges as weak evidence. Ghost edges count as lower-weight supporting evidence. |
@@ -282,7 +282,7 @@ Supported claim patterns (auto-detected from natural language): `NEVER_CALLS`, `
     "name": "m1nd.hypothesize",
     "arguments": {
       "agent_id": "jimi",
-      "claim": "worker_pool depends on whatsapp_manager at runtime"
+      "claim": "worker depends on messaging at runtime"
     }
   }
 }
@@ -292,10 +292,10 @@ Supported claim patterns (auto-detected from natural language): `NEVER_CALLS`, `
 
 ```json
 {
-  "claim": "worker_pool depends on whatsapp_manager at runtime",
+  "claim": "worker depends on messaging at runtime",
   "claim_type": "depends_on",
-  "subject_nodes": ["file::worker_pool.py"],
-  "object_nodes": ["file::whatsapp_manager.py"],
+  "subject_nodes": ["file::worker.py"],
+  "object_nodes": ["file::messaging.py"],
   "verdict": "likely_true",
   "confidence": 0.72,
   "supporting_evidence": [
@@ -303,7 +303,7 @@ Supported claim patterns (auto-detected from natural language): `NEVER_CALLS`, `
       "type": "path_found",
       "description": "2-hop path via process_manager.cancel",
       "likelihood_factor": 3.5,
-      "nodes": ["file::worker_pool.py", "file::process_manager.py", "file::whatsapp_manager.py"],
+      "nodes": ["file::worker.py", "file::process_manager.py", "file::messaging.py"],
       "relations": ["calls", "imports"],
       "path_weight": 0.68
     }
@@ -377,16 +377,16 @@ Focused structural diff between two graph snapshots. Compares edges, weights, no
   "snapshot_a": "/path/to/before.json",
   "snapshot_b": "current",
   "new_edges": [
-    { "source": "whatsapp_routes.py", "target": "chat_handler.py", "relation": "calls", "weight": 0.45 }
+    { "source": "messaging_routes.py", "target": "handler.py", "relation": "calls", "weight": 0.45 }
   ],
   "removed_edges": [],
   "weight_changes": [
-    { "source": "session_pool.py", "target": "worker_pool.py", "relation": "imports", "old_weight": 0.5, "new_weight": 0.78, "delta": 0.28 }
+    { "source": "pool.py", "target": "worker.py", "relation": "imports", "old_weight": 0.5, "new_weight": 0.78, "delta": 0.28 }
   ],
-  "new_nodes": ["file::whatsapp_chat_bridge.py"],
+  "new_nodes": ["file::messaging_bridge.py"],
   "removed_nodes": [],
   "coupling_deltas": [
-    { "community_a": "whatsapp", "community_b": "chat", "old_coupling": 0.2, "new_coupling": 0.65, "delta": 0.45 }
+    { "community_a": "messaging", "community_b": "handler", "old_coupling": 0.2, "new_coupling": 0.65, "delta": 0.45 }
   ],
   "summary": "1 new edge, 1 new node, 1 weight change, 1 coupling increase",
   "elapsed_ms": 120.5
@@ -416,7 +416,7 @@ Structural drift detection between a baseline and the current graph state. Highe
 |-----------|------|----------|---------|-------------|
 | `agent_id` | `string` | Yes | -- | Calling agent identifier. |
 | `baseline` | `string` | Yes | -- | Baseline reference. Values: ISO date (`"2026-03-01"`), git ref (SHA or tag), or `"last_session"` to use the saved GraphFingerprint. |
-| `scope` | `string` | No | -- | File path glob to limit scope. Example: `"backend/stormender*"`. `None` = all nodes. |
+| `scope` | `string` | No | -- | File path glob to limit scope. Example: `"backend/runtime*"`. `None` = all nodes. |
 | `include_coupling_changes` | `boolean` | No | `true` | Include coupling matrix delta between communities. |
 | `include_anomalies` | `boolean` | No | `true` | Detect anomalies: test deficits, velocity spikes, new coupling, isolation. |
 
@@ -432,7 +432,7 @@ Structural drift detection between a baseline and the current graph state. Highe
     "arguments": {
       "agent_id": "jimi",
       "baseline": "2026-03-01",
-      "scope": "backend/stormender*"
+      "scope": "backend/runtime*"
     }
   }
 }
@@ -444,21 +444,21 @@ Structural drift detection between a baseline and the current graph state. Highe
 {
   "baseline": "2026-03-01",
   "baseline_commit": "a1b2c3d",
-  "scope": "backend/stormender*",
+  "scope": "backend/orchestrator*",
   "structural_drift": 0.23,
-  "new_nodes": ["file::stormender_v2_runtime_guard.py"],
+  "new_nodes": ["file::orchestrator_runtime_guard.py"],
   "removed_nodes": [],
   "modified_nodes": [
-    { "file": "stormender_v2.py", "delta": "+450/-30", "growth_ratio": 1.85 }
+    { "file": "orchestrator_v2.py", "delta": "+450/-30", "growth_ratio": 1.85 }
   ],
   "coupling_changes": [
-    { "pair": ["stormender_v2.py", "stormender_v2_routes.py"], "was": 0.4, "now": 0.72, "direction": "strengthened" }
+    { "pair": ["orchestrator_v2.py", "orchestrator_routes.py"], "was": 0.4, "now": 0.72, "direction": "strengthened" }
   ],
   "anomalies": [
-    { "type": "test_deficit", "file": "stormender_v2_runtime_guard.py", "detail": "New file with 0 test files", "severity": "warning" },
-    { "type": "velocity_spike", "file": "stormender_v2.py", "detail": "450 lines added in 12 days", "severity": "info" }
+    { "type": "test_deficit", "file": "orchestrator_runtime_guard.py", "detail": "New file with 0 test files", "severity": "warning" },
+    { "type": "velocity_spike", "file": "orchestrator_v2.py", "detail": "450 lines added in 12 days", "severity": "info" }
   ],
-  "summary": "23% structural drift. 1 new file (untested). Stormender coupling strengthened.",
+  "summary": "23% structural drift. 1 new file (untested). Orchestrator coupling strengthened.",
   "elapsed_ms": 85.0
 }
 ```

@@ -209,10 +209,10 @@
   "params": {
     "name": "m1nd.learn",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "session pool management",
       "feedback": "correct",
-      "node_ids": ["file::session_pool.py", "file::worker_pool.py"],
+      "node_ids": ["file::pool.py", "file::worker.py"],
       "strength": 0.3
     }
   }
@@ -265,7 +265,7 @@
   "params": {
     "name": "m1nd.drift",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "since": "last_session",
       "include_weight_drift": true
     }
@@ -280,8 +280,8 @@
   "new_nodes": ["file::forem_publisher.py", "file::forem_routes.py"],
   "removed_nodes": [],
   "top_weight_drifts": [
-    { "edge": "session_pool.py -&gt; worker_pool.py", "old": 0.45, "new": 0.72, "delta": 0.27 },
-    { "edge": "chat_handler.py -&gt; stream_parser.py", "old": 0.60, "new": 0.48, "delta": -0.12 }
+    { "edge": "pool.py -&gt; worker.py", "old": 0.45, "new": 0.72, "delta": 0.27 },
+    { "edge": "handler.py -&gt; parser.py", "old": 0.60, "new": 0.48, "delta": -0.12 }
   ],
   "elapsed_ms": 12.0
 }
@@ -322,9 +322,9 @@
   "params": {
     "name": "m1nd.why",
     "arguments": {
-      "agent_id": "jimi",
-      "source": "file::worker_pool.py",
-      "target": "file::whatsapp_manager.py",
+      "agent_id": "orchestrator",
+      "source": "file::worker.py",
+      "target": "file::messaging.py",
       "max_hops": 4
     }
   }
@@ -332,17 +332,17 @@
 </code></pre>
 <h3 id="example-response-2"><a class="header" href="#example-response-2">Example Response</a></h3>
 <pre><code class="language-json">{
-  "source": "file::worker_pool.py",
-  "target": "file::whatsapp_manager.py",
+  "source": "file::worker.py",
+  "target": "file::messaging.py",
   "paths": [
     {
-      "nodes": ["worker_pool.py", "process_manager.py", "whatsapp_manager.py"],
+      "nodes": ["worker.py", "process_manager.py", "messaging.py"],
       "relations": ["calls::cancel", "imports"],
       "cumulative_strength": 0.68,
       "hops": 2
     },
     {
-      "nodes": ["worker_pool.py", "spawner.py", "chat_handler.py", "whatsapp_manager.py"],
+      "nodes": ["worker.py", "worker.py", "handler.py", "messaging.py"],
       "relations": ["imported_by", "calls", "imports"],
       "cumulative_strength": 0.31,
       "hops": 3
@@ -393,13 +393,13 @@
   "params": {
     "name": "m1nd.trail.save",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "label": "auth-leak-investigation",
       "hypotheses": [
         {
           "statement": "Auth tokens leak through session pool",
           "confidence": 0.7,
-          "supporting_nodes": ["file::session_pool.py", "file::auth_discovery.py"]
+          "supporting_nodes": ["file::pool.py", "file::auth_discovery.py"]
         },
         {
           "statement": "Rate limiter missing from auth chain",
@@ -410,7 +410,7 @@
       "open_questions": ["Does the rate limiter apply to WebSocket connections?"],
       "tags": ["security", "auth", "session"],
       "activation_boosts": {
-        "file::session_pool.py": 0.8,
+        "file::pool.py": 0.8,
         "file::auth_discovery.py": 0.6
       }
     }
@@ -421,7 +421,7 @@
 <pre><code class="language-json">{
   "trail_id": "trail_jimi_001_a1b2c3",
   "label": "auth-leak-investigation",
-  "agent_id": "jimi",
+  "agent_id": "orchestrator",
   "nodes_saved": 47,
   "hypotheses_saved": 2,
   "conclusions_saved": 0,
@@ -466,7 +466,7 @@
   "params": {
     "name": "m1nd.trail.resume",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "trail_id": "trail_jimi_001_a1b2c3"
     }
   }
@@ -483,7 +483,7 @@
   "hypotheses_downgraded": [],
   "trail": {
     "trail_id": "trail_jimi_001_a1b2c3",
-    "agent_id": "jimi",
+    "agent_id": "orchestrator",
     "label": "auth-leak-investigation",
     "status": "active",
     "created_at_ms": 1710300000000,
@@ -534,7 +534,7 @@
   "params": {
     "name": "m1nd.trail.list",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "filter_status": "saved",
       "filter_tags": ["security"]
     }
@@ -546,7 +546,7 @@
   "trails": [
     {
       "trail_id": "trail_jimi_001_a1b2c3",
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "label": "auth-leak-investigation",
       "status": "saved",
       "created_at_ms": 1710300000000,
@@ -596,7 +596,7 @@
   "params": {
     "name": "m1nd.trail.merge",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "trail_ids": ["trail_jimi_001_a1b2c3", "trail_analyst_002_d4e5f6"],
       "label": "combined-auth-investigation"
     }
@@ -624,7 +624,7 @@
       "type": "bridge_edge",
       "detail": "auth_discovery.py connects the auth trail to the session trail",
       "from_node": "file::auth_discovery.py",
-      "to_node": "file::session_pool.py",
+      "to_node": "file::pool.py",
       "weight": 0.72
     }
   ],

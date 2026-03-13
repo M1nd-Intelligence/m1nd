@@ -5,10 +5,10 @@ Thanks for your interest in contributing to m1nd. This document covers the basic
 ## Getting Started
 
 ```bash
-git clone https://github.com/cosmophonix/m1nd.git
+git clone https://github.com/maxkle1nz/m1nd.git
 cd m1nd
 cargo build
-cargo test --all
+cargo test --workspace
 ```
 
 ## Project Structure
@@ -54,7 +54,7 @@ Run m1nd on your codebase and report performance. We track real-world numbers, n
 
 1. Fork the repo and create a branch from `main`
 2. Make your changes with tests
-3. Ensure `cargo test --all` passes
+3. Ensure `cargo test --workspace` passes
 4. Ensure `cargo clippy --all -- -D warnings` passes
 5. Ensure `cargo fmt --all -- --check` passes
 6. Open a PR with a clear description of what and why

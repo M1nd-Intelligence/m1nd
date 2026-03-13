@@ -1003,7 +1003,7 @@ impl McpServer {
     /// 3. Compute PageRank          (done in new() via finalize)
     /// 4. Build CSR (finalize)      (done in new() via finalize)
     /// 5. Warm up engines           (engines built in new())
-    /// 6. Register MCP tools (13 tools)
+    /// 6. Register MCP tools (43 tools)
     /// 7. Ready for connections
     pub fn start(&mut self) -> M1ndResult<()> {
         eprintln!(
@@ -1220,7 +1220,7 @@ impl McpServer {
         }
     }
 
-    /// Dispatch core tools (existing 13 tools).
+    /// Dispatch core tools (existing 43 tools).
     fn dispatch_core_tool(
         &mut self,
         tool_name: &str,

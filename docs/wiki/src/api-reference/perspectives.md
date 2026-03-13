@@ -43,7 +43,7 @@ Enter a perspective: creates a navigable route surface from a query. Returns the
     "arguments": {
       "agent_id": "jimi",
       "query": "session management and connection pooling",
-      "anchor_node": "file::session_pool.py"
+      "anchor_node": "file::pool.py"
     }
   }
 }
@@ -55,17 +55,17 @@ Enter a perspective: creates a navigable route surface from a query. Returns the
 {
   "perspective_id": "persp_jimi_001",
   "mode": "anchored",
-  "anchor_node": "file::session_pool.py",
-  "focus_node": "file::session_pool.py",
+  "anchor_node": "file::pool.py",
+  "focus_node": "file::pool.py",
   "routes": [
     {
       "route_id": "R_a1b2c3",
       "index": 1,
-      "target_node": "file::worker_pool.py",
-      "target_label": "worker_pool.py",
+      "target_node": "file::worker.py",
+      "target_label": "worker.py",
       "family": "structural_neighbor",
       "score": 0.89,
-      "path_preview": ["session_pool.py", "worker_pool.py"],
+      "path_preview": ["pool.py", "worker.py"],
       "reason": "High structural coupling with anchor"
     },
     {
@@ -75,7 +75,7 @@ Enter a perspective: creates a navigable route surface from a query. Returns the
       "target_label": "process_manager.py",
       "family": "causal_downstream",
       "score": 0.76,
-      "path_preview": ["session_pool.py", "process_manager.py"],
+      "path_preview": ["pool.py", "process_manager.py"],
       "reason": "Causal dependency via imports"
     }
   ],
@@ -143,8 +143,8 @@ Browse the current route set with pagination.
   "perspective_id": "persp_jimi_001",
   "mode": "anchored",
   "mode_effective": "anchored",
-  "anchor": "file::session_pool.py",
-  "focus": "file::session_pool.py",
+  "anchor": "file::pool.py",
+  "focus": "file::pool.py",
   "lens_summary": "all dimensions, no type filter",
   "page": 2,
   "total_pages": 2,
@@ -159,7 +159,7 @@ Browse the current route set with pagination.
       "target_label": "config.py",
       "family": "configuration",
       "score": 0.42,
-      "path_preview": ["session_pool.py", "config.py"],
+      "path_preview": ["pool.py", "config.py"],
       "reason": "Shared configuration key"
     }
   ],
@@ -222,10 +222,10 @@ Specify the route by either `route_id` (stable, content-addressed) or `route_ind
   "route_id": "R_a1b2c3",
   "route_index": 1,
   "family": "structural_neighbor",
-  "target_node": "file::worker_pool.py",
-  "target_label": "worker_pool.py",
+  "target_node": "file::worker.py",
+  "target_label": "worker.py",
   "target_type": "file",
-  "path_preview": ["session_pool.py", "spawner.py", "worker_pool.py"],
+  "path_preview": ["pool.py", "worker.py", "worker.py"],
   "family_explanation": "Direct structural neighbor via import chain",
   "score": 0.89,
   "score_breakdown": {
@@ -236,7 +236,7 @@ Specify the route by either `route_id` (stable, content-addressed) or `route_ind
     "continuity": 0.82
   },
   "provenance": {
-    "source_path": "backend/worker_pool.py",
+    "source_path": "backend/worker.py",
     "line_start": 1,
     "line_end": 312,
     "namespace": null,
@@ -303,10 +303,10 @@ Extract a small relevant code or documentation slice from a route's target node.
 {
   "route_id": "R_a1b2c3",
   "route_index": 1,
-  "target_node": "file::worker_pool.py",
+  "target_node": "file::worker.py",
   "content": {
     "excerpt": "class WorkerPool:\n    \"\"\"Manages a pool of CLI subprocess workers.\"\"\"\n    def __init__(self, max_workers=8):\n        self.pool = {}\n        self.max_workers = max_workers\n        ...",
-    "file_path": "backend/worker_pool.py",
+    "file_path": "backend/worker.py",
     "line_start": 15,
     "line_end": 45,
     "truncated": true
@@ -365,8 +365,8 @@ Follow a route: move focus to the target node and synthesize new routes from the
 ```json
 {
   "perspective_id": "persp_jimi_001",
-  "previous_focus": "file::session_pool.py",
-  "new_focus": "file::worker_pool.py",
+  "previous_focus": "file::pool.py",
+  "new_focus": "file::worker.py",
   "mode": "anchored",
   "mode_effective": "anchored",
   "routes": [
@@ -377,17 +377,17 @@ Follow a route: move focus to the target node and synthesize new routes from the
       "target_label": "process_manager.py",
       "family": "causal_downstream",
       "score": 0.85,
-      "path_preview": ["worker_pool.py", "process_manager.py"],
+      "path_preview": ["worker.py", "process_manager.py"],
       "reason": "Direct caller of worker pool submit"
     },
     {
       "route_id": "R_m4n5o6",
       "index": 2,
-      "target_node": "file::spawner.py",
-      "target_label": "spawner.py",
+      "target_node": "file::worker.py",
+      "target_label": "worker.py",
       "family": "structural_neighbor",
       "score": 0.71,
-      "path_preview": ["worker_pool.py", "spawner.py"],
+      "path_preview": ["worker.py", "worker.py"],
       "reason": "Co-manages subprocess lifecycle"
     }
   ],
@@ -513,7 +513,7 @@ Epistemic notice: these are **probable** connections, not verified graph edges.
   "target_node": "file::process_manager.py",
   "notice": "Probable connections, not verified edges.",
   "candidates": [
-    { "node_id": "file::healing_manager.py", "label": "healing_manager.py", "strength": 0.68, "reason": "Similar lifecycle management pattern" },
+    { "node_id": "file::recovery.py", "label": "recovery.py", "strength": 0.68, "reason": "Similar lifecycle management pattern" },
     { "node_id": "file::autonomous_daemon.py", "label": "autonomous_daemon.py", "strength": 0.52, "reason": "Shared subprocess management trait" }
   ]
 }
@@ -569,7 +569,7 @@ Fork the current navigation state into a new perspective branch. The branch star
   "perspective_id": "persp_jimi_001",
   "branch_perspective_id": "persp_jimi_002",
   "branch_name": "auth-path",
-  "branched_from_focus": "file::worker_pool.py"
+  "branched_from_focus": "file::worker.py"
 }
 ```
 
@@ -619,17 +619,17 @@ Navigate back to the previous focus, restoring the checkpoint state. Like browse
 ```json
 {
   "perspective_id": "persp_jimi_001",
-  "restored_focus": "file::session_pool.py",
+  "restored_focus": "file::pool.py",
   "restored_mode": "anchored",
   "routes": [
     {
       "route_id": "R_a1b2c3",
       "index": 1,
-      "target_node": "file::worker_pool.py",
-      "target_label": "worker_pool.py",
+      "target_node": "file::worker.py",
+      "target_label": "worker.py",
       "family": "structural_neighbor",
       "score": 0.89,
-      "path_preview": ["session_pool.py", "worker_pool.py"],
+      "path_preview": ["pool.py", "worker.py"],
       "reason": "High structural coupling with anchor"
     }
   ],
@@ -690,8 +690,8 @@ Compare two perspectives on shared/unique nodes and dimension deltas. Both persp
 {
   "perspective_id_a": "persp_jimi_001",
   "perspective_id_b": "persp_jimi_002",
-  "shared_nodes": ["worker_pool.py", "process_manager.py", "session_pool.py"],
-  "unique_to_a": ["spawner.py", "config.py"],
+  "shared_nodes": ["worker.py", "process_manager.py", "pool.py"],
+  "unique_to_a": ["worker.py", "config.py"],
   "unique_to_b": ["auth_discovery.py", "middleware.py"],
   "dimension_deltas": [
     { "dimension": "structural", "score_a": 0.82, "score_b": 0.75, "delta": 0.07 },
@@ -750,7 +750,7 @@ List all perspectives for an agent. Returns compact summaries with status, focus
     {
       "perspective_id": "persp_jimi_001",
       "mode": "anchored",
-      "focus_node": "file::worker_pool.py",
+      "focus_node": "file::worker.py",
       "route_count": 12,
       "nav_event_count": 3,
       "stale": false,
@@ -864,11 +864,11 @@ A complete perspective exploration session, from start to close:
 
 7. FOLLOW different routes in each branch
    Branch 1: follow toward principal_registry.py
-   Branch 2: follow toward session_pool.py
+   Branch 2: follow toward pool.py
 
 8. COMPARE the two branches
    m1nd.perspective.compare(perspective_id_a="persp_jimi_001", perspective_id_b="persp_jimi_002")
-   -> shared: [auth_discovery.py], unique_to_a: [principal_registry.py], unique_to_b: [session_pool.py]
+   -> shared: [auth_discovery.py], unique_to_a: [principal_registry.py], unique_to_b: [pool.py]
 
 9. BACK to undo the last follow in branch 1
    m1nd.perspective.back()

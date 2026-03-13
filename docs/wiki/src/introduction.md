@@ -70,10 +70,10 @@ Plasticity state persists to disk. Across sessions, the graph evolves to match h
 
 ### Counterfactual Simulation
 
-"What breaks if I delete `spawner.py`?" The counterfactual engine uses a zero-allocation bitset mask (no graph clone) to virtually remove nodes and their incident edges, then re-runs spreading activation to measure the impact. The output includes orphaned nodes, weakened nodes, reachability loss, and cascade depth. Synergy analysis reveals whether removing two modules together is worse than the sum of removing them individually.
+"What breaks if I delete `worker.py`?" The counterfactual engine uses a zero-allocation bitset mask (no graph clone) to virtually remove nodes and their incident edges, then re-runs spreading activation to measure the impact. The output includes orphaned nodes, weakened nodes, reachability loss, and cascade depth. Synergy analysis reveals whether removing two modules together is worse than the sum of removing them individually.
 
 ```
-counterfactual("spawner.py") -> 4,189 affected nodes, cascade at depth 3
+counterfactual("worker.py") -> 4,189 affected nodes, cascade at depth 3
 counterfactual("config.py")  -> 2,531 affected nodes (despite being universally imported)
 ```
 

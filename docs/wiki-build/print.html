@@ -236,8 +236,8 @@ activate in 31ms | impact in 5ms | trace in 3.5ms | learn in &lt;1ms
 <h3 id="structural-hole-detection"><a class="header" href="#structural-hole-detection">Structural Hole Detection</a></h3>
 <p><code>m1nd.missing</code> finds gaps in the graph — nodes or edges that <em>should</em> exist based on the surrounding topology but don’t. If every other module in a cluster has error handling and one doesn’t, that’s a structural hole. If two subsystems communicate through a single bridge node, that’s a fragility point. This turns the graph into a specification-free audit tool.</p>
 <h3 id="counterfactual-simulation"><a class="header" href="#counterfactual-simulation">Counterfactual Simulation</a></h3>
-<p>“What breaks if I delete <code>spawner.py</code>?” The counterfactual engine uses a zero-allocation bitset mask (no graph clone) to virtually remove nodes and their incident edges, then re-runs spreading activation to measure the impact. The output includes orphaned nodes, weakened nodes, reachability loss, and cascade depth. Synergy analysis reveals whether removing two modules together is worse than the sum of removing them individually.</p>
-<pre><code>counterfactual("spawner.py") -&gt; 4,189 affected nodes, cascade at depth 3
+<p>“What breaks if I delete <code>worker.py</code>?” The counterfactual engine uses a zero-allocation bitset mask (no graph clone) to virtually remove nodes and their incident edges, then re-runs spreading activation to measure the impact. The output includes orphaned nodes, weakened nodes, reachability loss, and cascade depth. Synergy analysis reveals whether removing two modules together is worse than the sum of removing them individually.</p>
+<pre><code>counterfactual("worker.py") -&gt; 4,189 affected nodes, cascade at depth 3
 counterfactual("config.py")  -&gt; 2,531 affected nodes (despite being universally imported)
 </code></pre>
 <h3 id="perspectives"><a class="header" href="#perspectives">Perspectives</a></h3>
@@ -401,7 +401,7 @@ impl FiniteF32 {
 <h3 id="atomic-persistence"><a class="header" href="#atomic-persistence">Atomic Persistence</a></h3>
 <p>Graph and plasticity state are saved via atomic write: serialize to a temporary file, then <code>rename()</code> over the target. This prevents corruption on crash (FM-PL-008). The NaN firewall at the export boundary rejects any non-finite values that might have leaked through.</p>
 <h2 id="performance-characteristics"><a class="header" href="#performance-characteristics">Performance Characteristics</a></h2>
-<p>Benchmarks on the ROOMANIZER OS codebase (~335 files, ~52K lines):</p>
+<p>Benchmarks on the a production codebase (335 files, ~52K lines, Python + Rust + TypeScript):</p>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -940,7 +940,7 @@ skip_files: vec![
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>pub struct ExtractedNode {
-    pub id: String,        // e.g. "file::backend/chat_handler.py::ChatHandler"
+    pub id: String,        // e.g. "file::backend/handler.py::ChatHandler"
     pub label: String,     // e.g. "ChatHandler"
     pub node_type: NodeType,
     pub tags: Vec&lt;String&gt;,
@@ -963,9 +963,9 @@ skip_files: vec![
 <h3 id="node-id-format"><a class="header" href="#node-id-format">Node ID Format</a></h3>
 <p>Extracted nodes use a hierarchical ID scheme: <code>file::{relative_path}::{entity_name}</code>. For example:</p>
 <ul>
-<li><code>file::backend/chat_handler.py</code> (file node)</li>
-<li><code>file::backend/chat_handler.py::ChatHandler</code> (class node)</li>
-<li><code>file::backend/chat_handler.py::ChatHandler::handle_message</code> (method node)</li>
+<li><code>file::backend/handler.py</code> (file node)</li>
+<li><code>file::backend/handler.py::ChatHandler</code> (class node)</li>
+<li><code>file::backend/handler.py::ChatHandler::handle_message</code> (method node)</li>
 </ul>
 <p>Unresolved references use the prefix <code>ref::</code>: <code>ref::Config</code>, <code>ref::react</code>. These are resolved to actual nodes in Phase 4.</p>
 <h2 id="phase-3-graph-building"><a class="header" href="#phase-3-graph-building">Phase 3: Graph Building</a></h2>
@@ -1192,10 +1192,10 @@ skip_files: vec![
 <p><strong>Framed mode</strong> (HTTP-style headers):</p>
 <pre><code>Content-Length: 142\r\n
 \r\n
-{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"jimi"}},"id":1}
+{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"orchestrator"}},"id":1}
 </code></pre>
 <p><strong>Line mode</strong> (raw JSON):</p>
-<pre><code>{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"jimi"}},"id":1}
+<pre><code>{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"orchestrator"}},"id":1}
 </code></pre>
 <p>Detection is based on the first non-whitespace byte: if it is <code>{</code> or <code>[</code>, the message is treated as line-mode JSON. Otherwise, it is parsed as framed with <code>Content-Length</code> headers. Responses are written in the same mode as the incoming request.</p>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -1223,7 +1223,7 @@ skip_files: vec![
         "name": "m1nd.activate",
         "arguments": {
             "query": "chat handler",
-            "agent_id": "jimi",
+            "agent_id": "orchestrator",
             "top_k": 20,
             "dimensions": ["structural", "semantic", "temporal", "causal"],
             "xlr": true
@@ -2488,7 +2488,7 @@ if fallback {
 </tbody>
 </table>
 </div>
-<p>Agent IDs are free-form strings. Convention: use the agent’s name or role identifier (e.g. <code>"jimi"</code>, <code>"hacker-auth"</code>, <code>"forge-build"</code>).</p>
+<p>Agent IDs are free-form strings. Convention: use the agent’s name or role identifier (e.g. <code>"orchestrator"</code>, <code>"auditor-1"</code>, <code>"builder-api"</code>).</p>
 <h2 id="json-rpc-request-format"><a class="header" href="#json-rpc-request-format">JSON-RPC Request Format</a></h2>
 <p>m1nd uses the <a href="https://modelcontextprotocol.io/">MCP protocol</a> over JSON-RPC 2.0 via stdio. All tool calls use the <code>tools/call</code> method.</p>
 <h3 id="request-structure"><a class="header" href="#request-structure">Request structure</a></h3>
@@ -2499,7 +2499,7 @@ if fallback {
   "params": {
     "name": "m1nd.activate",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "session management"
     }
   }
@@ -2625,7 +2625,7 @@ if fallback {
   "params": {
     "name": "m1nd.activate",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "session pool management",
       "top_k": 5,
       "include_ghost_edges": true
@@ -2637,34 +2637,34 @@ if fallback {
 <pre><code class="language-json">{
   "query": "session pool management",
   "seeds": [
-    { "node_id": "file::session_pool.py", "label": "session_pool.py", "relevance": 0.95 }
+    { "node_id": "file::pool.py", "label": "pool.py", "relevance": 0.95 }
   ],
   "activated": [
     {
-      "node_id": "file::session_pool.py",
-      "label": "session_pool.py",
+      "node_id": "file::pool.py",
+      "label": "pool.py",
       "type": "file",
       "activation": 0.89,
       "dimensions": { "structural": 0.92, "semantic": 0.95, "temporal": 0.78, "causal": 0.71 },
       "pagerank": 0.635,
       "tags": ["session", "pool"],
       "provenance": {
-        "source_path": "backend/session_pool.py",
+        "source_path": "backend/pool.py",
         "line_start": 1,
         "line_end": 245,
         "canonical": true
       }
     },
     {
-      "node_id": "file::session_pool.py::class::SessionPool",
-      "label": "SessionPool",
+      "node_id": "file::pool.py::class::ConnectionPool",
+      "label": "ConnectionPool",
       "type": "class",
       "activation": 0.84,
       "dimensions": { "structural": 0.88, "semantic": 0.91, "temporal": 0.72, "causal": 0.65 },
       "pagerank": 0.412,
       "tags": ["pool", "session"],
       "provenance": {
-        "source_path": "backend/session_pool.py",
+        "source_path": "backend/pool.py",
         "line_start": 15,
         "line_end": 180,
         "canonical": true
@@ -2673,8 +2673,8 @@ if fallback {
   ],
   "ghost_edges": [
     {
-      "source": "session_pool.py",
-      "target": "healing_manager.py",
+      "source": "pool.py",
+      "target": "recovery.py",
       "shared_dimensions": ["semantic", "causal"],
       "strength": 0.34
     }
@@ -2729,8 +2729,8 @@ if fallback {
   "params": {
     "name": "m1nd.warmup",
     "arguments": {
-      "agent_id": "jimi",
-      "task_description": "Refactor the WhatsApp message routing to support group chats",
+      "agent_id": "orchestrator",
+      "task_description": "Refactor the messaging routing module to support group chats",
       "boost_strength": 0.2
     }
   }
@@ -2738,13 +2738,13 @@ if fallback {
 </code></pre>
 <h3 id="example-response-1"><a class="header" href="#example-response-1">Example Response</a></h3>
 <pre><code class="language-json">{
-  "task": "Refactor the WhatsApp message routing to support group chats",
+  "task": "Refactor the messaging routing module to support group chats",
   "primed_nodes": 23,
   "top_primed": [
-    { "node_id": "file::whatsapp_routes.py", "label": "whatsapp_routes.py", "boost": 0.2 },
-    { "node_id": "file::whatsapp_manager.py", "label": "whatsapp_manager.py", "boost": 0.18 },
-    { "node_id": "file::whatsapp_models.py", "label": "whatsapp_models.py", "boost": 0.15 },
-    { "node_id": "file::chat_handler.py", "label": "chat_handler.py", "boost": 0.12 }
+    { "node_id": "file::messaging_routes.py", "label": "messaging_routes.py", "boost": 0.2 },
+    { "node_id": "file::messaging.py", "label": "messaging.py", "boost": 0.18 },
+    { "node_id": "file::messaging_models.py", "label": "messaging_models.py", "boost": 0.15 },
+    { "node_id": "file::handler.py", "label": "handler.py", "boost": 0.12 }
   ],
   "elapsed_ms": 18.5
 }
@@ -2787,7 +2787,7 @@ if fallback {
   "params": {
     "name": "m1nd.resonate",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "authentication flow",
       "top_k": 10
     }
@@ -2866,8 +2866,8 @@ if fallback {
   "params": {
     "name": "m1nd.impact",
     "arguments": {
-      "agent_id": "jimi",
-      "node_id": "file::chat_handler.py",
+      "agent_id": "orchestrator",
+      "node_id": "file::handler.py",
       "direction": "forward",
       "include_causal_chains": true
     }
@@ -2876,19 +2876,19 @@ if fallback {
 </code></pre>
 <h3 id="example-response-3"><a class="header" href="#example-response-3">Example Response</a></h3>
 <pre><code class="language-json">{
-  "source": "file::chat_handler.py",
-  "source_label": "chat_handler.py",
+  "source": "file::handler.py",
+  "source_label": "handler.py",
   "direction": "forward",
   "blast_radius": [
     { "node_id": "file::chat_routes.py", "label": "chat_routes.py", "type": "file", "signal_strength": 0.91, "hop_distance": 1 },
     { "node_id": "file::ws_relay.py", "label": "ws_relay.py", "type": "file", "signal_strength": 0.78, "hop_distance": 1 },
-    { "node_id": "file::stream_parser.py", "label": "stream_parser.py", "type": "file", "signal_strength": 0.65, "hop_distance": 2 }
+    { "node_id": "file::parser.py", "label": "parser.py", "type": "file", "signal_strength": 0.65, "hop_distance": 2 }
   ],
   "total_energy": 4271.0,
   "max_hops_reached": 3,
   "causal_chains": [
     {
-      "path": ["chat_handler.py", "chat_routes.py", "main.py"],
+      "path": ["handler.py", "chat_routes.py", "main.py"],
       "relations": ["imported_by", "registered_in"],
       "cumulative_strength": 0.82
     }
@@ -2933,8 +2933,8 @@ if fallback {
   "params": {
     "name": "m1nd.predict",
     "arguments": {
-      "agent_id": "jimi",
-      "changed_node": "file::session_pool.py",
+      "agent_id": "orchestrator",
+      "changed_node": "file::pool.py",
       "top_k": 5
     }
   }
@@ -2942,12 +2942,12 @@ if fallback {
 </code></pre>
 <h3 id="example-response-1-1"><a class="header" href="#example-response-1-1">Example Response</a></h3>
 <pre><code class="language-json">{
-  "changed_node": "file::session_pool.py",
+  "changed_node": "file::pool.py",
   "predictions": [
-    { "node_id": "file::worker_pool.py", "label": "worker_pool.py", "confidence": 0.89, "velocity": 0.72, "reason": "high co-change frequency + structural coupling" },
+    { "node_id": "file::worker.py", "label": "worker.py", "confidence": 0.89, "velocity": 0.72, "reason": "high co-change frequency + structural coupling" },
     { "node_id": "file::process_manager.py", "label": "process_manager.py", "confidence": 0.76, "velocity": 0.65, "reason": "imports session_pool" },
-    { "node_id": "file::tests/test_session_pool.py", "label": "test_session_pool.py", "confidence": 0.71, "velocity": 0.80, "reason": "test file" },
-    { "node_id": "file::spawner.py", "label": "spawner.py", "confidence": 0.54, "velocity": 0.41, "reason": "2-hop dependency" },
+    { "node_id": "file::tests/test_pool.py", "label": "test_pool.py", "confidence": 0.71, "velocity": 0.80, "reason": "test file" },
+    { "node_id": "file::worker.py", "label": "worker.py", "confidence": 0.54, "velocity": 0.41, "reason": "2-hop dependency" },
     { "node_id": "file::config.py", "label": "config.py", "confidence": 0.32, "velocity": 0.28, "reason": "shared configuration" }
   ],
   "elapsed_ms": 8.3
@@ -2989,8 +2989,8 @@ if fallback {
   "params": {
     "name": "m1nd.counterfactual",
     "arguments": {
-      "agent_id": "jimi",
-      "node_ids": ["file::spawner.py"],
+      "agent_id": "orchestrator",
+      "node_ids": ["file::worker.py"],
       "include_cascade": true
     }
   }
@@ -2998,7 +2998,7 @@ if fallback {
 </code></pre>
 <h3 id="example-response-2-1"><a class="header" href="#example-response-2-1">Example Response</a></h3>
 <pre><code class="language-json">{
-  "removed_nodes": ["file::spawner.py"],
+  "removed_nodes": ["file::worker.py"],
   "cascade": [
     { "depth": 1, "affected": 23 },
     { "depth": 2, "affected": 456 },
@@ -3046,8 +3046,8 @@ if fallback {
   "params": {
     "name": "m1nd.fingerprint",
     "arguments": {
-      "agent_id": "jimi",
-      "target_node": "file::session_pool.py",
+      "agent_id": "orchestrator",
+      "target_node": "file::pool.py",
       "similarity_threshold": 0.7
     }
   }
@@ -3055,10 +3055,10 @@ if fallback {
 </code></pre>
 <h3 id="example-response-3-1"><a class="header" href="#example-response-3-1">Example Response</a></h3>
 <pre><code class="language-json">{
-  "target": "file::session_pool.py",
+  "target": "file::pool.py",
   "fingerprint": [0.92, 0.45, 0.78, 0.33, 0.67],
   "equivalents": [
-    { "node_id": "file::worker_pool.py", "label": "worker_pool.py", "similarity": 0.88, "reason": "similar pool lifecycle pattern" },
+    { "node_id": "file::worker.py", "label": "worker.py", "similarity": 0.88, "reason": "similar pool lifecycle pattern" },
     { "node_id": "file::fast_pool.py", "label": "fast_pool.py", "similarity": 0.74, "reason": "shared structural role" }
   ],
   "elapsed_ms": 55.2
@@ -3086,7 +3086,7 @@ if fallback {
 <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr>
 </thead>
 <tbody>
-<tr><td><code>claim</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Natural language claim about the codebase. Examples: <code>"chat_handler never validates session tokens"</code>, <code>"all external calls go through smart_router"</code>, <code>"critic is independent of whatsapp"</code>.</td></tr>
+<tr><td><code>claim</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Natural language claim about the codebase. Examples: <code>"chat_handler never validates session tokens"</code>, <code>"all external calls go through the router"</code>, <code>"auditor is independent of messaging"</code>.</td></tr>
 <tr><td><code>agent_id</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Calling agent identifier.</td></tr>
 <tr><td><code>max_hops</code></td><td><code>integer</code></td><td>No</td><td><code>5</code></td><td>Maximum BFS hops for evidence search.</td></tr>
 <tr><td><code>include_ghost_edges</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Include ghost edges as weak evidence. Ghost edges count as lower-weight supporting evidence.</td></tr>
@@ -3103,7 +3103,7 @@ if fallback {
   "params": {
     "name": "m1nd.hypothesize",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "claim": "worker_pool depends on whatsapp_manager at runtime"
     }
   }
@@ -3113,8 +3113,8 @@ if fallback {
 <pre><code class="language-json">{
   "claim": "worker_pool depends on whatsapp_manager at runtime",
   "claim_type": "depends_on",
-  "subject_nodes": ["file::worker_pool.py"],
-  "object_nodes": ["file::whatsapp_manager.py"],
+  "subject_nodes": ["file::worker.py"],
+  "object_nodes": ["file::messaging.py"],
   "verdict": "likely_true",
   "confidence": 0.72,
   "supporting_evidence": [
@@ -3122,7 +3122,7 @@ if fallback {
       "type": "path_found",
       "description": "2-hop path via process_manager.cancel",
       "likelihood_factor": 3.5,
-      "nodes": ["file::worker_pool.py", "file::process_manager.py", "file::whatsapp_manager.py"],
+      "nodes": ["file::worker.py", "file::process_manager.py", "file::messaging.py"],
       "relations": ["calls", "imports"],
       "path_weight": 0.68
     }
@@ -3184,7 +3184,7 @@ if fallback {
   "params": {
     "name": "m1nd.differential",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "snapshot_a": "/path/to/before.json",
       "snapshot_b": "current",
       "question": "what new coupling was introduced?"
@@ -3197,16 +3197,16 @@ if fallback {
   "snapshot_a": "/path/to/before.json",
   "snapshot_b": "current",
   "new_edges": [
-    { "source": "whatsapp_routes.py", "target": "chat_handler.py", "relation": "calls", "weight": 0.45 }
+    { "source": "messaging_routes.py", "target": "handler.py", "relation": "calls", "weight": 0.45 }
   ],
   "removed_edges": [],
   "weight_changes": [
-    { "source": "session_pool.py", "target": "worker_pool.py", "relation": "imports", "old_weight": 0.5, "new_weight": 0.78, "delta": 0.28 }
+    { "source": "pool.py", "target": "worker.py", "relation": "imports", "old_weight": 0.5, "new_weight": 0.78, "delta": 0.28 }
   ],
-  "new_nodes": ["file::whatsapp_chat_bridge.py"],
+  "new_nodes": ["file::messaging_bridge.py"],
   "removed_nodes": [],
   "coupling_deltas": [
-    { "community_a": "whatsapp", "community_b": "chat", "old_coupling": 0.2, "new_coupling": 0.65, "delta": 0.45 }
+    { "community_a": "messaging", "community_b": "handler", "old_coupling": 0.2, "new_coupling": 0.65, "delta": 0.45 }
   ],
   "summary": "1 new edge, 1 new node, 1 weight change, 1 coupling increase",
   "elapsed_ms": 120.5
@@ -3235,7 +3235,7 @@ if fallback {
 <tbody>
 <tr><td><code>agent_id</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Calling agent identifier.</td></tr>
 <tr><td><code>baseline</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Baseline reference. Values: ISO date (<code>"2026-03-01"</code>), git ref (SHA or tag), or <code>"last_session"</code> to use the saved GraphFingerprint.</td></tr>
-<tr><td><code>scope</code></td><td><code>string</code></td><td>No</td><td>–</td><td>File path glob to limit scope. Example: <code>"backend/stormender*"</code>. <code>None</code> = all nodes.</td></tr>
+<tr><td><code>scope</code></td><td><code>string</code></td><td>No</td><td>–</td><td>File path glob to limit scope. Example: <code>"backend/orchestrator*"</code>. <code>None</code> = all nodes.</td></tr>
 <tr><td><code>include_coupling_changes</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Include coupling matrix delta between communities.</td></tr>
 <tr><td><code>include_anomalies</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Detect anomalies: test deficits, velocity spikes, new coupling, isolation.</td></tr>
 </tbody>
@@ -3249,9 +3249,9 @@ if fallback {
   "params": {
     "name": "m1nd.diverge",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "baseline": "2026-03-01",
-      "scope": "backend/stormender*"
+      "scope": "backend/orchestrator*"
     }
   }
 }
@@ -3260,21 +3260,21 @@ if fallback {
 <pre><code class="language-json">{
   "baseline": "2026-03-01",
   "baseline_commit": "a1b2c3d",
-  "scope": "backend/stormender*",
+  "scope": "backend/orchestrator*",
   "structural_drift": 0.23,
-  "new_nodes": ["file::stormender_v2_runtime_guard.py"],
+  "new_nodes": ["file::orchestrator_runtime_guard.py"],
   "removed_nodes": [],
   "modified_nodes": [
-    { "file": "stormender_v2.py", "delta": "+450/-30", "growth_ratio": 1.85 }
+    { "file": "orchestrator_v2.py", "delta": "+450/-30", "growth_ratio": 1.85 }
   ],
   "coupling_changes": [
-    { "pair": ["stormender_v2.py", "stormender_v2_routes.py"], "was": 0.4, "now": 0.72, "direction": "strengthened" }
+    { "pair": ["orchestrator_v2.py", "orchestrator_routes.py"], "was": 0.4, "now": 0.72, "direction": "strengthened" }
   ],
   "anomalies": [
-    { "type": "test_deficit", "file": "stormender_v2_runtime_guard.py", "detail": "New file with 0 test files", "severity": "warning" },
-    { "type": "velocity_spike", "file": "stormender_v2.py", "detail": "450 lines added in 12 days", "severity": "info" }
+    { "type": "test_deficit", "file": "orchestrator_runtime_guard.py", "detail": "New file with 0 test files", "severity": "warning" },
+    { "type": "velocity_spike", "file": "orchestrator_v2.py", "detail": "450 lines added in 12 days", "severity": "info" }
   ],
-  "summary": "23% structural drift. 1 new file (untested). Stormender coupling strengthened.",
+  "summary": "23% structural drift. 1 new file (untested). orchestrator coupling strengthened.",
   "elapsed_ms": 85.0
 }
 </code></pre>
@@ -3333,10 +3333,10 @@ if fallback {
   "params": {
     "name": "m1nd.learn",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "session pool management",
       "feedback": "correct",
-      "node_ids": ["file::session_pool.py", "file::worker_pool.py"],
+      "node_ids": ["file::pool.py", "file::worker.py"],
       "strength": 0.3
     }
   }
@@ -3389,7 +3389,7 @@ if fallback {
   "params": {
     "name": "m1nd.drift",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "since": "last_session",
       "include_weight_drift": true
     }
@@ -3404,8 +3404,8 @@ if fallback {
   "new_nodes": ["file::forem_publisher.py", "file::forem_routes.py"],
   "removed_nodes": [],
   "top_weight_drifts": [
-    { "edge": "session_pool.py -&gt; worker_pool.py", "old": 0.45, "new": 0.72, "delta": 0.27 },
-    { "edge": "chat_handler.py -&gt; stream_parser.py", "old": 0.60, "new": 0.48, "delta": -0.12 }
+    { "edge": "pool.py -&gt; worker.py", "old": 0.45, "new": 0.72, "delta": 0.27 },
+    { "edge": "handler.py -&gt; parser.py", "old": 0.60, "new": 0.48, "delta": -0.12 }
   ],
   "elapsed_ms": 12.0
 }
@@ -3446,9 +3446,9 @@ if fallback {
   "params": {
     "name": "m1nd.why",
     "arguments": {
-      "agent_id": "jimi",
-      "source": "file::worker_pool.py",
-      "target": "file::whatsapp_manager.py",
+      "agent_id": "orchestrator",
+      "source": "file::worker.py",
+      "target": "file::messaging.py",
       "max_hops": 4
     }
   }
@@ -3456,17 +3456,17 @@ if fallback {
 </code></pre>
 <h3 id="example-response-2-2"><a class="header" href="#example-response-2-2">Example Response</a></h3>
 <pre><code class="language-json">{
-  "source": "file::worker_pool.py",
-  "target": "file::whatsapp_manager.py",
+  "source": "file::worker.py",
+  "target": "file::messaging.py",
   "paths": [
     {
-      "nodes": ["worker_pool.py", "process_manager.py", "whatsapp_manager.py"],
+      "nodes": ["worker.py", "process_manager.py", "messaging.py"],
       "relations": ["calls::cancel", "imports"],
       "cumulative_strength": 0.68,
       "hops": 2
     },
     {
-      "nodes": ["worker_pool.py", "spawner.py", "chat_handler.py", "whatsapp_manager.py"],
+      "nodes": ["worker.py", "worker.py", "handler.py", "messaging.py"],
       "relations": ["imported_by", "calls", "imports"],
       "cumulative_strength": 0.31,
       "hops": 3
@@ -3517,13 +3517,13 @@ if fallback {
   "params": {
     "name": "m1nd.trail.save",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "label": "auth-leak-investigation",
       "hypotheses": [
         {
           "statement": "Auth tokens leak through session pool",
           "confidence": 0.7,
-          "supporting_nodes": ["file::session_pool.py", "file::auth_discovery.py"]
+          "supporting_nodes": ["file::pool.py", "file::auth_discovery.py"]
         },
         {
           "statement": "Rate limiter missing from auth chain",
@@ -3534,7 +3534,7 @@ if fallback {
       "open_questions": ["Does the rate limiter apply to WebSocket connections?"],
       "tags": ["security", "auth", "session"],
       "activation_boosts": {
-        "file::session_pool.py": 0.8,
+        "file::pool.py": 0.8,
         "file::auth_discovery.py": 0.6
       }
     }
@@ -3545,7 +3545,7 @@ if fallback {
 <pre><code class="language-json">{
   "trail_id": "trail_jimi_001_a1b2c3",
   "label": "auth-leak-investigation",
-  "agent_id": "jimi",
+  "agent_id": "orchestrator",
   "nodes_saved": 47,
   "hypotheses_saved": 2,
   "conclusions_saved": 0,
@@ -3590,7 +3590,7 @@ if fallback {
   "params": {
     "name": "m1nd.trail.resume",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "trail_id": "trail_jimi_001_a1b2c3"
     }
   }
@@ -3607,7 +3607,7 @@ if fallback {
   "hypotheses_downgraded": [],
   "trail": {
     "trail_id": "trail_jimi_001_a1b2c3",
-    "agent_id": "jimi",
+    "agent_id": "orchestrator",
     "label": "auth-leak-investigation",
     "status": "active",
     "created_at_ms": 1710300000000,
@@ -3658,7 +3658,7 @@ if fallback {
   "params": {
     "name": "m1nd.trail.list",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "filter_status": "saved",
       "filter_tags": ["security"]
     }
@@ -3670,7 +3670,7 @@ if fallback {
   "trails": [
     {
       "trail_id": "trail_jimi_001_a1b2c3",
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "label": "auth-leak-investigation",
       "status": "saved",
       "created_at_ms": 1710300000000,
@@ -3720,7 +3720,7 @@ if fallback {
   "params": {
     "name": "m1nd.trail.merge",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "trail_ids": ["trail_jimi_001_a1b2c3", "trail_analyst_002_d4e5f6"],
       "label": "combined-auth-investigation"
     }
@@ -3748,7 +3748,7 @@ if fallback {
       "type": "bridge_edge",
       "detail": "auth_discovery.py connects the auth trail to the session trail",
       "from_node": "file::auth_discovery.py",
-      "to_node": "file::session_pool.py",
+      "to_node": "file::pool.py",
       "weight": 0.72
     }
   ],
@@ -3809,7 +3809,7 @@ if fallback {
   "params": {
     "name": "m1nd.seek",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "code that validates user credentials",
       "top_k": 5,
       "node_types": ["function", "class"]
@@ -3883,7 +3883,7 @@ if fallback {
   "params": {
     "name": "m1nd.scan",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "pattern": "error_handling",
       "scope": "backend/",
       "severity_min": 0.5
@@ -3899,9 +3899,9 @@ if fallback {
       "pattern": "error_handling",
       "status": "confirmed",
       "severity": 0.78,
-      "node_id": "file::spawner.py::fn::spawn_agent",
+      "node_id": "file::worker.py::fn::spawn_agent",
       "label": "spawn_agent",
-      "file_path": "backend/spawner.py",
+      "file_path": "backend/worker.py",
       "line": 89,
       "message": "Bare except clause catches all exceptions including KeyboardInterrupt",
       "graph_context": [
@@ -3964,7 +3964,7 @@ if fallback {
   "params": {
     "name": "m1nd.missing",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "database connection pooling",
       "min_sibling_activation": 0.3
     }
@@ -4030,8 +4030,8 @@ if fallback {
   "params": {
     "name": "m1nd.trace",
     "arguments": {
-      "agent_id": "jimi",
-      "error_text": "Traceback (most recent call last):\n  File \"backend/chat_handler.py\", line 234, in handle_message\n  File \"backend/session_pool.py\", line 89, in acquire\n  File \"backend/worker_pool.py\", line 156, in submit\nTimeoutError: pool exhausted",
+      "agent_id": "orchestrator",
+      "error_text": "Traceback (most recent call last):\n  File \"backend/handler.py\", line 234, in handle_message\n  File \"backend/pool.py\", line 89, in acquire\n  File \"backend/worker.py\", line 156, in submit\nTimeoutError: pool exhausted",
       "language": "python",
       "top_k": 5
     }
@@ -4047,34 +4047,34 @@ if fallback {
   "frames_mapped": 3,
   "suspects": [
     {
-      "node_id": "file::worker_pool.py::fn::submit",
+      "node_id": "file::worker.py::fn::submit",
       "label": "submit",
       "type": "function",
       "suspiciousness": 0.91,
       "signals": { "trace_depth_score": 1.0, "recency_score": 0.85, "centrality_score": 0.88 },
-      "file_path": "backend/worker_pool.py",
+      "file_path": "backend/worker.py",
       "line_start": 150,
       "line_end": 175,
-      "related_callers": ["session_pool.py::acquire"]
+      "related_callers": ["pool.py::acquire"]
     },
     {
-      "node_id": "file::session_pool.py::fn::acquire",
+      "node_id": "file::pool.py::fn::acquire",
       "label": "acquire",
       "type": "function",
       "suspiciousness": 0.78,
       "signals": { "trace_depth_score": 0.67, "recency_score": 0.72, "centrality_score": 0.65 },
-      "file_path": "backend/session_pool.py",
+      "file_path": "backend/pool.py",
       "line_start": 80,
       "line_end": 110,
-      "related_callers": ["chat_handler.py::handle_message"]
+      "related_callers": ["handler.py::handle_message"]
     }
   ],
   "co_change_suspects": [
     { "node_id": "file::config.py", "label": "config.py", "modified_at": 1710295000.0, "reason": "Modified within 2h of top suspect" }
   ],
-  "causal_chain": ["worker_pool.py::submit", "session_pool.py::acquire", "chat_handler.py::handle_message"],
+  "causal_chain": ["worker.py::submit", "pool.py::acquire", "handler.py::handle_message"],
   "fix_scope": {
-    "files_to_inspect": ["backend/worker_pool.py", "backend/session_pool.py", "backend/config.py"],
+    "files_to_inspect": ["backend/worker.py", "backend/pool.py", "backend/config.py"],
     "estimated_blast_radius": 23,
     "risk_level": "medium"
   },
@@ -4117,7 +4117,7 @@ if fallback {
 <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr>
 </thead>
 <tbody>
-<tr><td><code>node</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Node external_id. Example: <code>"file::backend/chat_handler.py"</code>.</td></tr>
+<tr><td><code>node</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Node external_id. Example: <code>"file::backend/handler.py"</code>.</td></tr>
 <tr><td><code>agent_id</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Calling agent identifier.</td></tr>
 <tr><td><code>depth</code></td><td><code>string</code></td><td>No</td><td><code>"30d"</code></td><td>Time depth. Values: <code>"7d"</code>, <code>"30d"</code>, <code>"90d"</code>, <code>"all"</code>.</td></tr>
 <tr><td><code>include_co_changes</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Include co-changed files with coupling scores.</td></tr>
@@ -4134,8 +4134,8 @@ if fallback {
   "params": {
     "name": "m1nd.timeline",
     "arguments": {
-      "agent_id": "jimi",
-      "node": "file::backend/chat_handler.py",
+      "agent_id": "orchestrator",
+      "node": "file::backend/handler.py",
       "depth": "30d",
       "top_k": 5
     }
@@ -4144,7 +4144,7 @@ if fallback {
 </code></pre>
 <h3 id="example-response-4-2"><a class="header" href="#example-response-4-2">Example Response</a></h3>
 <pre><code class="language-json">{
-  "node": "file::backend/chat_handler.py",
+  "node": "file::backend/handler.py",
   "depth": "30d",
   "changes": [
     {
@@ -4152,20 +4152,20 @@ if fallback {
       "commit": "a1b2c3d",
       "author": "cosmophonix",
       "delta": "+45/-12",
-      "co_changed": ["stream_parser.py", "chat_routes.py"]
+      "co_changed": ["parser.py", "chat_routes.py"]
     },
     {
       "date": "2026-03-05",
       "commit": "e4f5g6h",
       "author": "cosmophonix",
       "delta": "+120/-30",
-      "co_changed": ["session_pool.py", "worker_pool.py"]
+      "co_changed": ["pool.py", "worker.py"]
     }
   ],
   "co_changed_with": [
-    { "file": "stream_parser.py", "times": 8, "coupling_degree": 0.72 },
+    { "file": "parser.py", "times": 8, "coupling_degree": 0.72 },
     { "file": "chat_routes.py", "times": 6, "coupling_degree": 0.55 },
-    { "file": "session_pool.py", "times": 4, "coupling_degree": 0.38 }
+    { "file": "pool.py", "times": 4, "coupling_degree": 0.38 }
   ],
   "velocity": "accelerating",
   "stability_score": 0.35,
@@ -4256,7 +4256,7 @@ if fallback {
   "params": {
     "name": "m1nd.federate",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "repos": [
         { "name": "backend", "path": "/project/backend" },
         { "name": "frontend", "path": "/project/frontend" },
@@ -4352,9 +4352,9 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.start",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "session management and connection pooling",
-      "anchor_node": "file::session_pool.py"
+      "anchor_node": "file::pool.py"
     }
   }
 }
@@ -4363,17 +4363,17 @@ if fallback {
 <pre><code class="language-json">{
   "perspective_id": "persp_jimi_001",
   "mode": "anchored",
-  "anchor_node": "file::session_pool.py",
-  "focus_node": "file::session_pool.py",
+  "anchor_node": "file::pool.py",
+  "focus_node": "file::pool.py",
   "routes": [
     {
       "route_id": "R_a1b2c3",
       "index": 1,
-      "target_node": "file::worker_pool.py",
-      "target_label": "worker_pool.py",
+      "target_node": "file::worker.py",
+      "target_label": "worker.py",
       "family": "structural_neighbor",
       "score": 0.89,
-      "path_preview": ["session_pool.py", "worker_pool.py"],
+      "path_preview": ["pool.py", "worker.py"],
       "reason": "High structural coupling with anchor"
     },
     {
@@ -4383,7 +4383,7 @@ if fallback {
       "target_label": "process_manager.py",
       "family": "causal_downstream",
       "score": 0.76,
-      "path_preview": ["session_pool.py", "process_manager.py"],
+      "path_preview": ["pool.py", "process_manager.py"],
       "reason": "Causal dependency via imports"
     }
   ],
@@ -4433,7 +4433,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.routes",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "page": 2,
       "page_size": 6,
@@ -4447,8 +4447,8 @@ if fallback {
   "perspective_id": "persp_jimi_001",
   "mode": "anchored",
   "mode_effective": "anchored",
-  "anchor": "file::session_pool.py",
-  "focus": "file::session_pool.py",
+  "anchor": "file::pool.py",
+  "focus": "file::pool.py",
   "lens_summary": "all dimensions, no type filter",
   "page": 2,
   "total_pages": 2,
@@ -4463,7 +4463,7 @@ if fallback {
       "target_label": "config.py",
       "family": "configuration",
       "score": 0.42,
-      "path_preview": ["session_pool.py", "config.py"],
+      "path_preview": ["pool.py", "config.py"],
       "reason": "Shared configuration key"
     }
   ],
@@ -4508,7 +4508,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.inspect",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "route_id": "R_a1b2c3",
       "route_set_version": 100
@@ -4521,10 +4521,10 @@ if fallback {
   "route_id": "R_a1b2c3",
   "route_index": 1,
   "family": "structural_neighbor",
-  "target_node": "file::worker_pool.py",
-  "target_label": "worker_pool.py",
+  "target_node": "file::worker.py",
+  "target_label": "worker.py",
   "target_type": "file",
-  "path_preview": ["session_pool.py", "spawner.py", "worker_pool.py"],
+  "path_preview": ["pool.py", "worker.py", "worker.py"],
   "family_explanation": "Direct structural neighbor via import chain",
   "score": 0.89,
   "score_breakdown": {
@@ -4535,7 +4535,7 @@ if fallback {
     "continuity": 0.82
   },
   "provenance": {
-    "source_path": "backend/worker_pool.py",
+    "source_path": "backend/worker.py",
     "line_start": 1,
     "line_end": 312,
     "namespace": null,
@@ -4586,7 +4586,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.peek",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "route_index": 1,
       "route_set_version": 100
@@ -4598,10 +4598,10 @@ if fallback {
 <pre><code class="language-json">{
   "route_id": "R_a1b2c3",
   "route_index": 1,
-  "target_node": "file::worker_pool.py",
+  "target_node": "file::worker.py",
   "content": {
     "excerpt": "class WorkerPool:\n    \"\"\"Manages a pool of CLI subprocess workers.\"\"\"\n    def __init__(self, max_workers=8):\n        self.pool = {}\n        self.max_workers = max_workers\n        ...",
-    "file_path": "backend/worker_pool.py",
+    "file_path": "backend/worker.py",
     "line_start": 15,
     "line_end": 45,
     "truncated": true
@@ -4645,7 +4645,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.follow",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "route_id": "R_a1b2c3",
       "route_set_version": 100
@@ -4656,8 +4656,8 @@ if fallback {
 <h3 id="example-response-4-3"><a class="header" href="#example-response-4-3">Example Response</a></h3>
 <pre><code class="language-json">{
   "perspective_id": "persp_jimi_001",
-  "previous_focus": "file::session_pool.py",
-  "new_focus": "file::worker_pool.py",
+  "previous_focus": "file::pool.py",
+  "new_focus": "file::worker.py",
   "mode": "anchored",
   "mode_effective": "anchored",
   "routes": [
@@ -4668,17 +4668,17 @@ if fallback {
       "target_label": "process_manager.py",
       "family": "causal_downstream",
       "score": 0.85,
-      "path_preview": ["worker_pool.py", "process_manager.py"],
+      "path_preview": ["worker.py", "process_manager.py"],
       "reason": "Direct caller of worker pool submit"
     },
     {
       "route_id": "R_m4n5o6",
       "index": 2,
-      "target_node": "file::spawner.py",
-      "target_label": "spawner.py",
+      "target_node": "file::worker.py",
+      "target_label": "worker.py",
       "family": "structural_neighbor",
       "score": 0.71,
-      "path_preview": ["worker_pool.py", "spawner.py"],
+      "path_preview": ["worker.py", "worker.py"],
       "reason": "Co-manages subprocess lifecycle"
     }
   ],
@@ -4725,7 +4725,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.suggest",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "route_set_version": 101
     }
@@ -4781,7 +4781,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.affinity",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "route_id": "R_j1k2l3",
       "route_set_version": 101
@@ -4795,7 +4795,7 @@ if fallback {
   "target_node": "file::process_manager.py",
   "notice": "Probable connections, not verified edges.",
   "candidates": [
-    { "node_id": "file::healing_manager.py", "label": "healing_manager.py", "strength": 0.68, "reason": "Similar lifecycle management pattern" },
+    { "node_id": "file::recovery.py", "label": "recovery.py", "strength": 0.68, "reason": "Similar lifecycle management pattern" },
     { "node_id": "file::autonomous_daemon.py", "label": "autonomous_daemon.py", "strength": 0.52, "reason": "Shared subprocess management trait" }
   ]
 }
@@ -4835,7 +4835,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.branch",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "branch_name": "auth-path"
     }
@@ -4847,7 +4847,7 @@ if fallback {
   "perspective_id": "persp_jimi_001",
   "branch_perspective_id": "persp_jimi_002",
   "branch_name": "auth-path",
-  "branched_from_focus": "file::worker_pool.py"
+  "branched_from_focus": "file::worker.py"
 }
 </code></pre>
 <h3 id="when-to-use-7-1"><a class="header" href="#when-to-use-7-1">When to Use</a></h3>
@@ -4884,7 +4884,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.back",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001"
     }
   }
@@ -4893,17 +4893,17 @@ if fallback {
 <h3 id="example-response-8-1"><a class="header" href="#example-response-8-1">Example Response</a></h3>
 <pre><code class="language-json">{
   "perspective_id": "persp_jimi_001",
-  "restored_focus": "file::session_pool.py",
+  "restored_focus": "file::pool.py",
   "restored_mode": "anchored",
   "routes": [
     {
       "route_id": "R_a1b2c3",
       "index": 1,
-      "target_node": "file::worker_pool.py",
-      "target_label": "worker_pool.py",
+      "target_node": "file::worker.py",
+      "target_label": "worker.py",
       "family": "structural_neighbor",
       "score": 0.89,
-      "path_preview": ["session_pool.py", "worker_pool.py"],
+      "path_preview": ["pool.py", "worker.py"],
       "reason": "High structural coupling with anchor"
     }
   ],
@@ -4949,7 +4949,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.compare",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id_a": "persp_jimi_001",
       "perspective_id_b": "persp_jimi_002"
     }
@@ -4960,8 +4960,8 @@ if fallback {
 <pre><code class="language-json">{
   "perspective_id_a": "persp_jimi_001",
   "perspective_id_b": "persp_jimi_002",
-  "shared_nodes": ["worker_pool.py", "process_manager.py", "session_pool.py"],
-  "unique_to_a": ["spawner.py", "config.py"],
+  "shared_nodes": ["worker.py", "process_manager.py", "pool.py"],
+  "unique_to_a": ["worker.py", "config.py"],
   "unique_to_b": ["auth_discovery.py", "middleware.py"],
   "dimension_deltas": [
     { "dimension": "structural", "score_a": 0.82, "score_b": 0.75, "delta": 0.07 },
@@ -5004,19 +5004,19 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.list",
     "arguments": {
-      "agent_id": "jimi"
+      "agent_id": "orchestrator"
     }
   }
 }
 </code></pre>
 <h3 id="example-response-10"><a class="header" href="#example-response-10">Example Response</a></h3>
 <pre><code class="language-json">{
-  "agent_id": "jimi",
+  "agent_id": "orchestrator",
   "perspectives": [
     {
       "perspective_id": "persp_jimi_001",
       "mode": "anchored",
-      "focus_node": "file::worker_pool.py",
+      "focus_node": "file::worker.py",
       "route_count": 12,
       "nav_event_count": 3,
       "stale": false,
@@ -5070,7 +5070,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.close",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_002"
     }
   }
@@ -5121,11 +5121,11 @@ if fallback {
 
 7. FOLLOW different routes in each branch
    Branch 1: follow toward principal_registry.py
-   Branch 2: follow toward session_pool.py
+   Branch 2: follow toward pool.py
 
 8. COMPARE the two branches
    m1nd.perspective.compare(perspective_id_a="persp_jimi_001", perspective_id_b="persp_jimi_002")
-   -&gt; shared: [auth_discovery.py], unique_to_a: [principal_registry.py], unique_to_b: [session_pool.py]
+   -&gt; shared: [auth_discovery.py], unique_to_a: [principal_registry.py], unique_to_b: [pool.py]
 
 9. BACK to undo the last follow in branch 1
    m1nd.perspective.back()
@@ -5166,8 +5166,8 @@ if fallback {
   "params": {
     "name": "m1nd.ingest",
     "arguments": {
-      "agent_id": "jimi",
-      "path": "/Users/cosmophonix/clawd/roomanizer-os/backend",
+      "agent_id": "orchestrator",
+      "path": "/path/to/your/project",
       "adapter": "code",
       "mode": "replace",
       "incremental": false
@@ -5249,7 +5249,7 @@ if fallback {
   "params": {
     "name": "m1nd.health",
     "arguments": {
-      "agent_id": "jimi"
+      "agent_id": "orchestrator"
     }
   }
 }
@@ -5265,7 +5265,7 @@ if fallback {
   "plasticity_state": "active",
   "last_persist_time": "2026-03-13T10:30:00Z",
   "active_sessions": [
-    { "agent_id": "jimi", "last_active": "2026-03-13T11:25:00Z" }
+    { "agent_id": "orchestrator", "last_active": "2026-03-13T11:25:00Z" }
   ]
 }
 </code></pre>
@@ -5305,11 +5305,11 @@ if fallback {
   "params": {
     "name": "m1nd.validate_plan",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "actions": [
-        { "action_type": "modify", "file_path": "backend/session_pool.py", "description": "Add connection timeout" },
-        { "action_type": "modify", "file_path": "backend/worker_pool.py", "description": "Update pool acquire to use timeout" },
-        { "action_type": "test", "file_path": "backend/tests/test_session_pool.py" }
+        { "action_type": "modify", "file_path": "backend/pool.py", "description": "Add connection timeout" },
+        { "action_type": "modify", "file_path": "backend/worker.py", "description": "Update pool acquire to use timeout" },
+        { "action_type": "test", "file_path": "backend/tests/test_pool.py" }
       ]
     }
   }
@@ -5324,14 +5324,14 @@ if fallback {
     {
       "file_path": "backend/config.py",
       "node_id": "file::config.py",
-      "reason": "imported by modified file session_pool.py -- timeout config likely needed here",
+      "reason": "imported by modified file pool.py -- timeout config likely needed here",
       "severity": "warning",
       "signal_strength": 0.72
     },
     {
       "file_path": "backend/process_manager.py",
       "node_id": "file::process_manager.py",
-      "reason": "in blast radius of worker_pool.py -- calls worker_pool.submit",
+      "reason": "in blast radius of worker.py -- calls worker_pool.submit",
       "severity": "info",
       "signal_strength": 0.45
     }
@@ -5341,12 +5341,12 @@ if fallback {
   "test_coverage": {
     "modified_files": 2,
     "tested_files": 1,
-    "untested_files": ["backend/worker_pool.py"],
+    "untested_files": ["backend/worker.py"],
     "coverage_ratio": 0.5
   },
   "suggested_additions": [
     { "action_type": "modify", "file_path": "backend/config.py", "reason": "Timeout configuration likely needed" },
-    { "action_type": "test", "file_path": "backend/tests/test_worker_pool.py", "reason": "Modified file has no test action in plan" }
+    { "action_type": "test", "file_path": "backend/tests/test_worker.py", "reason": "Modified file has no test action in plan" }
   ],
   "blast_radius_total": 47,
   "elapsed_ms": 35.0
@@ -5420,9 +5420,9 @@ if fallback {
   "params": {
     "name": "m1nd.lock.create",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "scope": "subgraph",
-      "root_nodes": ["file::chat_handler.py"],
+      "root_nodes": ["file::handler.py"],
       "radius": 2
     }
   }
@@ -5481,7 +5481,7 @@ if fallback {
   "params": {
     "name": "m1nd.lock.watch",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001",
       "strategy": "on_ingest"
     }
@@ -5529,7 +5529,7 @@ if fallback {
   "params": {
     "name": "m1nd.lock.diff",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001"
     }
   }
@@ -5540,14 +5540,14 @@ if fallback {
   "diff": {
     "lock_id": "lock_jimi_001",
     "no_changes": false,
-    "new_nodes": ["file::chat_handler.py::fn::new_method"],
+    "new_nodes": ["file::handler.py::fn::new_method"],
     "removed_nodes": [],
-    "new_edges": ["chat_handler.py|new_method-&gt;stream_parser.py|calls"],
+    "new_edges": ["handler.py|new_method-&gt;parser.py|calls"],
     "removed_edges": [],
     "boundary_edges_added": [],
     "boundary_edges_removed": [],
     "weight_changes": [
-      { "edge_key": "chat_handler.py|stream_parser.py|imports", "old_weight": 0.5, "new_weight": 0.72 }
+      { "edge_key": "handler.py|parser.py|imports", "old_weight": 0.5, "new_weight": 0.72 }
     ],
     "baseline_stale": false,
     "elapsed_ms": 0.08
@@ -5610,7 +5610,7 @@ if fallback {
   "params": {
     "name": "m1nd.lock.rebase",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001"
     }
   }
@@ -5660,7 +5660,7 @@ if fallback {
   "params": {
     "name": "m1nd.lock.release",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001"
     }
   }
@@ -5911,7 +5911,7 @@ cargo build --release
 <pre><code class="language-json">{
   "activated": [
     {
-      "node_id": "file::session_pool.py",
+      "node_id": "file::pool.py",
       "score": 0.89,
       "dimension_scores": {
         "structural": 0.92,
@@ -5920,15 +5920,15 @@ cargo build --release
         "causal": 0.71
       }
     },
-    {"node_id": "file::session_pool.py::class::SessionPool", "score": 0.84},
-    {"node_id": "file::worker_pool.py", "score": 0.61},
-    {"node_id": "file::session_pool.py::fn::acquire", "score": 0.58},
+    {"node_id": "file::pool.py::class::ConnectionPool", "score": 0.84},
+    {"node_id": "file::worker.py", "score": 0.61},
+    {"node_id": "file::pool.py::fn::acquire", "score": 0.58},
     {"node_id": "file::process_manager.py", "score": 0.45}
   ],
   "ghost_edges": [
     {
-      "from": "file::session_pool.py",
-      "to": "file::healing_manager.py",
+      "from": "file::pool.py",
+      "to": "file::recovery.py",
       "confidence": 0.34
     }
   ]
@@ -5938,11 +5938,11 @@ cargo build --release
 <ul>
 <li><strong><code>score</code></strong>: Combined 4-dimensional activation score (0.0 to 1.0)</li>
 <li><strong><code>dimension_scores</code></strong>: Breakdown by structural (graph distance, PageRank), semantic (token overlap), temporal (co-change history), and causal (suspiciousness)</li>
-<li><strong><code>ghost_edges</code></strong>: Connections the graph inferred but that are not explicit in code. Here, <code>session_pool.py</code> and <code>healing_manager.py</code> are structurally unconnected but co-activate together – a hidden dependency worth investigating.</li>
+<li><strong><code>ghost_edges</code></strong>: Connections the graph inferred but that are not explicit in code. Here, <code>pool.py</code> and <code>recovery.py</code> are structurally unconnected but co-activate together – a hidden dependency worth investigating.</li>
 </ul>
 <p>Note the scores. We will come back to this query after teaching the graph.</p>
 <h2 id="step-3-teach-the-graph-hebbian-learning"><a class="header" href="#step-3-teach-the-graph-hebbian-learning">Step 3: Teach the Graph (Hebbian Learning)</a></h2>
-<p>The top two results (<code>session_pool.py</code> and the <code>SessionPool</code> class) were exactly what we needed. Tell the graph:</p>
+<p>The top two results (<code>pool.py</code> and the <code>ConnectionPool</code> class) were exactly what we needed. Tell the graph:</p>
 <pre><code class="language-jsonc">{
   "method": "tools/call",
   "params": {
@@ -5952,8 +5952,8 @@ cargo build --release
       "agent_id": "dev",
       "feedback": "correct",
       "node_ids": [
-        "file::session_pool.py",
-        "file::session_pool.py::class::SessionPool"
+        "file::pool.py",
+        "file::pool.py::class::ConnectionPool"
       ],
       "strength": 0.2
     }
@@ -5969,7 +5969,7 @@ cargo build --release
 }
 </code></pre>
 <p><strong>What happened</strong>: Hebbian Long-Term Potentiation (LTP) strengthened 740 edges along paths connecting the confirmed-useful nodes. “Neurons that fire together wire together.” The next time anyone queries this region of the graph, those paths carry more signal.</p>
-<p>Now suppose <code>worker_pool.py</code> (score 0.61) was not actually relevant. Mark it wrong:</p>
+<p>Now suppose <code>worker.py</code> (score 0.61) was not actually relevant. Mark it wrong:</p>
 <pre><code class="language-jsonc">{
   "method": "tools/call",
   "params": {
@@ -5978,7 +5978,7 @@ cargo build --release
       "query": "session pool management",
       "agent_id": "dev",
       "feedback": "wrong",
-      "node_ids": ["file::worker_pool.py"],
+      "node_ids": ["file::worker.py"],
       "strength": 0.2
     }
   }
@@ -5992,7 +5992,7 @@ cargo build --release
   "learning_type": "hebbian_ltd"
 }
 </code></pre>
-<p>Long-Term Depression (LTD) weakened 312 edges leading to <code>worker_pool.py</code> from this query region. The graph now knows: for session pool queries, <code>worker_pool.py</code> is noise.</p>
+<p>Long-Term Depression (LTD) weakened 312 edges leading to <code>worker.py</code> from this query region. The graph now knows: for session pool queries, <code>worker.py</code> is noise.</p>
 <h2 id="step-4-activate-again--see-the-improvement"><a class="header" href="#step-4-activate-again--see-the-improvement">Step 4: Activate Again – See the Improvement</a></h2>
 <p>Run the exact same query:</p>
 <pre><code class="language-jsonc">{
@@ -6010,11 +6010,11 @@ cargo build --release
 <p>Expected changes:</p>
 <pre><code class="language-json">{
   "activated": [
-    {"node_id": "file::session_pool.py", "score": 0.93},
-    {"node_id": "file::session_pool.py::class::SessionPool", "score": 0.88},
-    {"node_id": "file::session_pool.py::fn::acquire", "score": 0.65},
+    {"node_id": "file::pool.py", "score": 0.93},
+    {"node_id": "file::pool.py::class::ConnectionPool", "score": 0.88},
+    {"node_id": "file::pool.py::fn::acquire", "score": 0.65},
     {"node_id": "file::process_manager.py", "score": 0.47},
-    {"node_id": "file::healing_manager.py", "score": 0.39}
+    {"node_id": "file::recovery.py", "score": 0.39}
   ]
 }
 </code></pre>
@@ -6025,14 +6025,14 @@ cargo build --release
 <tr><th>Node</th><th>Before</th><th>After</th><th>Change</th></tr>
 </thead>
 <tbody>
-<tr><td><code>session_pool.py</code></td><td>0.89</td><td>0.93</td><td>+0.04 (strengthened)</td></tr>
-<tr><td><code>SessionPool</code> class</td><td>0.84</td><td>0.88</td><td>+0.04 (strengthened)</td></tr>
-<tr><td><code>worker_pool.py</code></td><td>0.61</td><td>dropped</td><td>Pushed below top-5 (weakened)</td></tr>
-<tr><td><code>healing_manager.py</code></td><td>ghost only</td><td>0.39</td><td>Promoted from ghost to main results</td></tr>
+<tr><td><code>pool.py</code></td><td>0.89</td><td>0.93</td><td>+0.04 (strengthened)</td></tr>
+<tr><td><code>ConnectionPool</code> class</td><td>0.84</td><td>0.88</td><td>+0.04 (strengthened)</td></tr>
+<tr><td><code>worker.py</code></td><td>0.61</td><td>dropped</td><td>Pushed below top-5 (weakened)</td></tr>
+<tr><td><code>recovery.py</code></td><td>ghost only</td><td>0.39</td><td>Promoted from ghost to main results</td></tr>
 </tbody>
 </table>
 </div>
-<p>The graph learned. <code>worker_pool.py</code> fell out of the top results. <code>healing_manager.py</code>, previously only a ghost edge, got promoted because the strengthened paths through <code>session_pool.py</code> now carry more signal to its neighborhood.</p>
+<p>The graph learned. <code>worker.py</code> fell out of the top results. <code>recovery.py</code>, previously only a ghost edge, got promoted because the strengthened paths through <code>pool.py</code> now carry more signal to its neighborhood.</p>
 <p><strong>This is the core value proposition of m1nd</strong>: every interaction makes the graph smarter. No other code intelligence tool does this.</p>
 <h2 id="step-5-structural-hole-detection"><a class="header" href="#step-5-structural-hole-detection">Step 5: Structural Hole Detection</a></h2>
 <p>Ask the graph what is <em>missing</em> around a topic:</p>
@@ -6078,7 +6078,7 @@ cargo build --release
   "params": {
     "name": "m1nd.counterfactual",
     "arguments": {
-      "node_ids": ["file::spawner.py"],
+      "node_ids": ["file::worker.py"],
       "agent_id": "dev"
     }
   }
@@ -6098,7 +6098,7 @@ cargo build --release
 </code></pre>
 <p><strong>Reading the results</strong>:</p>
 <ul>
-<li><strong>Depth 1</strong>: 23 nodes directly depend on <code>spawner.py</code></li>
+<li><strong>Depth 1</strong>: 23 nodes directly depend on <code>worker.py</code></li>
 <li><strong>Depth 2</strong>: 456 more nodes depend on those 23</li>
 <li><strong>Depth 3</strong>: 3,710 more – a cascade explosion</li>
 <li><strong>Total</strong>: 4,189 nodes affected out of ~9,767 (42.9% of the graph)</li>
@@ -6128,7 +6128,7 @@ cargo build --release
   "pct_activation_lost": 0.28
 }
 </code></pre>
-<p>Despite <code>config.py</code> having more direct dependents (89 vs 23), its total cascade is smaller (2,531 vs 4,189). <code>spawner.py</code> sits at a structural chokepoint where downstream nodes have more transitive dependencies. This insight is impossible to get from <code>grep</code> or import analysis alone – it requires full graph traversal.</p>
+<p>Despite <code>config.py</code> having more direct dependents (89 vs 23), its total cascade is smaller (2,531 vs 4,189). <code>worker.py</code> sits at a structural chokepoint where downstream nodes have more transitive dependencies. This insight is impossible to get from <code>grep</code> or import analysis alone – it requires full graph traversal.</p>
 <h2 id="step-7-hypothesis-testing-bonus"><a class="header" href="#step-7-hypothesis-testing-bonus">Step 7: Hypothesis Testing (Bonus)</a></h2>
 <p>Test a structural claim against the graph:</p>
 <pre><code class="language-jsonc">{
@@ -6150,9 +6150,9 @@ cargo build --release
   "evidence": [
     {
       "path": [
-        "file::worker_pool.py",
+        "file::worker.py",
         "file::process_manager.py::fn::cancel",
-        "file::whatsapp_manager.py"
+        "file::messaging.py"
       ],
       "hops": 2
     }
@@ -6188,7 +6188,7 @@ cargo build --release
 <p>Next: <a href="#multi-agent-usage">Multi-Agent Tutorial</a> – how multiple agents share one graph.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="multi-agent-usage"><a class="header" href="#multi-agent-usage">Multi-Agent Usage</a></h1>
-<p>m1nd is designed for multi-agent systems. One m1nd instance serves many agents simultaneously. This tutorial covers agent identity, concurrent access, perspective isolation, trail sharing, and a real-world example of how ROOMANIZER OS uses m1nd with 19 agents.</p>
+<p>m1nd is designed for multi-agent systems. One m1nd instance serves many agents simultaneously. This tutorial covers agent identity, concurrent access, perspective isolation, trail sharing, and a real-world example of how a production system uses m1nd with a fleet of agents.</p>
 <h2 id="how-it-works"><a class="header" href="#how-it-works">How It Works</a></h2>
 <p>m1nd runs as a single process with a single shared graph. Multiple MCP clients connect to the same instance (or multiple instances reading from the same persisted state). Every tool call includes an <code>agent_id</code> parameter that identifies the caller.</p>
 <pre><code>  Agent A (Claude Code)  ----+
@@ -6200,10 +6200,10 @@ cargo build --release
 <p>The graph is shared. Learning by one agent benefits all agents. Perspectives are isolated per agent. Trails can be shared across agents.</p>
 <h2 id="agent-id-conventions"><a class="header" href="#agent-id-conventions">Agent ID Conventions</a></h2>
 <p>Every m1nd tool requires an <code>agent_id</code> parameter. This is a free-form string, but consistent naming matters:</p>
-<pre><code>agent_id: "jimi"          -- orchestrator
-agent_id: "hacker-auth"   -- security hardening agent
-agent_id: "forge-api"     -- API building agent
-agent_id: "analyst-perf"  -- performance analysis agent
+<pre><code>agent_id: "orchestrator"          -- orchestrator
+agent_id: "auditor-1"   -- security hardening agent
+agent_id: "builder-api"     -- API building agent
+agent_id: "analyzer-core"  -- performance analysis agent
 </code></pre>
 <p><strong>Recommended convention</strong>: <code>{archetype}-{task}</code> for short-lived task agents, simple names for persistent agents.</p>
 <p>Rules:</p>
@@ -6215,7 +6215,7 @@ agent_id: "analyst-perf"  -- performance analysis agent
 </ul>
 <h2 id="shared-graph-individual-learning"><a class="header" href="#shared-graph-individual-learning">Shared Graph, Individual Learning</a></h2>
 <p>When Agent A calls <code>learn</code> with feedback, the edge weight changes are visible to all agents immediately:</p>
-<pre><code class="language-jsonc">// Agent A: "session_pool.py was useful for my auth investigation"
+<pre><code class="language-jsonc">// Agent A: "pool.py was useful for my auth investigation"
 {
   "method": "tools/call",
   "params": {
@@ -6224,13 +6224,13 @@ agent_id: "analyst-perf"  -- performance analysis agent
       "query": "authentication flow",
       "agent_id": "agent-a",
       "feedback": "correct",
-      "node_ids": ["file::session_pool.py"]
+      "node_ids": ["file::pool.py"]
     }
   }
 }
 // -&gt; 740 edges strengthened
 </code></pre>
-<pre><code class="language-jsonc">// Agent B: immediately benefits from stronger session_pool.py edges
+<pre><code class="language-jsonc">// Agent B: immediately benefits from stronger pool.py edges
 {
   "method": "tools/call",
   "params": {
@@ -6242,7 +6242,7 @@ agent_id: "analyst-perf"  -- performance analysis agent
     }
   }
 }
-// -&gt; session_pool.py scores higher than it would have before Agent A's feedback
+// -&gt; pool.py scores higher than it would have before Agent A's feedback
 </code></pre>
 <p>This is by design. The graph represents collective intelligence about the codebase. Every agent’s learning contributes to the whole.</p>
 <h2 id="perspective-isolation"><a class="header" href="#perspective-isolation">Perspective Isolation</a></h2>
@@ -6305,7 +6305,7 @@ agent_id: "analyst-perf"  -- performance analysis agent
     "arguments": {"agent_id": "agent-b"}
   }
 }
-// -&gt; [{"perspective_id": "persp-d4e5f6", "focus": "file::worker_pool.py", ...}]
+// -&gt; [{"perspective_id": "persp-d4e5f6", "focus": "file::worker.py", ...}]
 </code></pre>
 <h3 id="comparing-perspectives-across-agents"><a class="header" href="#comparing-perspectives-across-agents">Comparing Perspectives Across Agents</a></h3>
 <p>You <em>can</em> explicitly compare two perspectives from different agents using <code>perspective.compare</code>. This is useful for discovering where two independent investigations overlap:</p>
@@ -6325,7 +6325,7 @@ agent_id: "analyst-perf"  -- performance analysis agent
 <pre><code class="language-json">{
   "shared_nodes": ["file::process_manager.py", "file::config.py"],
   "unique_to_a": ["file::auth.py", "file::middleware.py"],
-  "unique_to_b": ["file::worker_pool.py", "file::spawner.py"],
+  "unique_to_b": ["file::worker.py", "file::worker.py"],
   "dimension_deltas": {
     "structural": 0.12,
     "semantic": 0.34,
@@ -6508,47 +6508,47 @@ agent_id: "analyst-perf"  -- performance analysis agent
   }
 }
 </code></pre>
-<h2 id="real-world-example-roomanizer-os"><a class="header" href="#real-world-example-roomanizer-os">Real-World Example: ROOMANIZER OS</a></h2>
-<p>ROOMANIZER OS is a multi-agent orchestration system that uses m1nd as its shared code intelligence layer. Here is how it works in production:</p>
+<h2 id="real-world-example-production-system"><a class="header" href="#real-world-example-production-system">Real-World Example: Multi-Agent Production System</a></h2>
+<p>a production system is a multi-agent orchestration system that uses m1nd as its shared code intelligence layer. Here is how it works in production:</p>
 <h3 id="architecture"><a class="header" href="#architecture">Architecture</a></h3>
-<pre><code>JIMI (orchestrator)
+<pre><code>orchestrator
   |
-  +-- hacker-auth (security agent)     --+
-  +-- forge-api (API builder)           --+-- All share one m1nd instance
-  +-- analyst-perf (performance)        --+
+  +-- auditor-1 (security agent)     --+
+  +-- builder-api (API builder)           --+-- All share one m1nd instance
+  +-- analyzer-core (performance)        --+
   +-- sentinel-files (file watcher)     --+
   +-- critic-quality (code reviewer)    --+
   +-- ... 14 more agents               --+
 </code></pre>
-<p>One m1nd instance serves 19 agents. The graph covers a 335-file Python backend (~52K lines), a React frontend, and MCP server infrastructure.</p>
+<p>One m1nd instance serves all agents. The graph covers a 335-file Python backend (~52K lines), a React frontend, and MCP server infrastructure.</p>
 <h3 id="orchestrator-boot-sequence"><a class="header" href="#orchestrator-boot-sequence">Orchestrator Boot Sequence</a></h3>
-<p>When JIMI (the orchestrator) starts a session:</p>
+<p>When the orchestrator starts a session:</p>
 <pre><code class="language-jsonc">// Step 1: Check m1nd health
-{"method":"tools/call","params":{"name":"m1nd.health","arguments":{"agent_id":"jimi"}}}
+{"method":"tools/call","params":{"name":"m1nd.health","arguments":{"agent_id":"orchestrator"}}}
 
 // Step 2: Check what changed since last session
-{"method":"tools/call","params":{"name":"m1nd.drift","arguments":{"agent_id":"jimi","since":"last_session"}}}
+{"method":"tools/call","params":{"name":"m1nd.drift","arguments":{"agent_id":"orchestrator","since":"last_session"}}}
 
 // Step 3: Re-ingest if the graph is stale
 {"method":"tools/call","params":{"name":"m1nd.ingest","arguments":{
-  "path":"/project/backend","agent_id":"jimi","incremental":true
+  "path":"/project/backend","agent_id":"orchestrator","incremental":true
 }}}
 </code></pre>
 <h3 id="task-delegation-with-graph-context"><a class="header" href="#task-delegation-with-graph-context">Task Delegation with Graph Context</a></h3>
-<p>When JIMI delegates a security hardening task:</p>
+<p>When the orchestrator delegates a security hardening task:</p>
 <pre><code class="language-jsonc">// Before spawning the security agent, get blast radius context
 {"method":"tools/call","params":{"name":"m1nd.impact","arguments":{
-  "node_id":"file::auth.py","agent_id":"jimi"
+  "node_id":"file::auth.py","agent_id":"orchestrator"
 }}}
 
 // Warm up the graph for the security task
 {"method":"tools/call","params":{"name":"m1nd.warmup","arguments":{
-  "task_description":"harden authentication token validation","agent_id":"jimi"
+  "task_description":"harden authentication token validation","agent_id":"orchestrator"
 }}}
 
 // The security agent then uses the primed graph
 {"method":"tools/call","params":{"name":"m1nd.activate","arguments":{
-  "query":"token validation vulnerabilities","agent_id":"hacker-auth"
+  "query":"token validation vulnerabilities","agent_id":"auditor-1"
 }}}
 </code></pre>
 <h3 id="collective-learning"><a class="header" href="#collective-learning">Collective Learning</a></h3>
@@ -6556,32 +6556,32 @@ agent_id: "analyst-perf"  -- performance analysis agent
 <pre><code class="language-jsonc">// Security agent found useful results
 {"method":"tools/call","params":{"name":"m1nd.learn","arguments":{
   "query":"token validation vulnerabilities",
-  "agent_id":"hacker-auth",
+  "agent_id":"auditor-1",
   "feedback":"correct",
-  "node_ids":["file::auth.py","file::middleware.py","file::session_pool.py"]
+  "node_ids":["file::auth.py","file::middleware.py","file::pool.py"]
 }}}
 
 // Performance agent found different useful results
 {"method":"tools/call","params":{"name":"m1nd.learn","arguments":{
   "query":"connection pool bottleneck",
-  "agent_id":"analyst-perf",
+  "agent_id":"analyzer-core",
   "feedback":"correct",
-  "node_ids":["file::worker_pool.py","file::process_manager.py"]
+  "node_ids":["file::worker.py","file::process_manager.py"]
 }}}
 </code></pre>
-<p>Over a session with 19 agents, the graph accumulates thousands of learning signals. Each agent benefits from every other agent’s discoveries.</p>
+<p>Over a session with many agents, the graph accumulates thousands of learning signals. Each agent benefits from every other agent’s discoveries.</p>
 <h3 id="investigation-handoff"><a class="header" href="#investigation-handoff">Investigation Handoff</a></h3>
 <p>When Agent A finds something that Agent B needs to investigate:</p>
 <pre><code class="language-jsonc">// Agent A saves its investigation
 {"method":"tools/call","params":{"name":"m1nd.trail.save","arguments":{
-  "agent_id":"hacker-auth",
+  "agent_id":"auditor-1",
   "label":"session-hijack-vector",
   "tags":["security","critical"]
 }}}
 
 // Orchestrator merges with Agent B's independent findings
 {"method":"tools/call","params":{"name":"m1nd.trail.merge","arguments":{
-  "agent_id":"jimi",
+  "agent_id":"orchestrator",
   "trail_ids":["trail-hacker-001","trail-analyst-002"]
 }}}
 </code></pre>
@@ -6951,7 +6951,7 @@ agent_id: "analyst-perf"  -- performance analysis agent
 </table>
 </div>
 <p><strong>Estimated savings: ~720K tokens/day</strong> (60% reduction in context tokens).</p>
-<p>These are estimates based on production usage in the ROOMANIZER OS multi-agent system. Your mileage varies with codebase size, task type, and agent behavior.</p>
+<p>These are estimates based on production usage in the a multi-agent system. Your mileage varies with codebase size, task type, and agent behavior.</p>
 <p>The key insight: m1nd does not replace search. It <em>focuses</em> search. The agent still uses grep and reads files, but it starts from a much better position because m1nd told it where to look.</p>
 <h2 id="memory-and-cpu-usage"><a class="header" href="#memory-and-cpu-usage">Memory and CPU Usage</a></h2>
 <h3 id="memory"><a class="header" href="#memory">Memory</a></h3>

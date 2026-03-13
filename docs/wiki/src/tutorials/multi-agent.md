@@ -40,7 +40,7 @@ Rules:
 When Agent A calls `learn` with feedback, the edge weight changes are visible to all agents immediately:
 
 ```jsonc
-// Agent A: "session_pool.py was useful for my auth investigation"
+// Agent A: "pool.py was useful for my auth investigation"
 {
   "method": "tools/call",
   "params": {
@@ -49,7 +49,7 @@ When Agent A calls `learn` with feedback, the edge weight changes are visible to
       "query": "authentication flow",
       "agent_id": "agent-a",
       "feedback": "correct",
-      "node_ids": ["file::session_pool.py"]
+      "node_ids": ["file::pool.py"]
     }
   }
 }
@@ -57,7 +57,7 @@ When Agent A calls `learn` with feedback, the edge weight changes are visible to
 ```
 
 ```jsonc
-// Agent B: immediately benefits from stronger session_pool.py edges
+// Agent B: immediately benefits from stronger pool.py edges
 {
   "method": "tools/call",
   "params": {
@@ -69,7 +69,7 @@ When Agent A calls `learn` with feedback, the edge weight changes are visible to
     }
   }
 }
-// -> session_pool.py scores higher than it would have before Agent A's feedback
+// -> pool.py scores higher than it would have before Agent A's feedback
 ```
 
 This is by design. The graph represents collective intelligence about the codebase. Every agent's learning contributes to the whole.
@@ -150,7 +150,7 @@ Each agent only sees its own:
     "arguments": {"agent_id": "agent-b"}
   }
 }
-// -> [{"perspective_id": "persp-d4e5f6", "focus": "file::worker_pool.py", ...}]
+// -> [{"perspective_id": "persp-d4e5f6", "focus": "file::worker.py", ...}]
 ```
 
 ### Comparing Perspectives
@@ -177,7 +177,7 @@ Response:
 {
   "shared_nodes": ["file::process_manager.py", "file::config.py"],
   "unique_to_a": ["file::auth.py", "file::middleware.py"],
-  "unique_to_b": ["file::worker_pool.py", "file::spawner.py"],
+  "unique_to_b": ["file::worker.py", "file::worker.py"],
   "dimension_deltas": {
     "structural": 0.12,
     "semantic": 0.34,
@@ -479,7 +479,7 @@ After each agent completes its task, it provides feedback:
   "query":"token validation vulnerabilities",
   "agent_id":"auditor-1",
   "feedback":"correct",
-  "node_ids":["file::auth.py","file::middleware.py","file::session_pool.py"]
+  "node_ids":["file::auth.py","file::middleware.py","file::pool.py"]
 }}}
 
 // Performance agent found different useful results
@@ -487,7 +487,7 @@ After each agent completes its task, it provides feedback:
   "query":"connection pool bottleneck",
   "agent_id":"analyzer-core",
   "feedback":"correct",
-  "node_ids":["file::worker_pool.py","file::process_manager.py"]
+  "node_ids":["file::worker.py","file::process_manager.py"]
 }}}
 ```
 

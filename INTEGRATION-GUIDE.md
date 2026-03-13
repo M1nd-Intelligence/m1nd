@@ -90,7 +90,7 @@ Response:
 {"jsonrpc":"2.0","id":3,"method":"tools/list","params":{}}
 ```
 
-Returns all 13 tool schemas with full inputSchema definitions.
+Returns all 43 tool schemas with full inputSchema definitions.
 
 ### Calling Tools
 
@@ -657,7 +657,7 @@ State is persisted every N queries (default 50, configurable via `auto_persist_i
 
 The self-ingest benchmark (m1nd ingesting its own 32-file, ~15,500 LOC codebase):
 - 693 nodes, 2007 edges
-- All 13 tools respond in under 100ms
+- All 43 tools respond in under 100ms
 - No NaN, no panics, no JSON parse errors across 15+ sequential RPC messages
 
 ---

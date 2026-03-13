@@ -45,34 +45,34 @@ Spreading activation query across the connectome. The primary search tool -- pro
 {
   "query": "session pool management",
   "seeds": [
-    { "node_id": "file::session_pool.py", "label": "session_pool.py", "relevance": 0.95 }
+    { "node_id": "file::pool.py", "label": "pool.py", "relevance": 0.95 }
   ],
   "activated": [
     {
-      "node_id": "file::session_pool.py",
-      "label": "session_pool.py",
+      "node_id": "file::pool.py",
+      "label": "pool.py",
       "type": "file",
       "activation": 0.89,
       "dimensions": { "structural": 0.92, "semantic": 0.95, "temporal": 0.78, "causal": 0.71 },
       "pagerank": 0.635,
       "tags": ["session", "pool"],
       "provenance": {
-        "source_path": "backend/session_pool.py",
+        "source_path": "backend/pool.py",
         "line_start": 1,
         "line_end": 245,
         "canonical": true
       }
     },
     {
-      "node_id": "file::session_pool.py::class::SessionPool",
-      "label": "SessionPool",
+      "node_id": "file::pool.py::class::ConnectionPool",
+      "label": "ConnectionPool",
       "type": "class",
       "activation": 0.84,
       "dimensions": { "structural": 0.88, "semantic": 0.91, "temporal": 0.72, "causal": 0.65 },
       "pagerank": 0.412,
       "tags": ["pool", "session"],
       "provenance": {
-        "source_path": "backend/session_pool.py",
+        "source_path": "backend/pool.py",
         "line_start": 15,
         "line_end": 180,
         "canonical": true
@@ -81,8 +81,8 @@ Spreading activation query across the connectome. The primary search tool -- pro
   ],
   "ghost_edges": [
     {
-      "source": "session_pool.py",
-      "target": "healing_manager.py",
+      "source": "pool.py",
+      "target": "recovery.py",
       "shared_dimensions": ["semantic", "causal"],
       "strength": 0.34
     }
@@ -141,7 +141,7 @@ Task-based warmup and priming. Activates the graph around a task description and
     "name": "m1nd.warmup",
     "arguments": {
       "agent_id": "jimi",
-      "task_description": "Refactor the WhatsApp message routing to support group chats",
+      "task_description": "Refactor the messaging routing module to support group chats",
       "boost_strength": 0.2
     }
   }
@@ -152,13 +152,13 @@ Task-based warmup and priming. Activates the graph around a task description and
 
 ```json
 {
-  "task": "Refactor the WhatsApp message routing to support group chats",
+  "task": "Refactor the messaging routing module to support group chats",
   "primed_nodes": 23,
   "top_primed": [
-    { "node_id": "file::whatsapp_routes.py", "label": "whatsapp_routes.py", "boost": 0.2 },
-    { "node_id": "file::whatsapp_manager.py", "label": "whatsapp_manager.py", "boost": 0.18 },
-    { "node_id": "file::whatsapp_models.py", "label": "whatsapp_models.py", "boost": 0.15 },
-    { "node_id": "file::chat_handler.py", "label": "chat_handler.py", "boost": 0.12 }
+    { "node_id": "file::messaging_routes.py", "label": "messaging_routes.py", "boost": 0.2 },
+    { "node_id": "file::messaging.py", "label": "messaging.py", "boost": 0.18 },
+    { "node_id": "file::messaging_models.py", "label": "messaging_models.py", "boost": 0.15 },
+    { "node_id": "file::handler.py", "label": "handler.py", "boost": 0.12 }
   ],
   "elapsed_ms": 18.5
 }

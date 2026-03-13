@@ -226,7 +226,7 @@
 <pre><code class="language-json">{
   "activated": [
     {
-      "node_id": "file::session_pool.py",
+      "node_id": "file::pool.py",
       "score": 0.89,
       "dimension_scores": {
         "structural": 0.92,
@@ -235,15 +235,15 @@
         "causal": 0.71
       }
     },
-    {"node_id": "file::session_pool.py::class::SessionPool", "score": 0.84},
-    {"node_id": "file::worker_pool.py", "score": 0.61},
-    {"node_id": "file::session_pool.py::fn::acquire", "score": 0.58},
+    {"node_id": "file::pool.py::class::ConnectionPool", "score": 0.84},
+    {"node_id": "file::worker.py", "score": 0.61},
+    {"node_id": "file::pool.py::fn::acquire", "score": 0.58},
     {"node_id": "file::process_manager.py", "score": 0.45}
   ],
   "ghost_edges": [
     {
-      "from": "file::session_pool.py",
-      "to": "file::healing_manager.py",
+      "from": "file::pool.py",
+      "to": "file::recovery.py",
       "confidence": 0.34
     }
   ]
@@ -253,11 +253,11 @@
 <ul>
 <li><strong><code>score</code></strong>: Combined 4-dimensional activation score (0.0 to 1.0)</li>
 <li><strong><code>dimension_scores</code></strong>: Breakdown by structural (graph distance, PageRank), semantic (token overlap), temporal (co-change history), and causal (suspiciousness)</li>
-<li><strong><code>ghost_edges</code></strong>: Connections the graph inferred but that are not explicit in code. Here, <code>session_pool.py</code> and <code>healing_manager.py</code> are structurally unconnected but co-activate together – a hidden dependency worth investigating.</li>
+<li><strong><code>ghost_edges</code></strong>: Connections the graph inferred but that are not explicit in code. Here, <code>pool.py</code> and <code>recovery.py</code> are structurally unconnected but co-activate together – a hidden dependency worth investigating.</li>
 </ul>
 <p>Note the scores. We will come back to this query after teaching the graph.</p>
 <h2 id="step-3-teach-the-graph-hebbian-learning"><a class="header" href="#step-3-teach-the-graph-hebbian-learning">Step 3: Teach the Graph (Hebbian Learning)</a></h2>
-<p>The top two results (<code>session_pool.py</code> and the <code>SessionPool</code> class) were exactly what we needed. Tell the graph:</p>
+<p>The top two results (<code>pool.py</code> and the <code>ConnectionPool</code> class) were exactly what we needed. Tell the graph:</p>
 <pre><code class="language-jsonc">{
   "method": "tools/call",
   "params": {
@@ -267,8 +267,8 @@
       "agent_id": "dev",
       "feedback": "correct",
       "node_ids": [
-        "file::session_pool.py",
-        "file::session_pool.py::class::SessionPool"
+        "file::pool.py",
+        "file::pool.py::class::ConnectionPool"
       ],
       "strength": 0.2
     }
@@ -284,7 +284,7 @@
 }
 </code></pre>
 <p><strong>What happened</strong>: Hebbian Long-Term Potentiation (LTP) strengthened 740 edges along paths connecting the confirmed-useful nodes. “Neurons that fire together wire together.” The next time anyone queries this region of the graph, those paths carry more signal.</p>
-<p>Now suppose <code>worker_pool.py</code> (score 0.61) was not actually relevant. Mark it wrong:</p>
+<p>Now suppose <code>worker.py</code> (score 0.61) was not actually relevant. Mark it wrong:</p>
 <pre><code class="language-jsonc">{
   "method": "tools/call",
   "params": {
@@ -293,7 +293,7 @@
       "query": "session pool management",
       "agent_id": "dev",
       "feedback": "wrong",
-      "node_ids": ["file::worker_pool.py"],
+      "node_ids": ["file::worker.py"],
       "strength": 0.2
     }
   }
@@ -307,7 +307,7 @@
   "learning_type": "hebbian_ltd"
 }
 </code></pre>
-<p>Long-Term Depression (LTD) weakened 312 edges leading to <code>worker_pool.py</code> from this query region. The graph now knows: for session pool queries, <code>worker_pool.py</code> is noise.</p>
+<p>Long-Term Depression (LTD) weakened 312 edges leading to <code>worker.py</code> from this query region. The graph now knows: for session pool queries, <code>worker.py</code> is noise.</p>
 <h2 id="step-4-activate-again--see-the-improvement"><a class="header" href="#step-4-activate-again--see-the-improvement">Step 4: Activate Again – See the Improvement</a></h2>
 <p>Run the exact same query:</p>
 <pre><code class="language-jsonc">{
@@ -325,11 +325,11 @@
 <p>Expected changes:</p>
 <pre><code class="language-json">{
   "activated": [
-    {"node_id": "file::session_pool.py", "score": 0.93},
-    {"node_id": "file::session_pool.py::class::SessionPool", "score": 0.88},
-    {"node_id": "file::session_pool.py::fn::acquire", "score": 0.65},
+    {"node_id": "file::pool.py", "score": 0.93},
+    {"node_id": "file::pool.py::class::ConnectionPool", "score": 0.88},
+    {"node_id": "file::pool.py::fn::acquire", "score": 0.65},
     {"node_id": "file::process_manager.py", "score": 0.47},
-    {"node_id": "file::healing_manager.py", "score": 0.39}
+    {"node_id": "file::recovery.py", "score": 0.39}
   ]
 }
 </code></pre>
@@ -340,14 +340,14 @@
 <tr><th>Node</th><th>Before</th><th>After</th><th>Change</th></tr>
 </thead>
 <tbody>
-<tr><td><code>session_pool.py</code></td><td>0.89</td><td>0.93</td><td>+0.04 (strengthened)</td></tr>
-<tr><td><code>SessionPool</code> class</td><td>0.84</td><td>0.88</td><td>+0.04 (strengthened)</td></tr>
-<tr><td><code>worker_pool.py</code></td><td>0.61</td><td>dropped</td><td>Pushed below top-5 (weakened)</td></tr>
-<tr><td><code>healing_manager.py</code></td><td>ghost only</td><td>0.39</td><td>Promoted from ghost to main results</td></tr>
+<tr><td><code>pool.py</code></td><td>0.89</td><td>0.93</td><td>+0.04 (strengthened)</td></tr>
+<tr><td><code>ConnectionPool</code> class</td><td>0.84</td><td>0.88</td><td>+0.04 (strengthened)</td></tr>
+<tr><td><code>worker.py</code></td><td>0.61</td><td>dropped</td><td>Pushed below top-5 (weakened)</td></tr>
+<tr><td><code>recovery.py</code></td><td>ghost only</td><td>0.39</td><td>Promoted from ghost to main results</td></tr>
 </tbody>
 </table>
 </div>
-<p>The graph learned. <code>worker_pool.py</code> fell out of the top results. <code>healing_manager.py</code>, previously only a ghost edge, got promoted because the strengthened paths through <code>session_pool.py</code> now carry more signal to its neighborhood.</p>
+<p>The graph learned. <code>worker.py</code> fell out of the top results. <code>recovery.py</code>, previously only a ghost edge, got promoted because the strengthened paths through <code>pool.py</code> now carry more signal to its neighborhood.</p>
 <p><strong>This is the core value proposition of m1nd</strong>: every interaction makes the graph smarter. No other code intelligence tool does this.</p>
 <h2 id="step-5-structural-hole-detection"><a class="header" href="#step-5-structural-hole-detection">Step 5: Structural Hole Detection</a></h2>
 <p>Ask the graph what is <em>missing</em> around a topic:</p>
@@ -393,7 +393,7 @@
   "params": {
     "name": "m1nd.counterfactual",
     "arguments": {
-      "node_ids": ["file::spawner.py"],
+      "node_ids": ["file::worker.py"],
       "agent_id": "dev"
     }
   }
@@ -413,7 +413,7 @@
 </code></pre>
 <p><strong>Reading the results</strong>:</p>
 <ul>
-<li><strong>Depth 1</strong>: 23 nodes directly depend on <code>spawner.py</code></li>
+<li><strong>Depth 1</strong>: 23 nodes directly depend on <code>worker.py</code></li>
 <li><strong>Depth 2</strong>: 456 more nodes depend on those 23</li>
 <li><strong>Depth 3</strong>: 3,710 more – a cascade explosion</li>
 <li><strong>Total</strong>: 4,189 nodes affected out of ~9,767 (42.9% of the graph)</li>
@@ -443,7 +443,7 @@
   "pct_activation_lost": 0.28
 }
 </code></pre>
-<p>Despite <code>config.py</code> having more direct dependents (89 vs 23), its total cascade is smaller (2,531 vs 4,189). <code>spawner.py</code> sits at a structural chokepoint where downstream nodes have more transitive dependencies. This insight is impossible to get from <code>grep</code> or import analysis alone – it requires full graph traversal.</p>
+<p>Despite <code>config.py</code> having more direct dependents (89 vs 23), its total cascade is smaller (2,531 vs 4,189). <code>worker.py</code> sits at a structural chokepoint where downstream nodes have more transitive dependencies. This insight is impossible to get from <code>grep</code> or import analysis alone – it requires full graph traversal.</p>
 <h2 id="step-7-hypothesis-testing-bonus"><a class="header" href="#step-7-hypothesis-testing-bonus">Step 7: Hypothesis Testing (Bonus)</a></h2>
 <p>Test a structural claim against the graph:</p>
 <pre><code class="language-jsonc">{
@@ -465,9 +465,9 @@
   "evidence": [
     {
       "path": [
-        "file::worker_pool.py",
+        "file::worker.py",
         "file::process_manager.py::fn::cancel",
-        "file::whatsapp_manager.py"
+        "file::messaging.py"
       ],
       "hops": 2
     }

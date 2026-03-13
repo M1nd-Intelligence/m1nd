@@ -238,8 +238,8 @@ activate in 31ms | impact in 5ms | trace in 3.5ms | learn in &lt;1ms
 <h3 id="structural-hole-detection"><a class="header" href="#structural-hole-detection">Structural Hole Detection</a></h3>
 <p><code>m1nd.missing</code> finds gaps in the graph — nodes or edges that <em>should</em> exist based on the surrounding topology but don’t. If every other module in a cluster has error handling and one doesn’t, that’s a structural hole. If two subsystems communicate through a single bridge node, that’s a fragility point. This turns the graph into a specification-free audit tool.</p>
 <h3 id="counterfactual-simulation"><a class="header" href="#counterfactual-simulation">Counterfactual Simulation</a></h3>
-<p>“What breaks if I delete <code>spawner.py</code>?” The counterfactual engine uses a zero-allocation bitset mask (no graph clone) to virtually remove nodes and their incident edges, then re-runs spreading activation to measure the impact. The output includes orphaned nodes, weakened nodes, reachability loss, and cascade depth. Synergy analysis reveals whether removing two modules together is worse than the sum of removing them individually.</p>
-<pre><code>counterfactual("spawner.py") -&gt; 4,189 affected nodes, cascade at depth 3
+<p>“What breaks if I delete <code>worker.py</code>?” The counterfactual engine uses a zero-allocation bitset mask (no graph clone) to virtually remove nodes and their incident edges, then re-runs spreading activation to measure the impact. The output includes orphaned nodes, weakened nodes, reachability loss, and cascade depth. Synergy analysis reveals whether removing two modules together is worse than the sum of removing them individually.</p>
+<pre><code>counterfactual("worker.py") -&gt; 4,189 affected nodes, cascade at depth 3
 counterfactual("config.py")  -&gt; 2,531 affected nodes (despite being universally imported)
 </code></pre>
 <h3 id="perspectives"><a class="header" href="#perspectives">Perspectives</a></h3>

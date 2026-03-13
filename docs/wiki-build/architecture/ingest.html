@@ -335,7 +335,7 @@ skip_files: vec![
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>pub struct ExtractedNode {
-    pub id: String,        // e.g. "file::backend/chat_handler.py::ChatHandler"
+    pub id: String,        // e.g. "file::backend/handler.py::ChatHandler"
     pub label: String,     // e.g. "ChatHandler"
     pub node_type: NodeType,
     pub tags: Vec&lt;String&gt;,
@@ -358,9 +358,9 @@ skip_files: vec![
 <h3 id="node-id-format"><a class="header" href="#node-id-format">Node ID Format</a></h3>
 <p>Extracted nodes use a hierarchical ID scheme: <code>file::{relative_path}::{entity_name}</code>. For example:</p>
 <ul>
-<li><code>file::backend/chat_handler.py</code> (file node)</li>
-<li><code>file::backend/chat_handler.py::ChatHandler</code> (class node)</li>
-<li><code>file::backend/chat_handler.py::ChatHandler::handle_message</code> (method node)</li>
+<li><code>file::backend/handler.py</code> (file node)</li>
+<li><code>file::backend/handler.py::ChatHandler</code> (class node)</li>
+<li><code>file::backend/handler.py::ChatHandler::handle_message</code> (method node)</li>
 </ul>
 <p>Unresolved references use the prefix <code>ref::</code>: <code>ref::Config</code>, <code>ref::react</code>. These are resolved to actual nodes in Phase 4.</p>
 <h2 id="phase-3-graph-building"><a class="header" href="#phase-3-graph-building">Phase 3: Graph Building</a></h2>

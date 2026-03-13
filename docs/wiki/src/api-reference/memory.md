@@ -31,7 +31,7 @@ Explicit feedback-based edge adjustment. After using `activate` or other query t
       "agent_id": "jimi",
       "query": "session pool management",
       "feedback": "correct",
-      "node_ids": ["file::session_pool.py", "file::worker_pool.py"],
+      "node_ids": ["file::pool.py", "file::worker.py"],
       "strength": 0.3
     }
   }
@@ -108,8 +108,8 @@ Weight and structural drift analysis. Compares the current graph state against a
   "new_nodes": ["file::forem_publisher.py", "file::forem_routes.py"],
   "removed_nodes": [],
   "top_weight_drifts": [
-    { "edge": "session_pool.py -> worker_pool.py", "old": 0.45, "new": 0.72, "delta": 0.27 },
-    { "edge": "chat_handler.py -> stream_parser.py", "old": 0.60, "new": 0.48, "delta": -0.12 }
+    { "edge": "pool.py -> worker.py", "old": 0.45, "new": 0.72, "delta": 0.27 },
+    { "edge": "handler.py -> parser.py", "old": 0.60, "new": 0.48, "delta": -0.12 }
   ],
   "elapsed_ms": 12.0
 }
@@ -152,8 +152,8 @@ Path explanation between two nodes. Finds and explains the relationship paths co
     "name": "m1nd.why",
     "arguments": {
       "agent_id": "jimi",
-      "source": "file::worker_pool.py",
-      "target": "file::whatsapp_manager.py",
+      "source": "file::worker.py",
+      "target": "file::messaging.py",
       "max_hops": 4
     }
   }
@@ -164,17 +164,17 @@ Path explanation between two nodes. Finds and explains the relationship paths co
 
 ```json
 {
-  "source": "file::worker_pool.py",
-  "target": "file::whatsapp_manager.py",
+  "source": "file::worker.py",
+  "target": "file::messaging.py",
   "paths": [
     {
-      "nodes": ["worker_pool.py", "process_manager.py", "whatsapp_manager.py"],
+      "nodes": ["worker.py", "process_manager.py", "messaging.py"],
       "relations": ["calls::cancel", "imports"],
       "cumulative_strength": 0.68,
       "hops": 2
     },
     {
-      "nodes": ["worker_pool.py", "spawner.py", "chat_handler.py", "whatsapp_manager.py"],
+      "nodes": ["worker.py", "worker.py", "handler.py", "messaging.py"],
       "relations": ["imported_by", "calls", "imports"],
       "cumulative_strength": 0.31,
       "hops": 3
@@ -232,7 +232,7 @@ Persist the current investigation state -- nodes visited, hypotheses formed, con
         {
           "statement": "Auth tokens leak through session pool",
           "confidence": 0.7,
-          "supporting_nodes": ["file::session_pool.py", "file::auth_discovery.py"]
+          "supporting_nodes": ["file::pool.py", "file::auth_discovery.py"]
         },
         {
           "statement": "Rate limiter missing from auth chain",
@@ -243,7 +243,7 @@ Persist the current investigation state -- nodes visited, hypotheses formed, con
       "open_questions": ["Does the rate limiter apply to WebSocket connections?"],
       "tags": ["security", "auth", "session"],
       "activation_boosts": {
-        "file::session_pool.py": 0.8,
+        "file::pool.py": 0.8,
         "file::auth_discovery.py": 0.6
       }
     }
@@ -472,7 +472,7 @@ Combine two or more investigation trails. Merges visited nodes, hypotheses, and 
       "type": "bridge_edge",
       "detail": "auth_discovery.py connects the auth trail to the session trail",
       "from_node": "file::auth_discovery.py",
-      "to_node": "file::session_pool.py",
+      "to_node": "file::pool.py",
       "weight": 0.72
     }
   ],
