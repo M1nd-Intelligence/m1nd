@@ -124,6 +124,74 @@ pub enum M1ndError {
     #[error("counterfactual seed overlap: seed {node:?} is in the removal set")]
     CounterfactualSeedOverlap { node: NodeId },
 
+    // --- Perspective / Lock / Navigation (12-PERSPECTIVE-SYNTHESIS Theme 3) ---
+
+    /// Theme 3: Unknown tool name in dispatch.
+    #[error("unknown tool: {name}")]
+    UnknownTool { name: String },
+
+    /// Theme 3: Invalid parameters for a tool call.
+    #[error("invalid params for {tool}: {detail}")]
+    InvalidParams { tool: String, detail: String },
+
+    /// Theme 3: Perspective does not exist for agent.
+    #[error("perspective not found: {perspective_id} for agent {agent_id}")]
+    PerspectiveNotFound { perspective_id: String, agent_id: String },
+
+    /// Theme 3: Perspective route set is stale (generation mismatch).
+    #[error("perspective stale: {perspective_id} expected gen {expected_gen}, actual {actual_gen}")]
+    PerspectiveStale { perspective_id: String, expected_gen: u64, actual_gen: u64 },
+
+    /// Theme 3: Agent exceeded max perspective count.
+    #[error("perspective limit exceeded for agent {agent_id}: {current}/{limit}")]
+    PerspectiveLimitExceeded { agent_id: String, current: usize, limit: usize },
+
+    /// Theme 3: Route set version mismatch (stale cached routes).
+    #[error("route set stale: version {route_set_version}, current {current_version}")]
+    RouteSetStale { route_set_version: u64, current_version: u64 },
+
+    /// Theme 3: Route not found in perspective.
+    #[error("route not found: {route_id} in perspective {perspective_id}")]
+    RouteNotFound { route_id: String, perspective_id: String },
+
+    /// Theme 3: Cannot navigate back — already at root.
+    #[error("navigation at root: perspective {perspective_id}")]
+    NavigationAtRoot { perspective_id: String },
+
+    /// Theme 3: Branch depth limit exceeded.
+    #[error("branch depth exceeded in {perspective_id}: depth {depth}/{limit}")]
+    BranchDepthExceeded { perspective_id: String, depth: usize, limit: usize },
+
+    /// Theme 3: Lock not found.
+    #[error("lock not found: {lock_id}")]
+    LockNotFound { lock_id: String },
+
+    /// Theme 3: Lock ownership violation.
+    #[error("lock ownership violation: {lock_id} owned by {owner}, called by {caller}")]
+    LockOwnership { lock_id: String, owner: String, caller: String },
+
+    /// Theme 3: Lock scope too large (BFS budget exceeded).
+    #[error("lock scope too large: {node_count} nodes exceeds cap of {cap}")]
+    LockScopeTooLarge { node_count: usize, cap: usize },
+
+    /// Theme 3: Agent exceeded max lock count.
+    #[error("lock limit exceeded for agent {agent_id}: {current}/{limit}")]
+    LockLimitExceeded { agent_id: String, current: usize, limit: usize },
+
+    /// Theme 3: Watcher strategy not supported (e.g. Periodic in V1).
+    #[error("watch strategy not supported: {strategy}")]
+    WatchStrategyNotSupported { strategy: String },
+
+    /// Theme 3: Affinity computation exceeded time budget.
+    #[error("affinity timeout: {elapsed_ms:.1}ms exceeded budget of {budget_ms:.1}ms")]
+    AffinityTimeout { elapsed_ms: f64, budget_ms: f64 },
+
+    // --- Ingestion (runtime) ---
+
+    /// Tree-sitter or extractor runtime error.
+    #[error("ingest error: {0}")]
+    IngestError(String),
+
     // --- I/O ---
 
     #[error("I/O error: {0}")]

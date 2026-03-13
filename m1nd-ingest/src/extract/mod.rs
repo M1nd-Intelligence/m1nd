@@ -10,6 +10,9 @@ pub mod go;
 pub mod java;
 pub mod generic;
 
+#[cfg(feature = "tier1")]
+pub mod tree_sitter_ext;
+
 // ---------------------------------------------------------------------------
 // Comment/string stripping — shared preprocessing for all extractors
 // FM-ING-010: strip comments and string literals before regex extraction
@@ -58,6 +61,92 @@ impl CommentSyntax {
         line_comment: "#",
         block_open: "",
         block_close: "",
+        triple_quote: "",
+    };
+
+    // --- Tier 1 tree-sitter languages ---
+
+    pub const CPP: Self = Self {
+        line_comment: "//",
+        block_open: "/*",
+        block_close: "*/",
+        triple_quote: "",
+    };
+
+    pub const CSHARP: Self = Self {
+        line_comment: "//",
+        block_open: "/*",
+        block_close: "*/",
+        triple_quote: "",
+    };
+
+    pub const RUBY: Self = Self {
+        line_comment: "#",
+        block_open: "=begin",
+        block_close: "=end",
+        triple_quote: "",
+    };
+
+    pub const PHP: Self = Self {
+        line_comment: "//",
+        block_open: "/*",
+        block_close: "*/",
+        triple_quote: "",
+    };
+
+    pub const SWIFT: Self = Self {
+        line_comment: "//",
+        block_open: "/*",
+        block_close: "*/",
+        triple_quote: "",
+    };
+
+    pub const KOTLIN: Self = Self {
+        line_comment: "//",
+        block_open: "/*",
+        block_close: "*/",
+        triple_quote: "",
+    };
+
+    pub const SCALA: Self = Self {
+        line_comment: "//",
+        block_open: "/*",
+        block_close: "*/",
+        triple_quote: "",
+    };
+
+    pub const BASH: Self = Self {
+        line_comment: "#",
+        block_open: "",
+        block_close: "",
+        triple_quote: "",
+    };
+
+    pub const LUA: Self = Self {
+        line_comment: "--",
+        block_open: "--[[",
+        block_close: "]]",
+        triple_quote: "",
+    };
+
+    pub const R: Self = Self {
+        line_comment: "#",
+        block_open: "",
+        block_close: "",
+        triple_quote: "",
+    };
+
+    pub const HTML: Self = Self {
+        line_comment: "",
+        block_open: "<!--",
+        block_close: "-->",
+        triple_quote: "",
+    };
+
+    pub const CSS: Self = Self {
+        line_comment: "",
+        block_open: "/*",
+        block_close: "*/",
         triple_quote: "",
     };
 }
