@@ -1,0 +1,9 @@
+:root {
+  --sidebar-width: 260px;
+}
+.sidebar .sidebar-scrollbox {
+  padding: 10px 15px;
+}
+code {
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+}
