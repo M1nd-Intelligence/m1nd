@@ -643,6 +643,7 @@
       <div class="nav-links">
         <a href="#why">Why</a>
         <a href="#different">Different</a>
+        <a href="#agents-first">Agent-Native</a>
         <a href="#perspectives">Perspectives</a>
         <a href="#tools">Tools</a>
         <a href="#benchmarks">Benchmarks</a>
@@ -958,6 +959,36 @@
           <div class="dim-desc">Dependency flow: directed causation along import, call, and contain edges.</div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ── Built for Agents ── -->
+  <section id="agents-first" style="padding: 80px 0;">
+    <div class="container" style="text-align: center;">
+      <div class="section-label">The paradigm shift</div>
+      <h2 class="section-title">Every search tool was built for humans.<br>m1nd was built for <span style="color: var(--green);">agents</span>.</h2>
+      <p class="section-desc" style="max-width: 720px; margin: 0 auto 48px;">
+        grep, ripgrep, tree-sitter, ast-grep &mdash; brilliant tools. For humans who read terminals. But an AI agent doesn't want 200 lines of grep output to interpret linearly. It wants a graph with weights, dimensions, and a direct answer: <strong style="color: var(--text);">"what matters and what's missing"</strong> &mdash; ready to decide, not to parse.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; text-align: left;">
+        <div class="problem-card">
+          <div class="question" style="color: var(--red);">Human search tool</div>
+          <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 8px;">
+            Agent calls grep &rarr; gets 200 lines &rarr; feeds to LLM &rarr; LLM reads linearly &rarr; decides to grep again &rarr; 3-5 rounds &rarr; <strong style="color: var(--red);">$0.50 burned, 10 seconds gone</strong>
+          </div>
+        </div>
+        <div class="problem-card" style="border-color: rgba(0, 229, 160, 0.3);">
+          <div class="question" style="color: var(--green);">m1nd (agent-native)</div>
+          <div class="answer" style="font-family: var(--mono); font-size: 13px; margin-top: 8px;">
+            Agent calls m1nd.activate &rarr; gets ranked subgraph with confidence scores &rarr; sees structural holes &rarr; <strong style="color: var(--green);">1 call, 31ms, $0.00</strong>
+          </div>
+        </div>
+      </div>
+
+      <p style="color: var(--text-dim); font-size: 15px; margin-top: 40px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+        m1nd doesn't output text for an LLM to re-interpret. It outputs <strong style="color: var(--text);">structured decisions</strong> &mdash; weighted nodes, confidence scores, dimensional rankings, structural holes. The format an agent actually needs to act.
+      </p>
     </div>
   </section>
 
