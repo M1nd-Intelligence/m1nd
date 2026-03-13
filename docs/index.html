@@ -76,6 +76,7 @@
       text-decoration: none; color: var(--text); letter-spacing: -0.5px;
     }
     .nav-logo span { color: var(--green); }
+    .nav-right { display: flex; gap: 16px; align-items: center; }
     .nav-links { display: flex; gap: 24px; align-items: center; }
     .nav-links a {
       color: var(--text-dim); text-decoration: none; font-size: 14px;
@@ -88,6 +89,26 @@
       transition: opacity 0.2s !important;
     }
     .nav-cta:hover { opacity: 0.85; }
+    /* ── Hamburger ── */
+    .nav-hamburger {
+      display: none; background: none; border: none; cursor: pointer; padding: 8px;
+      color: var(--text-dim); transition: color 0.2s;
+    }
+    .nav-hamburger:hover { color: var(--green); }
+    .nav-hamburger svg { width: 24px; height: 24px; }
+    .nav-menu {
+      display: none; position: absolute; top: 64px; left: 0; right: 0;
+      background: var(--bg-card); border-bottom: 1px solid var(--border);
+      padding: 16px 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .nav-menu.open { display: block; }
+    .nav-menu a {
+      display: block; color: var(--text-dim); text-decoration: none;
+      font-size: 14px; font-weight: 500; padding: 10px 0;
+      border-bottom: 1px solid var(--border); transition: color 0.2s;
+    }
+    .nav-menu a:last-child { border-bottom: none; }
+    .nav-menu a:hover { color: var(--green); }
     /* ── Language dropdown ── */
     .lang-dropdown { position: relative; }
     .lang-dropdown-btn {
@@ -107,6 +128,11 @@
       display: block; padding: 6px 16px; font-size: 13px; white-space: nowrap;
     }
     .lang-dropdown-menu a:hover { background: var(--green-dim); }
+    /* ── Responsive nav ── */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .nav-hamburger { display: block; }
+    }
 
     /* ── Hero Logo ── */
     .hero-logo { margin: 0 auto 40px; width: 180px; height: 180px; }
@@ -660,9 +686,15 @@
     <div class="container">
       <a href="#" class="nav-logo">m<span>1</span>nd</a>
       <div class="nav-links">
+        <a href="#why">Why</a>
+        <a href="#different">Different</a>
+        <a href="#agents-first">Agents</a>
+        <a href="#perspectives">Perspectives</a>
         <a href="#tools">Tools</a>
         <a href="#benchmarks">Benchmarks</a>
+        <a href="#start">Start</a>
         <a href="wiki-build/index.html">Wiki</a>
+        <a href="wiki-build/faq.html">FAQ</a>
         <div class="lang-dropdown">
           <button class="lang-dropdown-btn">&#x1F310; EN &#x25BE;</button>
           <div class="lang-dropdown-menu">
@@ -677,6 +709,21 @@
         </div>
         <a href="https://github.com/maxkle1nz/m1nd" class="nav-cta">GitHub</a>
       </div>
+      <button class="nav-hamburger" onclick="document.querySelector('.nav-menu').classList.toggle('open')" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+    <div class="nav-menu">
+      <a href="#why">Why</a>
+      <a href="#different">Different</a>
+      <a href="#agents-first">Agents</a>
+      <a href="#perspectives">Perspectives</a>
+      <a href="#tools">Tools</a>
+      <a href="#benchmarks">Benchmarks</a>
+      <a href="#start">Start</a>
+      <a href="wiki-build/index.html">Wiki</a>
+      <a href="wiki-build/faq.html">FAQ</a>
+      <a href="https://github.com/maxkle1nz/m1nd">GitHub</a>
     </div>
   </nav>
 
