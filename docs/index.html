@@ -775,10 +775,10 @@
           <span class="demo-dot y"></span>
           <span class="demo-dot g"></span>
           <span class="term-tabs">
-            <div class="term-tab active" data-scene="0">activate</div>
-            <div class="term-tab" data-scene="1">missing</div>
-            <div class="term-tab" data-scene="2">counterfactual</div>
-            <div class="term-tab" data-scene="3">perspective</div>
+            <div class="term-tab active" data-scene="0">find</div>
+            <div class="term-tab" data-scene="1">what's missing</div>
+            <div class="term-tab" data-scene="2">what if?</div>
+            <div class="term-tab" data-scene="3">navigate</div>
           </span>
         </div>
 
@@ -1793,82 +1793,74 @@
 // ── Live Terminal Animation Engine ──
 (function() {
   const scenes = [
-    // Scene 0: Spreading Activation
+    // Scene 0: Find what matters
     [
-      { type: 'comment', text: '# Ask m1nd: "What files handle authentication?"' },
-      { type: 'comment', text: '# Instead of grepping 10,000 files, m1nd activates the graph.' },
-      { type: 'cmd', text: '$ m1nd.activate --query "authentication flow"' },
-      { type: 'dim', text: 'Activating from 5 seed nodes...', delay: 400 },
-      { type: 'dim', text: 'Wavefront: 5 → 34 → 127 nodes across 3 hops', delay: 300 },
+      { type: 'comment', text: '# You ask: "What handles authentication in this project?"' },
       { type: 'blank' },
-      { type: 'comment', text: '# Results ranked by 4 dimensions: structural, semantic, temporal, causal' },
-      { type: 'result', score: '0.94', file: 'src/auth/middleware.rs', detail: 'structural: 0.97, semantic: 0.91' },
-      { type: 'result', score: '0.89', file: 'src/auth/jwt.rs', detail: 'structural: 0.85, semantic: 0.93' },
-      { type: 'result', score: '0.83', file: 'src/session/manager.rs', detail: 'structural: 0.79, temporal: 0.86' },
-      { type: 'result', score: '0.71', file: 'src/middleware/cors.rs', detail: 'causal: 0.74' },
+      { type: 'cmd', text: '$ m1nd.activate --query "authentication"' },
       { type: 'blank' },
-      { type: 'comment', text: '# ⚠ Structural hole: this file SHOULD exist but HAS NO rate limiting' },
-      { type: 'hole', score: '0.23', file: 'src/auth/rate_limit.rs', detail: 'structural hole detected' },
+      { type: 'comment', text: '# m1nd lights up the graph. No grepping. No reading files.' },
+      { type: 'comment', text: '# It finds the 4 most relevant files instantly:' },
       { type: 'blank' },
-      { type: 'dim', text: 'XLR noise cancelled: 14 false-positive edges removed', delay: 200 },
-      { type: 'success', text: '127 nodes activated in 31ms · Hebbian state: 2,847 modified weights' },
+      { type: 'result', score: '94%', file: 'auth/middleware.rs', detail: 'the main auth layer' },
+      { type: 'result', score: '89%', file: 'auth/jwt.rs', detail: 'token validation' },
+      { type: 'result', score: '83%', file: 'session/manager.rs', detail: 'session handling' },
+      { type: 'result', score: '71%', file: 'middleware/cors.rs', detail: 'related security' },
+      { type: 'blank' },
+      { type: 'success', text: 'Done in 31ms. Zero LLM tokens. Zero cost.' },
     ],
-    // Scene 1: Finding What's Missing
+    // Scene 1: Find what's missing
     [
-      { type: 'comment', text: '# The killer feature: find what DOESN\'T exist yet.' },
-      { type: 'comment', text: '# No other tool can do this. grep searches text. m1nd sees structure.' },
+      { type: 'comment', text: '# The feature no other tool has:' },
+      { type: 'comment', text: '# find what SHOULD exist in your code but DOESN\'T.' },
+      { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.missing --query "payment processing"' },
-      { type: 'dim', text: 'Analyzing structural neighborhood of payment...', delay: 500 },
-      { type: 'dim', text: 'Scanning 847 nodes, 2,341 edges for expected-but-absent patterns', delay: 400 },
       { type: 'blank' },
-      { type: 'comment', text: '# m1nd found 3 things your codebase is missing:' },
-      { type: 'hole', score: '0.91', file: 'payment/refund_handler.rs', detail: 'expected by 4 siblings, does not exist' },
-      { type: 'hole', score: '0.87', file: 'payment/webhook_validator.rs', detail: 'Stripe integration has no webhook verification' },
-      { type: 'hole', score: '0.72', file: 'payment/idempotency.rs', detail: 'retry logic exists but no idempotency guard' },
+      { type: 'comment', text: '# m1nd found 3 gaps in your payment system:' },
       { type: 'blank' },
-      { type: 'comment', text: '# These aren\'t guesses. They\'re structural predictions from the graph.' },
-      { type: 'dim', text: 'Confidence: Bayesian posterior over 12,405 path combinations', delay: 200 },
-      { type: 'success', text: '3 structural holes found in 18ms · 0 LLM tokens used' },
+      { type: 'hole', score: '!', file: 'payment/refund_handler.rs', detail: 'no refund logic exists' },
+      { type: 'hole', score: '!', file: 'payment/webhook_validator.rs', detail: 'Stripe webhooks are unverified' },
+      { type: 'hole', score: '!', file: 'payment/idempotency.rs', detail: 'retries can charge twice' },
+      { type: 'blank' },
+      { type: 'comment', text: '# grep can\'t find these. They\'re files that don\'t exist yet.' },
+      { type: 'success', text: '3 missing pieces found in 18ms. $0.00.' },
     ],
-    // Scene 2: Counterfactual Simulation
+    // Scene 2: Simulate before you break
     [
-      { type: 'comment', text: '# "What breaks if I delete this module?" — answered in 3ms.' },
-      { type: 'comment', text: '# No test suite needed. No runtime. Pure graph simulation.' },
-      { type: 'cmd', text: '$ m1nd.counterfactual --remove "src/auth/middleware.rs"' },
-      { type: 'dim', text: 'Simulating removal of auth/middleware.rs...', delay: 400 },
-      { type: 'dim', text: 'Propagating cascade through 4,189 connected nodes...', delay: 500 },
+      { type: 'comment', text: '# Before deleting a file, ask:' },
+      { type: 'comment', text: '# "What breaks if I remove this?"' },
       { type: 'blank' },
-      { type: 'comment', text: '# Blast radius: 23 files directly affected, 4 critical' },
-      { type: 'critical', text: 'CRITICAL  src/routes/api.rs — loses auth guard on 47 endpoints' },
-      { type: 'critical', text: 'CRITICAL  src/session/manager.rs — session validation chain broken' },
-      { type: 'warn', text: 'WARNING   src/middleware/cors.rs — auth-dependent CORS rules orphaned' },
-      { type: 'warn', text: 'WARNING   src/auth/jwt.rs — JWT validator loses its only consumer' },
-      { type: 'dim', text: '... and 19 more files with indirect impact', delay: 200 },
+      { type: 'cmd', text: '$ m1nd.counterfactual --remove "auth/middleware.rs"' },
       { type: 'blank' },
-      { type: 'comment', text: '# Cascade depth: 5 hops. Farthest impact: src/billing/invoice.rs' },
-      { type: 'success', text: '4,189 nodes analyzed in 3ms · cascade depth: 5 · risk: CRITICAL' },
+      { type: 'comment', text: '# m1nd simulates the removal without touching your code:' },
+      { type: 'blank' },
+      { type: 'critical', text: 'BREAKS  api.rs — 47 endpoints lose authentication' },
+      { type: 'critical', text: 'BREAKS  session/manager.rs — sessions stop validating' },
+      { type: 'warn', text: 'RISK    cors.rs — security rules become orphaned' },
+      { type: 'warn', text: 'RISK    jwt.rs — token validator has no consumer' },
+      { type: 'blank' },
+      { type: 'comment', text: '# 23 files affected. You see the full blast radius.' },
+      { type: 'success', text: 'Simulated in 3ms. No tests needed. No runtime.' },
     ],
-    // Scene 3: Perspective Navigation
+    // Scene 3: Navigate like a surgeon
     [
-      { type: 'comment', text: '# Navigate code like a surgeon. Stateful exploration with memory.' },
-      { type: 'comment', text: '# grep is stateless. m1nd Perspectives remember where you\'ve been.' },
+      { type: 'comment', text: '# Explore your code like navigating a map.' },
+      { type: 'comment', text: '# m1nd remembers where you\'ve been.' },
+      { type: 'blank' },
       { type: 'cmd', text: '$ m1nd.perspective_start --query "payment flow"' },
-      { type: 'dim', text: 'Perspective p-7a3f opened · 6 routes synthesized', delay: 300 },
+      { type: 'dim', text: 'Opened. 6 paths to explore.', delay: 300 },
       { type: 'blank' },
-      { type: 'comment', text: '# Follow a route — focus moves, new routes appear automatically' },
-      { type: 'cmd', text: '$ m1nd.perspective_follow --route "checkout → stripe"' },
-      { type: 'dim', text: 'Focus moved to stripe/client.rs · 4 new routes from this node', delay: 300 },
+      { type: 'cmd', text: '$ m1nd.perspective_follow "checkout → stripe"' },
+      { type: 'dim', text: 'Moved to stripe/client.rs. 4 new paths appeared.', delay: 300 },
       { type: 'blank' },
-      { type: 'comment', text: '# Branch your investigation — like git branches for exploration' },
-      { type: 'cmd', text: '$ m1nd.perspective_branch --name "refund-path"' },
-      { type: 'dim', text: 'Branch created · forked from stripe/client.rs', delay: 200 },
+      { type: 'comment', text: '# Fork your exploration — like git branches for investigation' },
+      { type: 'cmd', text: '$ m1nd.perspective_branch "refund-path"' },
       { type: 'blank' },
-      { type: 'comment', text: '# m1nd suggests where to go next based on your navigation history' },
+      { type: 'comment', text: '# m1nd suggests where to go next:' },
       { type: 'cmd', text: '$ m1nd.perspective_suggest' },
-      { type: 'suggest', file: 'refund/handler.rs', detail: 'affinity: 0.91, structural + causal' },
-      { type: 'dim', text: '"Based on 3 hops: this is the most likely next dependency"', delay: 200 },
+      { type: 'suggest', file: 'refund/handler.rs', detail: '91% likely next dependency' },
       { type: 'blank' },
-      { type: 'success', text: '12 tools · stateful · branching · undo · zero tokens' },
+      { type: 'success', text: 'Stateful. Branching. Undo. Zero tokens.' },
     ],
   ];
 
@@ -1882,7 +1874,7 @@
   let animCancel = false;
 
   function renderLine(item, idx) {
-    const d = (item.delay || 0) + idx * 80;
+    const d = (item.delay || 0) + idx * 180;
     const s = `animation-delay: ${d}ms;`;
     switch (item.type) {
       case 'comment':
@@ -1926,7 +1918,7 @@
     el.innerHTML = scene.map((item, i) => renderLine(item, i)).join('');
 
     // Progress bar
-    const totalTime = scene.length * 80 + 1000;
+    const totalTime = scene.length * 180 + 2000;
     progressBar.style.transition = 'none';
     progressBar.style.width = '0%';
     requestAnimationFrame(() => {
@@ -1949,7 +1941,7 @@
     clearInterval(cycleTimer);
     cycleTimer = setInterval(() => {
       playScene((currentScene + 1) % scenes.length);
-    }, 8000);
+    }, 12000);
   }
 
   // Pause auto-cycle on manual interaction
