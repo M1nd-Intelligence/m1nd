@@ -2013,7 +2013,7 @@
     core.setAttribute('opacity', '0.9');
     core.style.transition = 'all 400ms ease';
     document.getElementById('viz-core').querySelector('circle').setAttribute('stroke', '#00E5A0');
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 2200));
 
     // Phase 2: SPREADING ACTIVATION — Hop 1
     setPhase('PHASE 2 — SPREADING ACTIVATION (HOP 1)');
@@ -2021,21 +2021,21 @@
     edges.style.transition = 'opacity 500ms ease';
     edges.setAttribute('opacity', '0.4');
     setGroupColor(d1, '#00E5A0', '0.8');
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 2200));
 
     // Phase 3: Hop 2
     setPhase('PHASE 3 — SPREADING ACTIVATION (HOP 2)');
     setComment('Wavefront expands: 4 → 7 nodes, weighted by 4 dimensions');
     setGroupColor(d2, '#60A5FA', '0.65');
     edges.setAttribute('opacity', '0.55');
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 2200));
 
     // Phase 4: Hop 3
     setPhase('PHASE 4 — SPREADING ACTIVATION (HOP 3)');
     setComment('7 → 8 outer nodes. XLR cancels 14 false-positive edges.');
     setGroupColor(d3, '#F5A623', '0.5');
     edges.setAttribute('opacity', '0.65');
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 2200));
 
     // Phase 5: STRUCTURAL HOLE
     setPhase('PHASE 5 — STRUCTURAL HOLE DETECTED');
@@ -2045,14 +2045,14 @@
     // Flash the hole area
     d2.querySelectorAll('circle')[1].setAttribute('fill', '#FF3366');
     d2.querySelectorAll('circle')[4].setAttribute('fill', '#FF3366');
-    await new Promise(r => setTimeout(r, 1800));
+    await new Promise(r => setTimeout(r, 2800));
 
     // Phase 6: RESULTS
     setPhase('PHASE 6 — RESULTS RANKED');
     setComment('127 nodes activated in 31ms · 0 LLM tokens · 2,847 weights updated');
     labels.style.transition = 'opacity 500ms ease';
     labels.setAttribute('opacity', '1');
-    await new Promise(r => setTimeout(r, 2500));
+    await new Promise(r => setTimeout(r, 3500));
 
     // Phase 7: LEARN
     setPhase('PHASE 7 — HEBBIAN LEARNING');
@@ -2060,12 +2060,12 @@
     // Brighten edges to show strengthening
     edges.setAttribute('opacity', '0.8');
     d1.querySelectorAll('circle').forEach(c => { c.setAttribute('r', '10'); c.style.transition = 'r 600ms ease, fill 600ms ease'; });
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 4000));
 
     // Reset
     setPhase('COMPLETE — CLICK TO REPLAY');
     setComment('The graph is now smarter. Next query will be more accurate.');
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise(r => setTimeout(r, 4000));
 
     // Fade back to dormant
     setPhase('DORMANT — CLICK TO ACTIVATE');
