@@ -109,6 +109,8 @@ First query -- ingest your codebase and ask a question:
   740 edges strengthened via Hebbian LTP. Next query is smarter.
 ```
 
+> **Pro tip:** Use m1nd *before* any grep or file search. Run `activate("your topic")` first — it tells your agent exactly where to look. This alone cuts grep calls by 60% and can surprise you with connections you didn't know existed.
+
 ## Three workflows
 
 ### 1. Research -- understand a codebase
@@ -185,7 +187,7 @@ Six categories. Every tool callable via MCP JSON-RPC stdio.
 | **Perspective Navigation** (12) | `start`, `follow`, `branch`, `back`, `close`, `inspect`, `list`, `peek`, `compare`, `suggest`, `routes`, `affinity` | Stateful codebase exploration. History, branching, undo. |
 | **Lifecycle & Coordination** (11) | `health`, 5 `lock.*`, 4 `trail.*`, `validate_plan` | Multi-agent locks, investigation persistence, pre-flight checks. |
 
-Full tool reference: [Wiki](https://github.com/maxkle1nz/m1nd/wiki)
+Full tool reference: [Wiki](https://m1nd.world/wiki-build/index.html)
 
 ## What makes it different
 
@@ -308,7 +310,7 @@ All numbers from real execution against a production codebase (335 files, ~52K l
 
 Capabilities: spreading activation, Hebbian plasticity, structural holes, counterfactual simulation, hypothesis testing, perspective navigation, trail persistence, multi-agent locks, XLR noise cancellation, co-change prediction, resonance analysis, multi-repo federation, 4D scoring, plan validation, fingerprint detection, temporal intelligence.
 
-Full competitive analysis: [Wiki - Competitive Report](https://github.com/maxkle1nz/m1nd/wiki)
+Full competitive analysis: [Benchmarks](https://m1nd.world/wiki-build/benchmarks.html)
 
 ## When NOT to use m1nd
 

@@ -11,3 +11,6 @@ smallvec = { workspace = true }
 parking_lot = { workspace = true }
 rayon = { workspace = true }
 static_assertions = { workspace = true }
+
+[lints]
+workspace = true

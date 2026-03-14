@@ -297,7 +297,7 @@ impl CoOccurrenceIndex {
 
                 // Extract co-occurrence pairs within window
                 for i in 0..walk.len() {
-                    let lo = if i >= window_size { i - window_size } else { 0 };
+                    let lo = i.saturating_sub(window_size);
                     let hi = (i + window_size + 1).min(walk.len());
                     for j in lo..hi {
                         if i != j && walk[j].0 != start as u32 {

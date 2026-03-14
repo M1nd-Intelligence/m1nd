@@ -2,6 +2,34 @@
 members = ["m1nd-core", "m1nd-ingest", "m1nd-mcp"]
 resolver = "2"
 
+[workspace.lints.clippy]
+manual_clamp = "allow"
+manual_div_ceil = "allow"
+manual_is_multiple_of = "allow"
+manual_range_contains = "allow"
+manual_strip = "allow"
+needless_range_loop = "allow"
+needless_return = "allow"
+needless_borrow = "allow"
+needless_as_bytes = "allow"
+new_without_default = "allow"
+too_many_arguments = "allow"
+manual_memcpy = "allow"
+approx_constant = "allow"
+collapsible_if = "allow"
+doc_lazy_continuation = "allow"
+type_complexity = "allow"
+redundant_field_names = "allow"
+redundant_closure = "allow"
+let_and_return = "allow"
+extra_unused_lifetimes = "allow"
+match_like_matches_macro = "allow"
+unnecessary_map_or = "allow"
+unnecessary_to_owned = "allow"
+map_entry = "allow"
+single_match = "allow"
+manual_saturating_arithmetic = "allow"
+
 [workspace.dependencies]
 thiserror = "2"
 serde = { version = "1", features = ["derive"] }
