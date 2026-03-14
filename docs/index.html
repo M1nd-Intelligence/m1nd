@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>m1nd — Grep finds what exists. m1nd finds what's missing.</title>
-  <meta name="description" content="m1nd: a local Rust binary that gives AI coding agents structural understanding of your codebase. 31ms queries, zero LLM tokens, zero cost. 43 MCP tools. 16/16 capabilities vs Cursor's 0/16. 3-4 years ahead.">
+  <meta name="description" content="m1nd: a local Rust binary that gives AI coding agents structural understanding of your codebase. 31ms queries, zero LLM tokens, zero cost. 52 MCP tools. 19/19 capabilities vs Cursor's 0/19. 3-4 years ahead.">
   <meta property="og:title" content="m1nd — Your AI agent has amnesia. m1nd remembers.">
-  <meta property="og:description" content="m1nd: a local Rust binary that gives AI coding agents structural understanding of your codebase. 31ms queries, zero LLM tokens, zero cost. 43 MCP tools. 3-4 years ahead of any competitor.">
+  <meta property="og:description" content="m1nd: a local Rust binary that gives AI coding agents structural understanding of your codebase. 31ms queries, zero LLM tokens, zero cost. 52 MCP tools. 3-4 years ahead of any competitor.">
   <meta property="og:image" content="https://raw.githubusercontent.com/maxkle1nz/m1nd/main/.github/social-preview.jpg">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
@@ -816,7 +816,7 @@
         </svg>
       </div>
 
-      <div class="hero-badge"><span class="dot"></span> 43 MCP tools &middot; Rust &middot; $0.00/query</div>
+      <div class="hero-badge"><span class="dot"></span> 52 MCP tools &middot; Rust &middot; $0.00/query</div>
       <h1 style="font-size: clamp(32px, 5vw, 56px); letter-spacing: -2px; line-height: 1.15;">Your AI agent has <span style="color: var(--red);">amnesia</span>.<br>m<span class="one">1</span>nd <span class="one">remembers</span>.</h1>
       <p class="tagline">Every tool finds what exists. m1nd finds what's missing.</p>
       <p class="subtitle">Every session, your agent re-reads your entire codebase &mdash; burning <strong style="color: var(--red);">$0.05&ndash;$0.50 per search cycle</strong> in LLM tokens, forgetting everything by next session. m1nd replaces that loop with a persistent code graph that <strong style="color: var(--green);">learns from usage</strong>, detects <strong style="color: var(--green);">structural holes</strong> no grep ever could, and answers in <strong style="color: var(--green);">31ms at $0.00</strong>. Local Rust binary. No API keys. No meter ticking.</p>
@@ -1159,7 +1159,7 @@
   <section id="different">
     <div class="container">
       <div class="section-label">What makes it different</div>
-      <h2 class="section-title">Six capabilities no other tool has.</h2>
+      <h2 class="section-title">Nine capabilities no other tool has.</h2>
       <p class="section-desc">Not incremental improvements. Structural differences.</p>
 
       <div class="diff-cards">
@@ -1192,6 +1192,21 @@
           <div class="diff-title">The graph lets you navigate</div>
           <div class="diff-mechanism"><a href="#perspectives" style="color: inherit; text-decoration: underline;">Perspective System</a></div>
           <div class="diff-desc">Stateful exploration with history, branching, and undo. Enter a perspective, follow routes, fork your investigation, compare paths. 12 tools. Like a surgeon inside your codebase.</div>
+        </div>
+        <div class="diff-card">
+          <div class="diff-title">The graph has an immune system</div>
+          <div class="diff-mechanism">Antibody Engine</div>
+          <div class="diff-desc">Fixed a bug once? The graph remembers the structural pattern forever. On every ingest, it scans for reinfections -- same class of bug, different location. Bugs don't come back.</div>
+        </div>
+        <div class="diff-card">
+          <div class="diff-title">The graph predicts failures</div>
+          <div class="diff-mechanism">Tremor + Epidemic + Trust</div>
+          <div class="diff-desc">Change acceleration, bug propagation modeling, and per-module risk scoring. Three tools from seismology, epidemiology, and actuarial science that detect instability before it becomes a bug.</div>
+        </div>
+        <div class="diff-card">
+          <div class="diff-title">The graph enforces architecture</div>
+          <div class="diff-mechanism">Layer Detection</div>
+          <div class="diff-desc">Auto-detects your codebase's architectural layers and flags violations. When a handler reaches into the database directly or a domain model imports transport code, m1nd catches it.</div>
         </div>
       </div>
     </div>
@@ -1488,7 +1503,7 @@
   <!-- ── Tools ── -->
   <section id="tools">
     <div class="container">
-      <div class="section-label">43 MCP tools</div>
+      <div class="section-label">52 MCP tools</div>
       <h2 class="section-title">Everything an agent needs.</h2>
       <p class="section-desc">Callable by any MCP client via JSON-RPC stdio. No SDK required.</p>
 
@@ -1691,7 +1706,7 @@
       </div>
 
       <div class="tools-group">
-        <div class="tools-group-title">Superpowers <span>(13)</span></div>
+        <div class="tools-group-title">Superpowers <span>(22)</span></div>
         <div class="tools-grid">
           <div class="tool-card">
             <div>
@@ -1769,6 +1784,60 @@
             <div>
               <div class="tool-name">trail.list</div>
               <div class="tool-desc">List all saved trails with metadata and timestamps.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.antibody_scan</div>
+              <div class="tool-desc">Scan for known bug patterns -- immune system memory from past fixes.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.antibody_list</div>
+              <div class="tool-desc">List stored antibodies -- all learned bug signatures and their triggers.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.antibody_create</div>
+              <div class="tool-desc">Create an antibody pattern -- teach the graph to recognize a bug class.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.flow_simulate</div>
+              <div class="tool-desc">Concurrent execution flow simulation -- detect race conditions and deadlocks.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.epidemic</div>
+              <div class="tool-desc">SIR bug propagation prediction -- model how defects spread through dependencies.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.tremor</div>
+              <div class="tool-desc">Change acceleration detection -- seismograph for code instability hotspots.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.trust</div>
+              <div class="tool-desc">Per-module actuarial risk scores -- reliability ratings based on change history.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.layers</div>
+              <div class="tool-desc">Auto-detect architectural layers and violations -- enforce boundaries automatically.</div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div>
+              <div class="tool-name">m1nd.layer_inspect</div>
+              <div class="tool-desc">Inspect a specific layer -- members, boundaries, violation details.</div>
             </div>
           </div>
         </div>
@@ -1948,8 +2017,32 @@
             <td class="partial">Cloud-dependent</td>
           </tr>
           <tr>
+            <td>Bug immune memory</td>
+            <td class="yes">Antibody system</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td>Pre-failure detection</td>
+            <td class="yes">Tremor + epidemic</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
+            <td>Architectural layers</td>
+            <td class="yes">Auto-detection</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+            <td class="no">No</td>
+          </tr>
+          <tr>
             <td>Agent interface</td>
-            <td class="yes">43 MCP tools</td>
+            <td class="yes">52 MCP tools</td>
             <td class="partial">API</td>
             <td class="no">Built-in only</td>
             <td class="no">Built-in only</td>
@@ -1964,12 +2057,12 @@
             <td class="no">$30/dev/mo</td>
           </tr>
           <tr>
-            <td>Capabilities (of 16)</td>
-            <td class="yes" style="font-size: 15px; font-weight: 700;">16/16</td>
-            <td class="no">1/16</td>
-            <td class="no">0/16</td>
-            <td class="no">0/16</td>
-            <td class="no">1/16</td>
+            <td>Capabilities (of 19)</td>
+            <td class="yes" style="font-size: 15px; font-weight: 700;">19/19</td>
+            <td class="no">1/19</td>
+            <td class="no">0/19</td>
+            <td class="no">0/19</td>
+            <td class="no">1/19</td>
           </tr>
         </tbody>
       </table>
@@ -1980,8 +2073,8 @@
   <section id="advantage" style="border-top: 1px solid var(--border);">
     <div class="container">
       <div class="section-label">Under the hood</div>
-      <h2 class="section-title">Six techniques from six disciplines</h2>
-      <p class="section-desc">m1nd borrows from neuroscience, sociology, signal processing, physics, and distributed systems. Each technique solves a specific problem in code understanding.</p>
+      <h2 class="section-title">Twelve techniques from twelve disciplines</h2>
+      <p class="section-desc">m1nd borrows from neuroscience, sociology, signal processing, immunology, epidemiology, seismology, actuarial science, and more. Each technique solves a specific problem in code understanding.</p>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 64px;">
         <!-- 1 -->
@@ -2008,8 +2101,8 @@
         <!-- 4 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
           <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">04 &mdash; COGNITIVE SCIENCE</div>
-          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">43 tools = complete cognitive cycle</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Ingest, activate, hypothesize, simulate, learn, navigate, federate. A full loop from perception to action to memory &mdash; modeled on how biological cognition processes information.</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">52 tools = complete cognitive cycle</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Ingest, activate, hypothesize, simulate, learn, navigate, immunize, predict. A full loop from perception to action to memory &mdash; modeled on how biological cognition processes information.</div>
         </div>
 
         <!-- 5 -->
@@ -2024,6 +2117,48 @@
           <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">06 &mdash; DISTRIBUTED SYSTEMS</div>
           <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Multi-agent graph locking</div>
           <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Advisory locks, snapshot isolation, diff, rebase, release. Multiple agents work on the same graph concurrently without conflict &mdash; the same problem databases solved decades ago, now applied to code graphs.</div>
+        </div>
+
+        <!-- 7 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">07 &mdash; IMMUNOLOGY</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Bug antibody system</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">The graph develops immune memory. When a bug pattern is fixed, m1nd stores the structural signature as an antibody. On future ingests, it scans for the same pattern and flags reinfections before they ship.</div>
+        </div>
+
+        <!-- 8 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">08 &mdash; FLUID DYNAMICS</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Concurrent flow simulation</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Model execution flows as fluid through pipes. Detect race conditions, deadlocks, and resource contention by simulating concurrent paths through the call graph &mdash; without running the code.</div>
+        </div>
+
+        <!-- 9 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">09 &mdash; EPIDEMIOLOGY</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">SIR bug propagation model</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Susceptible &rarr; Infected &rarr; Recovered. The same model that tracks disease outbreaks, applied to defect propagation. Predict which modules a bug in module X will spread to, and how fast.</div>
+        </div>
+
+        <!-- 10 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">10 &mdash; SEISMOLOGY</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Change tremor detection</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">A seismograph for your codebase. Measures change acceleration &mdash; not just what changed, but where change is accelerating. Rising tremor in a module predicts instability before failures surface.</div>
+        </div>
+
+        <!-- 11 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">11 &mdash; ACTUARIAL SCIENCE</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Per-module trust scoring</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Insurance-style risk assessment for every module. Factors in change frequency, bug history, test coverage signals, and dependency depth to produce an actuarial reliability score.</div>
+        </div>
+
+        <!-- 12 -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">12 &mdash; NEUROSCIENCE (LAYERS)</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Architectural layer detection</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Inspired by cortical layer organization. Auto-detects your codebase's architectural layers (transport, domain, persistence) and flags violations &mdash; when a handler reaches into the database directly.</div>
         </div>
       </div>
 
@@ -2198,15 +2333,15 @@
   <section style="padding: 48px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
     <div class="container" style="display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; text-align: center;">
       <div>
-        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~15,500</div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">~20,000</div>
         <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Lines of Rust</div>
       </div>
       <div>
-        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">159</div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">354+</div>
         <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">Tests</div>
       </div>
       <div>
-        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">43</div>
+        <div style="font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--green);">52</div>
         <div style="font-size: 13px; color: var(--text-faint); margin-top: 4px;">MCP Tools</div>
       </div>
       <div>
@@ -2225,7 +2360,7 @@
     <div class="container">
       <h2 class="section-title" style="max-width: 700px; margin: 0 auto 16px;">Stop paying for amnesia.<br>Give your agents a <span style="color: var(--green);">m1nd</span>.</h2>
       <p style="color: var(--text-dim); font-size: 16px; max-width: 560px; margin: 0 auto 40px; line-height: 1.6;">
-        Open source. Local. Zero cost. One binary. 43 tools.<br>Your codebase never leaves your machine.
+        Open source. Local. Zero cost. One binary. 52 tools.<br>Your codebase never leaves your machine.
       </p>
       <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
         <a href="https://github.com/maxkle1nz/m1nd" class="btn btn-primary" style="font-size: 16px; padding: 16px 36px;">
