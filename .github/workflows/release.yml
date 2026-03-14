@@ -40,7 +40,7 @@ jobs:
           cp target/${{ matrix.target }}/release/${{ matrix.binary }} dist/
           cd dist
           tar czf m1nd-${{ matrix.target }}.tar.gz ${{ matrix.binary }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: m1nd-${{ matrix.target }}
           path: dist/m1nd-${{ matrix.target }}.tar.gz
