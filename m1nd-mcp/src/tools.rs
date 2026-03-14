@@ -4,6 +4,7 @@ use m1nd_core::error::M1ndResult;
 use m1nd_core::temporal::ImpactDirection;
 use m1nd_core::types::*;
 use m1nd_core::query::QueryConfig;
+use crate::brand;
 use crate::session::SessionState;
 use crate::protocol::*;
 use std::time::Instant;
@@ -65,7 +66,7 @@ fn finalize_ingest(
     }
 
     if let Err(e) = state.persist() {
-        eprintln!("[m1nd] auto-persist after ingest failed: {}", e);
+        eprintln!("{}", brand::log(&format!("auto-persist after ingest failed: {}", e)));
     }
 
     let (node_count, edge_count) = {

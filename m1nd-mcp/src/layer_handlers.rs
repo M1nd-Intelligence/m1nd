@@ -8,6 +8,7 @@
 
 use m1nd_core::error::{M1ndError, M1ndResult};
 use m1nd_core::types::*;
+use crate::brand;
 use crate::session::SessionState;
 use crate::protocol::layers;
 use std::collections::HashMap;
@@ -3644,8 +3645,8 @@ pub fn handle_federate(
 
         if !repo_path.exists() {
             eprintln!(
-                "[m1nd-federate] Skipping repo '{}': path does not exist: {}",
-                repo.name, repo.path
+                "{}",
+                brand::log(&format!("federate: Skipping repo '{}': path does not exist: {}", repo.name, repo.path)),
             );
             skipped_repos.push(repo.name.clone());
             repo_results.push(layers::FederateRepoResult {
@@ -3670,8 +3671,8 @@ pub fn handle_federate(
             Ok(result) => result,
             Err(e) => {
                 eprintln!(
-                    "[m1nd-federate] Skipping repo '{}': ingest failed: {}",
-                    repo.name, e
+                    "{}",
+                    brand::log(&format!("federate: Skipping repo '{}': ingest failed: {}", repo.name, e)),
                 );
                 skipped_repos.push(repo.name.clone());
                 repo_results.push(layers::FederateRepoResult {
@@ -3777,7 +3778,7 @@ pub fn handle_federate(
     state.rebuild_engines()?;
 
     if let Err(e) = state.persist() {
-        eprintln!("[m1nd-federate] auto-persist after federation failed: {}", e);
+        eprintln!("{}", brand::log(&format!("federate: auto-persist after federation failed: {}", e)));
     }
 
     Ok(layers::FederateOutput {
