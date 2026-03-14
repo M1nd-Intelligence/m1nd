@@ -16,9 +16,9 @@ use std::path::PathBuf;
 // automatically understand how to use m1nd effectively.
 // ---------------------------------------------------------------------------
 const M1ND_INSTRUCTIONS: &str = "\
-\u{234C}\u{2350}\u{2342}\u{1D53B} m1nd \u{2014} neuro-symbolic code graph engine \u{1F062}\u{27C1}\n\
+\u{234C}\u{2350}\u{2342}\u{1D53B} \u{27C1} \u{2014} neuro-symbolic code graph engine\n\
 \n\
-m1nd ingests codebases into a weighted graph and provides spreading-activation \
+Ingests codebases into a weighted graph and provides spreading-activation \
 queries, impact analysis, prediction, and stateful perspective navigation. \
 All tool calls require an `agent_id` parameter.\n\
 \n\
@@ -27,7 +27,6 @@ All tool calls require an `agent_id` parameter.\n\
 \u{2350} path/trace (why, trace, timeline, seek) \u{2502} \
 \u{2342} structure (missing, fingerprint, scan, diverge)\n\
 \u{1D53B} dimension (impact, predict, counterfactual) \u{2502} \
-\u{1F062} state (health, drift, locks, trails) \u{2502} \
 \u{27C1} connection (perspective, federate, resonate)\n\
 \n\
 ## WORKFLOWS\n\
@@ -932,11 +931,11 @@ impl McpServer {
             Some("generic") => DomainConfig::generic(),
             Some("code") | None => DomainConfig::code(),
             Some(other) => {
-                eprintln!("{}", brand::log(&format!("Unknown domain '{}', falling back to 'code'", other)));
+                eprintln!("{}", brand::log_colored(&format!("Unknown domain '{}', falling back to 'code'", other)));
                 DomainConfig::code()
             }
         };
-        eprintln!("{}", brand::log(&format!("Domain: {}", domain_config.name)));
+        eprintln!("{}", brand::log_colored(&format!("Domain: {}", domain_config.name)));
 
         // Step 1: Try to load graph snapshot
         let (mut graph, graph_loaded) = if config.graph_source.exists() {
@@ -944,20 +943,20 @@ impl McpServer {
                 Ok(g) => {
                     eprintln!(
                         "{}",
-                        brand::log(&format!("Loaded graph snapshot: {} nodes, {} edges", g.num_nodes(), g.num_edges())),
+                        brand::log_colored(&format!("Loaded graph snapshot: {} nodes, {} edges", g.num_nodes(), g.num_edges())),
                     );
                     (g, true)
                 }
                 Err(e) => {
                     eprintln!(
                         "{}",
-                        brand::log(&format!("Failed to load graph snapshot ({}), starting fresh", e)),
+                        brand::log_colored(&format!("Failed to load graph snapshot ({}), starting fresh", e)),
                     );
                     (m1nd_core::graph::Graph::new(), false)
                 }
             }
         } else {
-            eprintln!("{}", brand::log("No graph snapshot found, starting fresh"));
+            eprintln!("{}", brand::log_colored("No graph snapshot found, starting fresh"));
             (m1nd_core::graph::Graph::new(), false)
         };
 
@@ -966,7 +965,7 @@ impl McpServer {
             if let Err(e) = graph.finalize() {
                 eprintln!(
                     "{}",
-                    brand::log(&format!("Failed to finalize loaded graph ({}), starting fresh", e)),
+                    brand::log_colored(&format!("Failed to finalize loaded graph ({}), starting fresh", e)),
                 );
                 graph = m1nd_core::graph::Graph::new();
             }
@@ -984,13 +983,13 @@ impl McpServer {
                         Ok(_) => {
                             eprintln!(
                                 "{}",
-                                brand::log(&format!("Loaded plasticity state: {} synaptic records", states.len())),
+                                brand::log_colored(&format!("Loaded plasticity state: {} synaptic records", states.len())),
                             );
                         }
                         Err(e) => {
                             eprintln!(
                                 "{}",
-                                brand::log(&format!("Failed to import plasticity state ({}), continuing without it", e)),
+                                brand::log_colored(&format!("Failed to import plasticity state ({}), continuing without it", e)),
                             );
                         }
                     }
@@ -998,7 +997,7 @@ impl McpServer {
                 Err(e) => {
                     eprintln!(
                         "{}",
-                        brand::log(&format!("Failed to load plasticity state ({}), continuing without it", e)),
+                        brand::log_colored(&format!("Failed to load plasticity state ({}), continuing without it", e)),
                     );
                 }
             }
@@ -1018,7 +1017,7 @@ impl McpServer {
     pub fn start(&mut self) -> M1ndResult<()> {
         eprintln!(
             "{}",
-            brand::log(&format!(
+            brand::log_colored(&format!(
                 "Server ready. {} nodes, {} edges",
                 self.state.graph.read().num_nodes(),
                 self.state.graph.read().num_edges(),
@@ -1102,9 +1101,9 @@ impl McpServer {
 
     /// Graceful shutdown: persist state, flush writes, close connections.
     pub fn shutdown(&mut self) -> M1ndResult<()> {
-        eprintln!("{}", brand::log("Shutting down..."));
+        eprintln!("{}", brand::log_colored("Shutting down..."));
         let _ = self.state.persist();
-        eprintln!("{}", brand::log("State persisted. Goodbye."));
+        eprintln!("{}", brand::log_colored("State persisted. Goodbye."));
         Ok(())
     }
 
@@ -1121,7 +1120,7 @@ impl McpServer {
                     result: Some(serde_json::json!({
                         "protocolVersion": "2024-11-05",
                         "serverInfo": {
-                            "name": format!("{} m1nd-mcp", brand::SIG),
+                            "name": format!("{}", brand::SIG),
                             "version": env!("CARGO_PKG_VERSION"),
                         },
                         "capabilities": {

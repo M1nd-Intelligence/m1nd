@@ -171,11 +171,11 @@ impl SessionState {
         match self.plasticity.export_state(&graph) {
             Ok(states) => {
                 if let Err(e) = m1nd_core::snapshot::save_plasticity_state(&states, &self.plasticity_path) {
-                    eprintln!("{}", brand::log(&format!("WARNING: graph saved but plasticity persist failed: {}", e)));
+                    eprintln!("{}", brand::log_colored(&format!("WARNING: graph saved but plasticity persist failed: {}", e)));
                 }
             }
             Err(e) => {
-                eprintln!("{}", brand::log(&format!("WARNING: graph saved but plasticity export failed: {}", e)));
+                eprintln!("{}", brand::log_colored(&format!("WARNING: graph saved but plasticity export failed: {}", e)));
             }
         }
 

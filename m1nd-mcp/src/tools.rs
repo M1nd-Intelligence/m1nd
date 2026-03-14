@@ -66,7 +66,7 @@ fn finalize_ingest(
     }
 
     if let Err(e) = state.persist() {
-        eprintln!("{}", brand::log(&format!("auto-persist after ingest failed: {}", e)));
+        eprintln!("{}", brand::log_colored(&format!("auto-persist after ingest failed: {}", e)));
     }
 
     let (node_count, edge_count) = {
