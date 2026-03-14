@@ -43,7 +43,7 @@ rayon = "1.10"
 serde_json = { workspace = true }
 
 # Tree-sitter core (0.25 — all grammar crates must use new-API via tree-sitter-language)
-tree-sitter = { version = "0.25", optional = true }
+tree-sitter = { version = "0.26", optional = true }
 tree-sitter-language = { version = "0.1", optional = true }
 
 # Tier 1 grammars (14 languages)
