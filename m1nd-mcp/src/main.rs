@@ -14,7 +14,7 @@ fn load_config() -> McpConfig {
         let path = &args[1];
         if let Ok(contents) = std::fs::read_to_string(path) {
             if let Ok(config) = serde_json::from_str::<McpConfig>(&contents) {
-                eprintln!("{}", brand::log(&format!("Config loaded from {}", path)));
+                eprintln!("{}", brand::log_colored(&format!("Config loaded from {}", path)));
                 return config;
             }
         }
@@ -43,20 +43,20 @@ fn load_config() -> McpConfig {
 
 #[tokio::main]
 async fn main() {
-    eprintln!("{}", brand::BANNER);
+    eprintln!("{}", brand::banner_colored());
 
     let config = load_config();
 
     let mut server = match McpServer::new(config) {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("{}", brand::log(&format!("Failed to create server: {}", e)));
+            eprintln!("{}", brand::log_colored(&format!("Failed to create server: {}", e)));
             std::process::exit(1);
         }
     };
 
     if let Err(e) = server.start() {
-        eprintln!("{}", brand::log(&format!("Failed to start server: {}", e)));
+        eprintln!("{}", brand::log_colored(&format!("Failed to start server: {}", e)));
         std::process::exit(1);
     }
 
@@ -71,14 +71,14 @@ async fn main() {
     // Wait for either SIGINT or serve completion
     tokio::select! {
         _ = tokio::signal::ctrl_c() => {
-            eprintln!("{}", brand::log("SIGINT received."));
+            eprintln!("{}", brand::log_colored("SIGINT received."));
             // serve_handle will complete when stdin closes or next iteration
         }
         result = serve_handle => {
             match result {
                 Ok(Ok(())) => {}
-                Ok(Err(e)) => eprintln!("{}", brand::log(&format!("Server error: {}", e))),
-                Err(e) => eprintln!("{}", brand::log(&format!("Task error: {}", e))),
+                Ok(Err(e)) => eprintln!("{}", brand::log_colored(&format!("Server error: {}", e))),
+                Err(e) => eprintln!("{}", brand::log_colored(&format!("Task error: {}", e))),
             }
         }
     }

@@ -3646,7 +3646,7 @@ pub fn handle_federate(
         if !repo_path.exists() {
             eprintln!(
                 "{}",
-                brand::log(&format!("federate: Skipping repo '{}': path does not exist: {}", repo.name, repo.path)),
+                brand::log_colored(&format!("federate: Skipping repo '{}': path does not exist: {}", repo.name, repo.path)),
             );
             skipped_repos.push(repo.name.clone());
             repo_results.push(layers::FederateRepoResult {
@@ -3672,7 +3672,7 @@ pub fn handle_federate(
             Err(e) => {
                 eprintln!(
                     "{}",
-                    brand::log(&format!("federate: Skipping repo '{}': ingest failed: {}", repo.name, e)),
+                    brand::log_colored(&format!("federate: Skipping repo '{}': ingest failed: {}", repo.name, e)),
                 );
                 skipped_repos.push(repo.name.clone());
                 repo_results.push(layers::FederateRepoResult {
@@ -3778,7 +3778,7 @@ pub fn handle_federate(
     state.rebuild_engines()?;
 
     if let Err(e) = state.persist() {
-        eprintln!("{}", brand::log(&format!("federate: auto-persist after federation failed: {}", e)));
+        eprintln!("{}", brand::log_colored(&format!("federate: auto-persist after federation failed: {}", e)));
     }
 
     Ok(layers::FederateOutput {

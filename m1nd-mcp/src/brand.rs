@@ -4,13 +4,17 @@
 // Unicode brand symbols chosen by the creator to represent the neuro-symbolic
 // nature of m1nd — circuits, graphs, connections, dimensions.
 //
+// The glyphs ARE the name: ⍌⍐⍂𝔻 ⟁
+// No text needed. Each symbol maps to a semantic domain.
+//
 // Symbol semantics:
 //   ⍌  signal / flow       — activation, spreading, ingest, learn, warmup
 //   ⍐  path / trace        — why, trace, timeline, routes, seek
 //   ⍂  structure / holes   — missing, fingerprint, scan, topology, diverge
 //   𝔻  dimension / analysis — impact, predict, counterfactual, differential, hypothesize
-//   🁢  state / grid        — health, status, locks, trails, drift, validate_plan
 //   ⟁  connection / graph  — perspective, federation, resonance
+//
+// State tools (health, locks, trails, drift) use ⍂ as their glyph.
 
 // ---------------------------------------------------------------------------
 // Core symbols
@@ -38,11 +42,11 @@ pub const SYM_CONNECTION: &str = "\u{27C1}"; // ⟁
 // Composite banners
 // ---------------------------------------------------------------------------
 
-/// Full banner: all six symbols framing the name.
-pub const BANNER: &str = "\u{234C}\u{2350}\u{2342}\u{1D53B} m1nd \u{1F062}\u{27C1}";
+/// Full banner: the glyphs ARE the name. No text needed.
+pub const BANNER: &str = "\u{234C}\u{2350}\u{2342}\u{1D53B} \u{27C1}";
 
 /// Compact signature for log lines.
-pub const SIG: &str = "\u{234C}\u{1D53B}\u{27C1}";
+pub const SIG: &str = "\u{234C}\u{2350}\u{2342}\u{1D53B}\u{27C1}";
 
 // ---------------------------------------------------------------------------
 // Tool → symbol mapping
@@ -174,23 +178,53 @@ pub fn stamp(tool_name: &str, mut value: serde_json::Value) -> serde_json::Value
 }
 
 /// Format a branded text header line for the MCP text content.
-/// Example: "⍌ m1nd.activate — \"query\" — 15 results in 31ms"
+/// Example: "⍌ activate — \"query\" — 15 results in 31ms"
 pub fn header(tool_name: &str, detail: &str) -> String {
     let glyph = tool_glyph(tool_name);
     let short_name = tool_name.strip_prefix("m1nd.").unwrap_or(tool_name);
-    format!("{} m1nd.{} \u{2014} {}", glyph, short_name, detail)
+    format!("{} {} \u{2014} {}", glyph, short_name, detail)
 }
 
 /// Format a branded error line.
-/// Example: "⍌𝔻⟁ m1nd error — tool not found: foo"
+/// Example: "⍌⍐⍂𝔻⟁ error — tool not found: foo"
 pub fn error_line(detail: &str) -> String {
-    format!("{} m1nd error \u{2014} {}", SIG, detail)
+    format!("{} error \u{2014} {}", SIG, detail)
 }
 
 /// Format a branded stderr log line.
-/// Example: "[⍌𝔻⟁ m1nd] Server ready. 4927 nodes, 12345 edges"
+/// Example: "[⍌⍐⍂𝔻⟁] Server ready. 4927 nodes, 12345 edges"
 pub fn log(msg: &str) -> String {
-    format!("[{} m1nd] {}", SIG, msg)
+    format!("[{}] {}", SIG, msg)
+}
+
+// ---------------------------------------------------------------------------
+// ANSI-colored output for terminal (stderr)
+// ---------------------------------------------------------------------------
+
+/// ANSI-colored banner for terminal startup.
+/// Each symbol gets a distinct color — the spectrum IS the identity.
+pub fn banner_colored() -> String {
+    format!(
+        "\x1b[36m{}\x1b[33m{}\x1b[35m{}\x1b[34m{}\x1b[0m \x1b[32m{}\x1b[0m",
+        SYM_SIGNAL,     // cyan    ⍌
+        SYM_PATH,       // yellow  ⍐
+        SYM_STRUCTURE,  // magenta ⍂
+        SYM_DIMENSION,  // blue    𝔻
+        SYM_CONNECTION, // green   ⟁
+    )
+}
+
+/// ANSI-colored compact signature for log prefixes.
+pub fn sig_colored() -> String {
+    format!(
+        "\x1b[36m{}\x1b[33m{}\x1b[35m{}\x1b[34m{}\x1b[32m{}\x1b[0m",
+        SYM_SIGNAL, SYM_PATH, SYM_STRUCTURE, SYM_DIMENSION, SYM_CONNECTION,
+    )
+}
+
+/// Colored log line for stderr.
+pub fn log_colored(msg: &str) -> String {
+    format!("[{}] {}", sig_colored(), msg)
 }
 
 // ---------------------------------------------------------------------------
@@ -286,29 +320,52 @@ mod tests {
     fn header_format() {
         let h = header("m1nd.activate", "\"chat_handler\" \u{2014} 15 results in 31ms");
         assert!(h.starts_with(SYM_SIGNAL));
-        assert!(h.contains("m1nd.activate"));
+        assert!(h.contains("activate"));
+        // No "m1nd" text — glyphs ARE the identity
+        assert!(!h.contains("m1nd."));
     }
 
     #[test]
     fn error_line_format() {
         let e = error_line("tool not found: foo");
         assert!(e.starts_with(SIG));
-        assert!(e.contains("m1nd error"));
+        assert!(e.contains("error"));
+        assert!(!e.contains("m1nd"));
     }
 
     #[test]
     fn log_format() {
         let l = log("Server ready");
         assert!(l.contains(SIG));
-        assert!(l.contains("m1nd"));
+        assert!(l.contains("Server ready"));
+        // Pure glyph identity — no text name
+        assert!(!l.contains("m1nd"));
     }
 
     #[test]
-    fn banner_contains_all_symbols() {
+    fn banner_is_pure_glyphs() {
         assert!(BANNER.contains(SYM_SIGNAL));
         assert!(BANNER.contains(SYM_PATH));
         assert!(BANNER.contains(SYM_STRUCTURE));
-        assert!(BANNER.contains("m1nd"));
+        assert!(BANNER.contains(SYM_DIMENSION));
+        assert!(BANNER.contains(SYM_CONNECTION));
+        // No text — glyphs ARE the name
+        assert!(!BANNER.contains("m1nd"));
+    }
+
+    #[test]
+    fn colored_output_contains_ansi() {
+        let bc = banner_colored();
+        assert!(bc.contains("\x1b["));
+        assert!(bc.contains(SYM_SIGNAL));
+        assert!(bc.contains(SYM_CONNECTION));
+
+        let sc = sig_colored();
+        assert!(sc.contains("\x1b["));
+
+        let lc = log_colored("test msg");
+        assert!(lc.contains("test msg"));
+        assert!(lc.contains("\x1b["));
     }
 
     #[test]
