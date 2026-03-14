@@ -1,7 +1,7 @@
 use crate::{IngestAdapter, IngestStats};
 use m1nd_core::error::M1ndResult;
-use m1nd_core::graph::NodeProvenanceInput;
 use m1nd_core::graph::Graph;
+use m1nd_core::graph::NodeProvenanceInput;
 use m1nd_core::types::{EdgeDirection, FiniteF32, NodeType};
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
@@ -129,7 +129,10 @@ impl MemoryIngestAdapter {
             .file_name()
             .and_then(|name| name.to_str())
             .unwrap_or(rel_path);
-        if Regex::new(r"^\d{4}-\d{2}-\d{2}\.md$").unwrap().is_match(file_name) {
+        if Regex::new(r"^\d{4}-\d{2}-\d{2}\.md$")
+            .unwrap()
+            .is_match(file_name)
+        {
             "daily-note"
         } else if file_name.eq_ignore_ascii_case("memory.md") {
             "long-term-memory"
@@ -201,13 +204,20 @@ impl MemoryIngestAdapter {
 
     fn classify_entry(text: &str) -> (NodeType, Vec<String>, String) {
         let lower = text.to_ascii_lowercase();
-        if text.contains("[ ]") || text.contains("[x]") || lower.contains("todo") || lower.contains("task") {
+        if text.contains("[ ]")
+            || text.contains("[x]")
+            || lower.contains("todo")
+            || lower.contains("task")
+        {
             (
                 NodeType::Process,
                 vec!["memory:item".into(), "memory:task".into()],
                 "tracks".into(),
             )
-        } else if lower.contains("decision") || lower.contains("decided") || lower.contains("resolved") {
+        } else if lower.contains("decision")
+            || lower.contains("decided")
+            || lower.contains("resolved")
+        {
             (
                 NodeType::Concept,
                 vec!["memory:item".into(), "memory:decision".into()],
@@ -219,7 +229,8 @@ impl MemoryIngestAdapter {
                 vec!["memory:item".into(), "memory:state".into()],
                 "relates_to".into(),
             )
-        } else if lower.contains("meeting") || lower.contains("session") || lower.contains("today") {
+        } else if lower.contains("meeting") || lower.contains("session") || lower.contains("today")
+        {
             (
                 NodeType::Process,
                 vec!["memory:item".into(), "memory:event".into()],
@@ -287,7 +298,9 @@ impl MemoryIngestAdapter {
         let bullet_re = Regex::new(r"^\s*[-*+]\s+(.+?)\s*$").unwrap();
         let checkbox_re = Regex::new(r"^\s*[-*+]\s+\[[ xX]\]\s+(.+?)\s*$").unwrap();
         let table_sep_re = Regex::new(r"^\s*\|?[\s:-]+\|[\s|:-]*$").unwrap();
-        let file_ref_re = Regex::new(r"(?P<path>[A-Za-z0-9_./-]+\.(?:rs|py|ts|tsx|js|jsx|json|md|toml))").unwrap();
+        let file_ref_re =
+            Regex::new(r"(?P<path>[A-Za-z0-9_./-]+\.(?:rs|py|ts|tsx|js|jsx|json|md|toml))")
+                .unwrap();
 
         let mut current_parent = document_id.clone();
         let mut section_counts: HashMap<String, usize> = HashMap::new();
@@ -312,10 +325,7 @@ impl MemoryIngestAdapter {
                 *occurrence += 1;
                 let section_id = format!(
                     "memory::{}::section::{}::{}-{}",
-                    self.namespace,
-                    file_slug,
-                    heading_slug,
-                    occurrence
+                    self.namespace, file_slug, heading_slug, occurrence
                 );
 
                 Self::push_node(
@@ -494,7 +504,9 @@ impl IngestAdapter for MemoryIngestAdapter {
         let root_dir = if root.is_dir() {
             root.to_path_buf()
         } else {
-            root.parent().unwrap_or_else(|| Path::new(".")).to_path_buf()
+            root.parent()
+                .unwrap_or_else(|| Path::new("."))
+                .to_path_buf()
         };
 
         for file in &files {
@@ -512,16 +524,14 @@ impl IngestAdapter for MemoryIngestAdapter {
         let mut graph = Graph::with_capacity(nodes.len(), edges.len());
         for node in &nodes {
             let tags: Vec<&str> = node.tags.iter().map(String::as_str).collect();
-            if let Ok(node_id) = graph
-                .add_node(
-                    &node.id,
-                    &node.label,
-                    node.node_type,
-                    &tags,
-                    node.last_modified,
-                    node.change_frequency,
-                )
-            {
+            if let Ok(node_id) = graph.add_node(
+                &node.id,
+                &node.label,
+                node.node_type,
+                &tags,
+                node.last_modified,
+                node.change_frequency,
+            ) {
                 graph.set_node_provenance(
                     node_id,
                     NodeProvenanceInput {
@@ -538,7 +548,10 @@ impl IngestAdapter for MemoryIngestAdapter {
         }
 
         for edge in &edges {
-            if let (Some(source), Some(target)) = (graph.resolve_id(&edge.source), graph.resolve_id(&edge.target)) {
+            if let (Some(source), Some(target)) = (
+                graph.resolve_id(&edge.source),
+                graph.resolve_id(&edge.target),
+            ) {
                 if graph
                     .add_edge(
                         source,
@@ -571,10 +584,8 @@ mod tests {
 
     #[test]
     fn memory_adapter_extracts_headings_lists_and_tables() {
-        let tmpdir = std::env::temp_dir().join(format!(
-            "m1nd_memory_adapter_{}",
-            std::process::id()
-        ));
+        let tmpdir =
+            std::env::temp_dir().join(format!("m1nd_memory_adapter_{}", std::process::id()));
         let _ = fs::remove_dir_all(&tmpdir);
         fs::create_dir_all(&tmpdir).unwrap();
 
@@ -590,16 +601,20 @@ mod tests {
 
         assert_eq!(stats.files_parsed, 1);
         assert!(stats.nodes_created >= 4);
-        assert!(graph.resolve_id("memory::memory::file::2026-03-13-md").is_some());
+        assert!(graph
+            .resolve_id("memory::memory::file::2026-03-13-md")
+            .is_some());
         let provenance = graph.resolve_node_provenance(
-            graph.resolve_id("memory::memory::file::2026-03-13-md").unwrap(),
+            graph
+                .resolve_id("memory::memory::file::2026-03-13-md")
+                .unwrap(),
         );
         assert_eq!(provenance.source_path.as_deref(), Some("2026-03-13.md"));
         assert!(provenance.canonical);
-        assert!(graph
-            .id_to_node
-            .keys()
-            .any(|key| graph.strings.resolve(*key).contains("batman-mode-peak-build-window")));
+        assert!(graph.id_to_node.keys().any(|key| graph
+            .strings
+            .resolve(*key)
+            .contains("batman-mode-peak-build-window")));
 
         let _ = fs::remove_dir_all(&tmpdir);
     }

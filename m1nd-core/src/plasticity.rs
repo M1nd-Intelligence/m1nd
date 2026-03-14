@@ -341,10 +341,13 @@ impl PlasticityEngine {
         };
         self.memory.record(record);
 
-        let priming_nodes = self.memory.get_priming_signal(
-            &seeds.iter().map(|s| s.0).collect::<Vec<_>>(),
-            FiniteF32::new(0.1),
-        ).len() as u32;
+        let priming_nodes = self
+            .memory
+            .get_priming_signal(
+                &seeds.iter().map(|s| s.0).collect::<Vec<_>>(),
+                FiniteF32::new(0.1),
+            )
+            .len() as u32;
 
         Ok(PlasticityResult {
             edges_strengthened,
@@ -420,11 +423,7 @@ impl PlasticityEngine {
 
     /// Synaptic decay: w *= (1 - decay_rate) for inactive edges.
     /// Replaces: plasticity.py PlasticityEngine._synaptic_decay()
-    fn synaptic_decay(
-        &self,
-        graph: &mut Graph,
-        activated_set: &[bool],
-    ) -> M1ndResult<u32> {
+    fn synaptic_decay(&self, graph: &mut Graph, activated_set: &[bool]) -> M1ndResult<u32> {
         let n = graph.num_nodes() as usize;
         let decay_factor = 1.0 - self.config.decay_rate.get();
         let floor = self.config.weight_floor.get();
@@ -555,10 +554,7 @@ impl PlasticityEngine {
     /// FM-PL-008 fix: atomic write (temp file + rename).
     /// FM-PL-001 NaN firewall: non-finite weights fall back to original.
     /// Replaces: plasticity.py PlasticityEngine.export_state()
-    pub fn export_state(
-        &self,
-        graph: &Graph,
-    ) -> M1ndResult<Vec<SynapticState>> {
+    pub fn export_state(&self, graph: &Graph) -> M1ndResult<Vec<SynapticState>> {
         let n = graph.num_nodes() as usize;
         let num_plasticity = graph.edge_plasticity.original_weight.len();
         let num_csr = graph.csr.num_edges();
@@ -608,7 +604,8 @@ impl PlasticityEngine {
             } else {
                 format!("node_{}", tgt_idx)
             };
-            let relation = graph.strings
+            let relation = graph
+                .strings
                 .try_resolve(graph.csr.relations[j])
                 .unwrap_or("edge")
                 .to_string();
@@ -633,11 +630,7 @@ impl PlasticityEngine {
     /// FM-PL-007 fix: validates JSON schema, wraps in try/catch.
     /// FM-PL-009 fix: validates relation match for edge identity via label-triple matching.
     /// Replaces: plasticity.py PlasticityEngine.import_state()
-    pub fn import_state(
-        &mut self,
-        graph: &mut Graph,
-        states: &[SynapticState],
-    ) -> M1ndResult<u32> {
+    pub fn import_state(&mut self, graph: &mut Graph, states: &[SynapticState]) -> M1ndResult<u32> {
         let n = graph.num_nodes() as usize;
         let num_csr = graph.csr.num_edges();
         let num_plasticity = graph.edge_plasticity.original_weight.len();
@@ -670,13 +663,11 @@ impl PlasticityEngine {
             let src_idx = edge_source[j] as usize;
             let tgt_idx = graph.csr.targets[j].as_usize();
             if src_idx < n && tgt_idx < n {
-                let rel = graph.strings
+                let rel = graph
+                    .strings
                     .try_resolve(graph.csr.relations[j])
                     .unwrap_or("");
-                triple_to_edge.insert(
-                    (&node_ext_id[src_idx], &node_ext_id[tgt_idx], rel),
-                    j,
-                );
+                triple_to_edge.insert((&node_ext_id[src_idx], &node_ext_id[tgt_idx], rel), j);
             }
         }
 

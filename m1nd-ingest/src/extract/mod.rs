@@ -1,14 +1,14 @@
 // === crates/m1nd-ingest/src/extract/mod.rs ===
 
-use m1nd_core::types::NodeType;
 use m1nd_core::error::M1ndResult;
+use m1nd_core::types::NodeType;
 
-pub mod python;
-pub mod typescript;
-pub mod rust_lang;
+pub mod generic;
 pub mod go;
 pub mod java;
-pub mod generic;
+pub mod python;
+pub mod rust_lang;
+pub mod typescript;
 
 #[cfg(feature = "tier1")]
 pub mod tree_sitter_ext;
@@ -167,9 +167,7 @@ pub fn strip_comments_and_strings(text: &str, syntax: CommentSyntax) -> Vec<Stri
         // If we are NOT inside a block comment / triple-quote **and** the
         // line looks like an import statement, preserve string content —
         // only strip comments.
-        let preserve_strings = !in_block_comment
-            && !in_triple_quote
-            && is_import_line(line);
+        let preserve_strings = !in_block_comment && !in_triple_quote && is_import_line(line);
 
         let cleaned = strip_line(
             line,
@@ -252,9 +250,7 @@ fn strip_line(
         if *in_triple_quote {
             if !syntax.triple_quote.is_empty() {
                 let tq_chars: Vec<char> = syntax.triple_quote.chars().collect();
-                if i + tq_chars.len() <= len
-                    && chars[i..i + tq_chars.len()] == tq_chars[..]
-                {
+                if i + tq_chars.len() <= len && chars[i..i + tq_chars.len()] == tq_chars[..] {
                     *in_triple_quote = false;
                     i += tq_chars.len();
                     continue;
@@ -267,9 +263,7 @@ fn strip_line(
         // --- Check for triple-quote open ---
         if !syntax.triple_quote.is_empty() {
             let tq_chars: Vec<char> = syntax.triple_quote.chars().collect();
-            if i + tq_chars.len() <= len
-                && chars[i..i + tq_chars.len()] == tq_chars[..]
-            {
+            if i + tq_chars.len() <= len && chars[i..i + tq_chars.len()] == tq_chars[..] {
                 *in_triple_quote = true;
                 i += tq_chars.len();
                 continue;
@@ -279,9 +273,7 @@ fn strip_line(
         // --- Check for block comment open ---
         if !syntax.block_open.is_empty() {
             let bo_chars: Vec<char> = syntax.block_open.chars().collect();
-            if i + bo_chars.len() <= len
-                && chars[i..i + bo_chars.len()] == bo_chars[..]
-            {
+            if i + bo_chars.len() <= len && chars[i..i + bo_chars.len()] == bo_chars[..] {
                 *in_block_comment = true;
                 i += bo_chars.len();
                 continue;
@@ -291,9 +283,7 @@ fn strip_line(
         // --- Check for line comment ---
         if !syntax.line_comment.is_empty() {
             let lc_chars: Vec<char> = syntax.line_comment.chars().collect();
-            if i + lc_chars.len() <= len
-                && chars[i..i + lc_chars.len()] == lc_chars[..]
-            {
+            if i + lc_chars.len() <= len && chars[i..i + lc_chars.len()] == lc_chars[..] {
                 // Rest of line is comment; stop processing this line
                 break;
             }
@@ -393,11 +383,7 @@ pub struct ExtractionResult {
 pub trait Extractor: Send + Sync {
     /// Extract nodes and edges from file content.
     /// `file_id` is the canonical file identifier (e.g., "file::src/main.rs").
-    fn extract(
-        &self,
-        content: &[u8],
-        file_id: &str,
-    ) -> M1ndResult<ExtractionResult>;
+    fn extract(&self, content: &[u8], file_id: &str) -> M1ndResult<ExtractionResult>;
 
     /// File extensions this extractor handles.
     fn extensions(&self) -> &[&str];

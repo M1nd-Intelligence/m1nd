@@ -5,8 +5,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::perspective::state::{
-    AffinityCandidate, Diagnostic, PeekContent, PerspectiveLens,
-    PerspectiveMode, Route, RouteFamily, SuggestResult,
+    AffinityCandidate, Diagnostic, PeekContent, PerspectiveLens, PerspectiveMode, Route,
+    RouteFamily, SuggestResult,
 };
 
 // ---------------------------------------------------------------------------

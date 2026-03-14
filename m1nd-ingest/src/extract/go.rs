@@ -1,9 +1,12 @@
 // === crates/m1nd-ingest/src/extract/go.rs ===
 
+use super::{
+    strip_comments_and_strings, CommentSyntax, ExtractedEdge, ExtractedNode, ExtractionResult,
+    Extractor,
+};
 use m1nd_core::error::M1ndResult;
 use m1nd_core::types::NodeType;
 use regex::Regex;
-use super::{Extractor, ExtractionResult, ExtractedNode, ExtractedEdge, CommentSyntax, strip_comments_and_strings};
 
 /// Go extractor using regex.
 pub struct GoExtractor {
@@ -27,7 +30,9 @@ impl GoExtractor {
 }
 
 impl Default for GoExtractor {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Extractor for GoExtractor {
@@ -68,8 +73,10 @@ impl Extractor for GoExtractor {
                     let path = caps.get(1).unwrap().as_str();
                     let ref_id = format!("ref::{}", path);
                     edges.push(ExtractedEdge {
-                        source: file_id.to_string(), target: ref_id.clone(),
-                        relation: "imports".into(), weight: 0.5,
+                        source: file_id.to_string(),
+                        target: ref_id.clone(),
+                        relation: "imports".into(),
+                        weight: 0.5,
                     });
                     unresolved_refs.push(ref_id);
                 }
@@ -80,67 +87,96 @@ impl Extractor for GoExtractor {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::struct::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Struct,
-                    tags: vec!["go".into()], line: ln, end_line: ln,
+                    tags: vec!["go".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_interface.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::interface::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Type,
-                    tags: vec!["go".into(), "interface".into()], line: ln, end_line: ln,
+                    tags: vec!["go".into(), "interface".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_method.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::fn::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Function,
-                    tags: vec!["go".into(), "method".into()], line: ln, end_line: ln,
+                    tags: vec!["go".into(), "method".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_func.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::fn::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Function,
-                    tags: vec!["go".into()], line: ln, end_line: ln,
+                    tags: vec!["go".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             }
 
             // Single-line import
             if trimmed.starts_with("import ") && !trimmed.contains('(') {
-                if let Some(caps) = self.re_import.captures(trimmed.trim_start_matches("import ")) {
+                if let Some(caps) = self
+                    .re_import
+                    .captures(trimmed.trim_start_matches("import "))
+                {
                     let path = caps.get(1).unwrap().as_str();
                     let ref_id = format!("ref::{}", path);
                     edges.push(ExtractedEdge {
-                        source: file_id.to_string(), target: ref_id.clone(),
-                        relation: "imports".into(), weight: 0.5,
+                        source: file_id.to_string(),
+                        target: ref_id.clone(),
+                        relation: "imports".into(),
+                        weight: 0.5,
                     });
                     unresolved_refs.push(ref_id);
                 }
             }
         }
 
-        Ok(ExtractionResult { nodes, edges, unresolved_refs })
+        Ok(ExtractionResult {
+            nodes,
+            edges,
+            unresolved_refs,
+        })
     }
 
     fn extensions(&self) -> &[&str] {

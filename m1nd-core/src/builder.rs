@@ -12,11 +12,15 @@ pub struct GraphBuilder {
 
 impl GraphBuilder {
     pub fn new() -> Self {
-        Self { graph: Graph::new() }
+        Self {
+            graph: Graph::new(),
+        }
     }
 
     pub fn with_capacity(nodes: usize, edges: usize) -> Self {
-        Self { graph: Graph::with_capacity(nodes, edges) }
+        Self {
+            graph: Graph::with_capacity(nodes, edges),
+        }
     }
 
     /// Add a node with arbitrary type and metadata
@@ -40,7 +44,8 @@ impl GraphBuilder {
         timestamp: f64,
         change_freq: f32,
     ) -> M1ndResult<NodeId> {
-        self.graph.add_node(id, label, node_type, tags, timestamp, change_freq)
+        self.graph
+            .add_node(id, label, node_type, tags, timestamp, change_freq)
     }
 
     /// Add a directed edge
@@ -52,7 +57,9 @@ impl GraphBuilder {
         weight: f32,
     ) -> M1ndResult<()> {
         self.graph.add_edge(
-            source, target, relation,
+            source,
+            target,
+            relation,
             FiniteF32::new(weight),
             EdgeDirection::Forward,
             false,
@@ -70,7 +77,9 @@ impl GraphBuilder {
         weight: f32,
     ) -> M1ndResult<()> {
         self.graph.add_edge(
-            source, target, relation,
+            source,
+            target,
+            relation,
             FiniteF32::new(weight),
             EdgeDirection::Bidirectional,
             false,

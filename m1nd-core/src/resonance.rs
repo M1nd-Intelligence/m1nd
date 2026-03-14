@@ -180,7 +180,7 @@ impl StandingWavePropagator {
                     node: pulse.prev_node,
                     amplitude: FiniteF32::new(pulse.amplitude.get() * 0.9), // slight attenuation
                     phase: FiniteF32::new(
-                        (pulse.phase.get() + REFLECTION_PHASE_SHIFT) % (2.0 * std::f32::consts::PI)
+                        (pulse.phase.get() + REFLECTION_PHASE_SHIFT) % (2.0 * std::f32::consts::PI),
                     ),
                     frequency,
                     wavelength,
@@ -208,7 +208,7 @@ impl StandingWavePropagator {
                     node: pulse.prev_node,
                     amplitude: FiniteF32::new(reflected_amp),
                     phase: FiniteF32::new(
-                        (pulse.phase.get() + REFLECTION_PHASE_SHIFT) % (2.0 * std::f32::consts::PI)
+                        (pulse.phase.get() + REFLECTION_PHASE_SHIFT) % (2.0 * std::f32::consts::PI),
                     ),
                     frequency,
                     wavelength,
@@ -225,7 +225,11 @@ impl StandingWavePropagator {
             }
 
             // Forward propagation
-            let transmission = if is_hub { 1.0 - HUB_REFLECTION_COEFF } else { 1.0 };
+            let transmission = if is_hub {
+                1.0 - HUB_REFLECTION_COEFF
+            } else {
+                1.0
+            };
 
             for j in range {
                 if pulse_count >= self.pulse_budget {
@@ -276,14 +280,20 @@ impl StandingWavePropagator {
         let wave_nodes: Vec<NodeId> = accumulators
             .iter()
             .enumerate()
-            .filter(|(_, acc)| acc.amplitude().get() < self.min_amplitude.get() * 2.0 && acc.amplitude().get() > 0.0)
+            .filter(|(_, acc)| {
+                acc.amplitude().get() < self.min_amplitude.get() * 2.0
+                    && acc.amplitude().get() > 0.0
+            })
             .map(|(i, _)| NodeId::new(i as u32))
             .collect();
 
-        let total_energy: f32 = accumulators.iter().map(|a| {
-            let amp = a.amplitude().get();
-            amp * amp
-        }).sum();
+        let total_energy: f32 = accumulators
+            .iter()
+            .map(|a| {
+                let amp = a.amplitude().get();
+                amp * amp
+            })
+            .sum();
 
         Ok(StandingWaveResult {
             accumulators,
@@ -369,10 +379,12 @@ impl HarmonicAnalyzer {
         }
 
         // Group by harmonic pattern
-        let mut groups: std::collections::HashMap<Vec<u8>, Vec<NodeId>> = std::collections::HashMap::new();
+        let mut groups: std::collections::HashMap<Vec<u8>, Vec<NodeId>> =
+            std::collections::HashMap::new();
         for i in 0..n {
             if !node_harmonics[i].is_empty() {
-                groups.entry(node_harmonics[i].clone())
+                groups
+                    .entry(node_harmonics[i].clone())
                     .or_default()
                     .push(NodeId::new(i as u32));
             }
@@ -493,7 +505,9 @@ impl SympatheticResonanceDetector {
         frequency: PosF32,
         wavelength: PosF32,
     ) -> M1ndResult<SympatheticResult> {
-        let result = self.propagator.propagate(graph, source_seeds, frequency, wavelength)?;
+        let result = self
+            .propagator
+            .propagate(graph, source_seeds, frequency, wavelength)?;
 
         // Find seed neighborhood (BFS 2 hops)
         let n = graph.num_nodes() as usize;
@@ -553,11 +567,8 @@ pub struct ResonanceEngine {
 
 impl ResonanceEngine {
     pub fn with_defaults() -> Self {
-        let propagator = StandingWavePropagator::new(
-            10,
-            FiniteF32::new(0.01),
-            DEFAULT_PULSE_BUDGET,
-        );
+        let propagator =
+            StandingWavePropagator::new(10, FiniteF32::new(0.01), DEFAULT_PULSE_BUDGET);
         Self {
             harmonic_analyzer: HarmonicAnalyzer::new(
                 StandingWavePropagator::new(10, FiniteF32::new(0.01), DEFAULT_PULSE_BUDGET),
@@ -585,14 +596,21 @@ impl ResonanceEngine {
         let base_freq = PosF32::new(1.0).unwrap();
         let base_wl = PosF32::new(4.0).unwrap();
 
-        let standing_wave = self.propagator.propagate(graph, seeds, base_freq, base_wl)?;
-        let harmonics = self.harmonic_analyzer.analyze(graph, seeds, base_freq, base_wl)?;
+        let standing_wave = self
+            .propagator
+            .propagate(graph, seeds, base_freq, base_wl)?;
+        let harmonics = self
+            .harmonic_analyzer
+            .analyze(graph, seeds, base_freq, base_wl)?;
         let resonant_frequencies = self.frequency_detector.detect(
-            graph, seeds,
+            graph,
+            seeds,
             PosF32::new(0.1).unwrap(),
             PosF32::new(10.0).unwrap(),
         )?;
-        let sympathetic = self.sympathetic_detector.detect(graph, seeds, base_freq, base_wl)?;
+        let sympathetic = self
+            .sympathetic_detector
+            .detect(graph, seeds, base_freq, base_wl)?;
 
         Ok(ResonanceReport {
             standing_wave,

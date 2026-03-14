@@ -1,8 +1,8 @@
 // === crates/m1nd-core/src/counterfactual.rs ===
 
+use crate::activation::{ActivationEngine, DimensionResult, HybridEngine};
 use crate::error::M1ndResult;
 use crate::graph::Graph;
-use crate::activation::{ActivationEngine, HybridEngine, DimensionResult};
 use crate::types::PropagationConfig;
 use crate::types::*;
 
@@ -496,7 +496,9 @@ impl CounterfactualEngine {
 
         // FM-CF-010 fix: denominator is n_runs
         let pct_lost = if total_baseline > 0.0 {
-            ((total_baseline - total_removed) / total_baseline).max(0.0).min(1.0)
+            ((total_baseline - total_removed) / total_baseline)
+                .max(0.0)
+                .min(1.0)
         } else {
             0.0
         };
@@ -542,14 +544,12 @@ impl CounterfactualEngine {
             return 0;
         }
         // Find highest-degree non-removed node (not just first) to avoid isolated starts
-        let start = (0..n)
-            .filter(|&i| !removed[i])
-            .max_by_key(|&i| {
-                let nid = NodeId::new(i as u32);
-                let out = graph.csr.out_range(nid);
-                let inv = graph.csr.in_range(nid);
-                (out.end - out.start) + (inv.end - inv.start)
-            });
+        let start = (0..n).filter(|&i| !removed[i]).max_by_key(|&i| {
+            let nid = NodeId::new(i as u32);
+            let out = graph.csr.out_range(nid);
+            let inv = graph.csr.in_range(nid);
+            (out.end - out.start) + (inv.end - inv.start)
+        });
         let start = match start {
             Some(s) => s,
             None => return 0,
@@ -611,12 +611,8 @@ impl CounterfactualEngine {
         candidates.truncate(self.keystone_top_n * 2);
 
         for (node_idx, _) in &candidates {
-            let result = self.simulate_removal(
-                graph,
-                engine,
-                config,
-                &[NodeId::new(*node_idx as u32)],
-            )?;
+            let result =
+                self.simulate_removal(graph, engine, config, &[NodeId::new(*node_idx as u32)])?;
             impacts.push((NodeId::new(*node_idx as u32), result.total_impact.get()));
         }
 
@@ -803,7 +799,8 @@ impl CounterfactualEngine {
         let keystones = self.find_keystones(graph, engine, config)?;
 
         // Overall score: lower max keystone impact = more antifragile
-        let max_impact = keystones.keystones
+        let max_impact = keystones
+            .keystones
             .first()
             .map(|k| k.avg_impact.get())
             .unwrap_or(0.0);

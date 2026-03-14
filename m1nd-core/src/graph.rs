@@ -1,8 +1,8 @@
 // === crates/m1nd-core/src/graph.rs ===
 
+use smallvec::SmallVec;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, Ordering};
-use smallvec::SmallVec;
 
 use crate::error::{M1ndError, M1ndResult};
 use crate::types::*;
@@ -466,16 +466,16 @@ impl Graph {
         self.nodes.count += 1;
 
         let label_interned = self.strings.get_or_intern(label);
-        let tag_interned: SmallVec<[InternedStr; 6]> = tags
-            .iter()
-            .map(|t| self.strings.get_or_intern(t))
-            .collect();
+        let tag_interned: SmallVec<[InternedStr; 6]> =
+            tags.iter().map(|t| self.strings.get_or_intern(t)).collect();
 
         self.nodes.label.push(label_interned);
         self.nodes.node_type.push(node_type);
         self.nodes.tags.push(tag_interned);
         self.nodes.last_modified.push(last_modified);
-        self.nodes.change_frequency.push(FiniteF32::new(change_frequency));
+        self.nodes
+            .change_frequency
+            .push(FiniteF32::new(change_frequency));
         self.nodes.activation.push([FiniteF32::ZERO; 4]);
         self.nodes.pagerank.push(FiniteF32::ZERO);
         self.nodes.plasticity.push(PlasticityNode::default());
@@ -554,10 +554,7 @@ impl Graph {
         // Sort edges by source for CSR layout, preserving original insertion index
         let edges = std::mem::take(&mut self.csr.pending_edges);
         // Pair each edge with its original insertion index (into edge_plasticity)
-        let mut indexed_edges: Vec<(usize, PendingEdge)> = edges
-            .into_iter()
-            .enumerate()
-            .collect();
+        let mut indexed_edges: Vec<(usize, PendingEdge)> = edges.into_iter().enumerate().collect();
         indexed_edges.sort_by_key(|(_, e)| e.source.0);
 
         let total_edges = indexed_edges.len();
@@ -630,8 +627,12 @@ impl Graph {
         // Rebuild edge_plasticity arrays to match CSR order and count
         let old_plasticity = &self.edge_plasticity;
         let mut new_plasticity = EdgePlasticity::with_capacity(total_csr_edges);
-        new_plasticity.original_weight.resize(total_csr_edges, FiniteF32::ZERO);
-        new_plasticity.current_weight.resize(total_csr_edges, FiniteF32::ZERO);
+        new_plasticity
+            .original_weight
+            .resize(total_csr_edges, FiniteF32::ZERO);
+        new_plasticity
+            .current_weight
+            .resize(total_csr_edges, FiniteF32::ZERO);
         new_plasticity.strengthen_count.resize(total_csr_edges, 0);
         new_plasticity.weaken_count.resize(total_csr_edges, 0);
         new_plasticity.ltp_applied.resize(total_csr_edges, false);
@@ -722,11 +723,7 @@ impl Graph {
         self.id_to_node.get(&interned).copied()
     }
 
-    pub fn set_node_provenance(
-        &mut self,
-        node: NodeId,
-        provenance: NodeProvenanceInput<'_>,
-    ) {
+    pub fn set_node_provenance(&mut self, node: NodeId, provenance: NodeProvenanceInput<'_>) {
         let idx = node.as_usize();
         if idx >= self.nodes.count as usize {
             return;
@@ -738,10 +735,7 @@ impl Graph {
                 .filter(|value| !value.is_empty())
                 .map(|value| self.strings.get_or_intern(value)),
             line_start: provenance.line_start.unwrap_or(0),
-            line_end: provenance
-                .line_end
-                .or(provenance.line_start)
-                .unwrap_or(0),
+            line_end: provenance.line_end.or(provenance.line_start).unwrap_or(0),
             excerpt: provenance
                 .excerpt
                 .filter(|value| !value.is_empty())
@@ -754,11 +748,7 @@ impl Graph {
         };
     }
 
-    pub fn merge_node_provenance(
-        &mut self,
-        node: NodeId,
-        incoming: NodeProvenanceInput<'_>,
-    ) {
+    pub fn merge_node_provenance(&mut self, node: NodeId, incoming: NodeProvenanceInput<'_>) {
         let idx = node.as_usize();
         if idx >= self.nodes.count as usize {
             return;
@@ -776,10 +766,7 @@ impl Graph {
         self.set_node_provenance(
             node,
             NodeProvenanceInput {
-                source_path: current
-                    .source_path
-                    .as_deref()
-                    .or(incoming.source_path),
+                source_path: current.source_path.as_deref().or(incoming.source_path),
                 line_start,
                 line_end,
                 excerpt: current.excerpt.as_deref().or(incoming.excerpt),

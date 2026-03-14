@@ -1,9 +1,12 @@
 // === crates/m1nd-ingest/src/extract/java.rs ===
 
+use super::{
+    strip_comments_and_strings, CommentSyntax, ExtractedEdge, ExtractedNode, ExtractionResult,
+    Extractor,
+};
 use m1nd_core::error::M1ndResult;
 use m1nd_core::types::NodeType;
 use regex::Regex;
-use super::{Extractor, ExtractionResult, ExtractedNode, ExtractedEdge, CommentSyntax, strip_comments_and_strings};
 
 /// Java extractor using regex.
 pub struct JavaExtractor {
@@ -27,7 +30,9 @@ impl JavaExtractor {
 }
 
 impl Default for JavaExtractor {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Extractor for JavaExtractor {
@@ -55,49 +60,69 @@ impl Extractor for JavaExtractor {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::class::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Class,
-                    tags: vec!["java".into()], line: ln, end_line: ln,
+                    tags: vec!["java".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_interface.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::interface::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Type,
-                    tags: vec!["java".into(), "interface".into()], line: ln, end_line: ln,
+                    tags: vec!["java".into(), "interface".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_enum.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::enum::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Enum,
-                    tags: vec!["java".into()], line: ln, end_line: ln,
+                    tags: vec!["java".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_method.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::fn::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Function,
-                    tags: vec!["java".into()], line: ln, end_line: ln,
+                    tags: vec!["java".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             }
 
@@ -105,14 +130,20 @@ impl Extractor for JavaExtractor {
                 let path = caps.get(1).unwrap().as_str();
                 let ref_id = format!("ref::{}", path);
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: ref_id.clone(),
-                    relation: "imports".into(), weight: 0.5,
+                    source: file_id.to_string(),
+                    target: ref_id.clone(),
+                    relation: "imports".into(),
+                    weight: 0.5,
                 });
                 unresolved_refs.push(ref_id);
             }
         }
 
-        Ok(ExtractionResult { nodes, edges, unresolved_refs })
+        Ok(ExtractionResult {
+            nodes,
+            edges,
+            unresolved_refs,
+        })
     }
 
     fn extensions(&self) -> &[&str] {

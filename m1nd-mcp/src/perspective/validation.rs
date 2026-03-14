@@ -82,10 +82,7 @@ pub fn validate_lens(lens: &PerspectiveLens, graph_node_count: usize) -> M1ndRes
             if !VALID_DIMENSIONS.contains(&lower.as_str()) {
                 return Err(M1ndError::InvalidParams {
                     tool: "perspective".into(),
-                    detail: format!(
-                        "unknown dimension '{}'. Valid: {:?}",
-                        d, VALID_DIMENSIONS
-                    ),
+                    detail: format!("unknown dimension '{}'. Valid: {:?}", d, VALID_DIMENSIONS),
                 });
             }
             normalized.push(lower);
@@ -115,7 +112,11 @@ pub fn validate_lens(lens: &PerspectiveLens, graph_node_count: usize) -> M1ndRes
 /// Rules (Theme 9):
 /// - page: >= 1. Reject 0 with INVALID_PAGE.
 /// - page_size: clamped to [1, 10]. Default 6.
-pub fn validate_pagination(page: u32, page_size: u32, total_items: usize) -> M1ndResult<ValidatedPagination> {
+pub fn validate_pagination(
+    page: u32,
+    page_size: u32,
+    total_items: usize,
+) -> M1ndResult<ValidatedPagination> {
     if page == 0 {
         return Err(M1ndError::InvalidParams {
             tool: "perspective".into(),
@@ -342,11 +343,7 @@ mod tests {
 
     #[test]
     fn validate_route_ref_rejects_both() {
-        let result = validate_route_ref(
-            &Some("R_abc".into()),
-            &Some(1),
-            "test",
-        );
+        let result = validate_route_ref(&Some("R_abc".into()), &Some(1), "test");
         assert!(result.is_err());
     }
 

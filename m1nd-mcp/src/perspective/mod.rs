@@ -9,8 +9,8 @@
 // - confidence:    Confidence calibration and epistemic safety (Theme 13)
 // - peek_security: Peek file security pipeline (Theme 6)
 
-pub mod state;
-pub mod keys;
-pub mod validation;
 pub mod confidence;
+pub mod keys;
 pub mod peek_security;
+pub mod state;
+pub mod validation;

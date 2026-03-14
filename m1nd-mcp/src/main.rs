@@ -14,7 +14,10 @@ fn load_config() -> McpConfig {
         let path = &args[1];
         if let Ok(contents) = std::fs::read_to_string(path) {
             if let Ok(config) = serde_json::from_str::<McpConfig>(&contents) {
-                eprintln!("{}", brand::log_colored(&format!("Config loaded from {}", path)));
+                eprintln!(
+                    "{}",
+                    brand::log_colored(&format!("Config loaded from {}", path))
+                );
                 return config;
             }
         }
@@ -50,13 +53,19 @@ async fn main() {
     let mut server = match McpServer::new(config) {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("{}", brand::log_colored(&format!("Failed to create server: {}", e)));
+            eprintln!(
+                "{}",
+                brand::log_colored(&format!("Failed to create server: {}", e))
+            );
             std::process::exit(1);
         }
     };
 
     if let Err(e) = server.start() {
-        eprintln!("{}", brand::log_colored(&format!("Failed to start server: {}", e)));
+        eprintln!(
+            "{}",
+            brand::log_colored(&format!("Failed to start server: {}", e))
+        );
         std::process::exit(1);
     }
 

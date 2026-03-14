@@ -6,11 +6,11 @@
 //
 // Pattern: same as tools.rs / perspective_handlers.rs / lock_handlers.rs.
 
+use crate::brand;
+use crate::protocol::layers;
+use crate::session::SessionState;
 use m1nd_core::error::{M1ndError, M1ndResult};
 use m1nd_core::types::*;
-use crate::brand;
-use crate::session::SessionState;
-use crate::protocol::layers;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -97,7 +97,8 @@ pub fn handle_seek(
         let label_parts = l2_split_identifier(label);
 
         let prov = &graph.nodes.provenance[i];
-        let source_path_lower: String = prov.source_path
+        let source_path_lower: String = prov
+            .source_path
             .and_then(|s| graph.strings.try_resolve(s))
             .unwrap_or("")
             .to_lowercase();
@@ -138,78 +139,119 @@ pub fn handle_seek(
 
     // Phase 2: Combine with graph re-ranking.
     // V1 formula: keyword_match * 0.6 + graph_activation(PageRank) * 0.3 + trigram * 0.1
-    struct RankedNode { idx: usize, combined: f32, keyword: f32, graph_act: f32, trigram: f32 }
+    struct RankedNode {
+        idx: usize,
+        combined: f32,
+        keyword: f32,
+        graph_act: f32,
+        trigram: f32,
+    }
 
     let mut ranked: Vec<RankedNode> = Vec::new();
     for i in 0..n {
         let kw = keyword_scores[i];
         let tri = trigram_scores[i];
-        if kw < 0.01 && tri < 0.15 { continue; }
+        if kw < 0.01 && tri < 0.15 {
+            continue;
+        }
 
         let graph_activation = if input.graph_rerank {
             graph.nodes.pagerank[i].get()
-        } else { 0.0 };
+        } else {
+            0.0
+        };
 
         let combined = kw * 0.6 + graph_activation * 0.3 + tri * 0.1;
         if combined >= input.min_score {
-            ranked.push(RankedNode { idx: i, combined, keyword: kw, graph_act: graph_activation, trigram: tri });
+            ranked.push(RankedNode {
+                idx: i,
+                combined,
+                keyword: kw,
+                graph_act: graph_activation,
+                trigram: tri,
+            });
         }
     }
 
-    ranked.sort_by(|a, b| b.combined.partial_cmp(&a.combined).unwrap_or(std::cmp::Ordering::Equal));
+    ranked.sort_by(|a, b| {
+        b.combined
+            .partial_cmp(&a.combined)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     ranked.truncate(input.top_k);
 
     // Phase 3: Build output
-    let results: Vec<layers::SeekResultEntry> = ranked.iter().map(|r| {
-        let i = r.idx;
-        let nid = NodeId::new(i as u32);
-        let label = graph.strings.resolve(graph.nodes.label[i]).to_string();
-        let nt = l2_node_type_str(&graph.nodes.node_type[i]);
-        let ext_id = &node_to_ext[i];
-        let prov = graph.resolve_node_provenance(nid);
-        let tags: Vec<String> = graph.nodes.tags[i].iter()
-            .map(|&ti| graph.strings.resolve(ti).to_string()).collect();
+    let results: Vec<layers::SeekResultEntry> = ranked
+        .iter()
+        .map(|r| {
+            let i = r.idx;
+            let nid = NodeId::new(i as u32);
+            let label = graph.strings.resolve(graph.nodes.label[i]).to_string();
+            let nt = l2_node_type_str(&graph.nodes.node_type[i]);
+            let ext_id = &node_to_ext[i];
+            let prov = graph.resolve_node_provenance(nid);
+            let tags: Vec<String> = graph.nodes.tags[i]
+                .iter()
+                .map(|&ti| graph.strings.resolve(ti).to_string())
+                .collect();
 
-        // Gather connections (outgoing edges, capped at 5)
-        let mut connections = Vec::new();
-        if graph.finalized {
-            let out = graph.csr.out_range(nid);
-            for j in out {
-                if connections.len() >= 5 { break; }
-                let target = graph.csr.targets[j];
-                let tidx = target.as_usize();
-                if tidx < n {
-                    let rel = graph.strings.resolve(graph.csr.relations[j]).to_string();
-                    let tlabel = graph.strings.resolve(graph.nodes.label[tidx]).to_string();
-                    let text_id = if !node_to_ext[tidx].is_empty() { node_to_ext[tidx].clone() } else { tlabel.clone() };
-                    connections.push(layers::SeekConnection { node_id: text_id, label: tlabel, relation: rel });
+            // Gather connections (outgoing edges, capped at 5)
+            let mut connections = Vec::new();
+            if graph.finalized {
+                let out = graph.csr.out_range(nid);
+                for j in out {
+                    if connections.len() >= 5 {
+                        break;
+                    }
+                    let target = graph.csr.targets[j];
+                    let tidx = target.as_usize();
+                    if tidx < n {
+                        let rel = graph.strings.resolve(graph.csr.relations[j]).to_string();
+                        let tlabel = graph.strings.resolve(graph.nodes.label[tidx]).to_string();
+                        let text_id = if !node_to_ext[tidx].is_empty() {
+                            node_to_ext[tidx].clone()
+                        } else {
+                            tlabel.clone()
+                        };
+                        connections.push(layers::SeekConnection {
+                            node_id: text_id,
+                            label: tlabel,
+                            relation: rel,
+                        });
+                    }
                 }
             }
-        }
 
-        layers::SeekResultEntry {
-            node_id: if ext_id.is_empty() { label.clone() } else { ext_id.clone() },
-            label: label.clone(),
-            node_type: nt.to_string(),
-            score: r.combined,
-            score_breakdown: layers::SeekScoreBreakdown {
-                embedding_similarity: r.keyword,    // V1: keyword fills embedding slot. V2: fastembed cosine.
-                graph_activation: r.graph_act,
-                temporal_recency: r.trigram,         // V1: trigram fills recency slot. V2: real recency.
-            },
-            intent_summary: l2_intent_summary(&label, nt, &tags),
-            file_path: prov.source_path,
-            line_start: prov.line_start,
-            line_end: prov.line_end,
-            excerpt: prov.excerpt,
-            connections,
-        }
-    }).collect();
+            layers::SeekResultEntry {
+                node_id: if ext_id.is_empty() {
+                    label.clone()
+                } else {
+                    ext_id.clone()
+                },
+                label: label.clone(),
+                node_type: nt.to_string(),
+                score: r.combined,
+                score_breakdown: layers::SeekScoreBreakdown {
+                    embedding_similarity: r.keyword, // V1: keyword fills embedding slot. V2: fastembed cosine.
+                    graph_activation: r.graph_act,
+                    temporal_recency: r.trigram, // V1: trigram fills recency slot. V2: real recency.
+                },
+                intent_summary: l2_intent_summary(&label, nt, &tags),
+                file_path: prov.source_path,
+                line_start: prov.line_start,
+                line_end: prov.line_end,
+                excerpt: prov.excerpt,
+                connections,
+            }
+        })
+        .collect();
 
     drop(graph);
 
     state.queries_processed += 1;
-    if state.should_persist() { let _ = state.persist(); }
+    if state.should_persist() {
+        let _ = state.persist();
+    }
 
     Ok(layers::SeekOutput {
         query: input.query,
@@ -252,18 +294,31 @@ pub fn handle_scan(
     let (pattern_id, keywords, negations, base_severity, message_template) = match predefined {
         Some(p) => (
             p.id.to_string(),
-            p.label_keywords.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
-            p.negation_keywords.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
+            p.label_keywords
+                .iter()
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>(),
+            p.negation_keywords
+                .iter()
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>(),
             p.base_severity,
             p.message_template.to_string(),
         ),
         None => {
-            let kws: Vec<String> = input.pattern
+            let kws: Vec<String> = input
+                .pattern
                 .split(|c: char| c == ',' || c.is_whitespace())
                 .filter(|s| !s.is_empty())
                 .map(|s| s.to_lowercase())
                 .collect();
-            (input.pattern.clone(), kws, vec![], 0.5, format!("Custom pattern match: {}", input.pattern))
+            (
+                input.pattern.clone(),
+                kws,
+                vec![],
+                0.5,
+                format!("Custom pattern match: {}", input.pattern),
+            )
         }
     };
 
@@ -283,14 +338,20 @@ pub fn handle_scan(
     for i in 0..n {
         if let Some(ref scope) = input.scope {
             let ext = &node_to_ext[i];
-            if !ext.is_empty() && !ext.starts_with(scope.as_str()) { continue; }
+            if !ext.is_empty() && !ext.starts_with(scope.as_str()) {
+                continue;
+            }
         }
 
         let label = graph.strings.resolve(graph.nodes.label[i]).to_lowercase();
         let prov = &graph.nodes.provenance[i];
-        let source_path = prov.source_path
-            .and_then(|s| graph.strings.try_resolve(s)).unwrap_or("");
-        if !source_path.is_empty() { files_scanned_set.insert(source_path.to_string()); }
+        let source_path = prov
+            .source_path
+            .and_then(|s| graph.strings.try_resolve(s))
+            .unwrap_or("");
+        if !source_path.is_empty() {
+            files_scanned_set.insert(source_path.to_string());
+        }
 
         for kw in &keywords {
             if label.contains(kw.as_str()) {
@@ -310,10 +371,15 @@ pub fn handle_scan(
     let mut findings: Vec<layers::ScanFinding> = Vec::new();
 
     for &node_idx in &raw_matches {
-        if findings.len() >= input.limit { break; }
+        if findings.len() >= input.limit {
+            break;
+        }
 
         let nid = NodeId::new(node_idx as u32);
-        let label = graph.strings.resolve(graph.nodes.label[node_idx]).to_string();
+        let label = graph
+            .strings
+            .resolve(graph.nodes.label[node_idx])
+            .to_string();
         let prov = graph.resolve_node_provenance(nid);
 
         let (status, graph_context) = if input.graph_validate {
@@ -327,13 +393,19 @@ pub fn handle_scan(
             "false_positive" => base_severity * 0.1,
             _ => base_severity,
         };
-        if severity < input.severity_min { continue; }
+        if severity < input.severity_min {
+            continue;
+        }
 
         findings.push(layers::ScanFinding {
             pattern: pattern_id.clone(),
             status: status.to_string(),
             severity,
-            node_id: if !node_to_ext[node_idx].is_empty() { node_to_ext[node_idx].clone() } else { label.clone() },
+            node_id: if !node_to_ext[node_idx].is_empty() {
+                node_to_ext[node_idx].clone()
+            } else {
+                label.clone()
+            },
             label: label.clone(),
             file_path: prov.source_path.unwrap_or_default(),
             line: prov.line_start.unwrap_or(0),
@@ -346,7 +418,9 @@ pub fn handle_scan(
     drop(graph);
 
     state.queries_processed += 1;
-    if state.should_persist() { let _ = state.persist(); }
+    if state.should_persist() {
+        let _ = state.persist();
+    }
 
     Ok(layers::ScanOutput {
         pattern: pattern_id,
@@ -404,7 +478,10 @@ pub fn handle_timeline(
             velocity: "stable".into(),
             stability_score: 1.0,
             pattern: "dormant".into(),
-            total_churn: layers::ChurnSummary { lines_added: 0, lines_deleted: 0 },
+            total_churn: layers::ChurnSummary {
+                lines_added: 0,
+                lines_deleted: 0,
+            },
             commit_count_in_window: 0,
             elapsed_ms: start.elapsed().as_secs_f64() * 1000.0,
         });
@@ -564,11 +641,7 @@ pub fn handle_diverge(
 
     // --- Coupling changes ---
     let coupling_changes: Vec<layers::CouplingChange> = if input.include_coupling_changes {
-        compute_coupling_changes(
-            &repo_root,
-            &input.baseline,
-            input.scope.as_deref(),
-        )
+        compute_coupling_changes(&repo_root, &input.baseline, input.scope.as_deref())
     } else {
         vec![]
     };
@@ -642,9 +715,15 @@ impl GitCommitRecord {
             }
         }
         // Fallback: match by filename only (handles git --follow renames)
-        let target_name = Path::new(target).file_name().and_then(|n| n.to_str()).unwrap_or("");
+        let target_name = Path::new(target)
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("");
         for f in &self.files_changed {
-            let fname = Path::new(&f.path).file_name().and_then(|n| n.to_str()).unwrap_or("");
+            let fname = Path::new(&f.path)
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("");
             if fname == target_name && !target_name.is_empty() {
                 return (f.added, f.deleted);
             }
@@ -752,7 +831,10 @@ fn parse_git_log_output(raw: &str) -> Vec<GitCommitRecord> {
 
         // Try to parse as commit header: hash|date|author|subject
         let parts: Vec<&str> = line.splitn(4, '|').collect();
-        if parts.len() == 4 && parts[0].len() >= 7 && parts[0].chars().all(|c| c.is_ascii_hexdigit()) {
+        if parts.len() == 4
+            && parts[0].len() >= 7
+            && parts[0].chars().all(|c| c.is_ascii_hexdigit())
+        {
             // Save previous commit
             if let Some(c) = current.take() {
                 commits.push(c);
@@ -774,7 +856,11 @@ fn parse_git_log_output(raw: &str) -> Vec<GitCommitRecord> {
                 let added = tab_parts[0].parse::<u32>().unwrap_or(0);
                 let deleted = tab_parts[1].parse::<u32>().unwrap_or(0);
                 let path = normalize_numstat_path(tab_parts[2]);
-                c.files_changed.push(FileChurn { path, added, deleted });
+                c.files_changed.push(FileChurn {
+                    path,
+                    added,
+                    deleted,
+                });
             }
         }
     }
@@ -841,7 +927,9 @@ fn compute_co_change_partners(
         }
     }
 
-    let target_count = *file_commit_count.get(target_file).unwrap_or(&(total_commit_count as u32));
+    let target_count = *file_commit_count
+        .get(target_file)
+        .unwrap_or(&(total_commit_count as u32));
 
     let mut partners: Vec<layers::CoChangePartner> = co_change_count
         .iter()
@@ -857,7 +945,11 @@ fn compute_co_change_partners(
         .collect();
 
     // Sort by coupling_degree descending
-    partners.sort_by(|a, b| b.coupling_degree.partial_cmp(&a.coupling_degree).unwrap_or(std::cmp::Ordering::Equal));
+    partners.sort_by(|a, b| {
+        b.coupling_degree
+            .partial_cmp(&a.coupling_degree)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     partners.truncate(top_k);
     partners
 }
@@ -888,7 +980,12 @@ fn compute_velocity(commits: &[GitCommitRecord]) -> String {
 }
 
 /// Determine churn pattern: expanding, shrinking, churning, dormant, stable.
-fn compute_churn_pattern(total_added: u32, total_deleted: u32, commit_count: usize, velocity: &str) -> String {
+fn compute_churn_pattern(
+    total_added: u32,
+    total_deleted: u32,
+    commit_count: usize,
+    velocity: &str,
+) -> String {
     if commit_count == 0 {
         return "dormant".into();
     }
@@ -1036,7 +1133,12 @@ fn resolve_last_session_baseline(
 fn resolve_baseline_commit(repo_root: &Path, date_str: &str) -> M1ndResult<Option<String>> {
     let output = Command::new("git")
         .current_dir(repo_root)
-        .args(["log", "-1", "--format=%H", &format!("--before={}", date_str)])
+        .args([
+            "log",
+            "-1",
+            "--format=%H",
+            &format!("--before={}", date_str),
+        ])
         .output()
         .map_err(M1ndError::Io)?;
 
@@ -1135,7 +1237,11 @@ fn compute_coupling_changes(
             let now = *post_coupling.get(pair).unwrap_or(&0.0);
             let diff = (now - was).abs();
             if diff > 0.15 {
-                let direction = if now > was { "strengthened" } else { "weakened" };
+                let direction = if now > was {
+                    "strengthened"
+                } else {
+                    "weakened"
+                };
                 changes.push(layers::CouplingChange {
                     pair: pair.clone(),
                     was,
@@ -1179,7 +1285,12 @@ fn get_commits_in_range(
 ) -> Vec<GitCommitRecord> {
     let mut cmd = Command::new("git");
     cmd.current_dir(repo_root);
-    cmd.args(["log", "--format=%H|%ai|%an|%s", "--numstat", "--max-count=300"]);
+    cmd.args([
+        "log",
+        "--format=%H|%ai|%an|%s",
+        "--numstat",
+        "--max-count=300",
+    ]);
 
     // Build revision range
     match (after_commit, before_commit) {
@@ -1205,7 +1316,9 @@ fn get_commits_in_range(
     let raw = String::from_utf8_lossy(&output.stdout);
     let all = parse_git_log_output(&raw);
     // Filter out auto-sync commits for coupling analysis
-    all.into_iter().filter(|c| !is_auto_sync_commit(&c.subject)).collect()
+    all.into_iter()
+        .filter(|c| !is_auto_sync_commit(&c.subject))
+        .collect()
 }
 
 /// Build a coupling map: { [file_a, file_b] -> coupling_degree }.
@@ -1218,7 +1331,8 @@ fn build_coupling_map(
     let mut file_count: HashMap<String, u32> = HashMap::new();
 
     for commit in commits {
-        let files: Vec<&str> = commit.files_changed
+        let files: Vec<&str> = commit
+            .files_changed
             .iter()
             .map(|f| f.path.as_str())
             .filter(|p| scope.map_or(true, |s| p.starts_with(s)))
@@ -1280,7 +1394,12 @@ fn detect_anomalies(
             detail: format!(
                 "{} new code files added but 0 new test files. Top: {}",
                 code_new.len(),
-                code_new.iter().take(3).cloned().collect::<Vec<_>>().join(", ")
+                code_new
+                    .iter()
+                    .take(3)
+                    .cloned()
+                    .collect::<Vec<_>>()
+                    .join(", ")
             ),
             severity: "warning".into(),
         });
@@ -1296,7 +1415,12 @@ fn detect_anomalies(
                     "Growth ratio {:.1}x ({}) — possible scope explosion",
                     m.growth_ratio, m.delta
                 ),
-                severity: if m.growth_ratio > 5.0 { "critical" } else { "warning" }.into(),
+                severity: if m.growth_ratio > 5.0 {
+                    "critical"
+                } else {
+                    "warning"
+                }
+                .into(),
             });
         }
     }
@@ -1810,8 +1934,7 @@ pub fn handle_trail_merge(
                         .iter()
                         .filter(|n| hb.supporting_nodes.contains(n))
                         .count();
-                    let max_support =
-                        ha.supporting_nodes.len().max(hb.supporting_nodes.len());
+                    let max_support = ha.supporting_nodes.len().max(hb.supporting_nodes.len());
                     if max_support == 0 || shared == 0 {
                         continue;
                     }
@@ -1983,10 +2106,7 @@ pub fn handle_trail_merge(
                                     from_node: Some(ext_a.clone()),
                                     to_node: Some(tgt_ext.clone()),
                                     weight: Some(
-                                        graph
-                                            .csr
-                                            .read_weight(EdgeIdx::new(k as u32))
-                                            .get(),
+                                        graph.csr.read_weight(EdgeIdx::new(k as u32)).get(),
                                     ),
                                 });
                             }
@@ -2125,10 +2245,14 @@ pub fn handle_hypothesize(
         return Ok(layers::HypothesizeOutput {
             claim: input.claim.clone(),
             claim_type: "unknown".into(),
-            subject_nodes: vec![], object_nodes: vec![],
-            verdict: "inconclusive".into(), confidence: 0.5,
-            supporting_evidence: vec![], contradicting_evidence: vec![],
-            partial_reach: None, paths_explored: 0,
+            subject_nodes: vec![],
+            object_nodes: vec![],
+            verdict: "inconclusive".into(),
+            confidence: 0.5,
+            supporting_evidence: vec![],
+            contradicting_evidence: vec![],
+            partial_reach: None,
+            paths_explored: 0,
             elapsed_ms: start.elapsed().as_secs_f64() * 1000.0,
         });
     }
@@ -2139,10 +2263,14 @@ pub fn handle_hypothesize(
     // Resolve subject and object nodes
     let subject_ids = l5_resolve_claim_nodes(&graph, &parsed.subject);
     let object_ids = l5_resolve_claim_nodes(&graph, &parsed.object);
-    let subject_labels: Vec<String> = subject_ids.iter()
-        .map(|&nid| node_to_ext[nid.as_usize()].clone()).collect();
-    let object_labels: Vec<String> = object_ids.iter()
-        .map(|&nid| node_to_ext[nid.as_usize()].clone()).collect();
+    let subject_labels: Vec<String> = subject_ids
+        .iter()
+        .map(|&nid| node_to_ext[nid.as_usize()].clone())
+        .collect();
+    let object_labels: Vec<String> = object_ids
+        .iter()
+        .map(|&nid| node_to_ext[nid.as_usize()].clone())
+        .collect();
 
     // Unresolvable subject -> early return
     if subject_ids.is_empty() && parsed.claim_type != L5ClaimType::Unknown {
@@ -2150,15 +2278,27 @@ pub fn handle_hypothesize(
             claim: input.claim.clone(),
             claim_type: parsed.claim_type.as_str().into(),
             subject_nodes: vec![parsed.subject.clone()],
-            object_nodes: if parsed.object.is_empty() { vec![] } else { vec![parsed.object.clone()] },
-            verdict: "inconclusive".into(), confidence: 0.5,
+            object_nodes: if parsed.object.is_empty() {
+                vec![]
+            } else {
+                vec![parsed.object.clone()]
+            },
+            verdict: "inconclusive".into(),
+            confidence: 0.5,
             supporting_evidence: vec![],
             contradicting_evidence: vec![layers::HypothesisEvidence {
                 evidence_type: "no_path".into(),
-                description: format!("Subject '{}' could not be resolved to any graph node", parsed.subject),
-                likelihood_factor: 1.0, nodes: vec![], relations: vec![], path_weight: None,
+                description: format!(
+                    "Subject '{}' could not be resolved to any graph node",
+                    parsed.subject
+                ),
+                likelihood_factor: 1.0,
+                nodes: vec![],
+                relations: vec![],
+                path_weight: None,
             }],
-            partial_reach: None, paths_explored: 0,
+            partial_reach: None,
+            paths_explored: 0,
             elapsed_ms: start.elapsed().as_secs_f64() * 1000.0,
         });
     }
@@ -2180,23 +2320,37 @@ pub fn handle_hypothesize(
                     if r.found {
                         contradicting.push(layers::HypothesisEvidence {
                             evidence_type: "path_found".into(),
-                            description: format!("Path found: '{}' -> '{}' ({} hops)",
-                                node_to_ext[src.as_usize()], node_to_ext[tgt.as_usize()],
-                                r.path_nodes.len().saturating_sub(1)),
+                            description: format!(
+                                "Path found: '{}' -> '{}' ({} hops)",
+                                node_to_ext[src.as_usize()],
+                                node_to_ext[tgt.as_usize()],
+                                r.path_nodes.len().saturating_sub(1)
+                            ),
                             likelihood_factor: 0.2,
-                            nodes: r.path_nodes, relations: r.path_rels,
+                            nodes: r.path_nodes,
+                            relations: r.path_rels,
                             path_weight: Some(r.total_weight),
                         });
                     } else {
                         supporting.push(layers::HypothesisEvidence {
                             evidence_type: "no_path".into(),
-                            description: format!("No path: '{}' -> '{}' (within {} hops)",
-                                node_to_ext[src.as_usize()], node_to_ext[tgt.as_usize()], max_hops),
+                            description: format!(
+                                "No path: '{}' -> '{}' (within {} hops)",
+                                node_to_ext[src.as_usize()],
+                                node_to_ext[tgt.as_usize()],
+                                max_hops
+                            ),
                             likelihood_factor: 2.0,
-                            nodes: vec![node_to_ext[src.as_usize()].clone(), node_to_ext[tgt.as_usize()].clone()],
-                            relations: vec![], path_weight: None,
+                            nodes: vec![
+                                node_to_ext[src.as_usize()].clone(),
+                                node_to_ext[tgt.as_usize()].clone(),
+                            ],
+                            relations: vec![],
+                            path_weight: None,
                         });
-                        if input.include_partial_flow { partial_reach_entries.extend(r.partial); }
+                        if input.include_partial_flow {
+                            partial_reach_entries.extend(r.partial);
+                        }
                     }
                 }
             }
@@ -2211,23 +2365,36 @@ pub fn handle_hypothesize(
                     if r.found {
                         supporting.push(layers::HypothesisEvidence {
                             evidence_type: "path_found".into(),
-                            description: format!("Dependency: '{}' -> '{}' ({} hops)",
-                                node_to_ext[src.as_usize()], node_to_ext[tgt.as_usize()],
-                                r.path_nodes.len().saturating_sub(1)),
+                            description: format!(
+                                "Dependency: '{}' -> '{}' ({} hops)",
+                                node_to_ext[src.as_usize()],
+                                node_to_ext[tgt.as_usize()],
+                                r.path_nodes.len().saturating_sub(1)
+                            ),
                             likelihood_factor: 2.0,
-                            nodes: r.path_nodes, relations: r.path_rels,
+                            nodes: r.path_nodes,
+                            relations: r.path_rels,
                             path_weight: Some(r.total_weight),
                         });
                     } else {
                         contradicting.push(layers::HypothesisEvidence {
                             evidence_type: "no_path".into(),
-                            description: format!("No dependency: '{}' -> '{}'",
-                                node_to_ext[src.as_usize()], node_to_ext[tgt.as_usize()]),
+                            description: format!(
+                                "No dependency: '{}' -> '{}'",
+                                node_to_ext[src.as_usize()],
+                                node_to_ext[tgt.as_usize()]
+                            ),
                             likelihood_factor: 0.3,
-                            nodes: vec![node_to_ext[src.as_usize()].clone(), node_to_ext[tgt.as_usize()].clone()],
-                            relations: vec![], path_weight: None,
+                            nodes: vec![
+                                node_to_ext[src.as_usize()].clone(),
+                                node_to_ext[tgt.as_usize()].clone(),
+                            ],
+                            relations: vec![],
+                            path_weight: None,
                         });
-                        if input.include_partial_flow { partial_reach_entries.extend(r.partial); }
+                        if input.include_partial_flow {
+                            partial_reach_entries.extend(r.partial);
+                        }
                     }
                 }
             }
@@ -2241,11 +2408,18 @@ pub fn handle_hypothesize(
                     if l5_has_direct_edge(&graph, src, tgt) {
                         supporting.push(layers::HypothesisEvidence {
                             evidence_type: "causal_chain".into(),
-                            description: format!("Direct edge: '{}' <-> '{}'",
-                                node_to_ext[src.as_usize()], node_to_ext[tgt.as_usize()]),
+                            description: format!(
+                                "Direct edge: '{}' <-> '{}'",
+                                node_to_ext[src.as_usize()],
+                                node_to_ext[tgt.as_usize()]
+                            ),
                             likelihood_factor: 2.0,
-                            nodes: vec![node_to_ext[src.as_usize()].clone(), node_to_ext[tgt.as_usize()].clone()],
-                            relations: vec![], path_weight: None,
+                            nodes: vec![
+                                node_to_ext[src.as_usize()].clone(),
+                                node_to_ext[tgt.as_usize()].clone(),
+                            ],
+                            relations: vec![],
+                            path_weight: None,
                         });
                     }
                     if let Ok(ref c) = communities {
@@ -2254,20 +2428,26 @@ pub fn handle_hypothesize(
                             if c.assignments[s] == c.assignments[t] {
                                 supporting.push(layers::HypothesisEvidence {
                                     evidence_type: "community_membership".into(),
-                                    description: format!("Same community (id={})",
-                                        c.assignments[s].0),
+                                    description: format!(
+                                        "Same community (id={})",
+                                        c.assignments[s].0
+                                    ),
                                     likelihood_factor: 1.5,
                                     nodes: vec![node_to_ext[s].clone(), node_to_ext[t].clone()],
-                                    relations: vec![], path_weight: None,
+                                    relations: vec![],
+                                    path_weight: None,
                                 });
                             } else {
                                 contradicting.push(layers::HypothesisEvidence {
                                     evidence_type: "community_membership".into(),
-                                    description: format!("Different communities ({} vs {})",
-                                        c.assignments[s].0, c.assignments[t].0),
+                                    description: format!(
+                                        "Different communities ({} vs {})",
+                                        c.assignments[s].0, c.assignments[t].0
+                                    ),
                                     likelihood_factor: 0.5,
                                     nodes: vec![node_to_ext[s].clone(), node_to_ext[t].clone()],
-                                    relations: vec![], path_weight: None,
+                                    relations: vec![],
+                                    path_weight: None,
                                 });
                             }
                         }
@@ -2286,27 +2466,42 @@ pub fn handle_hypothesize(
                 if total == 0 {
                     supporting.push(layers::HypothesisEvidence {
                         evidence_type: "activation_reach".into(),
-                        description: format!("'{}' has degree 0 (isolated)", node_to_ext[src.as_usize()]),
+                        description: format!(
+                            "'{}' has degree 0 (isolated)",
+                            node_to_ext[src.as_usize()]
+                        ),
                         likelihood_factor: 2.0,
                         nodes: vec![node_to_ext[src.as_usize()].clone()],
-                        relations: vec![], path_weight: None,
+                        relations: vec![],
+                        path_weight: None,
                     });
                 } else if total <= 2 {
                     supporting.push(layers::HypothesisEvidence {
                         evidence_type: "activation_reach".into(),
-                        description: format!("'{}' has very low degree ({})", node_to_ext[src.as_usize()], total),
+                        description: format!(
+                            "'{}' has very low degree ({})",
+                            node_to_ext[src.as_usize()],
+                            total
+                        ),
                         likelihood_factor: 1.5,
                         nodes: vec![node_to_ext[src.as_usize()].clone()],
-                        relations: vec![], path_weight: None,
+                        relations: vec![],
+                        path_weight: None,
                     });
                 } else {
                     contradicting.push(layers::HypothesisEvidence {
                         evidence_type: "activation_reach".into(),
-                        description: format!("'{}' has degree {} (out={}, in={}) -- not isolated",
-                            node_to_ext[src.as_usize()], total, out_deg, in_deg),
+                        description: format!(
+                            "'{}' has degree {} (out={}, in={}) -- not isolated",
+                            node_to_ext[src.as_usize()],
+                            total,
+                            out_deg,
+                            in_deg
+                        ),
                         likelihood_factor: 0.3,
                         nodes: vec![node_to_ext[src.as_usize()].clone()],
-                        relations: vec![], path_weight: None,
+                        relations: vec![],
+                        path_weight: None,
                     });
                 }
                 paths_explored += 1;
@@ -2323,45 +2518,69 @@ pub fn handle_hypothesize(
                 if pr > 0.5 || (out_deg > 5 && in_deg > 3) {
                     supporting.push(layers::HypothesisEvidence {
                         evidence_type: "counterfactual_impact".into(),
-                        description: format!("High centrality: pagerank={:.3}, out={}, in={}", pr, out_deg, in_deg),
+                        description: format!(
+                            "High centrality: pagerank={:.3}, out={}, in={}",
+                            pr, out_deg, in_deg
+                        ),
                         likelihood_factor: 2.0,
                         nodes: vec![node_to_ext[src.as_usize()].clone()],
-                        relations: vec![], path_weight: Some(pr),
+                        relations: vec![],
+                        path_weight: Some(pr),
                     });
                 } else {
                     contradicting.push(layers::HypothesisEvidence {
                         evidence_type: "counterfactual_impact".into(),
-                        description: format!("Low centrality: pagerank={:.3}, out={}, in={}", pr, out_deg, in_deg),
+                        description: format!(
+                            "Low centrality: pagerank={:.3}, out={}, in={}",
+                            pr, out_deg, in_deg
+                        ),
                         likelihood_factor: 0.4,
                         nodes: vec![node_to_ext[src.as_usize()].clone()],
-                        relations: vec![], path_weight: Some(pr),
+                        relations: vec![],
+                        path_weight: Some(pr),
                     });
                 }
 
                 // Counterfactual: remove subject and check if objects become unreachable
                 if !object_ids.is_empty() {
                     let mut mask = m1nd_core::counterfactual::RemovalMask::new(
-                        graph.num_nodes(), graph.num_edges());
+                        graph.num_nodes(),
+                        graph.num_edges(),
+                    );
                     mask.remove_node(&graph, src);
                     for &obj in &object_ids {
                         let reachable = l5_bfs_reachable_masked(&graph, obj, &mask, max_hops);
                         if !reachable {
                             supporting.push(layers::HypothesisEvidence {
                                 evidence_type: "counterfactual_impact".into(),
-                                description: format!("Removing '{}' makes '{}' unreachable",
-                                    node_to_ext[src.as_usize()], node_to_ext[obj.as_usize()]),
+                                description: format!(
+                                    "Removing '{}' makes '{}' unreachable",
+                                    node_to_ext[src.as_usize()],
+                                    node_to_ext[obj.as_usize()]
+                                ),
                                 likelihood_factor: 2.0,
-                                nodes: vec![node_to_ext[src.as_usize()].clone(), node_to_ext[obj.as_usize()].clone()],
-                                relations: vec![], path_weight: None,
+                                nodes: vec![
+                                    node_to_ext[src.as_usize()].clone(),
+                                    node_to_ext[obj.as_usize()].clone(),
+                                ],
+                                relations: vec![],
+                                path_weight: None,
                             });
                         } else {
                             contradicting.push(layers::HypothesisEvidence {
                                 evidence_type: "counterfactual_impact".into(),
-                                description: format!("'{}' still reachable after removing '{}'",
-                                    node_to_ext[obj.as_usize()], node_to_ext[src.as_usize()]),
+                                description: format!(
+                                    "'{}' still reachable after removing '{}'",
+                                    node_to_ext[obj.as_usize()],
+                                    node_to_ext[src.as_usize()]
+                                ),
                                 likelihood_factor: 0.5,
-                                nodes: vec![node_to_ext[src.as_usize()].clone(), node_to_ext[obj.as_usize()].clone()],
-                                relations: vec![], path_weight: None,
+                                nodes: vec![
+                                    node_to_ext[src.as_usize()].clone(),
+                                    node_to_ext[obj.as_usize()].clone(),
+                                ],
+                                relations: vec![],
+                                path_weight: None,
                             });
                         }
                         paths_explored += 1;
@@ -2387,31 +2606,62 @@ pub fn handle_hypothesize(
                         all_rels.extend(rev.path_rels);
                         supporting.push(layers::HypothesisEvidence {
                             evidence_type: "causal_chain".into(),
-                            description: format!("Cycle: '{}' -> '{}' AND back",
-                                node_to_ext[src.as_usize()], node_to_ext[tgt.as_usize()]),
+                            description: format!(
+                                "Cycle: '{}' -> '{}' AND back",
+                                node_to_ext[src.as_usize()],
+                                node_to_ext[tgt.as_usize()]
+                            ),
                             likelihood_factor: 2.0,
-                            nodes: all_nodes, relations: all_rels,
+                            nodes: all_nodes,
+                            relations: all_rels,
                             path_weight: Some(fwd.total_weight + rev.total_weight),
                         });
                     } else if fwd.found || rev.found {
-                        let dir = if fwd.found { "forward only" } else { "reverse only" };
+                        let dir = if fwd.found {
+                            "forward only"
+                        } else {
+                            "reverse only"
+                        };
                         contradicting.push(layers::HypothesisEvidence {
                             evidence_type: "causal_chain".into(),
-                            description: format!("{} path between '{}' and '{}' -- not circular",
-                                dir, node_to_ext[src.as_usize()], node_to_ext[tgt.as_usize()]),
+                            description: format!(
+                                "{} path between '{}' and '{}' -- not circular",
+                                dir,
+                                node_to_ext[src.as_usize()],
+                                node_to_ext[tgt.as_usize()]
+                            ),
                             likelihood_factor: 0.5,
-                            nodes: if fwd.found { fwd.path_nodes } else { rev.path_nodes },
-                            relations: if fwd.found { fwd.path_rels } else { rev.path_rels },
-                            path_weight: Some(if fwd.found { fwd.total_weight } else { rev.total_weight }),
+                            nodes: if fwd.found {
+                                fwd.path_nodes
+                            } else {
+                                rev.path_nodes
+                            },
+                            relations: if fwd.found {
+                                fwd.path_rels
+                            } else {
+                                rev.path_rels
+                            },
+                            path_weight: Some(if fwd.found {
+                                fwd.total_weight
+                            } else {
+                                rev.total_weight
+                            }),
                         });
                     } else {
                         contradicting.push(layers::HypothesisEvidence {
                             evidence_type: "no_path".into(),
-                            description: format!("No path in either direction: '{}' <-> '{}'",
-                                node_to_ext[src.as_usize()], node_to_ext[tgt.as_usize()]),
+                            description: format!(
+                                "No path in either direction: '{}' <-> '{}'",
+                                node_to_ext[src.as_usize()],
+                                node_to_ext[tgt.as_usize()]
+                            ),
                             likelihood_factor: 0.2,
-                            nodes: vec![node_to_ext[src.as_usize()].clone(), node_to_ext[tgt.as_usize()].clone()],
-                            relations: vec![], path_weight: None,
+                            nodes: vec![
+                                node_to_ext[src.as_usize()].clone(),
+                                node_to_ext[tgt.as_usize()].clone(),
+                            ],
+                            relations: vec![],
+                            path_weight: None,
                         });
                     }
                 }
@@ -2424,16 +2674,21 @@ pub fn handle_hypothesize(
             let obj_seeds = m1nd_core::seed::SeedFinder::find_seeds(&graph, &parsed.object, 5)?;
             for &(src, _) in &subj_seeds {
                 for &(tgt, _) in &obj_seeds {
-                    if src == tgt { continue; }
+                    if src == tgt {
+                        continue;
+                    }
                     let r = l5_bfs_path(&graph, src, tgt, max_hops, budget, &node_to_ext);
                     paths_explored += r.explored;
                     if r.found {
                         supporting.push(layers::HypothesisEvidence {
                             evidence_type: "path_found".into(),
-                            description: format!("Fuzzy: {} hops between matched nodes",
-                                r.path_nodes.len().saturating_sub(1)),
+                            description: format!(
+                                "Fuzzy: {} hops between matched nodes",
+                                r.path_nodes.len().saturating_sub(1)
+                            ),
                             likelihood_factor: 1.5,
-                            nodes: r.path_nodes, relations: r.path_rels,
+                            nodes: r.path_nodes,
+                            relations: r.path_rels,
                             path_weight: Some(r.total_weight),
                         });
                     }
@@ -2444,7 +2699,9 @@ pub fn handle_hypothesize(
                     evidence_type: "no_path".into(),
                     description: "No relationship between fuzzy-matched nodes".into(),
                     likelihood_factor: 0.5,
-                    nodes: vec![], relations: vec![], path_weight: None,
+                    nodes: vec![],
+                    relations: vec![],
+                    path_weight: None,
                 });
             }
         }
@@ -2452,17 +2709,28 @@ pub fn handle_hypothesize(
 
     // Bayesian confidence
     let confidence = l5_bayesian_confidence(&supporting, &contradicting);
-    let verdict = if confidence > 0.8 { "likely_true" }
-        else if confidence < 0.2 { "likely_false" }
-        else { "inconclusive" };
+    let verdict = if confidence > 0.8 {
+        "likely_true"
+    } else if confidence < 0.2 {
+        "likely_false"
+    } else {
+        "inconclusive"
+    };
 
     Ok(layers::HypothesizeOutput {
         claim: input.claim,
         claim_type: parsed.claim_type.as_str().into(),
-        subject_nodes: subject_labels, object_nodes: object_labels,
-        verdict: verdict.into(), confidence,
-        supporting_evidence: supporting, contradicting_evidence: contradicting,
-        partial_reach: if partial_reach_entries.is_empty() { None } else { Some(partial_reach_entries) },
+        subject_nodes: subject_labels,
+        object_nodes: object_labels,
+        verdict: verdict.into(),
+        confidence,
+        supporting_evidence: supporting,
+        contradicting_evidence: contradicting,
+        partial_reach: if partial_reach_entries.is_empty() {
+            None
+        } else {
+            Some(partial_reach_entries)
+        },
         paths_explored,
         elapsed_ms: start.elapsed().as_secs_f64() * 1000.0,
     })
@@ -2484,8 +2752,16 @@ pub fn handle_differential(
     let ext_b = l5_collect_ext_ids(&graph_b);
 
     // Node deltas
-    let mut new_nodes: Vec<String> = ext_b.iter().filter(|id| !ext_a.contains(*id)).cloned().collect();
-    let mut removed_nodes: Vec<String> = ext_a.iter().filter(|id| !ext_b.contains(*id)).cloned().collect();
+    let mut new_nodes: Vec<String> = ext_b
+        .iter()
+        .filter(|id| !ext_a.contains(*id))
+        .cloned()
+        .collect();
+    let mut removed_nodes: Vec<String> = ext_a
+        .iter()
+        .filter(|id| !ext_b.contains(*id))
+        .cloned()
+        .collect();
 
     // Edge deltas
     let edges_a = l5_collect_edges(&graph_a);
@@ -2500,22 +2776,30 @@ pub fn handle_differential(
             let delta = wb - wa;
             if delta.abs() > 0.001 {
                 weight_changes.push(layers::DiffWeightDelta {
-                    source: key.0.clone(), target: key.1.clone(), relation: key.2.clone(),
-                    old_weight: wa, new_weight: wb, delta,
+                    source: key.0.clone(),
+                    target: key.1.clone(),
+                    relation: key.2.clone(),
+                    old_weight: wa,
+                    new_weight: wb,
+                    delta,
                 });
             }
         } else {
             new_edges.push(layers::DiffEdgeDelta {
-                source: key.0.clone(), target: key.1.clone(),
-                relation: key.2.clone(), weight: wb,
+                source: key.0.clone(),
+                target: key.1.clone(),
+                relation: key.2.clone(),
+                weight: wb,
             });
         }
     }
     for (key, &wa) in &edges_a {
         if !edges_b.contains_key(key) {
             removed_edges.push(layers::DiffEdgeDelta {
-                source: key.0.clone(), target: key.1.clone(),
-                relation: key.2.clone(), weight: wa,
+                source: key.0.clone(),
+                target: key.1.clone(),
+                relation: key.2.clone(),
+                weight: wa,
             });
         }
     }
@@ -2535,7 +2819,10 @@ pub fn handle_differential(
         // Question-keyword filtering
         let kws = l5_extract_keywords(question);
         if !kws.is_empty() {
-            let m = |s: &str| { let lw = s.to_lowercase(); kws.iter().any(|k| lw.contains(k)) };
+            let m = |s: &str| {
+                let lw = s.to_lowercase();
+                kws.iter().any(|k| lw.contains(k))
+            };
             new_nodes.retain(|n| m(n));
             removed_nodes.retain(|n| m(n));
             new_edges.retain(|e| m(&e.source) || m(&e.target) || m(&e.relation));
@@ -2546,13 +2833,23 @@ pub fn handle_differential(
 
     let summary = format!(
         "+{} nodes, -{} nodes, +{} edges, -{} edges, ~{} weights, {} coupling deltas",
-        new_nodes.len(), removed_nodes.len(), new_edges.len(),
-        removed_edges.len(), weight_changes.len(), coupling_deltas.len());
+        new_nodes.len(),
+        removed_nodes.len(),
+        new_edges.len(),
+        removed_edges.len(),
+        weight_changes.len(),
+        coupling_deltas.len()
+    );
 
     Ok(layers::DifferentialOutput {
-        snapshot_a: input.snapshot_a, snapshot_b: input.snapshot_b,
-        new_edges, removed_edges, weight_changes,
-        new_nodes, removed_nodes, coupling_deltas,
+        snapshot_a: input.snapshot_a,
+        snapshot_b: input.snapshot_b,
+        new_edges,
+        removed_edges,
+        weight_changes,
+        new_nodes,
+        removed_nodes,
+        coupling_deltas,
         summary,
         elapsed_ms: start.elapsed().as_secs_f64() * 1000.0,
     })
@@ -2642,9 +2939,15 @@ pub fn handle_trace(
         let mut mx = 0.0f32;
         for i in 0..n {
             let pr = graph.nodes.pagerank[i].get();
-            if pr > mx { mx = pr; }
+            if pr > mx {
+                mx = pr;
+            }
         }
-        if mx <= 0.0 { 1.0 } else { mx }
+        if mx <= 0.0 {
+            1.0
+        } else {
+            mx
+        }
     };
 
     let total_mapped = mapped.len();
@@ -2670,9 +2973,8 @@ pub fn handle_trace(
             0.0
         };
 
-        let suspiciousness = trace_depth_score * 0.40
-            + recency_score * 0.35
-            + centrality_score * 0.25;
+        let suspiciousness =
+            trace_depth_score * 0.40 + recency_score * 0.35 + centrality_score * 0.25;
 
         // Gather label, type, provenance
         let (label, node_type_str, file_path, line_start, line_end) = if idx < n {
@@ -2693,18 +2995,22 @@ pub fn handle_trace(
                 let src_idx = src.as_usize();
                 if src_idx < n {
                     callers.push(
-                        graph.strings.resolve(graph.nodes.label[src_idx]).to_string(),
+                        graph
+                            .strings
+                            .resolve(graph.nodes.label[src_idx])
+                            .to_string(),
                     );
                 }
-                if callers.len() >= 5 { break; }
+                if callers.len() >= 5 {
+                    break;
+                }
             }
             callers
         } else {
             vec![]
         };
 
-        let ext_id = l6_find_external_id(&graph, mf.node_id)
-            .unwrap_or_else(|| label.clone());
+        let ext_id = l6_find_external_id(&graph, mf.node_id).unwrap_or_else(|| label.clone());
 
         suspects.push(layers::TraceSuspect {
             node_id: ext_id,
@@ -2891,8 +3197,12 @@ pub fn handle_validate_plan(
                         next_frontier.push(target);
                         blast_radius_total += 1;
                         l6_vp_record_blast_file(
-                            &graph, target, &plan_files,
-                            &mut blast_files, &mut direct_deps, hop,
+                            &graph,
+                            target,
+                            &plan_files,
+                            &mut blast_files,
+                            &mut direct_deps,
+                            hop,
                         );
                     }
                 }
@@ -2905,14 +3215,20 @@ pub fn handle_validate_plan(
                         next_frontier.push(src);
                         blast_radius_total += 1;
                         l6_vp_record_blast_file(
-                            &graph, src, &plan_files,
-                            &mut blast_files, &mut direct_deps, hop,
+                            &graph,
+                            src,
+                            &plan_files,
+                            &mut blast_files,
+                            &mut direct_deps,
+                            hop,
                         );
                     }
                 }
             }
             frontier = next_frontier;
-            if frontier.is_empty() { break; }
+            if frontier.is_empty() {
+                break;
+            }
         }
     }
 
@@ -2988,10 +3304,9 @@ pub fn handle_validate_plan(
             0.0
         };
 
-        let score = ((critical_gaps as f32 * 0.1).min(1.0) * 0.4
-            + untested_ratio * 0.3
-            + blast_norm * 0.3)
-            .min(1.0);
+        let score =
+            ((critical_gaps as f32 * 0.1).min(1.0) * 0.4 + untested_ratio * 0.3 + blast_norm * 0.3)
+                .min(1.0);
 
         let level = match score {
             s if s >= 0.8 => "critical",
@@ -3037,8 +3352,6 @@ pub fn handle_validate_plan(
         elapsed_ms: start.elapsed().as_secs_f64() * 1000.0,
     })
 }
-
-
 
 // =========================================================================
 // L6 Trace Helpers
@@ -3092,7 +3405,10 @@ fn l6_extract_error_info(error_text: &str, language: &str) -> (String, String) {
         "python" => {
             let last = lines.last().unwrap_or(&"");
             if let Some(pos) = last.find(": ") {
-                (last[..pos].trim().to_string(), last[pos + 2..].trim().to_string())
+                (
+                    last[..pos].trim().to_string(),
+                    last[pos + 2..].trim().to_string(),
+                )
             } else {
                 (last.trim().to_string(), String::new())
             }
@@ -3106,12 +3422,18 @@ fn l6_extract_error_info(error_text: &str, language: &str) -> (String, String) {
                     return ("panic".into(), msg.to_string());
                 }
             }
-            ("RuntimeError".into(), lines.first().unwrap_or(&"").trim().to_string())
+            (
+                "RuntimeError".into(),
+                lines.first().unwrap_or(&"").trim().to_string(),
+            )
         }
         "javascript" | "typescript" => {
             let first = lines.first().unwrap_or(&"");
             if let Some(pos) = first.find(": ") {
-                (first[..pos].trim().to_string(), first[pos + 2..].trim().to_string())
+                (
+                    first[..pos].trim().to_string(),
+                    first[pos + 2..].trim().to_string(),
+                )
             } else {
                 (first.trim().to_string(), String::new())
             }
@@ -3122,7 +3444,10 @@ fn l6_extract_error_info(error_text: &str, language: &str) -> (String, String) {
                     return ("panic".into(), line[idx + 6..].trim().to_string());
                 }
             }
-            ("RuntimeError".into(), lines.first().unwrap_or(&"").trim().to_string())
+            (
+                "RuntimeError".into(),
+                lines.first().unwrap_or(&"").trim().to_string(),
+            )
         }
         _ => {
             let first = lines.first().unwrap_or(&"");
@@ -3142,7 +3467,9 @@ fn l6_parse_frames(error_text: &str, language: &str) -> Vec<L6RawFrame> {
     let mut frames = Vec::new();
     for line in error_text.lines() {
         let trimmed = line.trim();
-        if trimmed.is_empty() { continue; }
+        if trimmed.is_empty() {
+            continue;
+        }
 
         match language {
             "python" => {
@@ -3160,7 +3487,11 @@ fn l6_parse_frames(error_text: &str, language: &str) -> Vec<L6RawFrame> {
                                 .find(", in ")
                                 .map(|p| after[p + 5..].trim().to_string())
                                 .unwrap_or_else(|| "<module>".into());
-                            frames.push(L6RawFrame { file, line: ln, function: func });
+                            frames.push(L6RawFrame {
+                                file,
+                                line: ln,
+                                function: func,
+                            });
                         }
                     }
                 }
@@ -3169,7 +3500,11 @@ fn l6_parse_frames(error_text: &str, language: &str) -> Vec<L6RawFrame> {
                 if let Some(at_pos) = trimmed.find("at ") {
                     let rest = &trimmed[at_pos + 3..];
                     if let Some((file, ln)) = l6_parse_path_line_col(rest) {
-                        frames.push(L6RawFrame { file, line: ln, function: String::new() });
+                        frames.push(L6RawFrame {
+                            file,
+                            line: ln,
+                            function: String::new(),
+                        });
                     }
                 }
             }
@@ -3180,17 +3515,29 @@ fn l6_parse_frames(error_text: &str, language: &str) -> Vec<L6RawFrame> {
                         let func = rest[..ps].trim().to_string();
                         let inner = rest[ps + 1..].trim_end_matches(')');
                         if let Some((file, ln)) = l6_parse_path_line_col(inner) {
-                            frames.push(L6RawFrame { file, line: ln, function: func });
+                            frames.push(L6RawFrame {
+                                file,
+                                line: ln,
+                                function: func,
+                            });
                         }
                     } else if let Some((file, ln)) = l6_parse_path_line_col(rest) {
-                        frames.push(L6RawFrame { file, line: ln, function: String::new() });
+                        frames.push(L6RawFrame {
+                            file,
+                            line: ln,
+                            function: String::new(),
+                        });
                     }
                 }
             }
             "go" => {
                 if trimmed.contains(".go:") {
                     if let Some((file, ln)) = l6_parse_go_frame(trimmed) {
-                        frames.push(L6RawFrame { file, line: ln, function: String::new() });
+                        frames.push(L6RawFrame {
+                            file,
+                            line: ln,
+                            function: String::new(),
+                        });
                     }
                 }
             }
@@ -3209,7 +3556,11 @@ fn l6_parse_frames(error_text: &str, language: &str) -> Vec<L6RawFrame> {
                                 .find(", in ")
                                 .map(|p| after[p + 5..].trim().to_string())
                                 .unwrap_or_default();
-                            frames.push(L6RawFrame { file, line: ln, function: func });
+                            frames.push(L6RawFrame {
+                                file,
+                                line: ln,
+                                function: func,
+                            });
                         }
                     }
                 } else if let Some(at_pos) = trimmed.find("at ") {
@@ -3218,10 +3569,18 @@ fn l6_parse_frames(error_text: &str, language: &str) -> Vec<L6RawFrame> {
                         let func = rest[..ps].trim().to_string();
                         let inner = rest[ps + 1..].trim_end_matches(')');
                         if let Some((f, l)) = l6_parse_path_line_col(inner) {
-                            frames.push(L6RawFrame { file: f, line: l, function: func });
+                            frames.push(L6RawFrame {
+                                file: f,
+                                line: l,
+                                function: func,
+                            });
                         }
                     } else if let Some((f, l)) = l6_parse_path_line_col(rest) {
-                        frames.push(L6RawFrame { file: f, line: l, function: String::new() });
+                        frames.push(L6RawFrame {
+                            file: f,
+                            line: l,
+                            function: String::new(),
+                        });
                     }
                 }
             }
@@ -3233,25 +3592,33 @@ fn l6_parse_frames(error_text: &str, language: &str) -> Vec<L6RawFrame> {
 /// Parse "path:line:col" or "path:line" into (path, line).
 fn l6_parse_path_line_col(s: &str) -> Option<(String, u32)> {
     let s = s.trim();
-    if s.is_empty() { return None; }
+    if s.is_empty() {
+        return None;
+    }
     let parts: Vec<&str> = s.rsplitn(4, ':').collect();
     match parts.len() {
         3 => {
             let ln = parts[1].trim().parse::<u32>().ok()?;
             let file = parts[2].trim().to_string();
-            if file.is_empty() { return None; }
+            if file.is_empty() {
+                return None;
+            }
             Some((file, ln))
         }
         2 => {
             let ln = parts[0].trim().parse::<u32>().ok()?;
             let file = parts[1].trim().to_string();
-            if file.is_empty() { return None; }
+            if file.is_empty() {
+                return None;
+            }
             Some((file, ln))
         }
         4 => {
             let ln = parts[2].trim().parse::<u32>().ok()?;
             let file = parts[3].trim().to_string();
-            if file.is_empty() { return None; }
+            if file.is_empty() {
+                return None;
+            }
             Some((file, ln))
         }
         _ => None,
@@ -3379,10 +3746,7 @@ fn l6_classify_unmapped(graph: &m1nd_core::graph::Graph, file: &str) -> String {
 }
 
 /// Find external_id string for a NodeId.
-fn l6_find_external_id(
-    graph: &m1nd_core::graph::Graph,
-    node_id: NodeId,
-) -> Option<String> {
+fn l6_find_external_id(graph: &m1nd_core::graph::Graph, node_id: NodeId) -> Option<String> {
     for (interned, &nid) in &graph.id_to_node {
         if nid == node_id {
             return Some(graph.strings.resolve(*interned).to_string());
@@ -3416,7 +3780,9 @@ fn l6_quick_blast_radius(
             }
         }
         frontier = next;
-        if frontier.is_empty() { break; }
+        if frontier.is_empty() {
+            break;
+        }
     }
     count
 }
@@ -3427,14 +3793,14 @@ fn l6_quick_blast_radius(
 
 /// Normalize path for plan validation.
 fn l6_vp_normalize_path(path: &str) -> String {
-    path.trim().strip_prefix("./").unwrap_or(path.trim()).to_string()
+    path.trim()
+        .strip_prefix("./")
+        .unwrap_or(path.trim())
+        .to_string()
 }
 
 /// Resolve a file path to its graph node.
-fn l6_vp_resolve_file(
-    graph: &m1nd_core::graph::Graph,
-    path: &str,
-) -> Option<NodeId> {
+fn l6_vp_resolve_file(graph: &m1nd_core::graph::Graph, path: &str) -> Option<NodeId> {
     let ext = format!("file::{}", path);
     if let Some(nid) = graph.resolve_id(&ext) {
         return Some(nid);
@@ -3504,18 +3870,18 @@ fn l6_vp_test_coverage(
 }
 
 /// Check if a test file exists for a given source file.
-fn l6_vp_has_test(
-    graph: &m1nd_core::graph::Graph,
-    source_file: &str,
-    n: usize,
-) -> bool {
+fn l6_vp_has_test(graph: &m1nd_core::graph::Graph, source_file: &str, n: usize) -> bool {
     for pat in &l6_vp_test_patterns(source_file) {
         if graph.resolve_id(&format!("file::{}", pat)).is_some() {
             return true;
         }
     }
     let basename = source_file.rsplit('/').next().unwrap_or(source_file);
-    let stem = if let Some(dot) = basename.rfind('.') { &basename[..dot] } else { basename };
+    let stem = if let Some(dot) = basename.rfind('.') {
+        &basename[..dot]
+    } else {
+        basename
+    };
     let test_prefix = format!("test_{}", stem);
     for i in 0..n {
         let label = graph.strings.resolve(graph.nodes.label[i]);
@@ -3646,7 +4012,10 @@ pub fn handle_federate(
         if !repo_path.exists() {
             eprintln!(
                 "{}",
-                brand::log_colored(&format!("federate: Skipping repo '{}': path does not exist: {}", repo.name, repo.path)),
+                brand::log_colored(&format!(
+                    "federate: Skipping repo '{}': path does not exist: {}",
+                    repo.name, repo.path
+                )),
             );
             skipped_repos.push(repo.name.clone());
             repo_results.push(layers::FederateRepoResult {
@@ -3672,7 +4041,10 @@ pub fn handle_federate(
             Err(e) => {
                 eprintln!(
                     "{}",
-                    brand::log_colored(&format!("federate: Skipping repo '{}': ingest failed: {}", repo.name, e)),
+                    brand::log_colored(&format!(
+                        "federate: Skipping repo '{}': ingest failed: {}",
+                        repo.name, e
+                    )),
                 );
                 skipped_repos.push(repo.name.clone());
                 repo_results.push(layers::FederateRepoResult {
@@ -3778,7 +4150,13 @@ pub fn handle_federate(
     state.rebuild_engines()?;
 
     if let Err(e) = state.persist() {
-        eprintln!("{}", brand::log_colored(&format!("federate: auto-persist after federation failed: {}", e)));
+        eprintln!(
+            "{}",
+            brand::log_colored(&format!(
+                "federate: auto-persist after federation failed: {}",
+                e
+            ))
+        );
     }
 
     Ok(layers::FederateOutput {
@@ -3858,7 +4236,10 @@ fn l7_prefix_graph_nodes(
                     continue;
                 }
 
-                let relation = source.strings.resolve(source.csr.relations[edge_pos]).to_string();
+                let relation = source
+                    .strings
+                    .resolve(source.csr.relations[edge_pos])
+                    .to_string();
                 let weight = source.csr.read_weight(EdgeIdx::new(edge_pos as u32)).get();
                 let causal = source.csr.causal_strengths[edge_pos].get();
                 let inhibitory = source.csr.inhibitory[edge_pos];
@@ -3870,7 +4251,15 @@ fn l7_prefix_graph_nodes(
                     target.resolve_id(&new_src_id),
                     target.resolve_id(&new_tgt_id),
                 ) {
-                    let _ = target.add_edge(src, tgt, &relation, FiniteF32::new(weight), direction, inhibitory, FiniteF32::new(causal));
+                    let _ = target.add_edge(
+                        src,
+                        tgt,
+                        &relation,
+                        FiniteF32::new(weight),
+                        direction,
+                        inhibitory,
+                        FiniteF32::new(causal),
+                    );
                 }
             }
         }
@@ -3882,7 +4271,15 @@ fn l7_prefix_graph_nodes(
                 target.resolve_id(&new_src_id),
                 target.resolve_id(&new_tgt_id),
             ) {
-                let _ = target.add_edge(src, tgt, &source.strings.resolve(edge.relation), edge.weight, edge.direction, edge.inhibitory, edge.causal_strength);
+                let _ = target.add_edge(
+                    src,
+                    tgt,
+                    &source.strings.resolve(edge.relation),
+                    edge.weight,
+                    edge.direction,
+                    edge.inhibitory,
+                    edge.causal_strength,
+                );
             }
         }
     }
@@ -3920,13 +4317,18 @@ fn l7_detect_cross_repo_edges(
             let prefix = format!("{}::", repo);
             if ext_id.starts_with(&prefix) {
                 let label = graph.strings.resolve(graph.nodes.label[idx]).to_string();
-                repo_nodes.entry(repo.to_string()).or_default().push((idx, ext_id.clone(), label));
+                repo_nodes
+                    .entry(repo.to_string())
+                    .or_default()
+                    .push((idx, ext_id.clone(), label));
                 break;
             }
         }
     }
 
-    if repo_nodes.keys().count() < 2 { return edges; }
+    if repo_nodes.keys().count() < 2 {
+        return edges;
+    }
 
     l7_detect_shared_config(&repo_nodes, &mut edges);
     l7_detect_api_contract(&repo_nodes, &mut edges);
@@ -3946,23 +4348,37 @@ fn l7_detect_shared_config(
     let mut config_labels: HashMap<String, Vec<(String, String)>> = HashMap::new();
     for (repo, nodes) in repo_nodes {
         for (_idx, ext_id, label) in nodes {
-            let is_config = label.contains("ENV") || label.contains("VITE_")
-                || ext_id.contains(".env") || ext_id.contains("config") || ext_id.contains("settings");
+            let is_config = label.contains("ENV")
+                || label.contains("VITE_")
+                || ext_id.contains(".env")
+                || ext_id.contains("config")
+                || ext_id.contains("settings");
             if is_config {
-                config_labels.entry(label.to_uppercase()).or_default().push((repo.clone(), ext_id.clone()));
+                config_labels
+                    .entry(label.to_uppercase())
+                    .or_default()
+                    .push((repo.clone(), ext_id.clone()));
             }
         }
     }
     for (label, occs) in &config_labels {
-        if occs.len() < 2 { continue; }
+        if occs.len() < 2 {
+            continue;
+        }
         for i in 0..occs.len() {
             for j in (i + 1)..occs.len() {
-                if occs[i].0 == occs[j].0 { continue; }
+                if occs[i].0 == occs[j].0 {
+                    continue;
+                }
                 edges.push(layers::FederateCrossRepoEdge {
-                    source_repo: occs[i].0.clone(), target_repo: occs[j].0.clone(),
-                    source_node: occs[i].1.clone(), target_node: occs[j].1.clone(),
-                    edge_type: "shared_config".into(), relation: format!("shares_config::{}", label),
-                    weight: 0.7, causal_strength: 0.8,
+                    source_repo: occs[i].0.clone(),
+                    target_repo: occs[j].0.clone(),
+                    source_node: occs[i].1.clone(),
+                    target_node: occs[j].1.clone(),
+                    edge_type: "shared_config".into(),
+                    relation: format!("shares_config::{}", label),
+                    weight: 0.7,
+                    causal_strength: 0.8,
                 });
             }
         }
@@ -3981,21 +4397,32 @@ fn l7_detect_api_contract(
             for segment in text.split_whitespace() {
                 if segment.starts_with("/api/") || segment.starts_with("api/") {
                     let normalized = l7_normalize_api_route(segment);
-                    api_patterns.entry(normalized).or_default().push((repo.clone(), ext_id.clone()));
+                    api_patterns
+                        .entry(normalized)
+                        .or_default()
+                        .push((repo.clone(), ext_id.clone()));
                 }
             }
         }
     }
     for (route, occs) in &api_patterns {
-        if occs.len() < 2 { continue; }
+        if occs.len() < 2 {
+            continue;
+        }
         for i in 0..occs.len() {
             for j in (i + 1)..occs.len() {
-                if occs[i].0 == occs[j].0 { continue; }
+                if occs[i].0 == occs[j].0 {
+                    continue;
+                }
                 edges.push(layers::FederateCrossRepoEdge {
-                    source_repo: occs[i].0.clone(), target_repo: occs[j].0.clone(),
-                    source_node: occs[i].1.clone(), target_node: occs[j].1.clone(),
-                    edge_type: "api_contract".into(), relation: format!("api_contract::{}", route),
-                    weight: 0.8, causal_strength: 0.9,
+                    source_repo: occs[i].0.clone(),
+                    target_repo: occs[j].0.clone(),
+                    source_node: occs[i].1.clone(),
+                    target_node: occs[j].1.clone(),
+                    edge_type: "api_contract".into(),
+                    relation: format!("api_contract::{}", route),
+                    weight: 0.8,
+                    causal_strength: 0.9,
                 });
             }
         }
@@ -4004,10 +4431,19 @@ fn l7_detect_api_contract(
 
 fn l7_normalize_api_route(route: &str) -> String {
     let mut n = route.to_lowercase();
-    if n.ends_with('/') { n.pop(); }
-    n.split('/').map(|p| {
-        if p.starts_with('{') && p.ends_with('}') { "_".to_string() } else { p.to_string() }
-    }).collect::<Vec<_>>().join("/")
+    if n.ends_with('/') {
+        n.pop();
+    }
+    n.split('/')
+        .map(|p| {
+            if p.starts_with('{') && p.ends_with('}') {
+                "_".to_string()
+            } else {
+                p.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("/")
 }
 
 // --- Type 3: Package Dependency ---
@@ -4019,7 +4455,9 @@ fn l7_detect_package_dep(
     for (repo_a, nodes_a) in repo_nodes {
         for (_idx, ext_id_a, label_a) in nodes_a {
             for &repo_b in repo_names {
-                if repo_a == repo_b { continue; }
+                if repo_a == repo_b {
+                    continue;
+                }
                 let variants = l7_repo_name_variants(repo_b);
                 let text = format!("{} {}", label_a, ext_id_a).to_lowercase();
                 for variant in &variants {
@@ -4027,10 +4465,14 @@ fn l7_detect_package_dep(
                         if let Some(nodes_b) = repo_nodes.get(repo_b) {
                             if let Some((_, ext_id_b, _)) = nodes_b.first() {
                                 edges.push(layers::FederateCrossRepoEdge {
-                                    source_repo: repo_a.clone(), target_repo: repo_b.to_string(),
-                                    source_node: ext_id_a.clone(), target_node: ext_id_b.clone(),
-                                    edge_type: "package_dep".into(), relation: format!("depends_on::{}", repo_b),
-                                    weight: 0.6, causal_strength: 0.7,
+                                    source_repo: repo_a.clone(),
+                                    target_repo: repo_b.to_string(),
+                                    source_node: ext_id_a.clone(),
+                                    target_node: ext_id_b.clone(),
+                                    edge_type: "package_dep".into(),
+                                    relation: format!("depends_on::{}", repo_b),
+                                    weight: 0.6,
+                                    causal_strength: 0.7,
                                 });
                                 break;
                             }
@@ -4047,8 +4489,12 @@ fn l7_repo_name_variants(name: &str) -> Vec<String> {
     let underscore = lower.replace('-', "_");
     let hyphen = lower.replace('_', "-");
     let mut v = vec![lower.clone()];
-    if underscore != lower { v.push(underscore); }
-    if hyphen != lower { v.push(hyphen); }
+    if underscore != lower {
+        v.push(underscore);
+    }
+    if hyphen != lower {
+        v.push(hyphen);
+    }
     v
 }
 
@@ -4058,27 +4504,50 @@ fn l7_detect_shared_type(
     repo_nodes: &HashMap<String, Vec<(usize, String, String)>>,
     edges: &mut Vec<layers::FederateCrossRepoEdge>,
 ) {
-    let common_exclusions = ["Config","Error","Result","Status","State","Context","Request","Response","Handler","Manager","Service","Client","Server","Base","Default","Node","Edge"];
+    let common_exclusions = [
+        "Config", "Error", "Result", "Status", "State", "Context", "Request", "Response",
+        "Handler", "Manager", "Service", "Client", "Server", "Base", "Default", "Node", "Edge",
+    ];
     let mut type_defs: HashMap<String, Vec<(String, String)>> = HashMap::new();
     for (repo, nodes) in repo_nodes {
         for (idx, ext_id, label) in nodes {
             let nt = graph.nodes.node_type[*idx];
-            if !matches!(nt, NodeType::Class | NodeType::Struct | NodeType::Type | NodeType::Enum) { continue; }
-            if common_exclusions.iter().any(|&e| label == e) { continue; }
-            if label.len() < 4 { continue; }
-            type_defs.entry(label.clone()).or_default().push((repo.clone(), ext_id.clone()));
+            if !matches!(
+                nt,
+                NodeType::Class | NodeType::Struct | NodeType::Type | NodeType::Enum
+            ) {
+                continue;
+            }
+            if common_exclusions.iter().any(|&e| label == e) {
+                continue;
+            }
+            if label.len() < 4 {
+                continue;
+            }
+            type_defs
+                .entry(label.clone())
+                .or_default()
+                .push((repo.clone(), ext_id.clone()));
         }
     }
     for (type_name, occs) in &type_defs {
-        if occs.len() < 2 { continue; }
+        if occs.len() < 2 {
+            continue;
+        }
         for i in 0..occs.len() {
             for j in (i + 1)..occs.len() {
-                if occs[i].0 == occs[j].0 { continue; }
+                if occs[i].0 == occs[j].0 {
+                    continue;
+                }
                 edges.push(layers::FederateCrossRepoEdge {
-                    source_repo: occs[i].0.clone(), target_repo: occs[j].0.clone(),
-                    source_node: occs[i].1.clone(), target_node: occs[j].1.clone(),
-                    edge_type: "shared_type".into(), relation: format!("shared_type::{}", type_name),
-                    weight: 0.5, causal_strength: 0.6,
+                    source_repo: occs[i].0.clone(),
+                    target_repo: occs[j].0.clone(),
+                    source_node: occs[i].1.clone(),
+                    target_node: occs[j].1.clone(),
+                    edge_type: "shared_type".into(),
+                    relation: format!("shared_type::{}", type_name),
+                    weight: 0.5,
+                    causal_strength: 0.6,
                 });
             }
         }
@@ -4090,23 +4559,39 @@ fn l7_detect_deployment_dep(
     repo_nodes: &HashMap<String, Vec<(usize, String, String)>>,
     edges: &mut Vec<layers::FederateCrossRepoEdge>,
 ) {
-    let deploy_patterns = ["docker","compose","dockerfile","kubernetes","k8s","ci","deploy"];
+    let deploy_patterns = [
+        "docker",
+        "compose",
+        "dockerfile",
+        "kubernetes",
+        "k8s",
+        "ci",
+        "deploy",
+    ];
     for (repo_a, nodes_a) in repo_nodes {
         for (_idx, ext_id_a, label_a) in nodes_a {
             let ext_lower = ext_id_a.to_lowercase();
-            if !deploy_patterns.iter().any(|p| ext_lower.contains(p)) { continue; }
+            if !deploy_patterns.iter().any(|p| ext_lower.contains(p)) {
+                continue;
+            }
             for (repo_b, nodes_b) in repo_nodes {
-                if repo_a == repo_b { continue; }
+                if repo_a == repo_b {
+                    continue;
+                }
                 let variants = l7_repo_name_variants(repo_b);
                 let text = format!("{} {}", label_a, ext_id_a).to_lowercase();
                 for variant in &variants {
                     if text.contains(variant) {
                         if let Some((_, ext_id_b, _)) = nodes_b.first() {
                             edges.push(layers::FederateCrossRepoEdge {
-                                source_repo: repo_a.clone(), target_repo: repo_b.clone(),
-                                source_node: ext_id_a.clone(), target_node: ext_id_b.clone(),
-                                edge_type: "deployment_dep".into(), relation: format!("deploys::{}", repo_b),
-                                weight: 0.4, causal_strength: 0.5,
+                                source_repo: repo_a.clone(),
+                                target_repo: repo_b.clone(),
+                                source_node: ext_id_a.clone(),
+                                target_node: ext_id_b.clone(),
+                                edge_type: "deployment_dep".into(),
+                                relation: format!("deploys::{}", repo_b),
+                                weight: 0.4,
+                                causal_strength: 0.5,
                             });
                             break;
                         }
@@ -4127,27 +4612,35 @@ fn l7_detect_mcp_contract(
     for (repo, nodes) in repo_nodes {
         for (_idx, ext_id, label) in nodes {
             let text = format!("{} {}", label, ext_id).to_lowercase();
-            if text.contains("mcp") && (text.contains("server") || text.contains("handler") || text.contains("tool")) {
+            if text.contains("mcp")
+                && (text.contains("server") || text.contains("handler") || text.contains("tool"))
+            {
                 mcp_providers.push((repo.clone(), ext_id.clone()));
             }
-            if text.contains("mcp__") || text.contains("mcp_config") || text.contains("mcp-config") {
+            if text.contains("mcp__") || text.contains("mcp_config") || text.contains("mcp-config")
+            {
                 mcp_consumers.push((repo.clone(), ext_id.clone()));
             }
         }
     }
     for (repo_p, ext_p) in &mcp_providers {
         for (repo_c, ext_c) in &mcp_consumers {
-            if repo_p == repo_c { continue; }
+            if repo_p == repo_c {
+                continue;
+            }
             edges.push(layers::FederateCrossRepoEdge {
-                source_repo: repo_c.clone(), target_repo: repo_p.clone(),
-                source_node: ext_c.clone(), target_node: ext_p.clone(),
-                edge_type: "mcp_contract".into(), relation: "uses_mcp_tool".into(),
-                weight: 0.7, causal_strength: 0.8,
+                source_repo: repo_c.clone(),
+                target_repo: repo_p.clone(),
+                source_node: ext_c.clone(),
+                target_node: ext_p.clone(),
+                edge_type: "mcp_contract".into(),
+                relation: "uses_mcp_tool".into(),
+                weight: 0.7,
+                causal_strength: 0.8,
             });
         }
     }
 }
-
 
 // =========================================================================
 // L2 Helper Functions — Semantic Search internals
@@ -4160,7 +4653,9 @@ fn l7_detect_mcp_contract(
 fn l2_seek_tokenize(query: &str) -> Vec<String> {
     query
         .to_lowercase()
-        .split(|c: char| c.is_whitespace() || matches!(c, '?' | '!' | '.' | ',' | ':' | '(' | ')' | '{' | '}'))
+        .split(|c: char| {
+            c.is_whitespace() || matches!(c, '?' | '!' | '.' | ',' | ':' | '(' | ')' | '{' | '}')
+        })
         .filter(|t| t.len() > 1)
         .map(|t| t.to_string())
         .collect()
@@ -4170,7 +4665,9 @@ fn l2_seek_tokenize(query: &str) -> Vec<String> {
 fn l2_split_identifier(ident: &str) -> Vec<String> {
     let mut tokens = Vec::new();
     for part in ident.split('_') {
-        if part.is_empty() { continue; }
+        if part.is_empty() {
+            continue;
+        }
         let mut current = String::new();
         for ch in part.chars() {
             if ch.is_uppercase() && !current.is_empty() {
@@ -4192,16 +4689,22 @@ fn l2_trigram_similarity(a: &str, b: &str) -> f32 {
     let bl = b.to_lowercase();
     let ab = al.as_bytes();
     let bb = bl.as_bytes();
-    if ab.len() < 3 || bb.len() < 3 { return 0.0; }
+    if ab.len() < 3 || bb.len() < 3 {
+        return 0.0;
+    }
 
     let ta: Vec<[u8; 3]> = ab.windows(3).map(|w| [w[0], w[1], w[2]]).collect();
     let tb: Vec<[u8; 3]> = bb.windows(3).map(|w| [w[0], w[1], w[2]]).collect();
 
     let mut hits = 0usize;
     for t in &ta {
-        if tb.contains(t) { hits += 1; }
+        if tb.contains(t) {
+            hits += 1;
+        }
     }
-    if hits == 0 { return 0.0; }
+    if hits == 0 {
+        return 0.0;
+    }
     hits as f32 / ((ta.len() as f32).sqrt() * (tb.len() as f32).sqrt())
 }
 
@@ -4254,59 +4757,124 @@ struct L2ScanPattern {
 const L2_SCAN_PATTERNS: &[L2ScanPattern] = &[
     L2ScanPattern {
         id: "error_handling",
-        label_keywords: &["error", "exception", "panic", "unwrap", "expect", "catch", "raise", "throw"],
+        label_keywords: &[
+            "error",
+            "exception",
+            "panic",
+            "unwrap",
+            "expect",
+            "catch",
+            "raise",
+            "throw",
+        ],
         negation_keywords: &["test_error", "error_test", "mock_error"],
         base_severity: 0.6,
         message_template: "Potential error handling concern: node uses error-related pattern",
     },
     L2ScanPattern {
         id: "resource_cleanup",
-        label_keywords: &["open", "connect", "acquire", "lock", "socket", "file_handle", "cursor", "session"],
+        label_keywords: &[
+            "open",
+            "connect",
+            "acquire",
+            "lock",
+            "socket",
+            "file_handle",
+            "cursor",
+            "session",
+        ],
         negation_keywords: &["close", "release", "cleanup", "dispose", "drop", "__exit__"],
         base_severity: 0.5,
         message_template: "Resource acquisition without visible cleanup in nearby graph structure",
     },
     L2ScanPattern {
         id: "api_surface",
-        label_keywords: &["route", "endpoint", "handler", "api", "router", "view", "controller"],
+        label_keywords: &[
+            "route",
+            "endpoint",
+            "handler",
+            "api",
+            "router",
+            "view",
+            "controller",
+        ],
         negation_keywords: &[],
         base_severity: 0.4,
         message_template: "API surface node -- verify auth, validation, and rate limiting coverage",
     },
     L2ScanPattern {
         id: "state_mutation",
-        label_keywords: &["set_", "update_", "mutate", "write", "delete", "remove", "insert", "push", "pop", "modify"],
+        label_keywords: &[
+            "set_", "update_", "mutate", "write", "delete", "remove", "insert", "push", "pop",
+            "modify",
+        ],
         negation_keywords: &["get_", "read_", "fetch_", "list_"],
         base_severity: 0.5,
-        message_template: "State mutation detected -- verify transaction safety and concurrent access",
+        message_template:
+            "State mutation detected -- verify transaction safety and concurrent access",
     },
     L2ScanPattern {
         id: "concurrency",
-        label_keywords: &["async", "await", "thread", "lock", "mutex", "semaphore", "atomic", "spawn", "pool", "queue"],
+        label_keywords: &[
+            "async",
+            "await",
+            "thread",
+            "lock",
+            "mutex",
+            "semaphore",
+            "atomic",
+            "spawn",
+            "pool",
+            "queue",
+        ],
         negation_keywords: &["test_async", "mock_thread"],
         base_severity: 0.7,
-        message_template: "Concurrency primitive usage -- verify deadlock safety and proper synchronization",
+        message_template:
+            "Concurrency primitive usage -- verify deadlock safety and proper synchronization",
     },
     L2ScanPattern {
         id: "auth_boundary",
-        label_keywords: &["auth", "login", "token", "session", "permission", "credential", "password", "secret", "jwt", "oauth"],
+        label_keywords: &[
+            "auth",
+            "login",
+            "token",
+            "session",
+            "permission",
+            "credential",
+            "password",
+            "secret",
+            "jwt",
+            "oauth",
+        ],
         negation_keywords: &["test_auth", "mock_auth"],
         base_severity: 0.8,
         message_template: "Auth boundary -- verify token validation and access control",
     },
     L2ScanPattern {
         id: "test_coverage",
-        label_keywords: &["test_", "spec_", "_test", "_spec", "assert", "expect", "should"],
+        label_keywords: &[
+            "test_", "spec_", "_test", "_spec", "assert", "expect", "should",
+        ],
         negation_keywords: &[],
         base_severity: 0.3,
         message_template: "Test node -- check coverage completeness for related production code",
     },
     L2ScanPattern {
         id: "dependency_injection",
-        label_keywords: &["inject", "provider", "factory", "registry", "container", "config", "settings", "env"],
+        label_keywords: &[
+            "inject",
+            "provider",
+            "factory",
+            "registry",
+            "container",
+            "config",
+            "settings",
+            "env",
+        ],
         negation_keywords: &[],
         base_severity: 0.4,
-        message_template: "Dependency/config injection point -- verify indirection and override safety",
+        message_template:
+            "Dependency/config injection point -- verify indirection and override safety",
     },
 ];
 
@@ -4326,9 +4894,13 @@ fn l2_graph_validate<'a>(
     node_to_ext: &[String],
 ) -> (&'static str, Vec<layers::ScanContextNode>) {
     let mut context = Vec::new();
-    if !graph.finalized { return ("confirmed", context); }
+    if !graph.finalized {
+        return ("confirmed", context);
+    }
     let idx = node.as_usize();
-    if idx >= n { return ("confirmed", context); }
+    if idx >= n {
+        return ("confirmed", context);
+    }
 
     let mut has_mitigation = false;
 
@@ -4337,9 +4909,14 @@ fn l2_graph_validate<'a>(
     for j in out {
         let target = graph.csr.targets[j];
         let tidx = target.as_usize();
-        if tidx >= n { continue; }
+        if tidx >= n {
+            continue;
+        }
 
-        let target_label = graph.strings.resolve(graph.nodes.label[tidx]).to_lowercase();
+        let target_label = graph
+            .strings
+            .resolve(graph.nodes.label[tidx])
+            .to_lowercase();
         let relation = graph.strings.resolve(graph.csr.relations[j]).to_string();
 
         let target_is_test = target_label.starts_with("test_") || target_label.contains("_test");
@@ -4347,10 +4924,20 @@ fn l2_graph_validate<'a>(
 
         if negates || target_is_test {
             has_mitigation = true;
-            let tid = if !node_to_ext[tidx].is_empty() { node_to_ext[tidx].clone() } else { target_label.clone() };
-            context.push(layers::ScanContextNode { node_id: tid, label: target_label, relation });
+            let tid = if !node_to_ext[tidx].is_empty() {
+                node_to_ext[tidx].clone()
+            } else {
+                target_label.clone()
+            };
+            context.push(layers::ScanContextNode {
+                node_id: tid,
+                label: target_label,
+                relation,
+            });
         }
-        if context.len() >= 3 { break; }
+        if context.len() >= 3 {
+            break;
+        }
     }
 
     // Check incoming edges
@@ -4359,25 +4946,48 @@ fn l2_graph_validate<'a>(
         for j in in_range {
             let source = graph.csr.rev_sources[j];
             let sidx = source.as_usize();
-            if sidx >= n { continue; }
+            if sidx >= n {
+                continue;
+            }
 
-            let source_label = graph.strings.resolve(graph.nodes.label[sidx]).to_lowercase();
+            let source_label = graph
+                .strings
+                .resolve(graph.nodes.label[sidx])
+                .to_lowercase();
             let edge_idx = graph.csr.rev_edge_idx[j];
-            let relation = graph.strings.resolve(graph.csr.relations[edge_idx.as_usize()]).to_string();
+            let relation = graph
+                .strings
+                .resolve(graph.csr.relations[edge_idx.as_usize()])
+                .to_string();
 
-            let source_is_test = source_label.starts_with("test_") || source_label.contains("_test");
+            let source_is_test =
+                source_label.starts_with("test_") || source_label.contains("_test");
             let negates = negation_keywords.iter().any(|nk| source_label.contains(nk));
 
             if negates || source_is_test {
                 has_mitigation = true;
-                let sid = if !node_to_ext[sidx].is_empty() { node_to_ext[sidx].clone() } else { source_label.clone() };
-                context.push(layers::ScanContextNode { node_id: sid, label: source_label, relation });
+                let sid = if !node_to_ext[sidx].is_empty() {
+                    node_to_ext[sidx].clone()
+                } else {
+                    source_label.clone()
+                };
+                context.push(layers::ScanContextNode {
+                    node_id: sid,
+                    label: source_label,
+                    relation,
+                });
             }
-            if context.len() >= 3 { break; }
+            if context.len() >= 3 {
+                break;
+            }
         }
     }
 
-    if has_mitigation { ("mitigated", context) } else { ("confirmed", context) }
+    if has_mitigation {
+        ("mitigated", context)
+    } else {
+        ("confirmed", context)
+    }
 }
 
 // =========================================================================
@@ -4425,52 +5035,125 @@ fn l5_parse_claim(claim: &str) -> L5ParsedClaim {
     let lower = lower.trim();
 
     // NEVER_CALLS
-    if let Some((s, o)) = l5_extract_binary(lower, &[
-        "never calls", "never imports", "does not call", "doesn't call",
-        "never touches", "never invokes", "does not import", "doesn't import",
-        "never uses", "does not use", "doesn't use", "has no connection to",
-    ]) {
-        return L5ParsedClaim { claim_type: L5ClaimType::NeverCalls, subject: s, object: o };
+    if let Some((s, o)) = l5_extract_binary(
+        lower,
+        &[
+            "never calls",
+            "never imports",
+            "does not call",
+            "doesn't call",
+            "never touches",
+            "never invokes",
+            "does not import",
+            "doesn't import",
+            "never uses",
+            "does not use",
+            "doesn't use",
+            "has no connection to",
+        ],
+    ) {
+        return L5ParsedClaim {
+            claim_type: L5ClaimType::NeverCalls,
+            subject: s,
+            object: o,
+        };
     }
     // NO_DEPENDENCY
-    if let Some((s, o)) = l5_extract_binary(lower, &[
-        "is independent of", "has no dependency on", "does not depend on",
-        "doesn't depend on", "is separate from", "is decoupled from",
-    ]) {
-        return L5ParsedClaim { claim_type: L5ClaimType::NoDependency, subject: s, object: o };
+    if let Some((s, o)) = l5_extract_binary(
+        lower,
+        &[
+            "is independent of",
+            "has no dependency on",
+            "does not depend on",
+            "doesn't depend on",
+            "is separate from",
+            "is decoupled from",
+        ],
+    ) {
+        return L5ParsedClaim {
+            claim_type: L5ClaimType::NoDependency,
+            subject: s,
+            object: o,
+        };
     }
     // DEPENDS_ON
-    if let Some((s, o)) = l5_extract_binary(lower, &[
-        "depends on", "requires", "imports", "calls", "uses", "invokes",
-        "references", "relies on",
-    ]) {
-        return L5ParsedClaim { claim_type: L5ClaimType::DependsOn, subject: s, object: o };
+    if let Some((s, o)) = l5_extract_binary(
+        lower,
+        &[
+            "depends on",
+            "requires",
+            "imports",
+            "calls",
+            "uses",
+            "invokes",
+            "references",
+            "relies on",
+        ],
+    ) {
+        return L5ParsedClaim {
+            claim_type: L5ClaimType::DependsOn,
+            subject: s,
+            object: o,
+        };
     }
     // COUPLING
-    if lower.contains("coupled") || lower.contains("tightly connected") || lower.contains("co-change") {
+    if lower.contains("coupled")
+        || lower.contains("tightly connected")
+        || lower.contains("co-change")
+    {
         if let Some((s, o)) = l5_extract_and_pair(lower) {
-            return L5ParsedClaim { claim_type: L5ClaimType::Coupling, subject: s, object: o };
+            return L5ParsedClaim {
+                claim_type: L5ClaimType::Coupling,
+                subject: s,
+                object: o,
+            };
         }
-        if let Some((s, o)) = l5_extract_binary(lower, &[
-            "is coupled to", "is coupled with", "is tightly connected to",
-        ]) {
-            return L5ParsedClaim { claim_type: L5ClaimType::Coupling, subject: s, object: o };
+        if let Some((s, o)) = l5_extract_binary(
+            lower,
+            &[
+                "is coupled to",
+                "is coupled with",
+                "is tightly connected to",
+            ],
+        ) {
+            return L5ParsedClaim {
+                claim_type: L5ClaimType::Coupling,
+                subject: s,
+                object: o,
+            };
         }
     }
     // CIRCULAR
     if lower.contains("circular") || lower.contains("cycle") || lower.contains("cyclic") {
         if let Some((s, o)) = l5_extract_and_pair(lower) {
-            return L5ParsedClaim { claim_type: L5ClaimType::Circular, subject: s, object: o };
+            return L5ParsedClaim {
+                claim_type: L5ClaimType::Circular,
+                subject: s,
+                object: o,
+            };
         }
-        if let Some((s, o)) = l5_extract_binary(lower, &[
-            "has circular dependency with", "has a cycle with", "has cyclic dependency with",
-        ]) {
-            return L5ParsedClaim { claim_type: L5ClaimType::Circular, subject: s, object: o };
+        if let Some((s, o)) = l5_extract_binary(
+            lower,
+            &[
+                "has circular dependency with",
+                "has a cycle with",
+                "has cyclic dependency with",
+            ],
+        ) {
+            return L5ParsedClaim {
+                claim_type: L5ClaimType::Circular,
+                subject: s,
+                object: o,
+            };
         }
         if let Some(pos) = lower.find("between ") {
             let rest = &lower[pos + 8..];
             if let Some((s, o)) = l5_extract_and_pair(rest) {
-                return L5ParsedClaim { claim_type: L5ClaimType::Circular, subject: s, object: o };
+                return L5ParsedClaim {
+                    claim_type: L5ClaimType::Circular,
+                    subject: s,
+                    object: o,
+                };
             }
         }
     }
@@ -4478,26 +5161,46 @@ fn l5_parse_claim(claim: &str) -> L5ParsedClaim {
     if lower.contains("gateway") || lower.contains("bottleneck") || lower.contains("choke point") {
         return L5ParsedClaim {
             claim_type: L5ClaimType::Gateway,
-            subject: l5_extract_unary_subject(lower), object: String::new(),
+            subject: l5_extract_unary_subject(lower),
+            object: String::new(),
         };
     }
-    if let Some((s, o)) = l5_extract_binary(lower, &["go through", "pass through", "route through"]) {
-        return L5ParsedClaim { claim_type: L5ClaimType::Gateway, subject: o, object: s };
+    if let Some((s, o)) = l5_extract_binary(lower, &["go through", "pass through", "route through"])
+    {
+        return L5ParsedClaim {
+            claim_type: L5ClaimType::Gateway,
+            subject: o,
+            object: s,
+        };
     }
     // ALWAYS_BEFORE
-    if let Some((s, o)) = l5_extract_binary(lower, &[
-        "always runs before", "is always called before", "always precedes",
-        "runs before", "precedes", "executes before",
-    ]) {
-        return L5ParsedClaim { claim_type: L5ClaimType::AlwaysBefore, subject: s, object: o };
+    if let Some((s, o)) = l5_extract_binary(
+        lower,
+        &[
+            "always runs before",
+            "is always called before",
+            "always precedes",
+            "runs before",
+            "precedes",
+            "executes before",
+        ],
+    ) {
+        return L5ParsedClaim {
+            claim_type: L5ClaimType::AlwaysBefore,
+            subject: s,
+            object: o,
+        };
     }
     // ISOLATED
-    if lower.contains("isolated") || lower.contains("no dependencies")
-        || lower.contains("standalone") || lower.contains("self-contained")
+    if lower.contains("isolated")
+        || lower.contains("no dependencies")
+        || lower.contains("standalone")
+        || lower.contains("self-contained")
     {
         return L5ParsedClaim {
             claim_type: L5ClaimType::Isolated,
-            subject: l5_extract_unary_subject(lower), object: String::new(),
+            subject: l5_extract_unary_subject(lower),
+            object: String::new(),
         };
     }
 
@@ -4510,7 +5213,11 @@ fn l5_parse_claim(claim: &str) -> L5ParsedClaim {
     } else {
         (claim.to_string(), String::new())
     };
-    L5ParsedClaim { claim_type: L5ClaimType::Unknown, subject: s, object: o }
+    L5ParsedClaim {
+        claim_type: L5ClaimType::Unknown,
+        subject: s,
+        object: o,
+    }
 }
 
 fn l5_extract_binary(text: &str, patterns: &[&str]) -> Option<(String, String)> {
@@ -4529,7 +5236,11 @@ fn l5_extract_binary(text: &str, patterns: &[&str]) -> Option<(String, String)> 
 fn l5_extract_and_pair(text: &str) -> Option<(String, String)> {
     if let Some(pos) = text.find(" and ") {
         let subj = text[..pos].trim();
-        let obj = text[pos + 5..].split_whitespace().next().unwrap_or("").trim();
+        let obj = text[pos + 5..]
+            .split_whitespace()
+            .next()
+            .unwrap_or("")
+            .trim();
         if !subj.is_empty() && !obj.is_empty() {
             return Some((l5_clean(subj), l5_clean(obj)));
         }
@@ -4542,7 +5253,9 @@ fn l5_extract_unary_subject(text: &str) -> String {
     for m in &[" is ", " has ", " are ", " should "] {
         if let Some(pos) = t.find(m) {
             let s = t[..pos].trim();
-            if !s.is_empty() { return l5_clean(s); }
+            if !s.is_empty() {
+                return l5_clean(s);
+            }
         }
     }
     l5_clean(t.split_whitespace().next().unwrap_or(t))
@@ -4550,26 +5263,39 @@ fn l5_extract_unary_subject(text: &str) -> String {
 
 fn l5_clean(name: &str) -> String {
     name.trim_matches(|c: char| c == '"' || c == '\'' || c == '`')
-        .trim_start_matches("the ").trim_start_matches("a ").trim_start_matches("all ")
-        .trim().to_string()
+        .trim_start_matches("the ")
+        .trim_start_matches("a ")
+        .trim_start_matches("all ")
+        .trim()
+        .to_string()
 }
 
 /// Resolve a claim node name to NodeIds. Tries exact, prefixed, then fuzzy.
-fn l5_resolve_claim_nodes(
-    graph: &m1nd_core::graph::Graph,
-    name: &str,
-) -> Vec<NodeId> {
-    if name.is_empty() { return vec![]; }
+fn l5_resolve_claim_nodes(graph: &m1nd_core::graph::Graph, name: &str) -> Vec<NodeId> {
+    if name.is_empty() {
+        return vec![];
+    }
 
-    if let Some(nid) = graph.resolve_id(name) { return vec![nid]; }
+    if let Some(nid) = graph.resolve_id(name) {
+        return vec![nid];
+    }
 
-    for prefix in &["file::", "file::backend/", "file::backend/{}.py", "fn::", "class::", "mod::"] {
+    for prefix in &[
+        "file::",
+        "file::backend/",
+        "file::backend/{}.py",
+        "fn::",
+        "class::",
+        "mod::",
+    ] {
         let try_id = if prefix.contains("{}") {
             prefix.replace("{}", name)
         } else {
             format!("{}{}", prefix, name)
         };
-        if let Some(nid) = graph.resolve_id(&try_id) { return vec![nid]; }
+        if let Some(nid) = graph.resolve_id(&try_id) {
+            return vec![nid];
+        }
     }
 
     match m1nd_core::seed::SeedFinder::find_seeds(graph, name, 3) {
@@ -4583,7 +5309,9 @@ fn l5_build_node_to_ext_map(graph: &m1nd_core::graph::Graph) -> Vec<String> {
     let mut map = vec![String::new(); n];
     for (&interned, &nid) in &graph.id_to_node {
         let idx = nid.as_usize();
-        if idx < n { map[idx] = graph.strings.resolve(interned).to_string(); }
+        if idx < n {
+            map[idx] = graph.strings.resolve(interned).to_string();
+        }
     }
     for i in 0..n {
         if map[i].is_empty() {
@@ -4615,8 +5343,12 @@ fn l5_bfs_path(
     let n = graph.num_nodes() as usize;
     if source == target {
         return L5BfsResult {
-            found: true, path_nodes: vec![node_to_ext[source.as_usize()].clone()],
-            path_rels: vec![], total_weight: 0.0, explored: 0, partial: vec![],
+            found: true,
+            path_nodes: vec![node_to_ext[source.as_usize()].clone()],
+            path_rels: vec![],
+            total_weight: 0.0,
+            explored: 0,
+            partial: vec![],
         };
     }
     let mut parent: Vec<Option<(usize, usize)>> = vec![None; n];
@@ -4630,9 +5362,14 @@ fn l5_bfs_path(
 
     let mut found = false;
     while let Some(node) = queue.pop_front() {
-        if node == target { found = true; break; }
+        if node == target {
+            found = true;
+            break;
+        }
         let d = depth_at[node.as_usize()];
-        if d >= max_hops || explored >= budget { continue; }
+        if d >= max_hops || explored >= budget {
+            continue;
+        }
 
         for j in graph.csr.out_range(node) {
             explored += 1;
@@ -4644,7 +5381,9 @@ fn l5_bfs_path(
                 depth_at[ti] = d + 1;
                 queue.push_back(tgt);
             }
-            if explored >= budget { break; }
+            if explored >= budget {
+                break;
+            }
         }
         for j in graph.csr.in_range(node) {
             explored += 1;
@@ -4657,7 +5396,9 @@ fn l5_bfs_path(
                 depth_at[si] = d + 1;
                 queue.push_back(src);
             }
-            if explored >= budget { break; }
+            if explored >= budget {
+                break;
+            }
         }
     }
 
@@ -4666,38 +5407,67 @@ fn l5_bfs_path(
         let mut ei = Vec::new();
         let mut cur = target.as_usize();
         while let Some((prev, ej)) = parent[cur] {
-            pi.push(prev); ei.push(ej);
+            pi.push(prev);
+            ei.push(ej);
             cur = prev;
-            if cur == source.as_usize() { break; }
+            if cur == source.as_usize() {
+                break;
+            }
         }
-        pi.reverse(); ei.reverse();
+        pi.reverse();
+        ei.reverse();
         let pn: Vec<String> = pi.iter().map(|&i| node_to_ext[i].clone()).collect();
-        let pr: Vec<String> = ei.iter()
-            .map(|&j| graph.strings.resolve(graph.csr.relations[j]).to_string()).collect();
-        let tw: f32 = ei.iter()
-            .map(|&j| graph.csr.read_weight(EdgeIdx::new(j as u32)).get()).sum();
-        L5BfsResult { found: true, path_nodes: pn, path_rels: pr, total_weight: tw, explored, partial: vec![] }
+        let pr: Vec<String> = ei
+            .iter()
+            .map(|&j| graph.strings.resolve(graph.csr.relations[j]).to_string())
+            .collect();
+        let tw: f32 = ei
+            .iter()
+            .map(|&j| graph.csr.read_weight(EdgeIdx::new(j as u32)).get())
+            .sum();
+        L5BfsResult {
+            found: true,
+            path_nodes: pn,
+            path_rels: pr,
+            total_weight: tw,
+            explored,
+            partial: vec![],
+        }
     } else {
-        let mut partial: Vec<layers::PartialReachEntry> = visited.iter().enumerate()
+        let mut partial: Vec<layers::PartialReachEntry> = visited
+            .iter()
+            .enumerate()
             .filter(|(i, &v)| v && *i != source.as_usize())
             .map(|(i, _)| layers::PartialReachEntry {
                 node_id: node_to_ext[i].clone(),
                 label: graph.strings.resolve(graph.nodes.label[i]).to_string(),
                 hops_from_source: depth_at[i] as u8,
                 activation_at_stop: 1.0 / (1.0 + depth_at[i] as f32),
-            }).collect();
+            })
+            .collect();
         partial.sort_by_key(|e| e.hops_from_source);
         partial.truncate(20);
-        L5BfsResult { found: false, path_nodes: vec![], path_rels: vec![], total_weight: 0.0, explored, partial }
+        L5BfsResult {
+            found: false,
+            path_nodes: vec![],
+            path_rels: vec![],
+            total_weight: 0.0,
+            explored,
+            partial,
+        }
     }
 }
 
 fn l5_has_direct_edge(graph: &m1nd_core::graph::Graph, a: NodeId, b: NodeId) -> bool {
     for j in graph.csr.out_range(a) {
-        if graph.csr.targets[j] == b { return true; }
+        if graph.csr.targets[j] == b {
+            return true;
+        }
     }
     for j in graph.csr.out_range(b) {
-        if graph.csr.targets[j] == a { return true; }
+        if graph.csr.targets[j] == a {
+            return true;
+        }
     }
     false
 }
@@ -4712,7 +5482,9 @@ fn l5_bfs_reachable_masked(
     use std::collections::VecDeque;
     let n = graph.num_nodes() as usize;
     let ti = target.as_usize();
-    if ti >= n || mask.is_node_removed(target) { return false; }
+    if ti >= n || mask.is_node_removed(target) {
+        return false;
+    }
 
     // BFS backwards from target
     let mut visited = vec![false; n];
@@ -4721,7 +5493,9 @@ fn l5_bfs_reachable_masked(
     queue.push_back((target, 0usize));
 
     while let Some((node, depth)) = queue.pop_front() {
-        if depth >= max_hops { continue; }
+        if depth >= max_hops {
+            continue;
+        }
         for j in graph.csr.in_range(node) {
             let src = graph.csr.rev_sources[j];
             let si = src.as_usize();
@@ -4732,7 +5506,10 @@ fn l5_bfs_reachable_masked(
             }
         }
     }
-    visited.iter().enumerate().any(|(i, &v)| v && i != ti && !mask.is_node_removed(NodeId::new(i as u32)))
+    visited
+        .iter()
+        .enumerate()
+        .any(|(i, &v)| v && i != ti && !mask.is_node_removed(NodeId::new(i as u32)))
 }
 
 fn l5_bayesian_confidence(
@@ -4740,8 +5517,12 @@ fn l5_bayesian_confidence(
     contradicting: &[layers::HypothesisEvidence],
 ) -> f32 {
     let mut odds = 1.0f32;
-    for ev in supporting { odds *= ev.likelihood_factor; }
-    for ev in contradicting { odds *= ev.likelihood_factor; }
+    for ev in supporting {
+        odds *= ev.likelihood_factor;
+    }
+    for ev in contradicting {
+        odds *= ev.likelihood_factor;
+    }
     (odds / (1.0 + odds)).max(0.01).min(0.99)
 }
 
@@ -4772,7 +5553,11 @@ fn l5_load_snapshot_or_current(
             } else {
                 Err(M1ndError::Io(std::io::Error::new(
                     std::io::ErrorKind::NotFound,
-                    format!("Snapshot not found: {} (tried {})", snapshot_ref, resolved.display()),
+                    format!(
+                        "Snapshot not found: {} (tried {})",
+                        snapshot_ref,
+                        resolved.display()
+                    ),
                 )))
             }
         }
@@ -4780,7 +5565,9 @@ fn l5_load_snapshot_or_current(
 }
 
 fn l5_collect_ext_ids(graph: &m1nd_core::graph::Graph) -> std::collections::HashSet<String> {
-    graph.id_to_node.keys()
+    graph
+        .id_to_node
+        .keys()
         .map(|&i| graph.strings.resolve(i).to_string())
         .collect()
 }
@@ -4823,8 +5610,11 @@ fn l5_coupling_deltas(
             let delta = new - old;
             if delta.abs() > 0.01 {
                 deltas.push(layers::DiffCouplingDelta {
-                    community_a: la.clone(), community_b: lb.clone(),
-                    old_coupling: old, new_coupling: new, delta,
+                    community_a: la.clone(),
+                    community_b: lb.clone(),
+                    old_coupling: old,
+                    new_coupling: new,
+                    delta,
                 });
             }
         }
@@ -4851,9 +5641,19 @@ fn l5_inter_community_coupling(
             }
         }
     }
-    total.iter().map(|(&c, &t)| {
-        (c, if t > 0 { cross.get(&c).copied().unwrap_or(0) as f32 / t as f32 } else { 0.0 })
-    }).collect()
+    total
+        .iter()
+        .map(|(&c, &t)| {
+            (
+                c,
+                if t > 0 {
+                    cross.get(&c).copied().unwrap_or(0) as f32 / t as f32
+                } else {
+                    0.0
+                },
+            )
+        })
+        .collect()
 }
 
 fn l5_community_nodes(
@@ -4877,10 +5677,18 @@ fn l5_map_communities(
         let mut best = (0, 0u32);
         for (&cbid, cb_nodes) in b {
             let overlap = ca_nodes.intersection(cb_nodes).count();
-            if overlap > best.0 { best = (overlap, cbid); }
+            if overlap > best.0 {
+                best = (overlap, cbid);
+            }
         }
         if best.0 > 0 {
-            out.push(((caid, best.1), (format!("community_{}", caid), format!("community_{}", best.1))));
+            out.push((
+                (caid, best.1),
+                (
+                    format!("community_{}", caid),
+                    format!("community_{}", best.1),
+                ),
+            ));
         }
     }
     out
@@ -4890,7 +5698,7 @@ fn l5_build_focus_set(
     graph: &m1nd_core::graph::Graph,
     focus_nodes: &[String],
 ) -> std::collections::HashSet<String> {
-    use std::collections::{VecDeque, HashSet};
+    use std::collections::{HashSet, VecDeque};
     let ext = l5_build_node_to_ext_map(graph);
     let mut focus = HashSet::new();
     for name in focus_nodes {
@@ -4901,14 +5709,22 @@ fn l5_build_focus_set(
             q.push_back((nid, 0usize));
             while let Some((node, depth)) = q.pop_front() {
                 focus.insert(ext[node.as_usize()].clone());
-                if depth >= 2 { continue; }
+                if depth >= 2 {
+                    continue;
+                }
                 for j in graph.csr.out_range(node) {
                     let t = graph.csr.targets[j].as_usize();
-                    if t < vis.len() && !vis[t] { vis[t] = true; q.push_back((graph.csr.targets[j], depth + 1)); }
+                    if t < vis.len() && !vis[t] {
+                        vis[t] = true;
+                        q.push_back((graph.csr.targets[j], depth + 1));
+                    }
                 }
                 for j in graph.csr.in_range(node) {
                     let s = graph.csr.rev_sources[j].as_usize();
-                    if s < vis.len() && !vis[s] { vis[s] = true; q.push_back((graph.csr.rev_sources[j], depth + 1)); }
+                    if s < vis.len() && !vis[s] {
+                        vis[s] = true;
+                        q.push_back((graph.csr.rev_sources[j], depth + 1));
+                    }
                 }
             }
         }
@@ -4917,10 +5733,13 @@ fn l5_build_focus_set(
 }
 
 fn l5_extract_keywords(question: &str) -> Vec<String> {
-    let stop = ["what","which","how","why","when","where","is","are","was","were",
-        "the","a","an","and","or","not","new","old","between","from","to","in","of",
-        "has","have","been","did","does","do","that","this","with","for","modules","became"];
-    question.to_lowercase()
+    let stop = [
+        "what", "which", "how", "why", "when", "where", "is", "are", "was", "were", "the", "a",
+        "an", "and", "or", "not", "new", "old", "between", "from", "to", "in", "of", "has", "have",
+        "been", "did", "does", "do", "that", "this", "with", "for", "modules", "became",
+    ];
+    question
+        .to_lowercase()
         .split(|c: char| !c.is_alphanumeric() && c != '_')
         .filter(|w| w.len() > 2 && !stop.contains(w))
         .map(|w| w.to_string())

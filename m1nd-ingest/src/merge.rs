@@ -50,7 +50,11 @@ fn canonical_edge_key(
             source: source.to_string(),
             target: target.to_string(),
             relation: relation.to_string(),
-            direction: if direction == EdgeDirection::Bidirectional { 1 } else { 0 },
+            direction: if direction == EdgeDirection::Bidirectional {
+                1
+            } else {
+                0
+            },
             inhibitory,
         }
     }
@@ -79,7 +83,10 @@ fn collect_edges(graph: &Graph) -> Vec<EdgeRecord> {
                 continue;
             }
 
-            let relation = graph.strings.resolve(graph.csr.relations[edge_idx]).to_string();
+            let relation = graph
+                .strings
+                .resolve(graph.csr.relations[edge_idx])
+                .to_string();
             out.push(EdgeRecord {
                 key: canonical_edge_key(
                     &node_ids[src],
@@ -173,7 +180,10 @@ pub fn merge_graphs(base: &Graph, overlay: &Graph) -> M1ndResult<Graph> {
     }
 
     let mut edge_records: HashMap<EdgeKey, EdgeRecord> = HashMap::new();
-    for record in collect_edges(base).into_iter().chain(collect_edges(overlay)) {
+    for record in collect_edges(base)
+        .into_iter()
+        .chain(collect_edges(overlay))
+    {
         edge_records
             .entry(record.key.clone())
             .and_modify(|existing| {
@@ -217,10 +227,24 @@ mod tests {
     fn merge_graphs_preserves_base_and_overlay_nodes() {
         let mut base = Graph::with_capacity(2, 1);
         let a = base
-            .add_node("file::alpha.rs", "alpha.rs", NodeType::File, &["code"], 10.0, 0.3)
+            .add_node(
+                "file::alpha.rs",
+                "alpha.rs",
+                NodeType::File,
+                &["code"],
+                10.0,
+                0.3,
+            )
             .unwrap();
         let b = base
-            .add_node("file::beta.rs", "beta.rs", NodeType::File, &["code"], 20.0, 0.3)
+            .add_node(
+                "file::beta.rs",
+                "beta.rs",
+                NodeType::File,
+                &["code"],
+                20.0,
+                0.3,
+            )
             .unwrap();
         base.add_edge(
             a,
@@ -271,7 +295,9 @@ mod tests {
         let merged = merge_graphs(&base, &overlay).unwrap();
 
         assert!(merged.resolve_id("file::alpha.rs").is_some());
-        assert!(merged.resolve_id("memory::memory::entry::batman-mode").is_some());
+        assert!(merged
+            .resolve_id("memory::memory::entry::batman-mode")
+            .is_some());
         assert!(merged.num_edges() >= 2);
     }
 }

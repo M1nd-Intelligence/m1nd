@@ -1,7 +1,7 @@
 // === crates/m1nd-core/src/temporal.rs ===
 
-use std::collections::{BinaryHeap, HashMap, VecDeque};
 use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap, VecDeque};
 
 use crate::domain::DomainConfig;
 use crate::error::{M1ndError, M1ndResult};
@@ -146,10 +146,7 @@ impl CoChangeMatrix {
         }
 
         // Check if entry already exists
-        if let Some(entry) = self.rows[src_idx]
-            .iter_mut()
-            .find(|e| e.target == target)
-        {
+        if let Some(entry) = self.rows[src_idx].iter_mut().find(|e| e.target == target) {
             // Strengthen existing
             entry.strength = FiniteF32::new((entry.strength.get() + 0.1).min(1.0));
             self.is_learned = true;
@@ -158,7 +155,9 @@ impl CoChangeMatrix {
 
         // Budget check
         if self.total_entries >= self.budget {
-            return Err(M1ndError::MatrixBudgetExhausted { budget: self.budget });
+            return Err(M1ndError::MatrixBudgetExhausted {
+                budget: self.budget,
+            });
         }
 
         // Row capacity check
@@ -189,11 +188,7 @@ impl CoChangeMatrix {
 
     /// Predict co-change partners for a changed node, sorted by coupling strength.
     /// Replaces: temporal_v2.py CoChangeMatrix.predict()
-    pub fn predict(
-        &self,
-        changed_node: NodeId,
-        top_k: usize,
-    ) -> Vec<CoChangeEntry> {
+    pub fn predict(&self, changed_node: NodeId, top_k: usize) -> Vec<CoChangeEntry> {
         let idx = changed_node.as_usize();
         if idx >= self.rows.len() {
             return Vec::new();
@@ -270,14 +265,20 @@ struct ChainEntry {
 }
 
 impl PartialEq for ChainEntry {
-    fn eq(&self, other: &Self) -> bool { self.cumulative == other.cumulative }
+    fn eq(&self, other: &Self) -> bool {
+        self.cumulative == other.cumulative
+    }
 }
 impl Eq for ChainEntry {}
 impl PartialOrd for ChainEntry {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { Some(self.cmp(other)) }
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
 }
 impl Ord for ChainEntry {
-    fn cmp(&self, other: &Self) -> Ordering { self.cumulative.total_cmp(&other.cumulative) }
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.cumulative.total_cmp(&other.cumulative)
+    }
 }
 
 /// Causal chain detector. DFS along forward causal edges with budget.
@@ -307,11 +308,7 @@ impl CausalChainDetector {
 
     /// Detect causal chains from a source node. Budget-limited priority queue (DEC-016, FM-TMP-005).
     /// Replaces: temporal_v2.py CausalChainDetector.detect()
-    pub fn detect(
-        &self,
-        graph: &Graph,
-        source: NodeId,
-    ) -> M1ndResult<Vec<CausalChain>> {
+    pub fn detect(&self, graph: &Graph, source: NodeId) -> M1ndResult<Vec<CausalChain>> {
         let n = graph.num_nodes() as usize;
         if source.as_usize() >= n {
             return Ok(Vec::new());
@@ -424,12 +421,12 @@ impl TemporalDecayScorer {
     /// Per-NodeType half-life in hours. Structural nodes decay slower.
     fn k_for_type(node_type: NodeType) -> f32 {
         let half_life = match node_type {
-            NodeType::File => 168.0,          // 7 days — active dev artifact
-            NodeType::Function => 336.0,      // 14 days
+            NodeType::File => 168.0,     // 7 days — active dev artifact
+            NodeType::Function => 336.0, // 14 days
             NodeType::Class | NodeType::Struct | NodeType::Enum => 504.0, // 21 days
             NodeType::Module | NodeType::Directory => 720.0, // 30 days — stable structure
-            NodeType::Type => 504.0,          // 21 days
-            _ => 168.0,                       // default 7 days
+            NodeType::Type => 504.0,     // 21 days
+            _ => 168.0,                  // default 7 days
         };
         LN2 / half_life
     }
@@ -456,7 +453,13 @@ impl TemporalDecayScorer {
         last_dormancy_hours: Option<f64>,
         node_type: Option<NodeType>,
     ) -> DecayScore {
-        self.score_one_with_domain(age_hours, change_frequency, last_dormancy_hours, node_type, None)
+        self.score_one_with_domain(
+            age_hours,
+            change_frequency,
+            last_dormancy_hours,
+            node_type,
+            None,
+        )
     }
 
     /// Score with NodeType-specific half-life and optional DomainConfig override.
@@ -486,8 +489,10 @@ impl TemporalDecayScorer {
         // DEC-004: resurrection with additive floor
         let (resurrection, final_score) = match last_dormancy_hours {
             Some(dormancy) if dormancy > DORMANT_HOURS => {
-                let dormancy_depth = (dormancy / (RESURRECTION_DORMANCY_THRESHOLD_DAYS as f64 * 24.0)) as f32;
-                let res = RESURRECTION_BASE_FLOOR + RESURRECTION_DEPTH_SCALE * (dormancy_depth + 1.0).ln();
+                let dormancy_depth =
+                    (dormancy / (RESURRECTION_DORMANCY_THRESHOLD_DAYS as f64 * 24.0)) as f32;
+                let res = RESURRECTION_BASE_FLOOR
+                    + RESURRECTION_DEPTH_SCALE * (dormancy_depth + 1.0).ln();
                 let res_clamped = res.max(0.0).min(1.0);
                 let final_val = raw.max(res_clamped);
                 (FiniteF32::new(res_clamped), FiniteF32::new(final_val))
@@ -505,11 +510,7 @@ impl TemporalDecayScorer {
 
     /// Score all nodes in the graph with per-NodeType half-lives.
     /// Replaces: temporal_v2.py TemporalDecayResurrection.score()
-    pub fn score_all(
-        &self,
-        graph: &Graph,
-        now_unix: f64,
-    ) -> M1ndResult<Vec<DecayScore>> {
+    pub fn score_all(&self, graph: &Graph, now_unix: f64) -> M1ndResult<Vec<DecayScore>> {
         self.score_all_with_domain(graph, now_unix, None)
     }
 
@@ -657,7 +658,11 @@ impl VelocityScorer {
     }
 
     /// Score all nodes using cached stats. Prefer this when scorer is reused.
-    pub fn score_all_cached(&mut self, graph: &Graph, _now_unix: f64) -> M1ndResult<Vec<VelocityScore>> {
+    pub fn score_all_cached(
+        &mut self,
+        graph: &Graph,
+        _now_unix: f64,
+    ) -> M1ndResult<Vec<VelocityScore>> {
         let n = graph.num_nodes() as usize;
         let (mean, stddev) = self.frequency_stats(graph);
         let mut scores = Vec::new();
@@ -686,15 +691,15 @@ impl VelocityScorer {
     }
 
     /// Score a single node using z-score.
-    pub fn score_one(
-        graph: &Graph,
-        node: NodeId,
-        _now_unix: f64,
-    ) -> M1ndResult<VelocityScore> {
+    pub fn score_one(graph: &Graph, node: NodeId, _now_unix: f64) -> M1ndResult<VelocityScore> {
         let idx = node.as_usize();
         let n = graph.num_nodes() as usize;
         let (mean, stddev) = Self::frequency_stats_static(graph);
-        let freq = if idx < n { graph.nodes.change_frequency[idx].get() } else { 0.0 };
+        let freq = if idx < n {
+            graph.nodes.change_frequency[idx].get()
+        } else {
+            0.0
+        };
         let z = (freq - mean) / stddev;
         let trend = if z > 0.5 {
             VelocityTrend::Accelerating
@@ -751,7 +756,10 @@ pub struct ImpactRadiusCalculator {
 
 impl ImpactRadiusCalculator {
     pub fn new(max_hops: u8, min_signal: FiniteF32) -> Self {
-        Self { max_hops, min_signal }
+        Self {
+            max_hops,
+            min_signal,
+        }
     }
 
     /// Compute impact radius from source. Direction: forward, reverse, or both.
@@ -882,9 +890,7 @@ impl TemporalEngine {
     pub fn build(graph: &Graph) -> M1ndResult<Self> {
         let co_change = CoChangeMatrix::bootstrap(graph, DEFAULT_MATRIX_BUDGET)?;
         let chain_detector = CausalChainDetector::with_defaults();
-        let decay_scorer = TemporalDecayScorer::new(
-            PosF32::new(DEFAULT_HALF_LIFE_HOURS).unwrap()
-        );
+        let decay_scorer = TemporalDecayScorer::new(PosF32::new(DEFAULT_HALF_LIFE_HOURS).unwrap());
         let impact_calculator = ImpactRadiusCalculator::new(5, FiniteF32::new(0.01));
 
         Ok(Self {
@@ -902,7 +908,8 @@ impl TemporalEngine {
         graph: &Graph,
         commit_groups: &[Vec<String>],
     ) -> M1ndResult<()> {
-        self.co_change.populate_from_commit_groups(graph, commit_groups)
+        self.co_change
+            .populate_from_commit_groups(graph, commit_groups)
     }
 
     /// Full temporal report for a node: co-change predictions + causal chains
@@ -919,15 +926,29 @@ impl TemporalEngine {
 
         let idx = node.as_usize();
         let n = graph.num_nodes() as usize;
-        let last_mod = if idx < n { graph.nodes.last_modified[idx] } else { 0.0 };
+        let last_mod = if idx < n {
+            graph.nodes.last_modified[idx]
+        } else {
+            0.0
+        };
         let age_hours = (now_unix - last_mod) / 3600.0;
-        let freq = if idx < n { graph.nodes.change_frequency[idx] } else { FiniteF32::ZERO };
-        let nt = if idx < n { Some(graph.nodes.node_type[idx]) } else { None };
+        let freq = if idx < n {
+            graph.nodes.change_frequency[idx]
+        } else {
+            FiniteF32::ZERO
+        };
+        let nt = if idx < n {
+            Some(graph.nodes.node_type[idx])
+        } else {
+            None
+        };
         let mut decay = self.decay_scorer.score_one_typed(age_hours, freq, None, nt);
         decay.node = node;
 
         let velocity = VelocityScorer::score_one(graph, node, now_unix)?;
-        let impact = self.impact_calculator.compute(graph, node, ImpactDirection::Both)?;
+        let impact = self
+            .impact_calculator
+            .compute(graph, node, ImpactDirection::Both)?;
 
         Ok(TemporalReport {
             node,

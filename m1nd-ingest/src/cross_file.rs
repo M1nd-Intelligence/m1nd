@@ -118,7 +118,9 @@ impl PythonModuleIndex {
                     // Use entry API: first registration wins.
                     // In flat layouts with a single source dir, this ensures
                     // `config` -> `backend/config.py` is deterministic.
-                    module_to_file.entry(bare.to_string()).or_insert_with(|| ext_id.clone());
+                    module_to_file
+                        .entry(bare.to_string())
+                        .or_insert_with(|| ext_id.clone());
                 }
             }
         }
@@ -178,10 +180,7 @@ impl PythonModuleIndex {
 /// 3. **registers** — from include_router() patterns in source files
 ///
 /// All edges are Forward direction with appropriate causal strengths.
-pub fn resolve_cross_file_edges(
-    graph: &mut Graph,
-    root: &Path,
-) -> M1ndResult<CrossFileStats> {
+pub fn resolve_cross_file_edges(graph: &mut Graph, root: &Path) -> M1ndResult<CrossFileStats> {
     let mut stats = CrossFileStats::default();
 
     // Step 1: Build the module index from file nodes already in the graph.
@@ -249,15 +248,49 @@ fn collect_import_edges_from_files(
 
     // Skip list: imports that should not generate cross-file edges
     let skip_modules: &[&str] = &[
-        "__future__", "typing", "typing_extensions",
-        "abc", "collections", "dataclasses", "enum", "functools",
-        "os", "sys", "io", "re", "json", "time", "datetime",
-        "pathlib", "logging", "asyncio", "contextlib", "traceback",
-        "uuid", "hashlib", "base64", "copy", "math", "random",
-        "subprocess", "shutil", "tempfile", "signal", "socket",
-        "urllib", "http", "ssl", "inspect", "importlib",
-        "threading", "multiprocessing", "concurrent",
-        "unittest", "pytest", "textwrap", "string",
+        "__future__",
+        "typing",
+        "typing_extensions",
+        "abc",
+        "collections",
+        "dataclasses",
+        "enum",
+        "functools",
+        "os",
+        "sys",
+        "io",
+        "re",
+        "json",
+        "time",
+        "datetime",
+        "pathlib",
+        "logging",
+        "asyncio",
+        "contextlib",
+        "traceback",
+        "uuid",
+        "hashlib",
+        "base64",
+        "copy",
+        "math",
+        "random",
+        "subprocess",
+        "shutil",
+        "tempfile",
+        "signal",
+        "socket",
+        "urllib",
+        "http",
+        "ssl",
+        "inspect",
+        "importlib",
+        "threading",
+        "multiprocessing",
+        "concurrent",
+        "unittest",
+        "pytest",
+        "textwrap",
+        "string",
     ];
 
     for i in 0..graph.num_nodes() as usize {
@@ -337,10 +370,7 @@ fn collect_import_edges_from_files(
 ///   `backend/tests/test_X.py` -> `backend/X.py`
 ///
 /// Returns Vec<(test_file_id, source_file_id)>.
-fn infer_test_edges(
-    graph: &Graph,
-    module_index: &PythonModuleIndex,
-) -> Vec<(String, String)> {
+fn infer_test_edges(graph: &Graph, module_index: &PythonModuleIndex) -> Vec<(String, String)> {
     let mut edges = Vec::new();
 
     for i in 0..graph.num_nodes() as usize {
@@ -400,9 +430,8 @@ fn detect_route_registrations(
 ) -> Vec<(String, String)> {
     // Match: app.include_router(module_name.router)
     // Captures the module name before the dot
-    let re_include_router = Regex::new(
-        r"(?:app|router)\s*\.\s*include_router\s*\(\s*(\w+)\s*\."
-    ).unwrap();
+    let re_include_router =
+        Regex::new(r"(?:app|router)\s*\.\s*include_router\s*\(\s*(\w+)\s*\.").unwrap();
 
     let mut edges = Vec::new();
     let mut seen: HashMap<(String, String), bool> = HashMap::new();
@@ -530,14 +559,9 @@ mod tests {
     fn add_file_node(graph: &mut Graph, rel_path: &str) -> NodeId {
         let ext_id = format!("file::{}", rel_path);
         let label = rel_path.rsplit('/').next().unwrap_or(rel_path);
-        graph.add_node(
-            &ext_id,
-            label,
-            NodeType::File,
-            &["python"],
-            0.0,
-            0.3,
-        ).unwrap()
+        graph
+            .add_node(&ext_id, label, NodeType::File, &["python"], 0.0, 0.3)
+            .unwrap()
     }
 
     // -----------------------------------------------------------------------
@@ -577,10 +601,7 @@ mod tests {
             Some("file::backend/config.py"),
             "Bare module name should resolve in flat layout"
         );
-        assert_eq!(
-            index.resolve("worker"),
-            Some("file::backend/worker.py"),
-        );
+        assert_eq!(index.resolve("worker"), Some("file::backend/worker.py"),);
     }
 
     #[test]
@@ -628,7 +649,11 @@ mod tests {
 
         assert_eq!(index.resolve("os"), None, "stdlib should not resolve");
         assert_eq!(index.resolve("json"), None, "stdlib should not resolve");
-        assert_eq!(index.resolve("fastapi"), None, "third-party should not resolve");
+        assert_eq!(
+            index.resolve("fastapi"),
+            None,
+            "third-party should not resolve"
+        );
     }
 
     #[test]
@@ -640,14 +665,8 @@ mod tests {
         let index = PythonModuleIndex::build(&graph);
 
         // Root-level files: dotted path equals bare name
-        assert_eq!(
-            index.resolve("main"),
-            Some("file::main.py"),
-        );
-        assert_eq!(
-            index.resolve("config"),
-            Some("file::config.py"),
-        );
+        assert_eq!(index.resolve("main"), Some("file::main.py"),);
+        assert_eq!(index.resolve("config"), Some("file::config.py"),);
     }
 
     // -----------------------------------------------------------------------
@@ -668,16 +687,23 @@ mod tests {
 
         // Should find test_config -> config and test_doctor -> doctor
         assert!(
-            edges.iter().any(|(t, s)| t.contains("test_config") && s.contains("config.py") && !s.contains("test_")),
-            "test_config.py should map to config.py. Edges: {:?}", edges
+            edges.iter().any(|(t, s)| t.contains("test_config")
+                && s.contains("config.py")
+                && !s.contains("test_")),
+            "test_config.py should map to config.py. Edges: {:?}",
+            edges
         );
         assert!(
-            edges.iter().any(|(t, s)| t.contains("test_doctor") && s.contains("doctor.py") && !s.contains("test_")),
+            edges.iter().any(|(t, s)| t.contains("test_doctor")
+                && s.contains("doctor.py")
+                && !s.contains("test_")),
             "test_doctor.py should map to doctor.py"
         );
         // test_e2e_integration.py should NOT match anything
         assert!(
-            !edges.iter().any(|(t, _)| t.contains("test_e2e_integration")),
+            !edges
+                .iter()
+                .any(|(t, _)| t.contains("test_e2e_integration")),
             "Integration test with no matching module should not create edge"
         );
     }
@@ -743,7 +769,13 @@ mod tests {
         let mut stats = CrossFileStats::default();
 
         // imports edge
-        add_cross_file_edge(&mut graph, "file::a.py", "file::b.py", "imports", &mut stats);
+        add_cross_file_edge(
+            &mut graph,
+            "file::a.py",
+            "file::b.py",
+            "imports",
+            &mut stats,
+        );
         let import_edge = &graph.csr.pending_edges[0];
         assert!((import_edge.weight.get() - 0.6).abs() < f32::EPSILON);
 
@@ -753,7 +785,13 @@ mod tests {
         assert!((test_edge.weight.get() - 0.5).abs() < f32::EPSILON);
 
         // registers edge
-        add_cross_file_edge(&mut graph, "file::b.py", "file::c.py", "registers", &mut stats);
+        add_cross_file_edge(
+            &mut graph,
+            "file::b.py",
+            "file::c.py",
+            "registers",
+            &mut stats,
+        );
         let reg_edge = &graph.csr.pending_edges[2];
         assert!((reg_edge.weight.get() - 0.7).abs() < f32::EPSILON);
     }

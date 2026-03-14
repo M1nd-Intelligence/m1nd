@@ -1,9 +1,12 @@
 // === crates/m1nd-ingest/src/extract/python.rs ===
 
+use super::{
+    strip_comments_and_strings, CommentSyntax, ExtractedEdge, ExtractedNode, ExtractionResult,
+    Extractor,
+};
 use m1nd_core::error::M1ndResult;
 use m1nd_core::types::NodeType;
 use regex::Regex;
-use super::{Extractor, ExtractionResult, ExtractedNode, ExtractedEdge, CommentSyntax, strip_comments_and_strings};
 
 /// Python extractor using regex.
 /// FM-ING-009 fix: patterns allow leading whitespace (captures indented defs).
@@ -13,11 +16,11 @@ pub struct PythonExtractor {
     re_class: Regex,
     re_import: Regex,
     re_from_import: Regex,
-    re_from_import_names: Regex,  // from X import A, B, C
-    re_type_hint: Regex,          // Type hints: -> Type, : Type
-    re_class_inherit: Regex,      // class Foo(Bar, Baz):
-    re_decorator: Regex,          // @decorator_name (Task #3)
-    re_method_call: Regex,        // receiver.method() calls (Task #7)
+    re_from_import_names: Regex, // from X import A, B, C
+    re_type_hint: Regex,         // Type hints: -> Type, : Type
+    re_class_inherit: Regex,     // class Foo(Bar, Baz):
+    re_decorator: Regex,         // @decorator_name (Task #3)
+    re_method_call: Regex,       // receiver.method() calls (Task #7)
 }
 
 impl PythonExtractor {
@@ -40,7 +43,9 @@ impl PythonExtractor {
 }
 
 impl Default for PythonExtractor {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Extractor for PythonExtractor {
@@ -211,13 +216,24 @@ impl Extractor for PythonExtractor {
 
             // Type hints: : TypeName, -> TypeName
             // Also: method calls (Task #7)
-            if !line.trim_start().starts_with("import") && !line.trim_start().starts_with("from")
-            {
+            if !line.trim_start().starts_with("import") && !line.trim_start().starts_with("from") {
                 for caps in self.re_type_hint.captures_iter(line) {
                     let type_name = caps.get(1).unwrap().as_str();
-                    if !matches!(type_name, "None" | "True" | "False" | "Any" | "Optional"
-                        | "List" | "Dict" | "Tuple" | "Set" | "Union" | "Type" | "Callable")
-                    {
+                    if !matches!(
+                        type_name,
+                        "None"
+                            | "True"
+                            | "False"
+                            | "Any"
+                            | "Optional"
+                            | "List"
+                            | "Dict"
+                            | "Tuple"
+                            | "Set"
+                            | "Union"
+                            | "Type"
+                            | "Callable"
+                    ) {
                         let ref_id = format!("ref::{}", type_name);
                         if !unresolved_refs.contains(&ref_id) {
                             edges.push(ExtractedEdge {
@@ -244,11 +260,12 @@ impl Extractor for PythonExtractor {
                             continue;
                         }
                         // If receiver starts with uppercase, it's likely a type call: Type.method(
-                        let ref_target = if receiver.chars().next().map_or(false, |c| c.is_uppercase()) {
-                            format!("ref::{}", receiver)
-                        } else {
-                            format!("ref::{}", method)
-                        };
+                        let ref_target =
+                            if receiver.chars().next().map_or(false, |c| c.is_uppercase()) {
+                                format!("ref::{}", receiver)
+                            } else {
+                                format!("ref::{}", method)
+                            };
                         if !unresolved_refs.contains(&ref_target) {
                             edges.push(ExtractedEdge {
                                 source: file_id.to_string(),
@@ -263,7 +280,11 @@ impl Extractor for PythonExtractor {
             }
         }
 
-        Ok(ExtractionResult { nodes, edges, unresolved_refs })
+        Ok(ExtractionResult {
+            nodes,
+            edges,
+            unresolved_refs,
+        })
     }
 
     fn extensions(&self) -> &[&str] {

@@ -1,9 +1,12 @@
 // === crates/m1nd-ingest/src/extract/typescript.rs ===
 
+use super::{
+    strip_comments_and_strings, CommentSyntax, ExtractedEdge, ExtractedNode, ExtractionResult,
+    Extractor,
+};
 use m1nd_core::error::M1ndResult;
 use m1nd_core::types::NodeType;
 use regex::Regex;
-use super::{Extractor, ExtractionResult, ExtractedNode, ExtractedEdge, CommentSyntax, strip_comments_and_strings};
 
 /// TypeScript/JavaScript extractor using regex.
 /// Replaces: ingest.py TypeScriptExtractor
@@ -13,8 +16,8 @@ pub struct TypeScriptExtractor {
     re_interface: Regex,
     re_import: Regex,
     re_arrow: Regex,
-    re_import_names: Regex,  // Extract named imports: import { A, B } from ...
-    re_type_ref: Regex,      // TypeScript type references
+    re_import_names: Regex, // Extract named imports: import { A, B } from ...
+    re_type_ref: Regex,     // TypeScript type references
 }
 
 impl TypeScriptExtractor {
@@ -32,7 +35,9 @@ impl TypeScriptExtractor {
 }
 
 impl Default for TypeScriptExtractor {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Extractor for TypeScriptExtractor {
@@ -64,11 +69,14 @@ impl Extractor for TypeScriptExtractor {
                     label: name.to_string(),
                     node_type: NodeType::Class,
                     tags: vec!["typescript".into()],
-                    line: ln, end_line: ln,
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_interface.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
@@ -78,11 +86,14 @@ impl Extractor for TypeScriptExtractor {
                     label: name.to_string(),
                     node_type: NodeType::Type,
                     tags: vec!["typescript".into(), "interface".into()],
-                    line: ln, end_line: ln,
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_func.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
@@ -92,11 +103,14 @@ impl Extractor for TypeScriptExtractor {
                     label: name.to_string(),
                     node_type: NodeType::Function,
                     tags: vec!["typescript".into()],
-                    line: ln, end_line: ln,
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_arrow.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
@@ -106,11 +120,14 @@ impl Extractor for TypeScriptExtractor {
                     label: name.to_string(),
                     node_type: NodeType::Function,
                     tags: vec!["typescript".into(), "arrow".into()],
-                    line: ln, end_line: ln,
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             }
 
@@ -118,8 +135,10 @@ impl Extractor for TypeScriptExtractor {
                 let module = caps.get(1).unwrap().as_str();
                 let ref_id = format!("ref::{}", module);
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: ref_id.clone(),
-                    relation: "imports".into(), weight: 0.5,
+                    source: file_id.to_string(),
+                    target: ref_id.clone(),
+                    relation: "imports".into(),
+                    weight: 0.5,
                 });
                 unresolved_refs.push(ref_id);
 
@@ -132,8 +151,10 @@ impl Extractor for TypeScriptExtractor {
                             let ref_id = format!("ref::{}", name);
                             if !unresolved_refs.contains(&ref_id) {
                                 edges.push(ExtractedEdge {
-                                    source: file_id.to_string(), target: ref_id.clone(),
-                                    relation: "imports".into(), weight: 0.5,
+                                    source: file_id.to_string(),
+                                    target: ref_id.clone(),
+                                    relation: "imports".into(),
+                                    weight: 0.5,
                                 });
                                 unresolved_refs.push(ref_id);
                             }
@@ -147,15 +168,33 @@ impl Extractor for TypeScriptExtractor {
             if !line.trim_start().starts_with("import") {
                 for caps in self.re_type_ref.captures_iter(line) {
                     let type_name = caps.get(1).unwrap().as_str();
-                    if !matches!(type_name, "String" | "Number" | "Boolean" | "Promise"
-                        | "Array" | "Record" | "Partial" | "Required" | "Readonly"
-                        | "Map" | "Set" | "Date" | "Error" | "Function" | "Object" | "Omit" | "Pick")
-                    {
+                    if !matches!(
+                        type_name,
+                        "String"
+                            | "Number"
+                            | "Boolean"
+                            | "Promise"
+                            | "Array"
+                            | "Record"
+                            | "Partial"
+                            | "Required"
+                            | "Readonly"
+                            | "Map"
+                            | "Set"
+                            | "Date"
+                            | "Error"
+                            | "Function"
+                            | "Object"
+                            | "Omit"
+                            | "Pick"
+                    ) {
                         let ref_id = format!("ref::{}", type_name);
                         if !unresolved_refs.contains(&ref_id) {
                             edges.push(ExtractedEdge {
-                                source: file_id.to_string(), target: ref_id.clone(),
-                                relation: "references".into(), weight: 0.3,
+                                source: file_id.to_string(),
+                                target: ref_id.clone(),
+                                relation: "references".into(),
+                                weight: 0.3,
                             });
                             unresolved_refs.push(ref_id);
                         }
@@ -164,7 +203,11 @@ impl Extractor for TypeScriptExtractor {
             }
         }
 
-        Ok(ExtractionResult { nodes, edges, unresolved_refs })
+        Ok(ExtractionResult {
+            nodes,
+            edges,
+            unresolved_refs,
+        })
     }
 
     fn extensions(&self) -> &[&str] {

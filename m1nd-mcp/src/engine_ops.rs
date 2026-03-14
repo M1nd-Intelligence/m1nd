@@ -4,8 +4,8 @@
 // These take &SessionState (immutable), do NOT increment queries_processed,
 // do NOT trigger plasticity side effects, hold a single graph read lock.
 
-use m1nd_core::error::M1ndResult;
 use crate::session::SessionState;
+use m1nd_core::error::M1ndResult;
 
 // ---------------------------------------------------------------------------
 // Config types
@@ -164,27 +164,17 @@ pub fn impact_readonly(
 }
 
 /// Read-only missing. No side effects.
-pub fn missing_readonly(
-    state: &SessionState,
-    query: &str,
-) -> M1ndResult<MissingResult> {
+pub fn missing_readonly(state: &SessionState, query: &str) -> M1ndResult<MissingResult> {
     todo!("missing_readonly: extract from tools::handle_missing")
 }
 
 /// Read-only why. No side effects.
-pub fn why_readonly(
-    state: &SessionState,
-    from: &str,
-    to: &str,
-) -> M1ndResult<WhyResult> {
+pub fn why_readonly(state: &SessionState, from: &str, to: &str) -> M1ndResult<WhyResult> {
     todo!("why_readonly: extract from tools::handle_why")
 }
 
 /// Read-only resonate. Only called if remaining budget allows after first 8 calls.
-pub fn resonate_readonly(
-    state: &SessionState,
-    query: &str,
-) -> M1ndResult<ResonateResult> {
+pub fn resonate_readonly(state: &SessionState, query: &str) -> M1ndResult<ResonateResult> {
     todo!("resonate_readonly: extract from tools::handle_resonate")
 }
 

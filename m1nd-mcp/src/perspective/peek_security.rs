@@ -115,10 +115,7 @@ fn validate_allow_list(canonical: &Path, allow_roots: &[String]) -> M1ndResult<(
 
     Err(M1ndError::InvalidParams {
         tool: "perspective.peek".into(),
-        detail: format!(
-            "path '{}' is outside allowed roots",
-            canonical.display()
-        ),
+        detail: format!("path '{}' is outside allowed roots", canonical.display()),
     })
 }
 

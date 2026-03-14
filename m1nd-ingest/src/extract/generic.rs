@@ -1,9 +1,12 @@
 // === crates/m1nd-ingest/src/extract/generic.rs ===
 
+use super::{
+    strip_comments_and_strings, CommentSyntax, ExtractedEdge, ExtractedNode, ExtractionResult,
+    Extractor,
+};
 use m1nd_core::error::M1ndResult;
 use m1nd_core::types::NodeType;
 use regex::Regex;
-use super::{Extractor, ExtractionResult, ExtractedNode, ExtractedEdge, CommentSyntax, strip_comments_and_strings};
 
 /// Fallback regex extractor for unsupported languages.
 /// Matches common patterns: def/function/fn/func/sub/proc.
@@ -22,7 +25,9 @@ impl GenericExtractor {
 }
 
 impl Default for GenericExtractor {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Extractor for GenericExtractor {
@@ -49,30 +54,44 @@ impl Extractor for GenericExtractor {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::type::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Struct,
-                    tags: vec!["generic".into()], line: ln, end_line: ln,
+                    tags: vec!["generic".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_func.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::fn::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Function,
-                    tags: vec!["generic".into()], line: ln, end_line: ln,
+                    tags: vec!["generic".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             }
         }
 
-        Ok(ExtractionResult { nodes, edges, unresolved_refs: Vec::new() })
+        Ok(ExtractionResult {
+            nodes,
+            edges,
+            unresolved_refs: Vec::new(),
+        })
     }
 
     fn extensions(&self) -> &[&str] {

@@ -1,23 +1,22 @@
 // === crates/m1nd-mcp/src/session.rs ===
 
+use crate::brand;
+use m1nd_core::counterfactual::CounterfactualEngine;
 use m1nd_core::domain::DomainConfig;
 use m1nd_core::error::M1ndResult;
 use m1nd_core::graph::{Graph, SharedGraph};
-use m1nd_core::query::QueryOrchestrator;
-use m1nd_core::temporal::TemporalEngine;
-use m1nd_core::counterfactual::CounterfactualEngine;
-use m1nd_core::topology::TopologyAnalyzer;
-use m1nd_core::resonance::ResonanceEngine;
 use m1nd_core::plasticity::PlasticityEngine;
-use crate::brand;
+use m1nd_core::query::QueryOrchestrator;
+use m1nd_core::resonance::ResonanceEngine;
+use m1nd_core::temporal::TemporalEngine;
+use m1nd_core::topology::TopologyAnalyzer;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
 
 use crate::perspective::state::{
-    LockState, PerspectiveLimits, PerspectiveState, WatchTrigger, WatcherEvent,
-    PeekSecurityConfig,
+    LockState, PeekSecurityConfig, PerspectiveLimits, PerspectiveState, WatchTrigger, WatcherEvent,
 };
 
 // ---------------------------------------------------------------------------
@@ -72,7 +71,6 @@ pub struct SessionState {
     pub sessions: HashMap<String, AgentSession>,
 
     // --- Perspective MCP state (12-PERSPECTIVE-SYNTHESIS) ---
-
     /// Generation counter: bumped on ingest, rebuild_engines (Theme 1).
     pub graph_generation: u64,
     /// Generation counter: bumped on learn (Theme 1).
@@ -105,17 +103,19 @@ pub struct SessionState {
 impl SessionState {
     /// Initialize from a loaded graph. Builds all engines.
     /// Replaces: 03-MCP Section 1.2 startup sequence steps 3-6.
-    pub fn initialize(graph: Graph, config: &crate::server::McpConfig, domain: DomainConfig) -> M1ndResult<Self> {
+    pub fn initialize(
+        graph: Graph,
+        config: &crate::server::McpConfig,
+        domain: DomainConfig,
+    ) -> M1ndResult<Self> {
         // Build all engines from graph
         let orchestrator = QueryOrchestrator::build(&graph)?;
         let temporal = TemporalEngine::build(&graph)?;
         let counterfactual = CounterfactualEngine::with_defaults();
         let topology = TopologyAnalyzer::with_defaults();
         let resonance = ResonanceEngine::with_defaults();
-        let plasticity = PlasticityEngine::new(
-            &graph,
-            m1nd_core::plasticity::PlasticityConfig::default(),
-        );
+        let plasticity =
+            PlasticityEngine::new(&graph, m1nd_core::plasticity::PlasticityConfig::default());
 
         let shared = Arc::new(parking_lot::RwLock::new(graph));
 
@@ -170,12 +170,26 @@ impl SessionState {
         // Graph succeeded. Now try plasticity — failure here is non-fatal.
         match self.plasticity.export_state(&graph) {
             Ok(states) => {
-                if let Err(e) = m1nd_core::snapshot::save_plasticity_state(&states, &self.plasticity_path) {
-                    eprintln!("{}", brand::log_colored(&format!("WARNING: graph saved but plasticity persist failed: {}", e)));
+                if let Err(e) =
+                    m1nd_core::snapshot::save_plasticity_state(&states, &self.plasticity_path)
+                {
+                    eprintln!(
+                        "{}",
+                        brand::log_colored(&format!(
+                            "WARNING: graph saved but plasticity persist failed: {}",
+                            e
+                        ))
+                    );
                 }
             }
             Err(e) => {
-                eprintln!("{}", brand::log_colored(&format!("WARNING: graph saved but plasticity export failed: {}", e)));
+                eprintln!(
+                    "{}",
+                    brand::log_colored(&format!(
+                        "WARNING: graph saved but plasticity export failed: {}",
+                        e
+                    ))
+                );
             }
         }
 
@@ -194,10 +208,8 @@ impl SessionState {
             let graph = self.graph.read();
             self.orchestrator = QueryOrchestrator::build(&graph)?;
             self.temporal = TemporalEngine::build(&graph)?;
-            self.plasticity = PlasticityEngine::new(
-                &graph,
-                m1nd_core::plasticity::PlasticityConfig::default(),
-            );
+            self.plasticity =
+                PlasticityEngine::new(&graph, m1nd_core::plasticity::PlasticityConfig::default());
         }
 
         // Theme 16: invalidate all perspective and lock state after rebuild
@@ -248,18 +260,31 @@ impl SessionState {
     }
 
     /// Get a perspective for an agent (Theme 2).
-    pub fn get_perspective(&self, agent_id: &str, perspective_id: &str) -> Option<&PerspectiveState> {
-        self.perspectives.get(&(agent_id.to_string(), perspective_id.to_string()))
+    pub fn get_perspective(
+        &self,
+        agent_id: &str,
+        perspective_id: &str,
+    ) -> Option<&PerspectiveState> {
+        self.perspectives
+            .get(&(agent_id.to_string(), perspective_id.to_string()))
     }
 
     /// Get a mutable perspective for an agent (Theme 2).
-    pub fn get_perspective_mut(&mut self, agent_id: &str, perspective_id: &str) -> Option<&mut PerspectiveState> {
-        self.perspectives.get_mut(&(agent_id.to_string(), perspective_id.to_string()))
+    pub fn get_perspective_mut(
+        &mut self,
+        agent_id: &str,
+        perspective_id: &str,
+    ) -> Option<&mut PerspectiveState> {
+        self.perspectives
+            .get_mut(&(agent_id.to_string(), perspective_id.to_string()))
     }
 
     /// Generate a new perspective ID for an agent (Theme 2).
     pub fn next_perspective_id(&mut self, agent_id: &str) -> String {
-        let counter = self.perspective_counter.entry(agent_id.to_string()).or_insert(0);
+        let counter = self
+            .perspective_counter
+            .entry(agent_id.to_string())
+            .or_insert(0);
         *counter += 1;
         let short_id = &agent_id[..agent_id.len().min(8)];
         format!("persp_{}_{:03}", short_id, counter)
@@ -275,12 +300,18 @@ impl SessionState {
 
     /// Count perspectives for an agent (for limit enforcement, Theme 5).
     pub fn agent_perspective_count(&self, agent_id: &str) -> usize {
-        self.perspectives.keys().filter(|(a, _)| a == agent_id).count()
+        self.perspectives
+            .keys()
+            .filter(|(a, _)| a == agent_id)
+            .count()
     }
 
     /// Count locks for an agent (for limit enforcement, Theme 5).
     pub fn agent_lock_count(&self, agent_id: &str) -> usize {
-        self.locks.values().filter(|l| l.agent_id == agent_id).count()
+        self.locks
+            .values()
+            .filter(|l| l.agent_id == agent_id)
+            .count()
     }
 
     /// Notify watchers after ingest/learn (Theme 10).
@@ -292,13 +323,23 @@ impl SessionState {
             .map(|d| d.as_millis() as u64)
             .unwrap_or(0);
 
-        let matching_locks: Vec<String> = self.locks.values()
+        let matching_locks: Vec<String> = self
+            .locks
+            .values()
             .filter(|l| {
-                l.watcher.as_ref().map_or(false, |w| match (&trigger, &w.strategy) {
-                    (WatchTrigger::Ingest, crate::perspective::state::WatchStrategy::OnIngest) => true,
-                    (WatchTrigger::Learn, crate::perspective::state::WatchStrategy::OnLearn) => true,
-                    _ => false,
-                })
+                l.watcher
+                    .as_ref()
+                    .map_or(false, |w| match (&trigger, &w.strategy) {
+                        (
+                            WatchTrigger::Ingest,
+                            crate::perspective::state::WatchStrategy::OnIngest,
+                        ) => true,
+                        (
+                            WatchTrigger::Learn,
+                            crate::perspective::state::WatchStrategy::OnLearn,
+                        ) => true,
+                        _ => false,
+                    })
             })
             .map(|l| l.lock_id.clone())
             .collect();
@@ -317,7 +358,9 @@ impl SessionState {
         // Remove perspectives
         self.perspectives.retain(|(a, _), _| a != agent_id);
         // Remove locks owned by this agent
-        let agent_locks: Vec<String> = self.locks.values()
+        let agent_locks: Vec<String> = self
+            .locks
+            .values()
             .filter(|l| l.agent_id == agent_id)
             .map(|l| l.lock_id.clone())
             .collect();
@@ -325,7 +368,8 @@ impl SessionState {
             self.locks.remove(lock_id);
         }
         // Clean pending watcher events for removed locks
-        self.pending_watcher_events.retain(|e| !agent_locks.contains(&e.lock_id));
+        self.pending_watcher_events
+            .retain(|e| !agent_locks.contains(&e.lock_id));
         // Clean counters
         self.perspective_counter.remove(agent_id);
         self.lock_counter.remove(agent_id);
@@ -335,11 +379,23 @@ impl SessionState {
     /// Used for 50MB budget enforcement.
     pub fn perspective_and_lock_memory_bytes(&self) -> usize {
         // Rough estimate: serialize to JSON and measure
-        let persp_size: usize = self.perspectives.values()
-            .map(|p| std::mem::size_of_val(p) + p.navigation_history.len() * 100 + p.visited_nodes.len() * 40)
+        let persp_size: usize = self
+            .perspectives
+            .values()
+            .map(|p| {
+                std::mem::size_of_val(p)
+                    + p.navigation_history.len() * 100
+                    + p.visited_nodes.len() * 40
+            })
             .sum();
-        let lock_size: usize = self.locks.values()
-            .map(|l| std::mem::size_of_val(l) + l.baseline.nodes.len() * 40 + l.baseline.edges.len() * 120)
+        let lock_size: usize = self
+            .locks
+            .values()
+            .map(|l| {
+                std::mem::size_of_val(l)
+                    + l.baseline.nodes.len() * 40
+                    + l.baseline.edges.len() * 120
+            })
             .sum();
         persp_size + lock_size
     }
@@ -353,14 +409,15 @@ impl SessionState {
     /// otherwise updates last_seen and increments query_count.
     pub fn track_agent(&mut self, agent_id: &str) {
         let now = Instant::now();
-        let session = self.sessions.entry(agent_id.to_string()).or_insert_with(|| {
-            AgentSession {
+        let session = self
+            .sessions
+            .entry(agent_id.to_string())
+            .or_insert_with(|| AgentSession {
                 agent_id: agent_id.to_string(),
                 first_seen: now,
                 last_seen: now,
                 query_count: 0,
-            }
-        });
+            });
         session.last_seen = now;
         session.query_count += 1;
     }

@@ -2,18 +2,18 @@
 
 use std::time::Instant;
 
+use crate::activation::*;
+use crate::counterfactual::*;
 use crate::error::M1ndResult;
 use crate::graph::Graph;
-use crate::activation::*;
-use crate::xlr::*;
+use crate::plasticity::*;
+use crate::resonance::*;
+use crate::seed::SeedFinder;
 use crate::semantic::*;
 use crate::temporal::*;
 use crate::topology::*;
-use crate::resonance::*;
-use crate::plasticity::*;
-use crate::counterfactual::*;
-use crate::seed::SeedFinder;
 use crate::types::*;
+use crate::xlr::*;
 
 // ---------------------------------------------------------------------------
 // QueryConfig — per-query parameters
@@ -141,11 +141,7 @@ impl QueryOrchestrator {
     /// -> merge -> ghost edges -> structural holes -> plasticity update.
     /// Four dimensions run in parallel via rayon.
     /// Replaces: engine_v2.py ConnectomeEngine.query()
-    pub fn query(
-        &mut self,
-        graph: &mut Graph,
-        config: &QueryConfig,
-    ) -> M1ndResult<QueryResult> {
+    pub fn query(&mut self, graph: &mut Graph, config: &QueryConfig) -> M1ndResult<QueryResult> {
         let start = Instant::now();
 
         // Step 1: Find seeds
@@ -221,7 +217,9 @@ impl QueryOrchestrator {
             }
         }
         // Re-sort after PageRank boost
-        activation.activated.sort_by(|a, b| b.activation.cmp(&a.activation));
+        activation
+            .activated
+            .sort_by(|a, b| b.activation.cmp(&a.activation));
 
         // Step 6: Ghost edges
         let ghost_edges = if config.include_ghost_edges {
@@ -243,12 +241,9 @@ impl QueryOrchestrator {
             .iter()
             .map(|a| (a.node, a.activation))
             .collect();
-        let plasticity_result = self.plasticity.update(
-            graph,
-            &activated_pairs,
-            &seeds,
-            &config.query,
-        )?;
+        let plasticity_result =
+            self.plasticity
+                .update(graph, &activated_pairs, &seeds, &config.query)?;
 
         let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
 
@@ -273,7 +268,9 @@ impl QueryOrchestrator {
         let n = graph.num_nodes() as usize;
 
         // Find pairs of activated nodes not directly connected
-        let activated: Vec<&ActivatedNode> = activation.activated.iter()
+        let activated: Vec<&ActivatedNode> = activation
+            .activated
+            .iter()
             .filter(|a| a.active_dimension_count >= 2)
             .take(50) // Limit for performance
             .collect();
@@ -304,7 +301,7 @@ impl QueryOrchestrator {
 
                     if shared.len() >= 2 {
                         let strength = FiniteF32::new(
-                            (a.activation.get() * b.activation.get()).sqrt().min(1.0)
+                            (a.activation.get() * b.activation.get()).sqrt().min(1.0),
                         );
                         ghosts.push(GhostEdge {
                             source: a.node,

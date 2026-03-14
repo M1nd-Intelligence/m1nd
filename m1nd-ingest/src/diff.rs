@@ -1,9 +1,9 @@
 // === crates/m1nd-ingest/src/diff.rs ===
 
+use crate::extract::{ExtractedEdge, ExtractedNode};
 use m1nd_core::error::{M1ndError, M1ndResult};
 use m1nd_core::graph::Graph;
 use m1nd_core::types::*;
-use crate::extract::{ExtractedNode, ExtractedEdge};
 use std::collections::HashMap;
 
 // ---------------------------------------------------------------------------
@@ -15,7 +15,7 @@ use std::collections::HashMap;
 #[derive(Clone, Debug)]
 pub enum DiffAction {
     AddNode(ExtractedNode),
-    RemoveNode(String),  // external ID
+    RemoveNode(String), // external ID
     ModifyNode {
         external_id: String,
         new_label: Option<String>,
@@ -105,15 +105,29 @@ impl GraphDiff {
         // Edges: find added and removed
         let old_edge_set: HashMap<(&str, &str, &str), f32> = old_edges
             .iter()
-            .map(|e| ((e.source.as_str(), e.target.as_str(), e.relation.as_str()), e.weight))
+            .map(|e| {
+                (
+                    (e.source.as_str(), e.target.as_str(), e.relation.as_str()),
+                    e.weight,
+                )
+            })
             .collect();
         let new_edge_set: HashMap<(&str, &str, &str), f32> = new_edges
             .iter()
-            .map(|e| ((e.source.as_str(), e.target.as_str(), e.relation.as_str()), e.weight))
+            .map(|e| {
+                (
+                    (e.source.as_str(), e.target.as_str(), e.relation.as_str()),
+                    e.weight,
+                )
+            })
             .collect();
 
         for new_edge in new_edges {
-            let key = (new_edge.source.as_str(), new_edge.target.as_str(), new_edge.relation.as_str());
+            let key = (
+                new_edge.source.as_str(),
+                new_edge.target.as_str(),
+                new_edge.relation.as_str(),
+            );
             if let Some(&old_weight) = old_edge_set.get(&key) {
                 if (old_weight - new_edge.weight).abs() > 0.001 {
                     actions.push(DiffAction::ModifyEdgeWeight {
@@ -130,7 +144,11 @@ impl GraphDiff {
         }
 
         for old_edge in old_edges {
-            let key = (old_edge.source.as_str(), old_edge.target.as_str(), old_edge.relation.as_str());
+            let key = (
+                old_edge.source.as_str(),
+                old_edge.target.as_str(),
+                old_edge.relation.as_str(),
+            );
             if !new_edge_set.contains_key(&key) {
                 actions.push(DiffAction::RemoveEdge {
                     source_id: old_edge.source.clone(),
@@ -175,7 +193,12 @@ impl GraphDiff {
                     // mark as removed via tag or skip. For now, count it.
                     applied += 1;
                 }
-                DiffAction::ModifyNode { external_id, new_label, new_tags, new_last_modified } => {
+                DiffAction::ModifyNode {
+                    external_id,
+                    new_label,
+                    new_tags,
+                    new_last_modified,
+                } => {
                     if let Some(node_id) = graph.resolve_id(external_id) {
                         let idx = node_id.as_usize();
                         if let Some(label) = new_label {
@@ -199,7 +222,8 @@ impl GraphDiff {
                         graph.resolve_id(&edge.target),
                     ) {
                         let _ = graph.add_edge(
-                            src, tgt,
+                            src,
+                            tgt,
                             &edge.relation,
                             FiniteF32::new(edge.weight),
                             EdgeDirection::Forward,
@@ -213,11 +237,15 @@ impl GraphDiff {
                     // CSR doesn't support edge removal. Count it.
                     applied += 1;
                 }
-                DiffAction::ModifyEdgeWeight { source_id, target_id, relation: _, new_weight } => {
-                    if let (Some(src), Some(_tgt)) = (
-                        graph.resolve_id(source_id),
-                        graph.resolve_id(target_id),
-                    ) {
+                DiffAction::ModifyEdgeWeight {
+                    source_id,
+                    target_id,
+                    relation: _,
+                    new_weight,
+                } => {
+                    if let (Some(src), Some(_tgt)) =
+                        (graph.resolve_id(source_id), graph.resolve_id(target_id))
+                    {
                         // Find the edge in CSR and update weight
                         let range = graph.csr.out_range(src);
                         for j in range {

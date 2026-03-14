@@ -6,9 +6,9 @@
 // - lock:         5 lock tool types
 
 pub mod core;
-pub mod perspective;
-pub mod lock;
 pub mod layers;
+pub mod lock;
+pub mod perspective;
 
 // Re-export core types so existing `use crate::protocol::*` continues to work.
 pub use self::core::*;

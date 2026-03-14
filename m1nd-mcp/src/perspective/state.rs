@@ -668,7 +668,8 @@ mod tests {
     #[test]
     fn ranking_weights_default_sum_to_one() {
         let w = RankingWeights::default();
-        let sum = w.local_activation + w.path_coherence + w.novelty + w.anchor_relevance + w.continuity;
+        let sum =
+            w.local_activation + w.path_coherence + w.novelty + w.anchor_relevance + w.continuity;
         assert!((sum - 1.0).abs() < 0.001);
     }
 

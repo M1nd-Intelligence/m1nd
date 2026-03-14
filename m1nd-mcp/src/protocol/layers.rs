@@ -976,19 +976,45 @@ pub struct FederateCrossRepoEdge {
 // Default value helpers
 // =========================================================================
 
-fn default_top_k() -> usize { 20 }
-fn default_top_k_10() -> usize { 10 }
-fn default_true() -> bool { true }
-fn default_max_hops() -> u8 { 5 }
-fn default_min_score() -> f32 { 0.1 }
-fn default_severity_min() -> f32 { 0.3 }
-fn default_scan_limit() -> usize { 50 }
-fn default_depth_30d() -> String { "30d".into() }
-fn default_confidence() -> f32 { 0.5 }
-fn default_relevance() -> f32 { 0.5 }
-fn default_path_budget() -> usize { 1000 }
-fn default_window_hours() -> f32 { 24.0 }
-fn default_adapter() -> String { "code".into() }
+fn default_top_k() -> usize {
+    20
+}
+fn default_top_k_10() -> usize {
+    10
+}
+fn default_true() -> bool {
+    true
+}
+fn default_max_hops() -> u8 {
+    5
+}
+fn default_min_score() -> f32 {
+    0.1
+}
+fn default_severity_min() -> f32 {
+    0.3
+}
+fn default_scan_limit() -> usize {
+    50
+}
+fn default_depth_30d() -> String {
+    "30d".into()
+}
+fn default_confidence() -> f32 {
+    0.5
+}
+fn default_relevance() -> f32 {
+    0.5
+}
+fn default_path_budget() -> usize {
+    1000
+}
+fn default_window_hours() -> f32 {
+    24.0
+}
+fn default_adapter() -> String {
+    "code".into()
+}
 
 // =========================================================================
 // Tests

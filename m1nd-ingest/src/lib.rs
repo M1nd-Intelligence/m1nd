@@ -7,14 +7,14 @@ use m1nd_core::types::*;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
-pub mod walker;
-pub mod extract;
-pub mod resolve;
 pub mod cross_file;
 pub mod diff;
+pub mod extract;
 pub mod json_adapter;
 pub mod memory_adapter;
 pub mod merge;
+pub mod resolve;
+pub mod walker;
 
 // ---------------------------------------------------------------------------
 // IngestAdapter — generic trait for domain-specific ingestion
@@ -59,13 +59,21 @@ impl Default for IngestConfig {
             timeout: Duration::from_secs(300),
             max_nodes: 500_000,
             skip_dirs: vec![
-                ".git".into(), "node_modules".into(), "__pycache__".into(),
-                ".venv".into(), "target".into(), "dist".into(), "build".into(),
-                ".next".into(), "vendor".into(),
+                ".git".into(),
+                "node_modules".into(),
+                "__pycache__".into(),
+                ".venv".into(),
+                "target".into(),
+                "dist".into(),
+                "build".into(),
+                ".next".into(),
+                "vendor".into(),
             ],
             skip_files: vec![
-                "package-lock.json".into(), "yarn.lock".into(),
-                "Cargo.lock".into(), "poetry.lock".into(),
+                "package-lock.json".into(),
+                "yarn.lock".into(),
+                "Cargo.lock".into(),
+                "poetry.lock".into(),
             ],
             parallelism: 8,
         }
@@ -210,7 +218,8 @@ impl Ingestor {
 
         // Parallel extraction phase: read files and run extractors concurrently.
         // Graph building must remain single-threaded, so we collect results first.
-        let extraction_results: Vec<(String, extract::ExtractionResult)> = walk_result.files
+        let extraction_results: Vec<(String, extract::ExtractionResult)> = walk_result
+            .files
             .par_iter()
             .filter_map(|file| {
                 let ext = file.extension.as_deref().unwrap_or("");
@@ -231,10 +240,7 @@ impl Ingestor {
         for (file_id, result) in &extraction_results {
             // FM-ING-002: timeout check (after parallel phase)
             if start.elapsed() > self.config.timeout {
-                eprintln!(
-                    "[m1nd-ingest] Timeout after {} files",
-                    stats.files_parsed
-                );
+                eprintln!("[m1nd-ingest] Timeout after {} files", stats.files_parsed);
                 break;
             }
 
@@ -251,11 +257,7 @@ impl Ingestor {
 
             // Collect unresolved references for later resolution
             for ref_id in &result.unresolved_refs {
-                all_unresolved.push((
-                    file_id.clone(),
-                    ref_id.clone(),
-                    "references".to_string(),
-                ));
+                all_unresolved.push((file_id.clone(), ref_id.clone(), "references".to_string()));
             }
 
             // Task #8: Build import hints from import edges
@@ -266,11 +268,7 @@ impl Ingestor {
                     if target.contains('.') || target.contains("::") {
                         current_module_path = Some(target.to_string());
                     } else if let Some(ref module) = current_module_path {
-                        import_hints.push((
-                            file_id.clone(),
-                            edge.target.clone(),
-                            module.clone(),
-                        ));
+                        import_hints.push((file_id.clone(), edge.target.clone(), module.clone()));
                     }
                 }
             }
@@ -280,7 +278,9 @@ impl Ingestor {
         }
 
         // Track files that failed to read/parse (total scanned - successful extractions)
-        stats.files_skipped_encoding = stats.files_scanned.saturating_sub(extraction_results.len() as u64);
+        stats.files_skipped_encoding = stats
+            .files_scanned
+            .saturating_sub(extraction_results.len() as u64);
 
         // Phase 3: Build graph
         let estimated_nodes = all_nodes.len();
@@ -309,15 +309,9 @@ impl Ingestor {
             let tags: Vec<&str> = node.tags.iter().map(|s| s.as_str()).collect();
             // Use real file timestamp for temporal scoring, not line number
             let file_prefix = node.id.split("::").take(2).collect::<Vec<_>>().join("::");
-            let timestamp = file_timestamps
-                .get(&file_prefix)
-                .copied()
-                .unwrap_or(0.0);
+            let timestamp = file_timestamps.get(&file_prefix).copied().unwrap_or(0.0);
             // Change frequency from git history (or default)
-            let change_freq = file_change_freq
-                .get(&file_prefix)
-                .copied()
-                .unwrap_or(0.3);
+            let change_freq = file_change_freq.get(&file_prefix).copied().unwrap_or(0.3);
             match graph.add_node(
                 &node.id,
                 &node.label,
@@ -415,7 +409,10 @@ impl Ingestor {
                 );
             }
             Err(e) => {
-                eprintln!("[m1nd-ingest] Cross-file edge resolution failed (non-fatal): {}", e);
+                eprintln!(
+                    "[m1nd-ingest] Cross-file edge resolution failed (non-fatal): {}",
+                    e
+                );
             }
         }
 
@@ -448,10 +445,7 @@ impl Ingestor {
         let mut new_edges = Vec::new();
 
         for file_path in changed_files {
-            let ext = file_path
-                .extension()
-                .and_then(|e| e.to_str())
-                .unwrap_or("");
+            let ext = file_path.extension().and_then(|e| e.to_str()).unwrap_or("");
             let extractor = Self::select_extractor(ext);
 
             let content = match std::fs::read(file_path) {
@@ -514,13 +508,13 @@ impl IngestAdapter for Ingestor {
 // ===========================================================================
 #[cfg(test)]
 mod tests {
-    use super::extract::*;
-    use super::extract::rust_lang::RustExtractor;
-    use super::extract::python::PythonExtractor;
-    use super::extract::typescript::TypeScriptExtractor;
+    use super::extract::generic::GenericExtractor;
     use super::extract::go::GoExtractor;
     use super::extract::java::JavaExtractor;
-    use super::extract::generic::GenericExtractor;
+    use super::extract::python::PythonExtractor;
+    use super::extract::rust_lang::RustExtractor;
+    use super::extract::typescript::TypeScriptExtractor;
+    use super::extract::*;
     use super::resolve::ReferenceResolver;
     use m1nd_core::graph::Graph;
     use m1nd_core::types::*;
@@ -534,8 +528,10 @@ mod tests {
         let src = b"pub fn hello_world() -> String { todo!() }";
         let ext = RustExtractor::new();
         let result = ext.extract(src, "file::test.rs").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "hello_world"
-            && n.node_type == NodeType::Function));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "hello_world" && n.node_type == NodeType::Function));
     }
 
     #[test]
@@ -543,8 +539,10 @@ mod tests {
         let src = b"fn internal_helper(x: u32) -> bool { true }";
         let ext = RustExtractor::new();
         let result = ext.extract(src, "file::test.rs").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "internal_helper"
-            && n.node_type == NodeType::Function));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "internal_helper" && n.node_type == NodeType::Function));
     }
 
     #[test]
@@ -552,9 +550,18 @@ mod tests {
         let src = b"pub struct Config { }\npub enum Color { Red, Blue }\npub trait Drawable { }";
         let ext = RustExtractor::new();
         let result = ext.extract(src, "file::test.rs").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Config" && n.node_type == NodeType::Struct));
-        assert!(result.nodes.iter().any(|n| n.label == "Color" && n.node_type == NodeType::Enum));
-        assert!(result.nodes.iter().any(|n| n.label == "Drawable" && n.node_type == NodeType::Type));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "Config" && n.node_type == NodeType::Struct));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "Color" && n.node_type == NodeType::Enum));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "Drawable" && n.node_type == NodeType::Type));
     }
 
     #[test]
@@ -562,14 +569,18 @@ mod tests {
         let src = b"use std::collections::{HashMap, HashSet};\nuse std::io::Read;";
         let ext = RustExtractor::new();
         let result = ext.extract(src, "file::test.rs").unwrap();
-        let import_edges: Vec<_> = result.edges.iter()
+        let import_edges: Vec<_> = result
+            .edges
+            .iter()
             .filter(|e| e.relation == "imports")
             .collect();
         // Should have 3 imports: HashMap, HashSet, Read
-        assert!(import_edges.len() >= 3,
+        assert!(
+            import_edges.len() >= 3,
             "Expected >= 3 imports, got {}: {:?}",
             import_edges.len(),
-            import_edges.iter().map(|e| &e.target).collect::<Vec<_>>());
+            import_edges.iter().map(|e| &e.target).collect::<Vec<_>>()
+        );
         assert!(import_edges.iter().any(|e| e.target.contains("HashMap")));
         assert!(import_edges.iter().any(|e| e.target.contains("HashSet")));
         assert!(import_edges.iter().any(|e| e.target.contains("Read")));
@@ -580,7 +591,9 @@ mod tests {
         let src = b"impl Display for Config {\n    fn fmt(&self, f: &mut Formatter) -> Result { Ok(()) }\n}";
         let ext = RustExtractor::new();
         let result = ext.extract(src, "file::test.rs").unwrap();
-        let impl_edges: Vec<_> = result.edges.iter()
+        let impl_edges: Vec<_> = result
+            .edges
+            .iter()
             .filter(|e| e.relation == "implements")
             .collect();
         assert!(!impl_edges.is_empty(), "Should have implements edge");
@@ -592,14 +605,28 @@ mod tests {
         let src = b"pub enum Direction {\n    North,\n    South,\n    East,\n    West,\n}";
         let ext = RustExtractor::new();
         let result = ext.extract(src, "file::test.rs").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Direction" && n.node_type == NodeType::Enum));
-        assert!(result.nodes.iter().any(|n| n.label == "North" && n.tags.contains(&"variant".to_string())));
-        assert!(result.nodes.iter().any(|n| n.label == "South" && n.tags.contains(&"variant".to_string())));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "Direction" && n.node_type == NodeType::Enum));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "North" && n.tags.contains(&"variant".to_string())));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "South" && n.tags.contains(&"variant".to_string())));
         // Verify contains edges from enum to variants
-        let contains_edges: Vec<_> = result.edges.iter()
+        let contains_edges: Vec<_> = result
+            .edges
+            .iter()
             .filter(|e| e.relation == "contains" && e.target.contains("::Direction::"))
             .collect();
-        assert!(contains_edges.len() >= 1, "Enum should have contains edges to variants");
+        assert!(
+            contains_edges.len() >= 1,
+            "Enum should have contains edges to variants"
+        );
     }
 
     #[test]
@@ -607,10 +634,14 @@ mod tests {
         let src = b"// fn fake_function() { }\nfn real_function() { }";
         let ext = RustExtractor::new();
         let result = ext.extract(src, "file::test.rs").unwrap();
-        assert!(!result.nodes.iter().any(|n| n.label == "fake_function"),
-            "Commented-out function should not be extracted");
-        assert!(result.nodes.iter().any(|n| n.label == "real_function"),
-            "Real function should be extracted");
+        assert!(
+            !result.nodes.iter().any(|n| n.label == "fake_function"),
+            "Commented-out function should not be extracted"
+        );
+        assert!(
+            result.nodes.iter().any(|n| n.label == "real_function"),
+            "Real function should be extracted"
+        );
     }
 
     #[test]
@@ -618,10 +649,14 @@ mod tests {
         let src = b"fn real() {\n    let s = \"fn fake_in_string() { }\";\n}";
         let ext = RustExtractor::new();
         let result = ext.extract(src, "file::test.rs").unwrap();
-        assert!(!result.nodes.iter().any(|n| n.label == "fake_in_string"),
-            "Function name inside string literal should not be extracted");
-        assert!(result.nodes.iter().any(|n| n.label == "real"),
-            "Real function should be extracted");
+        assert!(
+            !result.nodes.iter().any(|n| n.label == "fake_in_string"),
+            "Function name inside string literal should not be extracted"
+        );
+        assert!(
+            result.nodes.iter().any(|n| n.label == "real"),
+            "Real function should be extracted"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -633,9 +668,18 @@ mod tests {
         let src = b"class MyService:\n    def process(self, data):\n        pass\n\ndef standalone():\n    pass";
         let ext = PythonExtractor::new();
         let result = ext.extract(src, "file::test.py").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "MyService" && n.node_type == NodeType::Class));
-        assert!(result.nodes.iter().any(|n| n.label == "process" && n.node_type == NodeType::Function));
-        assert!(result.nodes.iter().any(|n| n.label == "standalone" && n.node_type == NodeType::Function));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "MyService" && n.node_type == NodeType::Class));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "process" && n.node_type == NodeType::Function));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "standalone" && n.node_type == NodeType::Function));
     }
 
     #[test]
@@ -643,13 +687,17 @@ mod tests {
         let src = b"import os\nfrom pathlib import Path\nfrom collections import OrderedDict, defaultdict";
         let ext = PythonExtractor::new();
         let result = ext.extract(src, "file::test.py").unwrap();
-        let import_edges: Vec<_> = result.edges.iter()
+        let import_edges: Vec<_> = result
+            .edges
+            .iter()
             .filter(|e| e.relation == "imports")
             .collect();
         assert!(import_edges.iter().any(|e| e.target.contains("os")));
         assert!(import_edges.iter().any(|e| e.target.contains("pathlib")));
         assert!(import_edges.iter().any(|e| e.target.contains("Path")));
-        assert!(import_edges.iter().any(|e| e.target.contains("OrderedDict")));
+        assert!(import_edges
+            .iter()
+            .any(|e| e.target.contains("OrderedDict")));
     }
 
     #[test]
@@ -657,25 +705,37 @@ mod tests {
         let src = b"class Dog(Animal):\n    pass";
         let ext = PythonExtractor::new();
         let result = ext.extract(src, "file::test.py").unwrap();
-        let impl_edges: Vec<_> = result.edges.iter()
+        let impl_edges: Vec<_> = result
+            .edges
+            .iter()
             .filter(|e| e.relation == "implements")
             .collect();
-        assert!(impl_edges.iter().any(|e| e.target.contains("Animal")),
-            "Should have implements edge to Animal base class");
+        assert!(
+            impl_edges.iter().any(|e| e.target.contains("Animal")),
+            "Should have implements edge to Animal base class"
+        );
     }
 
     #[test]
     fn python_extracts_decorators() {
-        let src = b"@staticmethod\ndef my_func():\n    pass\n\n@app.route\nclass Handler:\n    pass";
+        let src =
+            b"@staticmethod\ndef my_func():\n    pass\n\n@app.route\nclass Handler:\n    pass";
         let ext = PythonExtractor::new();
         let result = ext.extract(src, "file::test.py").unwrap();
-        let ref_edges: Vec<_> = result.edges.iter()
+        let ref_edges: Vec<_> = result
+            .edges
+            .iter()
             .filter(|e| e.relation == "references" && e.target.starts_with("ref::"))
             .collect();
         // Decorators produce reference edges from the decorated item
-        assert!(ref_edges.iter().any(|e| e.target.contains("staticmethod")),
+        assert!(
+            ref_edges.iter().any(|e| e.target.contains("staticmethod")),
             "Should have reference to @staticmethod decorator. Edges: {:?}",
-            ref_edges.iter().map(|e| (&e.source, &e.target)).collect::<Vec<_>>());
+            ref_edges
+                .iter()
+                .map(|e| (&e.source, &e.target))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -683,13 +743,19 @@ mod tests {
         let src = b"def process(data: DataFrame) -> ResultSet:\n    pass";
         let ext = PythonExtractor::new();
         let result = ext.extract(src, "file::test.py").unwrap();
-        let ref_edges: Vec<_> = result.edges.iter()
+        let ref_edges: Vec<_> = result
+            .edges
+            .iter()
             .filter(|e| e.relation == "references")
             .collect();
-        assert!(ref_edges.iter().any(|e| e.target.contains("DataFrame")),
-            "Should reference DataFrame type hint");
-        assert!(ref_edges.iter().any(|e| e.target.contains("ResultSet")),
-            "Should reference ResultSet return type hint");
+        assert!(
+            ref_edges.iter().any(|e| e.target.contains("DataFrame")),
+            "Should reference DataFrame type hint"
+        );
+        assert!(
+            ref_edges.iter().any(|e| e.target.contains("ResultSet")),
+            "Should reference ResultSet return type hint"
+        );
     }
 
     #[test]
@@ -697,13 +763,17 @@ mod tests {
         let src = b"def run():\n    result = Parser.parse(data)\n    logger.info(msg)";
         let ext = PythonExtractor::new();
         let result = ext.extract(src, "file::test.py").unwrap();
-        let call_edges: Vec<_> = result.edges.iter()
+        let call_edges: Vec<_> = result
+            .edges
+            .iter()
             .filter(|e| e.relation == "calls")
             .collect();
         // Parser.parse -> ref to Parser (uppercase receiver = type call)
-        assert!(call_edges.iter().any(|e| e.target.contains("Parser")),
+        assert!(
+            call_edges.iter().any(|e| e.target.contains("Parser")),
             "Should have calls edge to Parser. Call edges: {:?}",
-            call_edges.iter().map(|e| &e.target).collect::<Vec<_>>());
+            call_edges.iter().map(|e| &e.target).collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -711,10 +781,14 @@ mod tests {
         let src = b"# class FakeClass:\n#     pass\nclass RealClass:\n    pass";
         let ext = PythonExtractor::new();
         let result = ext.extract(src, "file::test.py").unwrap();
-        assert!(!result.nodes.iter().any(|n| n.label == "FakeClass"),
-            "Commented-out class should not be extracted");
-        assert!(result.nodes.iter().any(|n| n.label == "RealClass"),
-            "Real class should be extracted");
+        assert!(
+            !result.nodes.iter().any(|n| n.label == "FakeClass"),
+            "Commented-out class should not be extracted"
+        );
+        assert!(
+            result.nodes.iter().any(|n| n.label == "RealClass"),
+            "Real class should be extracted"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -728,9 +802,18 @@ mod tests {
                      export interface Config { }";
         let ext = TypeScriptExtractor::new();
         let result = ext.extract(src, "file::test.ts").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "fetchData" && n.node_type == NodeType::Function));
-        assert!(result.nodes.iter().any(|n| n.label == "ApiClient" && n.node_type == NodeType::Class));
-        assert!(result.nodes.iter().any(|n| n.label == "Config" && n.node_type == NodeType::Type));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "fetchData" && n.node_type == NodeType::Function));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "ApiClient" && n.node_type == NodeType::Class));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "Config" && n.node_type == NodeType::Type));
     }
 
     #[test]
@@ -739,14 +822,20 @@ mod tests {
         let src = b"function process(data: UserConfig): AppResult {\n    const x: ServiceClient = init();\n}";
         let ext = TypeScriptExtractor::new();
         let result = ext.extract(src, "file::test.ts").unwrap();
-        let ref_edges: Vec<_> = result.edges.iter()
+        let ref_edges: Vec<_> = result
+            .edges
+            .iter()
             .filter(|e| e.relation == "references")
             .collect();
-        assert!(ref_edges.iter().any(|e| e.target.contains("UserConfig")),
+        assert!(
+            ref_edges.iter().any(|e| e.target.contains("UserConfig")),
             "Should reference UserConfig type annotation. Ref edges: {:?}",
-            ref_edges.iter().map(|e| &e.target).collect::<Vec<_>>());
-        assert!(ref_edges.iter().any(|e| e.target.contains("ServiceClient")),
-            "Should reference ServiceClient type annotation");
+            ref_edges.iter().map(|e| &e.target).collect::<Vec<_>>()
+        );
+        assert!(
+            ref_edges.iter().any(|e| e.target.contains("ServiceClient")),
+            "Should reference ServiceClient type annotation"
+        );
     }
 
     #[test]
@@ -754,10 +843,14 @@ mod tests {
         let src = b"// function fakeFunc() { }\nfunction realFunc() { }";
         let ext = TypeScriptExtractor::new();
         let result = ext.extract(src, "file::test.ts").unwrap();
-        assert!(!result.nodes.iter().any(|n| n.label == "fakeFunc"),
-            "Commented-out function should not be extracted");
-        assert!(result.nodes.iter().any(|n| n.label == "realFunc"),
-            "Real function should be extracted");
+        assert!(
+            !result.nodes.iter().any(|n| n.label == "fakeFunc"),
+            "Commented-out function should not be extracted"
+        );
+        assert!(
+            result.nodes.iter().any(|n| n.label == "realFunc"),
+            "Real function should be extracted"
+        );
     }
 
     #[test]
@@ -765,9 +858,14 @@ mod tests {
         let src = b"export const handler = (req: Request) => { };";
         let ext = TypeScriptExtractor::new();
         let result = ext.extract(src, "file::test.ts").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "handler" && n.node_type == NodeType::Function),
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "handler" && n.node_type == NodeType::Function),
             "Should extract arrow function. Nodes: {:?}",
-            result.nodes.iter().map(|n| &n.label).collect::<Vec<_>>());
+            result.nodes.iter().map(|n| &n.label).collect::<Vec<_>>()
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -779,10 +877,22 @@ mod tests {
         let src = b"package main\n\ntype Config struct {\n    Host string\n}\n\nfunc NewConfig() *Config {\n    return &Config{}\n}";
         let ext = GoExtractor::new();
         let result = ext.extract(src, "file::main.go").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Config" && n.node_type == NodeType::Struct),
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Config" && n.node_type == NodeType::Struct),
             "Should extract struct. Nodes: {:?}",
-            result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
-        assert!(result.nodes.iter().any(|n| n.label == "NewConfig" && n.node_type == NodeType::Function));
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "NewConfig" && n.node_type == NodeType::Function));
     }
 
     #[test]
@@ -796,18 +906,27 @@ mod tests {
         let ext = GoExtractor::new();
         let result = ext.extract(src, "file::main.go").unwrap();
         // The function should still be extracted despite the import block
-        assert!(result.nodes.iter().any(|n| n.label == "main" && n.node_type == NodeType::Function));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "main" && n.node_type == NodeType::Function));
         // File node should always be present
         assert!(result.nodes.iter().any(|n| n.node_type == NodeType::File));
     }
 
     #[test]
     fn go_extracts_interface() {
-        let src = b"package main\n\ntype Reader interface {\n    Read(p []byte) (n int, err error)\n}";
+        let src =
+            b"package main\n\ntype Reader interface {\n    Read(p []byte) (n int, err error)\n}";
         let ext = GoExtractor::new();
         let result = ext.extract(src, "file::io.go").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Reader" && n.node_type == NodeType::Type),
-            "Should extract Go interface");
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Reader" && n.node_type == NodeType::Type),
+            "Should extract Go interface"
+        );
     }
 
     #[test]
@@ -815,8 +934,13 @@ mod tests {
         let src = b"func (c *Config) Validate() error {\n    return nil\n}";
         let ext = GoExtractor::new();
         let result = ext.extract(src, "file::config.go").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Validate" && n.node_type == NodeType::Function),
-            "Should extract method receiver function");
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Validate" && n.node_type == NodeType::Function),
+            "Should extract method receiver function"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -828,9 +952,18 @@ mod tests {
         let src = b"public class UserService {\n    public void createUser(String name) { }\n    private int countUsers() { return 0; }\n}";
         let ext = JavaExtractor::new();
         let result = ext.extract(src, "file::UserService.java").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "UserService" && n.node_type == NodeType::Class));
-        assert!(result.nodes.iter().any(|n| n.label == "createUser" && n.node_type == NodeType::Function));
-        assert!(result.nodes.iter().any(|n| n.label == "countUsers" && n.node_type == NodeType::Function));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "UserService" && n.node_type == NodeType::Class));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "createUser" && n.node_type == NodeType::Function));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "countUsers" && n.node_type == NodeType::Function));
     }
 
     #[test]
@@ -838,11 +971,17 @@ mod tests {
         let src = b"import java.util.List;\nimport java.io.IOException;\n\npublic class Main { }";
         let ext = JavaExtractor::new();
         let result = ext.extract(src, "file::Main.java").unwrap();
-        let import_edges: Vec<_> = result.edges.iter()
+        let import_edges: Vec<_> = result
+            .edges
+            .iter()
             .filter(|e| e.relation == "imports")
             .collect();
-        assert!(import_edges.iter().any(|e| e.target.contains("java.util.List")));
-        assert!(import_edges.iter().any(|e| e.target.contains("java.io.IOException")));
+        assert!(import_edges
+            .iter()
+            .any(|e| e.target.contains("java.util.List")));
+        assert!(import_edges
+            .iter()
+            .any(|e| e.target.contains("java.io.IOException")));
     }
 
     #[test]
@@ -850,8 +989,14 @@ mod tests {
         let src = b"public interface Serializable { }\npublic enum Status { ACTIVE, INACTIVE }";
         let ext = JavaExtractor::new();
         let result = ext.extract(src, "file::Types.java").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Serializable" && n.node_type == NodeType::Type));
-        assert!(result.nodes.iter().any(|n| n.label == "Status" && n.node_type == NodeType::Enum));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "Serializable" && n.node_type == NodeType::Type));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "Status" && n.node_type == NodeType::Enum));
     }
 
     // -----------------------------------------------------------------------
@@ -863,8 +1008,14 @@ mod tests {
         let src = b"def helper():\n    pass\n\nclass Widget:\n    pass";
         let ext = GenericExtractor::new();
         let result = ext.extract(src, "file::script.txt").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "helper" && n.node_type == NodeType::Function));
-        assert!(result.nodes.iter().any(|n| n.label == "Widget" && n.node_type == NodeType::Struct));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "helper" && n.node_type == NodeType::Function));
+        assert!(result
+            .nodes
+            .iter()
+            .any(|n| n.label == "Widget" && n.node_type == NodeType::Struct));
     }
 
     // -----------------------------------------------------------------------
@@ -876,17 +1027,24 @@ mod tests {
         let src = "fn real() { }\n/* fn fake() { } */\nfn also_real() { }";
         let cleaned = strip_comments_and_strings(src, CommentSyntax::RUST);
         assert!(cleaned[0].contains("real"));
-        assert!(!cleaned[1].contains("fake"), "Block comment content should be stripped");
+        assert!(
+            !cleaned[1].contains("fake"),
+            "Block comment content should be stripped"
+        );
         assert!(cleaned[2].contains("also_real"));
     }
 
     #[test]
     fn strip_python_triple_quote() {
-        let src = "class Real:\n    \"\"\"This is a docstring with class Fake: inside\"\"\"\n    pass";
+        let src =
+            "class Real:\n    \"\"\"This is a docstring with class Fake: inside\"\"\"\n    pass";
         let cleaned = strip_comments_and_strings(src, CommentSyntax::PYTHON);
         assert!(cleaned[0].contains("Real"));
-        assert!(!cleaned[1].contains("Fake"),
-            "Triple-quoted string content should be stripped. Got: {:?}", cleaned[1]);
+        assert!(
+            !cleaned[1].contains("Fake"),
+            "Triple-quoted string content should be stripped. Got: {:?}",
+            cleaned[1]
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -897,15 +1055,30 @@ mod tests {
     fn resolver_exact_label_match() {
         let mut graph = Graph::with_capacity(4, 4);
         // Add file node
-        graph.add_node("file::a.rs", "a.rs", NodeType::File, &["rust"], 0.0, 0.3).unwrap();
+        graph
+            .add_node("file::a.rs", "a.rs", NodeType::File, &["rust"], 0.0, 0.3)
+            .unwrap();
         // Add a struct node
-        graph.add_node("file::a.rs::struct::Config", "Config", NodeType::Struct, &["rust"], 0.0, 0.3).unwrap();
+        graph
+            .add_node(
+                "file::a.rs::struct::Config",
+                "Config",
+                NodeType::Struct,
+                &["rust"],
+                0.0,
+                0.3,
+            )
+            .unwrap();
         // Add source file that references Config
-        graph.add_node("file::b.rs", "b.rs", NodeType::File, &["rust"], 0.0, 0.3).unwrap();
+        graph
+            .add_node("file::b.rs", "b.rs", NodeType::File, &["rust"], 0.0, 0.3)
+            .unwrap();
 
-        let unresolved = vec![
-            ("file::b.rs".to_string(), "ref::Config".to_string(), "references".to_string()),
-        ];
+        let unresolved = vec![(
+            "file::b.rs".to_string(),
+            "ref::Config".to_string(),
+            "references".to_string(),
+        )];
         let stats = ReferenceResolver::resolve(&mut graph, &unresolved).unwrap();
         assert_eq!(stats.resolved, 1, "Should resolve Config reference");
         assert_eq!(stats.unresolved, 0);
@@ -915,16 +1088,49 @@ mod tests {
     fn resolver_same_file_disambiguation() {
         let mut graph = Graph::with_capacity(8, 8);
         // Two files, each with a "Config" node
-        graph.add_node("file::a.rs", "a.rs", NodeType::File, &["rust"], 0.0, 0.3).unwrap();
-        graph.add_node("file::a.rs::struct::Config", "Config", NodeType::Struct, &["rust"], 0.0, 0.3).unwrap();
-        graph.add_node("file::b.rs", "b.rs", NodeType::File, &["rust"], 0.0, 0.3).unwrap();
-        graph.add_node("file::b.rs::struct::Config", "Config", NodeType::Struct, &["rust"], 0.0, 0.3).unwrap();
+        graph
+            .add_node("file::a.rs", "a.rs", NodeType::File, &["rust"], 0.0, 0.3)
+            .unwrap();
+        graph
+            .add_node(
+                "file::a.rs::struct::Config",
+                "Config",
+                NodeType::Struct,
+                &["rust"],
+                0.0,
+                0.3,
+            )
+            .unwrap();
+        graph
+            .add_node("file::b.rs", "b.rs", NodeType::File, &["rust"], 0.0, 0.3)
+            .unwrap();
+        graph
+            .add_node(
+                "file::b.rs::struct::Config",
+                "Config",
+                NodeType::Struct,
+                &["rust"],
+                0.0,
+                0.3,
+            )
+            .unwrap();
         // Source referencing Config from a.rs should prefer a.rs::Config
-        graph.add_node("file::a.rs::fn::main", "main", NodeType::Function, &["rust"], 0.0, 0.3).unwrap();
+        graph
+            .add_node(
+                "file::a.rs::fn::main",
+                "main",
+                NodeType::Function,
+                &["rust"],
+                0.0,
+                0.3,
+            )
+            .unwrap();
 
-        let unresolved = vec![
-            ("file::a.rs::fn::main".to_string(), "ref::Config".to_string(), "references".to_string()),
-        ];
+        let unresolved = vec![(
+            "file::a.rs::fn::main".to_string(),
+            "ref::Config".to_string(),
+            "references".to_string(),
+        )];
         let stats = ReferenceResolver::resolve(&mut graph, &unresolved).unwrap();
         assert_eq!(stats.resolved, 1, "Should resolve despite ambiguity");
         assert_eq!(stats.ambiguous, 1, "Should report ambiguity");
@@ -933,12 +1139,25 @@ mod tests {
     #[test]
     fn resolver_unresolvable_reference() {
         let mut graph = Graph::with_capacity(4, 4);
-        graph.add_node("file::a.rs", "a.rs", NodeType::File, &["rust"], 0.0, 0.3).unwrap();
-        graph.add_node("file::a.rs::fn::main", "main", NodeType::Function, &["rust"], 0.0, 0.3).unwrap();
+        graph
+            .add_node("file::a.rs", "a.rs", NodeType::File, &["rust"], 0.0, 0.3)
+            .unwrap();
+        graph
+            .add_node(
+                "file::a.rs::fn::main",
+                "main",
+                NodeType::Function,
+                &["rust"],
+                0.0,
+                0.3,
+            )
+            .unwrap();
 
-        let unresolved = vec![
-            ("file::a.rs".to_string(), "ref::NonExistentType".to_string(), "references".to_string()),
-        ];
+        let unresolved = vec![(
+            "file::a.rs".to_string(),
+            "ref::NonExistentType".to_string(),
+            "references".to_string(),
+        )];
         let stats = ReferenceResolver::resolve(&mut graph, &unresolved).unwrap();
         assert_eq!(stats.unresolved, 1, "Should report unresolved reference");
         assert_eq!(stats.resolved, 0);
@@ -966,10 +1185,14 @@ mod tests {
         let r = ts_ext.extract(b"function x() {}", "file::t.ts").unwrap();
         assert!(r.nodes[0].node_type == NodeType::File);
 
-        let r = go_ext.extract(b"package main\nfunc x() {}", "file::t.go").unwrap();
+        let r = go_ext
+            .extract(b"package main\nfunc x() {}", "file::t.go")
+            .unwrap();
         assert!(r.nodes[0].node_type == NodeType::File);
 
-        let r = java_ext.extract(b"public class X {}", "file::X.java").unwrap();
+        let r = java_ext
+            .extract(b"public class X {}", "file::X.java")
+            .unwrap();
         assert!(r.nodes[0].node_type == NodeType::File);
     }
 }

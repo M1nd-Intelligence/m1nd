@@ -1,13 +1,13 @@
 // === crates/m1nd-mcp/src/server.rs ===
 
+use crate::brand;
+use crate::layer_handlers;
+use crate::protocol::layers;
+use crate::protocol::*;
+use crate::session::SessionState;
+use crate::tools;
 use m1nd_core::domain::DomainConfig;
 use m1nd_core::error::{M1ndError, M1ndResult};
-use crate::brand;
-use crate::session::SessionState;
-use crate::protocol::*;
-use crate::protocol::layers;
-use crate::tools;
-use crate::layer_handlers;
 use std::io::{BufRead, Read, Write};
 use std::path::PathBuf;
 
@@ -129,9 +129,8 @@ fn read_request_payload<R: BufRead>(
             })?;
             let mut body = vec![0_u8; length];
             reader.read_exact(&mut body)?;
-            let payload = String::from_utf8(body).map_err(|err| {
-                std::io::Error::new(std::io::ErrorKind::InvalidData, err)
-            })?;
+            let payload = String::from_utf8(body)
+                .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))?;
             return Ok(Some((payload, TransportMode::Framed)));
         }
 
@@ -156,7 +155,12 @@ fn write_response<W: Write>(
     let json = serde_json::to_string(response).unwrap_or_default();
     match mode {
         TransportMode::Framed => {
-            write!(writer, "Content-Length: {}\r\n\r\n{}", json.as_bytes().len(), json)?;
+            write!(
+                writer,
+                "Content-Length: {}\r\n\r\n{}",
+                json.as_bytes().len(),
+                json
+            )?;
         }
         TransportMode::Line => {
             writeln!(writer, "{}", json)?;
@@ -931,11 +935,20 @@ impl McpServer {
             Some("generic") => DomainConfig::generic(),
             Some("code") | None => DomainConfig::code(),
             Some(other) => {
-                eprintln!("{}", brand::log_colored(&format!("Unknown domain '{}', falling back to 'code'", other)));
+                eprintln!(
+                    "{}",
+                    brand::log_colored(&format!(
+                        "Unknown domain '{}', falling back to 'code'",
+                        other
+                    ))
+                );
                 DomainConfig::code()
             }
         };
-        eprintln!("{}", brand::log_colored(&format!("Domain: {}", domain_config.name)));
+        eprintln!(
+            "{}",
+            brand::log_colored(&format!("Domain: {}", domain_config.name))
+        );
 
         // Step 1: Try to load graph snapshot
         let (mut graph, graph_loaded) = if config.graph_source.exists() {
@@ -943,20 +956,30 @@ impl McpServer {
                 Ok(g) => {
                     eprintln!(
                         "{}",
-                        brand::log_colored(&format!("Loaded graph snapshot: {} nodes, {} edges", g.num_nodes(), g.num_edges())),
+                        brand::log_colored(&format!(
+                            "Loaded graph snapshot: {} nodes, {} edges",
+                            g.num_nodes(),
+                            g.num_edges()
+                        )),
                     );
                     (g, true)
                 }
                 Err(e) => {
                     eprintln!(
                         "{}",
-                        brand::log_colored(&format!("Failed to load graph snapshot ({}), starting fresh", e)),
+                        brand::log_colored(&format!(
+                            "Failed to load graph snapshot ({}), starting fresh",
+                            e
+                        )),
                     );
                     (m1nd_core::graph::Graph::new(), false)
                 }
             }
         } else {
-            eprintln!("{}", brand::log_colored("No graph snapshot found, starting fresh"));
+            eprintln!(
+                "{}",
+                brand::log_colored("No graph snapshot found, starting fresh")
+            );
             (m1nd_core::graph::Graph::new(), false)
         };
 
@@ -965,7 +988,10 @@ impl McpServer {
             if let Err(e) = graph.finalize() {
                 eprintln!(
                     "{}",
-                    brand::log_colored(&format!("Failed to finalize loaded graph ({}), starting fresh", e)),
+                    brand::log_colored(&format!(
+                        "Failed to finalize loaded graph ({}), starting fresh",
+                        e
+                    )),
                 );
                 graph = m1nd_core::graph::Graph::new();
             }
@@ -983,13 +1009,19 @@ impl McpServer {
                         Ok(_) => {
                             eprintln!(
                                 "{}",
-                                brand::log_colored(&format!("Loaded plasticity state: {} synaptic records", states.len())),
+                                brand::log_colored(&format!(
+                                    "Loaded plasticity state: {} synaptic records",
+                                    states.len()
+                                )),
                             );
                         }
                         Err(e) => {
                             eprintln!(
                                 "{}",
-                                brand::log_colored(&format!("Failed to import plasticity state ({}), continuing without it", e)),
+                                brand::log_colored(&format!(
+                                    "Failed to import plasticity state ({}), continuing without it",
+                                    e
+                                )),
                             );
                         }
                     }
@@ -997,7 +1029,10 @@ impl McpServer {
                 Err(e) => {
                     eprintln!(
                         "{}",
-                        brand::log_colored(&format!("Failed to load plasticity state ({}), continuing without it", e)),
+                        brand::log_colored(&format!(
+                            "Failed to load plasticity state ({}), continuing without it",
+                            e
+                        )),
                     );
                 }
             }
@@ -1150,11 +1185,13 @@ impl McpServer {
             }
             "tools/call" => {
                 // Extract tool name and arguments from params
-                let tool_name = request.params
+                let tool_name = request
+                    .params
                     .get("name")
                     .and_then(|v| v.as_str())
                     .unwrap_or("");
-                let arguments = request.params
+                let arguments = request
+                    .params
                     .get("arguments")
                     .cloned()
                     .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
@@ -1229,9 +1266,7 @@ impl McpServer {
             name if name.starts_with("m1nd.perspective.") => {
                 self.dispatch_perspective_tool(name, params)
             }
-            name if name.starts_with("m1nd.lock.") => {
-                self.dispatch_lock_tool(name, params)
-            }
+            name if name.starts_with("m1nd.lock.") => self.dispatch_lock_tool(name, params),
             _ => self.dispatch_core_tool(&normalized, params),
         }
     }
@@ -1244,70 +1279,70 @@ impl McpServer {
     ) -> M1ndResult<serde_json::Value> {
         match tool_name {
             "m1nd.activate" => {
-                let input: ActivateInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: ActivateInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = tools::handle_activate(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.impact" => {
-                let input: ImpactInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: ImpactInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = tools::handle_impact(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.missing" => {
-                let input: MissingInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: MissingInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 tools::handle_missing(&mut self.state, input)
             }
             "m1nd.why" => {
-                let input: WhyInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: WhyInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 tools::handle_why(&mut self.state, input)
             }
             "m1nd.warmup" => {
-                let input: WarmupInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: WarmupInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 tools::handle_warmup(&mut self.state, input)
             }
             "m1nd.counterfactual" => {
-                let input: CounterfactualInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: CounterfactualInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 tools::handle_counterfactual(&mut self.state, input)
             }
             "m1nd.predict" => {
-                let input: PredictInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: PredictInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 tools::handle_predict(&mut self.state, input)
             }
             "m1nd.fingerprint" => {
-                let input: FingerprintInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: FingerprintInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 tools::handle_fingerprint(&mut self.state, input)
             }
             "m1nd.drift" => {
-                let input: DriftInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: DriftInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 tools::handle_drift(&mut self.state, input)
             }
             "m1nd.learn" => {
-                let input: LearnInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: LearnInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 tools::handle_learn(&mut self.state, input)
             }
             "m1nd.ingest" => {
-                let input: IngestInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: IngestInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 tools::handle_ingest(&mut self.state, input)
             }
             "m1nd.resonate" => {
-                let input: ResonateInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: ResonateInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 tools::handle_resonate(&mut self.state, input)
             }
             "m1nd.health" => {
-                let input: HealthInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: HealthInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = tools::handle_health(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
@@ -1316,85 +1351,87 @@ impl McpServer {
             // L2-L7: Superpowers layer tools
             // =============================================================
             "m1nd.seek" => {
-                let input: layers::SeekInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::SeekInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_seek(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.scan" => {
-                let input: layers::ScanInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::ScanInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_scan(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.timeline" => {
-                let input: layers::TimelineInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::TimelineInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_timeline(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.diverge" => {
-                let input: layers::DivergeInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::DivergeInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_diverge(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.trail.save" => {
-                let input: layers::TrailSaveInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::TrailSaveInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_trail_save(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.trail.resume" => {
-                let input: layers::TrailResumeInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::TrailResumeInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_trail_resume(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.trail.merge" => {
-                let input: layers::TrailMergeInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::TrailMergeInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_trail_merge(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.trail.list" => {
-                let input: layers::TrailListInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::TrailListInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_trail_list(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.hypothesize" => {
-                let input: layers::HypothesizeInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::HypothesizeInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_hypothesize(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.differential" => {
-                let input: layers::DifferentialInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::DifferentialInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_differential(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.trace" => {
-                let input: layers::TraceInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::TraceInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_trace(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.validate.plan" => {
-                let input: layers::ValidatePlanInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::ValidatePlanInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_validate_plan(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
             "m1nd.federate" => {
-                let input: layers::FederateInput = serde_json::from_value(params.clone())
-                    .map_err(M1ndError::Serde)?;
+                let input: layers::FederateInput =
+                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
                 let output = layer_handlers::handle_federate(&mut self.state, input)?;
                 serde_json::to_value(output).map_err(M1ndError::Serde)
             }
 
-            _ => Err(M1ndError::UnknownTool { name: tool_name.to_string() }),
+            _ => Err(M1ndError::UnknownTool {
+                name: tool_name.to_string(),
+            }),
         }
     }
 
@@ -1404,15 +1441,17 @@ impl McpServer {
         tool_name: &str,
         params: &serde_json::Value,
     ) -> M1ndResult<serde_json::Value> {
-        use crate::protocol::perspective::*;
         use crate::perspective_handlers;
+        use crate::protocol::perspective::*;
 
         match tool_name {
             "m1nd.perspective.start" => {
-                let input: PerspectiveStartInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.start".into(),
-                        detail: e.to_string(),
+                let input: PerspectiveStartInput =
+                    serde_json::from_value(params.clone()).map_err(|e| {
+                        M1ndError::InvalidParams {
+                            tool: "m1nd.perspective.start".into(),
+                            detail: e.to_string(),
+                        }
                     })?;
                 perspective_handlers::handle_perspective_start(&mut self.state, input)
             }
@@ -1433,10 +1472,12 @@ impl McpServer {
                 perspective_handlers::handle_perspective_inspect(&mut self.state, input)
             }
             "m1nd.perspective.peek" => {
-                let input: PerspectivePeekInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.peek".into(),
-                        detail: e.to_string(),
+                let input: PerspectivePeekInput =
+                    serde_json::from_value(params.clone()).map_err(|e| {
+                        M1ndError::InvalidParams {
+                            tool: "m1nd.perspective.peek".into(),
+                            detail: e.to_string(),
+                        }
                     })?;
                 perspective_handlers::handle_perspective_peek(&mut self.state, input)
             }
@@ -1473,10 +1514,12 @@ impl McpServer {
                 perspective_handlers::handle_perspective_branch(&mut self.state, input)
             }
             "m1nd.perspective.back" => {
-                let input: PerspectiveBackInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.back".into(),
-                        detail: e.to_string(),
+                let input: PerspectiveBackInput =
+                    serde_json::from_value(params.clone()).map_err(|e| {
+                        M1ndError::InvalidParams {
+                            tool: "m1nd.perspective.back".into(),
+                            detail: e.to_string(),
+                        }
                     })?;
                 perspective_handlers::handle_perspective_back(&mut self.state, input)
             }
@@ -1489,22 +1532,28 @@ impl McpServer {
                 perspective_handlers::handle_perspective_compare(&mut self.state, input)
             }
             "m1nd.perspective.list" => {
-                let input: PerspectiveListInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.list".into(),
-                        detail: e.to_string(),
+                let input: PerspectiveListInput =
+                    serde_json::from_value(params.clone()).map_err(|e| {
+                        M1ndError::InvalidParams {
+                            tool: "m1nd.perspective.list".into(),
+                            detail: e.to_string(),
+                        }
                     })?;
                 perspective_handlers::handle_perspective_list(&self.state, input)
             }
             "m1nd.perspective.close" => {
-                let input: PerspectiveCloseInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.close".into(),
-                        detail: e.to_string(),
+                let input: PerspectiveCloseInput =
+                    serde_json::from_value(params.clone()).map_err(|e| {
+                        M1ndError::InvalidParams {
+                            tool: "m1nd.perspective.close".into(),
+                            detail: e.to_string(),
+                        }
                     })?;
                 perspective_handlers::handle_perspective_close(&mut self.state, input)
             }
-            _ => Err(M1ndError::UnknownTool { name: tool_name.to_string() }),
+            _ => Err(M1ndError::UnknownTool {
+                name: tool_name.to_string(),
+            }),
         }
     }
 
@@ -1514,51 +1563,62 @@ impl McpServer {
         tool_name: &str,
         params: &serde_json::Value,
     ) -> M1ndResult<serde_json::Value> {
-        use crate::protocol::lock::*;
         use crate::lock_handlers;
+        use crate::protocol::lock::*;
 
         match tool_name {
             "m1nd.lock.create" => {
-                let input: LockCreateInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.lock.create".into(),
-                        detail: e.to_string(),
+                let input: LockCreateInput =
+                    serde_json::from_value(params.clone()).map_err(|e| {
+                        M1ndError::InvalidParams {
+                            tool: "m1nd.lock.create".into(),
+                            detail: e.to_string(),
+                        }
                     })?;
                 lock_handlers::handle_lock_create(&mut self.state, input)
             }
             "m1nd.lock.watch" => {
-                let input: LockWatchInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.lock.watch".into(),
-                        detail: e.to_string(),
+                let input: LockWatchInput =
+                    serde_json::from_value(params.clone()).map_err(|e| {
+                        M1ndError::InvalidParams {
+                            tool: "m1nd.lock.watch".into(),
+                            detail: e.to_string(),
+                        }
                     })?;
                 lock_handlers::handle_lock_watch(&mut self.state, input)
             }
             "m1nd.lock.diff" => {
-                let input: LockDiffInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
+                let input: LockDiffInput = serde_json::from_value(params.clone()).map_err(|e| {
+                    M1ndError::InvalidParams {
                         tool: "m1nd.lock.diff".into(),
                         detail: e.to_string(),
-                    })?;
+                    }
+                })?;
                 lock_handlers::handle_lock_diff(&mut self.state, input)
             }
             "m1nd.lock.rebase" => {
-                let input: LockRebaseInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.lock.rebase".into(),
-                        detail: e.to_string(),
+                let input: LockRebaseInput =
+                    serde_json::from_value(params.clone()).map_err(|e| {
+                        M1ndError::InvalidParams {
+                            tool: "m1nd.lock.rebase".into(),
+                            detail: e.to_string(),
+                        }
                     })?;
                 lock_handlers::handle_lock_rebase(&mut self.state, input)
             }
             "m1nd.lock.release" => {
-                let input: LockReleaseInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.lock.release".into(),
-                        detail: e.to_string(),
+                let input: LockReleaseInput =
+                    serde_json::from_value(params.clone()).map_err(|e| {
+                        M1ndError::InvalidParams {
+                            tool: "m1nd.lock.release".into(),
+                            detail: e.to_string(),
+                        }
                     })?;
                 lock_handlers::handle_lock_release(&mut self.state, input)
             }
-            _ => Err(M1ndError::UnknownTool { name: tool_name.to_string() }),
+            _ => Err(M1ndError::UnknownTool {
+                name: tool_name.to_string(),
+            }),
         }
     }
 }

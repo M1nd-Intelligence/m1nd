@@ -1,7 +1,7 @@
 // === crates/m1nd-core/src/activation.rs ===
 
-use std::collections::{BinaryHeap, HashMap};
 use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap};
 use std::time::Instant;
 
 use crate::error::M1ndResult;
@@ -330,13 +330,18 @@ impl ActivationEngine for HeapEngine {
             if idx < n {
                 let s = score.get().min(config.saturation_cap.get());
                 activation[idx] = s;
-                heap.push(HeapEntry { node, activation: s });
+                heap.push(HeapEntry {
+                    node,
+                    activation: s,
+                });
                 bloom.insert(node);
             }
         }
 
         let mut depth_counter = 0u32;
-        let max_ops = (n as u32).saturating_mul(config.max_depth as u32).max(10000);
+        let max_ops = (n as u32)
+            .saturating_mul(config.max_depth as u32)
+            .max(10000);
 
         while let Some(entry) = heap.pop() {
             if entry.activation < threshold {
@@ -370,7 +375,10 @@ impl ActivationEngine for HeapEngine {
                     activation[tgt_idx] = signal;
                     if !bloom.probably_contains(tgt) {
                         bloom.insert(tgt);
-                        heap.push(HeapEntry { node: tgt, activation: signal });
+                        heap.push(HeapEntry {
+                            node: tgt,
+                            activation: signal,
+                        });
                     }
                 } else if is_inhib {
                     activation[tgt_idx] = (activation[tgt_idx] + signal).max(0.0);
@@ -599,7 +607,8 @@ pub fn activate_causal(
         }
         let mut next = Vec::new();
         for &src in &back_frontier {
-            let src_act = activation[src.as_usize()].max(seeds.iter().find(|s| s.0 == src).map_or(0.0, |s| s.1.get()));
+            let src_act = activation[src.as_usize()]
+                .max(seeds.iter().find(|s| s.0 == src).map_or(0.0, |s| s.1.get()));
             if src_act < threshold {
                 continue;
             }

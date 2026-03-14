@@ -21,19 +21,19 @@
 // ---------------------------------------------------------------------------
 
 /// Signal / flow — spreading activation, data flowing through the graph.
-pub const SYM_SIGNAL: &str = "\u{234C}";     // ⍌
+pub const SYM_SIGNAL: &str = "\u{234C}"; // ⍌
 
 /// Path / trace — following connections, tracing dependencies.
-pub const SYM_PATH: &str = "\u{2350}";       // ⍐
+pub const SYM_PATH: &str = "\u{2350}"; // ⍐
 
 /// Structure / holes — structural analysis, gap detection, topology.
-pub const SYM_STRUCTURE: &str = "\u{2342}";  // ⍂
+pub const SYM_STRUCTURE: &str = "\u{2342}"; // ⍂
 
 /// Dimension / analysis — multi-dimensional impact, prediction, what-if.
 pub const SYM_DIMENSION: &str = "\u{1D53B}"; // 𝔻
 
 /// State / grid — system state, locks, trails, health status.
-pub const SYM_STATE: &str = "\u{1F062}";     // 🁢
+pub const SYM_STATE: &str = "\u{1F062}"; // 🁢
 
 /// Connection / graph — perspectives, federation, resonance harmonics.
 pub const SYM_CONNECTION: &str = "\u{27C1}"; // ⟁
@@ -57,59 +57,59 @@ pub const SIG: &str = "\u{234C}\u{2350}\u{2342}\u{1D53B}\u{27C1}";
 pub fn tool_glyph(tool_name: &str) -> &'static str {
     match tool_name {
         // ⍌ signal / flow
-        "m1nd.activate"         => SYM_SIGNAL,
-        "m1nd.ingest"           => SYM_SIGNAL,
-        "m1nd.learn"            => SYM_SIGNAL,
-        "m1nd.warmup"           => SYM_SIGNAL,
+        "m1nd.activate" => SYM_SIGNAL,
+        "m1nd.ingest" => SYM_SIGNAL,
+        "m1nd.learn" => SYM_SIGNAL,
+        "m1nd.warmup" => SYM_SIGNAL,
 
         // ⍐ path / trace
-        "m1nd.why"              => SYM_PATH,
-        "m1nd.trace"            => SYM_PATH,
-        "m1nd.timeline"         => SYM_PATH,
-        "m1nd.seek"             => SYM_PATH,
+        "m1nd.why" => SYM_PATH,
+        "m1nd.trace" => SYM_PATH,
+        "m1nd.timeline" => SYM_PATH,
+        "m1nd.seek" => SYM_PATH,
 
         // ⍂ structure / holes
-        "m1nd.missing"          => SYM_STRUCTURE,
-        "m1nd.fingerprint"      => SYM_STRUCTURE,
-        "m1nd.scan"             => SYM_STRUCTURE,
-        "m1nd.diverge"          => SYM_STRUCTURE,
+        "m1nd.missing" => SYM_STRUCTURE,
+        "m1nd.fingerprint" => SYM_STRUCTURE,
+        "m1nd.scan" => SYM_STRUCTURE,
+        "m1nd.diverge" => SYM_STRUCTURE,
 
         // 𝔻 dimension / analysis
-        "m1nd.impact"           => SYM_DIMENSION,
-        "m1nd.predict"          => SYM_DIMENSION,
-        "m1nd.counterfactual"   => SYM_DIMENSION,
-        "m1nd.differential"     => SYM_DIMENSION,
-        "m1nd.hypothesize"      => SYM_DIMENSION,
+        "m1nd.impact" => SYM_DIMENSION,
+        "m1nd.predict" => SYM_DIMENSION,
+        "m1nd.counterfactual" => SYM_DIMENSION,
+        "m1nd.differential" => SYM_DIMENSION,
+        "m1nd.hypothesize" => SYM_DIMENSION,
 
         // 🁢 state / grid
-        "m1nd.health"           => SYM_STATE,
-        "m1nd.drift"            => SYM_STATE,
-        "m1nd.lock.create"      => SYM_STATE,
-        "m1nd.lock.watch"       => SYM_STATE,
-        "m1nd.lock.diff"        => SYM_STATE,
-        "m1nd.lock.rebase"      => SYM_STATE,
-        "m1nd.lock.release"     => SYM_STATE,
-        "m1nd.trail.save"       => SYM_STATE,
-        "m1nd.trail.resume"     => SYM_STATE,
-        "m1nd.trail.merge"      => SYM_STATE,
-        "m1nd.trail.list"       => SYM_STATE,
-        "m1nd.validate.plan"    => SYM_STATE,
+        "m1nd.health" => SYM_STATE,
+        "m1nd.drift" => SYM_STATE,
+        "m1nd.lock.create" => SYM_STATE,
+        "m1nd.lock.watch" => SYM_STATE,
+        "m1nd.lock.diff" => SYM_STATE,
+        "m1nd.lock.rebase" => SYM_STATE,
+        "m1nd.lock.release" => SYM_STATE,
+        "m1nd.trail.save" => SYM_STATE,
+        "m1nd.trail.resume" => SYM_STATE,
+        "m1nd.trail.merge" => SYM_STATE,
+        "m1nd.trail.list" => SYM_STATE,
+        "m1nd.validate.plan" => SYM_STATE,
 
         // ⟁ connection / graph
-        "m1nd.resonate"             => SYM_CONNECTION,
-        "m1nd.federate"             => SYM_CONNECTION,
-        "m1nd.perspective.start"    => SYM_CONNECTION,
-        "m1nd.perspective.routes"   => SYM_CONNECTION,
-        "m1nd.perspective.inspect"  => SYM_CONNECTION,
-        "m1nd.perspective.peek"     => SYM_CONNECTION,
-        "m1nd.perspective.follow"   => SYM_CONNECTION,
-        "m1nd.perspective.suggest"  => SYM_CONNECTION,
+        "m1nd.resonate" => SYM_CONNECTION,
+        "m1nd.federate" => SYM_CONNECTION,
+        "m1nd.perspective.start" => SYM_CONNECTION,
+        "m1nd.perspective.routes" => SYM_CONNECTION,
+        "m1nd.perspective.inspect" => SYM_CONNECTION,
+        "m1nd.perspective.peek" => SYM_CONNECTION,
+        "m1nd.perspective.follow" => SYM_CONNECTION,
+        "m1nd.perspective.suggest" => SYM_CONNECTION,
         "m1nd.perspective.affinity" => SYM_CONNECTION,
-        "m1nd.perspective.branch"   => SYM_CONNECTION,
-        "m1nd.perspective.back"     => SYM_CONNECTION,
-        "m1nd.perspective.compare"  => SYM_CONNECTION,
-        "m1nd.perspective.list"     => SYM_CONNECTION,
-        "m1nd.perspective.close"    => SYM_CONNECTION,
+        "m1nd.perspective.branch" => SYM_CONNECTION,
+        "m1nd.perspective.back" => SYM_CONNECTION,
+        "m1nd.perspective.compare" => SYM_CONNECTION,
+        "m1nd.perspective.list" => SYM_CONNECTION,
+        "m1nd.perspective.close" => SYM_CONNECTION,
 
         // fallback
         _ => SIG,
@@ -119,25 +119,19 @@ pub fn tool_glyph(tool_name: &str) -> &'static str {
 /// Returns a short human-readable category tag for the tool's semantic domain.
 pub fn tool_domain(tool_name: &str) -> &'static str {
     match tool_name {
-        "m1nd.activate" | "m1nd.ingest" | "m1nd.learn" | "m1nd.warmup"
-            => "signal",
-        "m1nd.why" | "m1nd.trace" | "m1nd.timeline" | "m1nd.seek"
-            => "path",
-        "m1nd.missing" | "m1nd.fingerprint" | "m1nd.scan" | "m1nd.diverge"
-            => "structure",
-        "m1nd.impact" | "m1nd.predict" | "m1nd.counterfactual"
-            | "m1nd.differential" | "m1nd.hypothesize"
-            => "dimension",
-        "m1nd.health" | "m1nd.drift" | "m1nd.validate.plan"
-            => "state",
-        name if name.starts_with("m1nd.lock.")
-            => "state",
-        name if name.starts_with("m1nd.trail.")
-            => "state",
-        "m1nd.resonate" | "m1nd.federate"
-            => "connection",
-        name if name.starts_with("m1nd.perspective.")
-            => "connection",
+        "m1nd.activate" | "m1nd.ingest" | "m1nd.learn" | "m1nd.warmup" => "signal",
+        "m1nd.why" | "m1nd.trace" | "m1nd.timeline" | "m1nd.seek" => "path",
+        "m1nd.missing" | "m1nd.fingerprint" | "m1nd.scan" | "m1nd.diverge" => "structure",
+        "m1nd.impact"
+        | "m1nd.predict"
+        | "m1nd.counterfactual"
+        | "m1nd.differential"
+        | "m1nd.hypothesize" => "dimension",
+        "m1nd.health" | "m1nd.drift" | "m1nd.validate.plan" => "state",
+        name if name.starts_with("m1nd.lock.") => "state",
+        name if name.starts_with("m1nd.trail.") => "state",
+        "m1nd.resonate" | "m1nd.federate" => "connection",
+        name if name.starts_with("m1nd.perspective.") => "connection",
         _ => "signal",
     }
 }
@@ -239,35 +233,60 @@ mod tests {
     fn tool_glyph_covers_all_core_tools() {
         // Verify no core tool falls through to the fallback
         let core_tools = [
-            "m1nd.activate", "m1nd.impact", "m1nd.missing", "m1nd.why",
-            "m1nd.warmup", "m1nd.counterfactual", "m1nd.predict",
-            "m1nd.fingerprint", "m1nd.drift", "m1nd.learn", "m1nd.ingest",
-            "m1nd.resonate", "m1nd.health",
+            "m1nd.activate",
+            "m1nd.impact",
+            "m1nd.missing",
+            "m1nd.why",
+            "m1nd.warmup",
+            "m1nd.counterfactual",
+            "m1nd.predict",
+            "m1nd.fingerprint",
+            "m1nd.drift",
+            "m1nd.learn",
+            "m1nd.ingest",
+            "m1nd.resonate",
+            "m1nd.health",
         ];
         for tool in &core_tools {
             let glyph = tool_glyph(tool);
-            assert_ne!(glyph, SIG, "Core tool {} should have a specific glyph, not fallback", tool);
+            assert_ne!(
+                glyph, SIG,
+                "Core tool {} should have a specific glyph, not fallback",
+                tool
+            );
         }
     }
 
     #[test]
     fn tool_glyph_covers_layer_tools() {
         let layer_tools = [
-            "m1nd.seek", "m1nd.scan", "m1nd.timeline", "m1nd.diverge",
-            "m1nd.trace", "m1nd.hypothesize", "m1nd.differential",
-            "m1nd.federate", "m1nd.validate.plan",
+            "m1nd.seek",
+            "m1nd.scan",
+            "m1nd.timeline",
+            "m1nd.diverge",
+            "m1nd.trace",
+            "m1nd.hypothesize",
+            "m1nd.differential",
+            "m1nd.federate",
+            "m1nd.validate.plan",
         ];
         for tool in &layer_tools {
             let glyph = tool_glyph(tool);
-            assert_ne!(glyph, SIG, "Layer tool {} should have a specific glyph", tool);
+            assert_ne!(
+                glyph, SIG,
+                "Layer tool {} should have a specific glyph",
+                tool
+            );
         }
     }
 
     #[test]
     fn tool_glyph_covers_perspective_tools() {
         let perspective_tools = [
-            "m1nd.perspective.start", "m1nd.perspective.routes",
-            "m1nd.perspective.follow", "m1nd.perspective.close",
+            "m1nd.perspective.start",
+            "m1nd.perspective.routes",
+            "m1nd.perspective.follow",
+            "m1nd.perspective.close",
         ];
         for tool in &perspective_tools {
             assert_eq!(tool_glyph(tool), SYM_CONNECTION);
@@ -277,8 +296,11 @@ mod tests {
     #[test]
     fn tool_glyph_covers_lock_tools() {
         let lock_tools = [
-            "m1nd.lock.create", "m1nd.lock.watch", "m1nd.lock.diff",
-            "m1nd.lock.rebase", "m1nd.lock.release",
+            "m1nd.lock.create",
+            "m1nd.lock.watch",
+            "m1nd.lock.diff",
+            "m1nd.lock.rebase",
+            "m1nd.lock.release",
         ];
         for tool in &lock_tools {
             assert_eq!(tool_glyph(tool), SYM_STATE);
@@ -288,8 +310,10 @@ mod tests {
     #[test]
     fn tool_glyph_covers_trail_tools() {
         let trail_tools = [
-            "m1nd.trail.save", "m1nd.trail.resume",
-            "m1nd.trail.merge", "m1nd.trail.list",
+            "m1nd.trail.save",
+            "m1nd.trail.resume",
+            "m1nd.trail.merge",
+            "m1nd.trail.list",
         ];
         for tool in &trail_tools {
             assert_eq!(tool_glyph(tool), SYM_STATE);
@@ -318,7 +342,10 @@ mod tests {
 
     #[test]
     fn header_format() {
-        let h = header("m1nd.activate", "\"chat_handler\" \u{2014} 15 results in 31ms");
+        let h = header(
+            "m1nd.activate",
+            "\"chat_handler\" \u{2014} 15 results in 31ms",
+        );
         assert!(h.starts_with(SYM_SIGNAL));
         assert!(h.contains("activate"));
         // No "m1nd" text — glyphs ARE the identity

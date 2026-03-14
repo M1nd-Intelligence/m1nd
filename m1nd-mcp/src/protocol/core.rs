@@ -138,7 +138,7 @@ pub struct DriftInput {
 pub struct LearnInput {
     pub query: String,
     pub agent_id: String,
-    pub feedback: String,  // "correct", "wrong", or "partial"
+    pub feedback: String, // "correct", "wrong", or "partial"
     pub node_ids: Vec<String>,
     #[serde(default = "default_feedback_strength")]
     pub strength: f32,
@@ -181,22 +181,53 @@ pub struct HealthInput {
 // Default value helpers
 // ---------------------------------------------------------------------------
 
-fn default_top_k() -> usize { 20 }
-fn default_top_k_10() -> usize { 10 }
-fn default_dimensions() -> Vec<String> {
-    vec!["structural".into(), "semantic".into(), "temporal".into(), "causal".into()]
+fn default_top_k() -> usize {
+    20
 }
-fn default_true() -> bool { true }
-fn default_forward() -> String { "forward".into() }
-fn default_min_sibling() -> f32 { 0.3 }
-fn default_max_hops() -> u8 { 6 }
-fn default_boost() -> f32 { 0.15 }
-fn default_similarity() -> f32 { 0.85 }
-fn default_last_session() -> String { "last_session".into() }
-fn default_feedback_strength() -> f32 { 0.2 }
-fn default_adapter() -> String { "code".into() }
-fn default_ingest_mode() -> String { "replace".into() }
-fn default_params() -> serde_json::Value { serde_json::Value::Object(serde_json::Map::new()) }
+fn default_top_k_10() -> usize {
+    10
+}
+fn default_dimensions() -> Vec<String> {
+    vec![
+        "structural".into(),
+        "semantic".into(),
+        "temporal".into(),
+        "causal".into(),
+    ]
+}
+fn default_true() -> bool {
+    true
+}
+fn default_forward() -> String {
+    "forward".into()
+}
+fn default_min_sibling() -> f32 {
+    0.3
+}
+fn default_max_hops() -> u8 {
+    6
+}
+fn default_boost() -> f32 {
+    0.15
+}
+fn default_similarity() -> f32 {
+    0.85
+}
+fn default_last_session() -> String {
+    "last_session".into()
+}
+fn default_feedback_strength() -> f32 {
+    0.2
+}
+fn default_adapter() -> String {
+    "code".into()
+}
+fn default_ingest_mode() -> String {
+    "replace".into()
+}
+fn default_params() -> serde_json::Value {
+    serde_json::Value::Object(serde_json::Map::new())
+}
 
 // ---------------------------------------------------------------------------
 // MCP tool output types (03-MCP Section 2 output schemas)
@@ -333,10 +364,9 @@ mod tests {
 
     #[test]
     fn request_defaults_missing_params_to_empty_object() {
-        let request: JsonRpcRequest = serde_json::from_str(
-            r#"{"jsonrpc":"2.0","id":1,"method":"tools/list"}"#,
-        )
-        .expect("request without params should parse");
+        let request: JsonRpcRequest =
+            serde_json::from_str(r#"{"jsonrpc":"2.0","id":1,"method":"tools/list"}"#)
+                .expect("request without params should parse");
 
         assert_eq!(request.method, "tools/list");
         assert_eq!(request.params, serde_json::json!({}));

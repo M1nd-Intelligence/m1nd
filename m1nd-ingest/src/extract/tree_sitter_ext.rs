@@ -4,10 +4,10 @@
 // One extractor struct handles ALL tree-sitter-backed languages by taking a
 // LanguageConfig that maps language-specific node kinds to m1nd NodeTypes.
 
+use super::{ExtractedEdge, ExtractedNode, ExtractionResult, Extractor};
 use m1nd_core::error::M1ndResult;
 use m1nd_core::types::NodeType;
-use tree_sitter::{Language, Parser, Node};
-use super::{Extractor, ExtractionResult, ExtractedNode, ExtractedEdge};
+use tree_sitter::{Language, Node, Parser};
 
 // ---------------------------------------------------------------------------
 // LanguageConfig — per-language node kind → m1nd NodeType mapping
@@ -75,7 +75,12 @@ impl TreeSitterExtractor {
         self.extract_name_inner(node, source, 0)
     }
 
-    fn extract_name_inner<'a>(&self, node: Node<'a>, source: &'a [u8], depth: usize) -> Option<String> {
+    fn extract_name_inner<'a>(
+        &self,
+        node: Node<'a>,
+        source: &'a [u8],
+        depth: usize,
+    ) -> Option<String> {
         if depth > 4 {
             return None; // Prevent infinite recursion
         }
@@ -83,8 +88,10 @@ impl TreeSitterExtractor {
         // Try primary name field
         if let Some(name_node) = node.child_by_field_name(self.config.name_field) {
             // If the name node is a simple identifier, use its text
-            if name_node.kind().contains("identifier") || name_node.kind() == "name"
-                || name_node.kind() == "constant" || name_node.kind() == "simple_identifier"
+            if name_node.kind().contains("identifier")
+                || name_node.kind() == "name"
+                || name_node.kind() == "constant"
+                || name_node.kind() == "simple_identifier"
                 || name_node.named_child_count() == 0
             {
                 let text = name_node.utf8_text(source).ok()?;
@@ -110,7 +117,8 @@ impl TreeSitterExtractor {
                     }
                 }
                 // Simple identifier child
-                if child.kind().contains("identifier") || child.kind() == "name"
+                if child.kind().contains("identifier")
+                    || child.kind() == "name"
                     || child.named_child_count() == 0
                 {
                     let text = child.utf8_text(source).ok()?;
@@ -132,9 +140,13 @@ impl TreeSitterExtractor {
             for child in node.named_children(&mut cursor) {
                 let kind = child.kind();
                 // Direct identifier — return immediately
-                if kind.contains("identifier") || kind == "name" || kind == "constant"
-                    || kind == "simple_identifier" || kind == "bare_key"
-                    || kind == "value_name" || kind == "type_constructor"
+                if kind.contains("identifier")
+                    || kind == "name"
+                    || kind == "constant"
+                    || kind == "simple_identifier"
+                    || kind == "bare_key"
+                    || kind == "value_name"
+                    || kind == "type_constructor"
                     || kind == "constructor_name"
                 {
                     let text = child.utf8_text(source).ok()?;
@@ -147,9 +159,12 @@ impl TreeSitterExtractor {
                     continue;
                 }
                 // Compound child — drill down recursively
-                if kind.contains("declarator") || kind.contains("binding")
-                    || kind.contains("reference") || kind.contains("definition")
-                    || kind.contains("_name") || kind.contains("spec")
+                if kind.contains("declarator")
+                    || kind.contains("binding")
+                    || kind.contains("reference")
+                    || kind.contains("definition")
+                    || kind.contains("_name")
+                    || kind.contains("spec")
                 {
                     if let Some(name) = self.extract_name_inner(child, source, depth + 1) {
                         return Some(name);
@@ -173,9 +188,7 @@ impl TreeSitterExtractor {
         if targets.is_empty() {
             if let Ok(text) = node.utf8_text(source) {
                 // Strip the keyword and extract meaningful identifiers
-                let cleaned = text
-                    .trim()
-                    .replace('\n', " ");
+                let cleaned = text.trim().replace('\n', " ");
                 // Extract quoted strings (common in many languages)
                 for part in cleaned.split('"').enumerate() {
                     if part.0 % 2 == 1 && !part.1.is_empty() {
@@ -194,15 +207,36 @@ impl TreeSitterExtractor {
                 if targets.is_empty() {
                     for word in cleaned.split_whitespace() {
                         // Skip keywords
-                        if matches!(word, "import" | "from" | "require" | "use"
-                            | "include" | "using" | "extern" | "module"
-                            | "package" | "open" | "static" | "as" | "*"
-                            | "{" | "}" | "(" | ")" | ";")
-                        {
+                        if matches!(
+                            word,
+                            "import"
+                                | "from"
+                                | "require"
+                                | "use"
+                                | "include"
+                                | "using"
+                                | "extern"
+                                | "module"
+                                | "package"
+                                | "open"
+                                | "static"
+                                | "as"
+                                | "*"
+                                | "{"
+                                | "}"
+                                | "("
+                                | ")"
+                                | ";"
+                        ) {
                             continue;
                         }
                         if word.contains('.') || word.contains("::") || word.len() > 1 {
-                            targets.push(word.trim_matches(|c: char| !c.is_alphanumeric() && c != '.' && c != ':' && c != '_').to_string());
+                            targets.push(
+                                word.trim_matches(|c: char| {
+                                    !c.is_alphanumeric() && c != '.' && c != ':' && c != '_'
+                                })
+                                .to_string(),
+                            );
                         }
                     }
                 }
@@ -224,16 +258,28 @@ impl TreeSitterExtractor {
         let kind = node.kind();
 
         // Scoped identifiers, qualified names, etc.
-        if kind.contains("identifier") || kind == "constant"
-            || kind == "scope_resolution" || kind == "scoped_identifier"
-            || kind == "qualified_name" || kind == "dotted_name"
+        if kind.contains("identifier")
+            || kind == "constant"
+            || kind == "scope_resolution"
+            || kind == "scoped_identifier"
+            || kind == "qualified_name"
+            || kind == "dotted_name"
             || kind == "member_expression"
         {
             if let Ok(text) = node.utf8_text(source) {
                 let text = text.trim();
                 if !text.is_empty()
-                    && !matches!(text, "import" | "from" | "require" | "use"
-                        | "include" | "using" | "extern" | "module")
+                    && !matches!(
+                        text,
+                        "import"
+                            | "from"
+                            | "require"
+                            | "use"
+                            | "include"
+                            | "using"
+                            | "extern"
+                            | "module"
+                    )
                 {
                     targets.push(text.to_string());
                     return; // Don't recurse into children of a qualified name
@@ -242,7 +288,9 @@ impl TreeSitterExtractor {
         }
 
         // String literals (for require("..."), include "...", etc.)
-        if kind == "string_literal" || kind == "string" || kind == "string_content"
+        if kind == "string_literal"
+            || kind == "string"
+            || kind == "string_content"
             || kind == "interpreted_string_literal"
         {
             if let Ok(text) = node.utf8_text(source) {
@@ -357,12 +405,12 @@ impl TreeSitterExtractor {
 impl Extractor for TreeSitterExtractor {
     fn extract(&self, content: &[u8], file_id: &str) -> M1ndResult<ExtractionResult> {
         let mut parser = Parser::new();
-        parser
-            .set_language(&self.language)
-            .map_err(|e| m1nd_core::error::M1ndError::IngestError(format!(
+        parser.set_language(&self.language).map_err(|e| {
+            m1nd_core::error::M1ndError::IngestError(format!(
                 "Failed to set tree-sitter language for {}: {}",
                 self.config.lang_tag, e
-            )))?;
+            ))
+        })?;
 
         let tree = parser.parse(content, None).ok_or_else(|| {
             m1nd_core::error::M1ndError::IngestError(format!(
@@ -454,7 +502,11 @@ pub fn csharp_config() -> LanguageConfig {
     LanguageConfig {
         lang_tag: "csharp",
         extensions: &["cs"],
-        function_kinds: &["method_declaration", "constructor_declaration", "local_function_statement"],
+        function_kinds: &[
+            "method_declaration",
+            "constructor_declaration",
+            "local_function_statement",
+        ],
         class_kinds: &["class_declaration", "record_declaration"],
         struct_kinds: &["struct_declaration"],
         enum_kinds: &["enum_declaration"],
@@ -679,114 +731,72 @@ pub fn json_config() -> LanguageConfig {
 
 /// Create a C extractor.
 pub fn c_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_c::LANGUAGE.into(),
-        c_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_c::LANGUAGE.into(), c_config())
 }
 
 /// Create a C++ extractor.
 pub fn cpp_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_cpp::LANGUAGE.into(),
-        cpp_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_cpp::LANGUAGE.into(), cpp_config())
 }
 
 /// Create a C# extractor.
 pub fn csharp_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_c_sharp::LANGUAGE.into(),
-        csharp_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_c_sharp::LANGUAGE.into(), csharp_config())
 }
 
 /// Create a Ruby extractor.
 pub fn ruby_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_ruby::LANGUAGE.into(),
-        ruby_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_ruby::LANGUAGE.into(), ruby_config())
 }
 
 /// Create a PHP extractor.
 pub fn php_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_php::LANGUAGE_PHP.into(),
-        php_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_php::LANGUAGE_PHP.into(), php_config())
 }
 
 /// Create a Swift extractor.
 pub fn swift_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_swift::LANGUAGE.into(),
-        swift_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_swift::LANGUAGE.into(), swift_config())
 }
 
 /// Create a Kotlin extractor.
 pub fn kotlin_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_kotlin_ng::LANGUAGE.into(),
-        kotlin_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_kotlin_ng::LANGUAGE.into(), kotlin_config())
 }
 
 /// Create a Scala extractor.
 pub fn scala_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_scala::LANGUAGE.into(),
-        scala_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_scala::LANGUAGE.into(), scala_config())
 }
 
 /// Create a Bash extractor.
 pub fn bash_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_bash::LANGUAGE.into(),
-        bash_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_bash::LANGUAGE.into(), bash_config())
 }
 
 /// Create a Lua extractor.
 pub fn lua_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_lua::LANGUAGE.into(),
-        lua_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_lua::LANGUAGE.into(), lua_config())
 }
 
 /// Create an R extractor.
 pub fn r_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_r::LANGUAGE.into(),
-        r_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_r::LANGUAGE.into(), r_config())
 }
 
 /// Create an HTML extractor.
 pub fn html_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_html::LANGUAGE.into(),
-        html_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_html::LANGUAGE.into(), html_config())
 }
 
 /// Create a CSS extractor.
 pub fn css_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_css::LANGUAGE.into(),
-        css_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_css::LANGUAGE.into(), css_config())
 }
 
 /// Create a JSON extractor.
 pub fn json_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_json::LANGUAGE.into(),
-        json_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_json::LANGUAGE.into(), json_config())
 }
 
 // ===========================================================================
@@ -856,7 +866,7 @@ pub fn zig_config() -> LanguageConfig {
         enum_kinds: &[],
         type_kinds: &[],
         module_kinds: &[],
-        import_kinds: &["builtin_function"],  // @import("...")
+        import_kinds: &["builtin_function"], // @import("...")
         name_field: "name",
         alt_name_fields: &[],
         name_from_first_child: true,
@@ -979,75 +989,51 @@ pub fn sql_config() -> LanguageConfig {
 /// Create an Elixir extractor.
 #[cfg(feature = "tier2")]
 pub fn elixir_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_elixir::LANGUAGE.into(),
-        elixir_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_elixir::LANGUAGE.into(), elixir_config())
 }
 
 /// Create a Dart extractor.
 #[cfg(feature = "tier2")]
 pub fn dart_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_dart::LANGUAGE.into(),
-        dart_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_dart::LANGUAGE.into(), dart_config())
 }
 
 /// Create a Zig extractor.
 #[cfg(feature = "tier2")]
 pub fn zig_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_zig::LANGUAGE.into(),
-        zig_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_zig::LANGUAGE.into(), zig_config())
 }
 
 /// Create a Haskell extractor.
 #[cfg(feature = "tier2")]
 pub fn haskell_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_haskell::LANGUAGE.into(),
-        haskell_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_haskell::LANGUAGE.into(), haskell_config())
 }
 
 /// Create an OCaml extractor.
 #[cfg(feature = "tier2")]
 pub fn ocaml_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_ocaml::LANGUAGE_OCAML.into(),
-        ocaml_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_ocaml::LANGUAGE_OCAML.into(), ocaml_config())
 }
 
 /// Create a TOML extractor.
 /// Uses tree-sitter-toml-ng (new API, no C symbol collisions).
 #[cfg(feature = "tier2")]
 pub fn toml_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_toml_ng::LANGUAGE.into(),
-        toml_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_toml_ng::LANGUAGE.into(), toml_config())
 }
 
 /// Create a YAML extractor.
 #[cfg(feature = "tier2")]
 pub fn yaml_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_yaml::LANGUAGE.into(),
-        yaml_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_yaml::LANGUAGE.into(), yaml_config())
 }
 
 /// Create a SQL extractor.
 /// Uses tree-sitter-sequel (new API, no C symbol collisions).
 #[cfg(feature = "tier2")]
 pub fn sql_extractor() -> TreeSitterExtractor {
-    TreeSitterExtractor::new(
-        tree_sitter_sequel::LANGUAGE.into(),
-        sql_config(),
-    )
+    TreeSitterExtractor::new(tree_sitter_sequel::LANGUAGE.into(), sql_config())
 }
 
 // ---------------------------------------------------------------------------
@@ -1074,10 +1060,14 @@ mod tests {
         let indent = "  ".repeat(depth);
         let text = node.utf8_text(src).unwrap_or("?");
         let short_text = if text.len() > 60 { &text[..60] } else { text };
-        out.push_str(&format!("{}{} [{}..{}] {:?}\n",
-            indent, node.kind(),
-            node.start_position().row, node.end_position().row,
-            short_text.replace('\n', "\\n")));
+        out.push_str(&format!(
+            "{}{} [{}..{}] {:?}\n",
+            indent,
+            node.kind(),
+            node.start_position().row,
+            node.end_position().row,
+            short_text.replace('\n', "\\n")
+        ));
         let mut cursor = node.walk();
         for child in node.named_children(&mut cursor) {
             dump_node(&child, src, out, depth + 1);
@@ -1089,10 +1079,30 @@ mod tests {
         let src = b"struct Point { int x; int y; };\nint add(int a, int b) { return a + b; }";
         let ext = c_extractor();
         let result = ext.extract(src, "file::test.c").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "add" && n.node_type == NodeType::Function),
-            "Should extract C function. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
-        assert!(result.nodes.iter().any(|n| n.label == "Point" && n.node_type == NodeType::Struct),
-            "Should extract C struct. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "add" && n.node_type == NodeType::Function),
+            "Should extract C function. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Point" && n.node_type == NodeType::Struct),
+            "Should extract C struct. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1100,8 +1110,18 @@ mod tests {
         let src = b"enum Color { RED, GREEN, BLUE };";
         let ext = c_extractor();
         let result = ext.extract(src, "file::test.c").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Color" && n.node_type == NodeType::Enum),
-            "Should extract C enum. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Color" && n.node_type == NodeType::Enum),
+            "Should extract C enum. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1109,11 +1129,16 @@ mod tests {
         let src = b"#include <stdio.h>\n#include \"myheader.h\"\nint main() { return 0; }";
         let ext = c_extractor();
         let result = ext.extract(src, "file::test.c").unwrap();
-        let import_edges: Vec<_> = result.edges.iter()
+        let import_edges: Vec<_> = result
+            .edges
+            .iter()
             .filter(|e| e.relation == "imports")
             .collect();
-        assert!(!import_edges.is_empty(),
-            "Should have import edges for #include. Edges: {:?}", result.edges);
+        assert!(
+            !import_edges.is_empty(),
+            "Should have import edges for #include. Edges: {:?}",
+            result.edges
+        );
     }
 
     #[test]
@@ -1121,10 +1146,30 @@ mod tests {
         let src = b"namespace myns {\nclass Widget {\npublic:\n    void draw();\n};\n}";
         let ext = cpp_extractor();
         let result = ext.extract(src, "file::test.cpp").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "myns" && n.node_type == NodeType::Module),
-            "Should extract C++ namespace. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
-        assert!(result.nodes.iter().any(|n| n.label == "Widget" && n.node_type == NodeType::Class),
-            "Should extract C++ class. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "myns" && n.node_type == NodeType::Module),
+            "Should extract C++ namespace. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Widget" && n.node_type == NodeType::Class),
+            "Should extract C++ class. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1132,10 +1177,30 @@ mod tests {
         let src = b"namespace MyApp {\n    public class UserService {\n        public void CreateUser(string name) { }\n    }\n}";
         let ext = csharp_extractor();
         let result = ext.extract(src, "file::UserService.cs").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "UserService" && n.node_type == NodeType::Class),
-            "Should extract C# class. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
-        assert!(result.nodes.iter().any(|n| n.label == "CreateUser" && n.node_type == NodeType::Function),
-            "Should extract C# method. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "UserService" && n.node_type == NodeType::Class),
+            "Should extract C# class. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "CreateUser" && n.node_type == NodeType::Function),
+            "Should extract C# method. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1143,10 +1208,30 @@ mod tests {
         let src = b"class Dog\n  def bark\n    puts 'woof'\n  end\nend";
         let ext = ruby_extractor();
         let result = ext.extract(src, "file::dog.rb").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Dog" && n.node_type == NodeType::Class),
-            "Should extract Ruby class. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
-        assert!(result.nodes.iter().any(|n| n.label == "bark" && n.node_type == NodeType::Function),
-            "Should extract Ruby method. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Dog" && n.node_type == NodeType::Class),
+            "Should extract Ruby class. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "bark" && n.node_type == NodeType::Function),
+            "Should extract Ruby method. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1154,8 +1239,18 @@ mod tests {
         let src = b"module Animals\n  class Cat\n    def meow; end\n  end\nend";
         let ext = ruby_extractor();
         let result = ext.extract(src, "file::animals.rb").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Animals" && n.node_type == NodeType::Module),
-            "Should extract Ruby module. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Animals" && n.node_type == NodeType::Module),
+            "Should extract Ruby module. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1163,8 +1258,18 @@ mod tests {
         let src = b"<?php\nnamespace App;\nclass Controller {\n    public function index() { }\n}\nfunction helper() { }";
         let ext = php_extractor();
         let result = ext.extract(src, "file::Controller.php").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Controller" && n.node_type == NodeType::Class),
-            "Should extract PHP class. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Controller" && n.node_type == NodeType::Class),
+            "Should extract PHP class. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1174,10 +1279,30 @@ mod tests {
         let src = b"struct Point {\n    var x: Int\n    var y: Int\n}\n\nfunc add(_ a: Int, _ b: Int) -> Int {\n    return a + b\n}";
         let ext = swift_extractor();
         let result = ext.extract(src, "file::test.swift").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Point" && n.node_type == NodeType::Class),
-            "Should extract Swift struct (as Class). Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
-        assert!(result.nodes.iter().any(|n| n.label == "add" && n.node_type == NodeType::Function),
-            "Should extract Swift function. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Point" && n.node_type == NodeType::Class),
+            "Should extract Swift struct (as Class). Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "add" && n.node_type == NodeType::Function),
+            "Should extract Swift function. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1185,10 +1310,30 @@ mod tests {
         let src = b"protocol Drawable {\n    func draw()\n}\n\nclass Circle: Drawable {\n    func draw() { }\n}";
         let ext = swift_extractor();
         let result = ext.extract(src, "file::test.swift").unwrap();
-        assert!(result.nodes.iter().any(|n| n.label == "Drawable" && n.node_type == NodeType::Type),
-            "Should extract Swift protocol. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
-        assert!(result.nodes.iter().any(|n| n.label == "Circle" && n.node_type == NodeType::Class),
-            "Should extract Swift class. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Drawable" && n.node_type == NodeType::Type),
+            "Should extract Swift protocol. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            result
+                .nodes
+                .iter()
+                .any(|n| n.label == "Circle" && n.node_type == NodeType::Class),
+            "Should extract Swift class. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1197,11 +1342,20 @@ mod tests {
         let ext = bash_extractor();
         let result = ext.extract(src, "file::test.sh").unwrap();
         // At least one function should be found
-        let funcs: Vec<_> = result.nodes.iter()
+        let funcs: Vec<_> = result
+            .nodes
+            .iter()
             .filter(|n| n.node_type == NodeType::Function)
             .collect();
-        assert!(!funcs.is_empty(),
-            "Should extract at least one bash function. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+        assert!(
+            !funcs.is_empty(),
+            "Should extract at least one bash function. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1209,11 +1363,20 @@ mod tests {
         let src = b"function greet(name)\n    print('hello ' .. name)\nend\n\nlocal function helper()\n    return 42\nend";
         let ext = lua_extractor();
         let result = ext.extract(src, "file::test.lua").unwrap();
-        let funcs: Vec<_> = result.nodes.iter()
+        let funcs: Vec<_> = result
+            .nodes
+            .iter()
             .filter(|n| n.node_type == NodeType::Function)
             .collect();
-        assert!(!funcs.is_empty(),
-            "Should extract Lua functions. Nodes: {:?}", result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+        assert!(
+            !funcs.is_empty(),
+            "Should extract Lua functions. Nodes: {:?}",
+            result
+                .nodes
+                .iter()
+                .map(|n| (&n.label, &n.node_type))
+                .collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -1236,10 +1399,21 @@ mod tests {
             ("json", Box::new(json_extractor())),
         ];
         for (lang, ext) in extractors {
-            let result = ext.extract(b"/* empty */", &format!("file::test.{}", lang)).unwrap();
-            assert!(!result.nodes.is_empty(), "{} extractor should produce at least a file node", lang);
-            assert_eq!(result.nodes[0].node_type, NodeType::File,
-                "{} extractor first node should be File, got {:?}", lang, result.nodes[0].node_type);
+            let result = ext
+                .extract(b"/* empty */", &format!("file::test.{}", lang))
+                .unwrap();
+            assert!(
+                !result.nodes.is_empty(),
+                "{} extractor should produce at least a file node",
+                lang
+            );
+            assert_eq!(
+                result.nodes[0].node_type,
+                NodeType::File,
+                "{} extractor first node should be File, got {:?}",
+                lang,
+                result.nodes[0].node_type
+            );
         }
     }
 
@@ -1253,20 +1427,30 @@ mod tests {
         // Find the Dog class node
         let dog_node = result.nodes.iter().find(|n| n.label == "Dog").unwrap();
         // Find containment edge from file to Dog
-        let file_to_dog = result.edges.iter().find(|e|
-            e.target == dog_node.id && e.relation == "contains"
+        let file_to_dog = result
+            .edges
+            .iter()
+            .find(|e| e.target == dog_node.id && e.relation == "contains");
+        assert!(
+            file_to_dog.is_some(),
+            "Should have contains edge to Dog class"
         );
-        assert!(file_to_dog.is_some(), "Should have contains edge to Dog class");
 
         // Find the bark method node
         let bark_node = result.nodes.iter().find(|n| n.label == "bark").unwrap();
         // Find containment edge from Dog to bark
-        let dog_to_bark = result.edges.iter().find(|e|
+        let dog_to_bark = result.edges.iter().find(|e| {
             e.target == bark_node.id && e.relation == "contains" && e.source == dog_node.id
-        );
-        assert!(dog_to_bark.is_some(),
+        });
+        assert!(
+            dog_to_bark.is_some(),
             "Should have contains edge from Dog to bark. Edges: {:?}",
-            result.edges.iter().filter(|e| e.relation == "contains").collect::<Vec<_>>());
+            result
+                .edges
+                .iter()
+                .filter(|e| e.relation == "contains")
+                .collect::<Vec<_>>()
+        );
     }
 
     // ===================================================================
@@ -1283,9 +1467,18 @@ mod tests {
             let src = b"class Worker {\n  void process(String data) {}\n  int _helper(int x) => x * 2;\n}";
             let ext = dart_extractor();
             let result = ext.extract(src, "file::worker.dart").unwrap();
-            assert!(result.nodes.iter().any(|n| n.label == "Worker" && n.node_type == NodeType::Class),
+            assert!(
+                result
+                    .nodes
+                    .iter()
+                    .any(|n| n.label == "Worker" && n.node_type == NodeType::Class),
                 "Should extract Dart class. Nodes: {:?}",
-                result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+                result
+                    .nodes
+                    .iter()
+                    .map(|n| (&n.label, &n.node_type))
+                    .collect::<Vec<_>>()
+            );
         }
 
         #[test]
@@ -1301,11 +1494,25 @@ mod tests {
             let src = b"pub fn main() void {}\n\nfn helper(x: i32) i32 {\n    return x * 2;\n}";
             let ext = zig_extractor();
             let result = ext.extract(src, "file::main.zig").unwrap();
-            assert!(result.nodes.iter().any(|n| n.label == "main" && n.node_type == NodeType::Function),
+            assert!(
+                result
+                    .nodes
+                    .iter()
+                    .any(|n| n.label == "main" && n.node_type == NodeType::Function),
                 "Should extract Zig pub fn. Nodes: {:?}",
-                result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
-            assert!(result.nodes.iter().any(|n| n.label == "helper" && n.node_type == NodeType::Function),
-                "Should extract Zig private fn");
+                result
+                    .nodes
+                    .iter()
+                    .map(|n| (&n.label, &n.node_type))
+                    .collect::<Vec<_>>()
+            );
+            assert!(
+                result
+                    .nodes
+                    .iter()
+                    .any(|n| n.label == "helper" && n.node_type == NodeType::Function),
+                "Should extract Zig private fn"
+            );
         }
 
         #[test]
@@ -1313,10 +1520,20 @@ mod tests {
             let src = b"const std = @import(\"std\");";
             let ext = zig_extractor();
             let result = ext.extract(src, "file::main.zig").unwrap();
-            let import_edges: Vec<_> = result.edges.iter().filter(|e| e.relation == "imports").collect();
-            assert!(!import_edges.is_empty(),
+            let import_edges: Vec<_> = result
+                .edges
+                .iter()
+                .filter(|e| e.relation == "imports")
+                .collect();
+            assert!(
+                !import_edges.is_empty(),
                 "Zig @import should produce import edge. All edges: {:?}",
-                result.edges.iter().map(|e| (&e.relation, &e.target)).collect::<Vec<_>>());
+                result
+                    .edges
+                    .iter()
+                    .map(|e| (&e.relation, &e.target))
+                    .collect::<Vec<_>>()
+            );
         }
 
         #[test]
@@ -1333,12 +1550,20 @@ mod tests {
             let ext = haskell_extractor();
             let result = ext.extract(src, "file::Main.hs").unwrap();
             // Should extract at least one function (main or helper)
-            let fns: Vec<_> = result.nodes.iter()
+            let fns: Vec<_> = result
+                .nodes
+                .iter()
                 .filter(|n| n.node_type == NodeType::Function)
                 .collect();
-            assert!(!fns.is_empty(),
+            assert!(
+                !fns.is_empty(),
                 "Haskell should extract functions. Nodes: {:?}",
-                result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+                result
+                    .nodes
+                    .iter()
+                    .map(|n| (&n.label, &n.node_type))
+                    .collect::<Vec<_>>()
+            );
         }
 
         #[test]
@@ -1346,12 +1571,20 @@ mod tests {
             let src = b"module Main where\n\ndata Color = Red | Blue | Green";
             let ext = haskell_extractor();
             let result = ext.extract(src, "file::Types.hs").unwrap();
-            let types: Vec<_> = result.nodes.iter()
+            let types: Vec<_> = result
+                .nodes
+                .iter()
                 .filter(|n| n.node_type == NodeType::Type)
                 .collect();
-            assert!(!types.is_empty(),
+            assert!(
+                !types.is_empty(),
                 "Haskell should extract data types. Nodes: {:?}",
-                result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+                result
+                    .nodes
+                    .iter()
+                    .map(|n| (&n.label, &n.node_type))
+                    .collect::<Vec<_>>()
+            );
         }
 
         #[test]
@@ -1359,10 +1592,20 @@ mod tests {
             let src = b"module Main where\n\nimport Data.List\nimport qualified Data.Map as Map\n\nmain = return ()";
             let ext = haskell_extractor();
             let result = ext.extract(src, "file::Main.hs").unwrap();
-            let import_edges: Vec<_> = result.edges.iter().filter(|e| e.relation == "imports").collect();
-            assert!(!import_edges.is_empty(),
+            let import_edges: Vec<_> = result
+                .edges
+                .iter()
+                .filter(|e| e.relation == "imports")
+                .collect();
+            assert!(
+                !import_edges.is_empty(),
                 "Haskell should have import edges. All edges: {:?}",
-                result.edges.iter().map(|e| (&e.relation, &e.target)).collect::<Vec<_>>());
+                result
+                    .edges
+                    .iter()
+                    .map(|e| (&e.relation, &e.target))
+                    .collect::<Vec<_>>()
+            );
         }
 
         #[test]
@@ -1378,12 +1621,20 @@ mod tests {
             let src = b"let main () =\n  print_endline \"hello\"\n\nlet helper x = x * 2";
             let ext = ocaml_extractor();
             let result = ext.extract(src, "file::main.ml").unwrap();
-            let fns: Vec<_> = result.nodes.iter()
+            let fns: Vec<_> = result
+                .nodes
+                .iter()
                 .filter(|n| n.node_type == NodeType::Function)
                 .collect();
-            assert!(!fns.is_empty(),
+            assert!(
+                !fns.is_empty(),
                 "OCaml should extract let bindings as functions. Nodes: {:?}",
-                result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+                result
+                    .nodes
+                    .iter()
+                    .map(|n| (&n.label, &n.node_type))
+                    .collect::<Vec<_>>()
+            );
         }
 
         #[test]
@@ -1391,12 +1642,20 @@ mod tests {
             let src = b"type color = Red | Blue | Green";
             let ext = ocaml_extractor();
             let result = ext.extract(src, "file::types.ml").unwrap();
-            let types: Vec<_> = result.nodes.iter()
+            let types: Vec<_> = result
+                .nodes
+                .iter()
                 .filter(|n| n.node_type == NodeType::Type)
                 .collect();
-            assert!(!types.is_empty(),
+            assert!(
+                !types.is_empty(),
                 "OCaml should extract type definitions. Nodes: {:?}",
-                result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+                result
+                    .nodes
+                    .iter()
+                    .map(|n| (&n.label, &n.node_type))
+                    .collect::<Vec<_>>()
+            );
         }
 
         #[test]
@@ -1404,10 +1663,20 @@ mod tests {
             let src = b"open Printf\n\nlet main () = printf \"hello\\n\"";
             let ext = ocaml_extractor();
             let result = ext.extract(src, "file::main.ml").unwrap();
-            let import_edges: Vec<_> = result.edges.iter().filter(|e| e.relation == "imports").collect();
-            assert!(!import_edges.is_empty(),
+            let import_edges: Vec<_> = result
+                .edges
+                .iter()
+                .filter(|e| e.relation == "imports")
+                .collect();
+            assert!(
+                !import_edges.is_empty(),
                 "OCaml 'open' should produce import edge. All edges: {:?}",
-                result.edges.iter().map(|e| (&e.relation, &e.target)).collect::<Vec<_>>());
+                result
+                    .edges
+                    .iter()
+                    .map(|e| (&e.relation, &e.target))
+                    .collect::<Vec<_>>()
+            );
         }
 
         #[test]
@@ -1423,18 +1692,24 @@ mod tests {
             let src = b"[package]\nname = \"myapp\"\n\n[dependencies]\nserde = \"1.0\"";
             let ext = toml_extractor();
             let result = ext.extract(src, "file::Cargo.toml").unwrap();
-            assert!(result.nodes.iter().any(|n| n.label == "package"),
+            assert!(
+                result.nodes.iter().any(|n| n.label == "package"),
                 "Should extract [package] table. Nodes: {:?}",
-                result.nodes.iter().map(|n| &n.label).collect::<Vec<_>>());
-            assert!(result.nodes.iter().any(|n| n.label == "dependencies"),
+                result.nodes.iter().map(|n| &n.label).collect::<Vec<_>>()
+            );
+            assert!(
+                result.nodes.iter().any(|n| n.label == "dependencies"),
                 "Should extract [dependencies] table. Nodes: {:?}",
-                result.nodes.iter().map(|n| &n.label).collect::<Vec<_>>());
+                result.nodes.iter().map(|n| &n.label).collect::<Vec<_>>()
+            );
         }
 
         #[test]
         fn toml_file_node_first() {
             let ext = toml_extractor();
-            let result = ext.extract(b"[section]\nkey = \"val\"", "file::test.toml").unwrap();
+            let result = ext
+                .extract(b"[section]\nkey = \"val\"", "file::test.toml")
+                .unwrap();
             assert_eq!(result.nodes[0].node_type, NodeType::File);
         }
 
@@ -1444,8 +1719,11 @@ mod tests {
             let src = b"key: value\nlist:\n  - item1\n  - item2";
             let ext = yaml_extractor();
             let result = ext.extract(src, "file::config.yaml").unwrap();
-            assert_eq!(result.nodes[0].node_type, NodeType::File,
-                "YAML extractor should produce File node first");
+            assert_eq!(
+                result.nodes[0].node_type,
+                NodeType::File,
+                "YAML extractor should produce File node first"
+            );
         }
 
         // -- SQL --
@@ -1454,9 +1732,18 @@ mod tests {
             let src = b"CREATE TABLE users (\n  id INTEGER PRIMARY KEY,\n  name TEXT NOT NULL\n);";
             let ext = sql_extractor();
             let result = ext.extract(src, "file::schema.sql").unwrap();
-            assert!(result.nodes.iter().any(|n| n.label == "users" && n.node_type == NodeType::Struct),
+            assert!(
+                result
+                    .nodes
+                    .iter()
+                    .any(|n| n.label == "users" && n.node_type == NodeType::Struct),
                 "Should extract CREATE TABLE as struct. Nodes: {:?}",
-                result.nodes.iter().map(|n| (&n.label, &n.node_type)).collect::<Vec<_>>());
+                result
+                    .nodes
+                    .iter()
+                    .map(|n| (&n.label, &n.node_type))
+                    .collect::<Vec<_>>()
+            );
         }
 
         #[test]
@@ -1475,7 +1762,11 @@ mod tests {
             let extractors: Vec<(&str, Box<dyn Extractor>, &[u8])> = vec![
                 ("dart", Box::new(dart_extractor()), b"class X {}" as &[u8]),
                 ("zig", Box::new(zig_extractor()), b"fn x() void {}"),
-                ("haskell", Box::new(haskell_extractor()), b"module Main where"),
+                (
+                    "haskell",
+                    Box::new(haskell_extractor()),
+                    b"module Main where",
+                ),
                 ("ocaml", Box::new(ocaml_extractor()), b"let x = 1"),
                 ("toml", Box::new(toml_extractor()), b"[section]"),
                 ("yaml", Box::new(yaml_extractor()), b"key: value"),
@@ -1483,47 +1774,84 @@ mod tests {
             ];
             for (lang, ext, src) in extractors {
                 let result = ext.extract(src, &format!("file::test.{}", lang)).unwrap();
-                assert!(!result.nodes.is_empty(),
-                    "{} extractor should produce at least a file node", lang);
-                assert_eq!(result.nodes[0].node_type, NodeType::File,
-                    "{} extractor first node should be File, got {:?}", lang, result.nodes[0].node_type);
+                assert!(
+                    !result.nodes.is_empty(),
+                    "{} extractor should produce at least a file node",
+                    lang
+                );
+                assert_eq!(
+                    result.nodes[0].node_type,
+                    NodeType::File,
+                    "{} extractor first node should be File, got {:?}",
+                    lang,
+                    result.nodes[0].node_type
+                );
             }
         }
 
         // -- Verify existing regex extractors are NOT affected --
         #[test]
         fn regex_extractors_unchanged_by_tier2() {
+            use crate::extract::go::GoExtractor;
+            use crate::extract::java::JavaExtractor;
             use crate::extract::python::PythonExtractor;
             use crate::extract::rust_lang::RustExtractor;
             use crate::extract::typescript::TypeScriptExtractor;
-            use crate::extract::go::GoExtractor;
-            use crate::extract::java::JavaExtractor;
 
             // Python
             let py = PythonExtractor::new();
-            let r = py.extract(b"class Foo:\n    def bar(self): pass", "file::t.py").unwrap();
-            assert!(r.nodes.iter().any(|n| n.label == "Foo" && n.node_type == NodeType::Class));
-            assert!(r.nodes.iter().any(|n| n.label == "bar" && n.node_type == NodeType::Function));
+            let r = py
+                .extract(b"class Foo:\n    def bar(self): pass", "file::t.py")
+                .unwrap();
+            assert!(r
+                .nodes
+                .iter()
+                .any(|n| n.label == "Foo" && n.node_type == NodeType::Class));
+            assert!(r
+                .nodes
+                .iter()
+                .any(|n| n.label == "bar" && n.node_type == NodeType::Function));
 
             // Rust
             let rs = RustExtractor::new();
             let r = rs.extract(b"pub fn hello() {}", "file::t.rs").unwrap();
-            assert!(r.nodes.iter().any(|n| n.label == "hello" && n.node_type == NodeType::Function));
+            assert!(r
+                .nodes
+                .iter()
+                .any(|n| n.label == "hello" && n.node_type == NodeType::Function));
 
             // TypeScript
             let ts = TypeScriptExtractor::new();
-            let r = ts.extract(b"export function greet() {}", "file::t.ts").unwrap();
-            assert!(r.nodes.iter().any(|n| n.label == "greet" && n.node_type == NodeType::Function));
+            let r = ts
+                .extract(b"export function greet() {}", "file::t.ts")
+                .unwrap();
+            assert!(r
+                .nodes
+                .iter()
+                .any(|n| n.label == "greet" && n.node_type == NodeType::Function));
 
             // Go
             let go = GoExtractor::new();
-            let r = go.extract(b"package main\nfunc main() {}", "file::main.go").unwrap();
-            assert!(r.nodes.iter().any(|n| n.label == "main" && n.node_type == NodeType::Function));
+            let r = go
+                .extract(b"package main\nfunc main() {}", "file::main.go")
+                .unwrap();
+            assert!(r
+                .nodes
+                .iter()
+                .any(|n| n.label == "main" && n.node_type == NodeType::Function));
 
             // Java
             let java = JavaExtractor::new();
-            let r = java.extract(b"public class App { public void run() {} }", "file::App.java").unwrap();
-            assert!(r.nodes.iter().any(|n| n.label == "App" && n.node_type == NodeType::Class));
+            let r = java
+                .extract(
+                    b"public class App { public void run() {} }",
+                    "file::App.java",
+                )
+                .unwrap();
+            assert!(r
+                .nodes
+                .iter()
+                .any(|n| n.label == "App" && n.node_type == NodeType::Class));
         }
 
         // -- Verify generic fallback still works --
@@ -1531,9 +1859,20 @@ mod tests {
         fn generic_fallback_still_works() {
             use crate::extract::generic::GenericExtractor;
             let ext = GenericExtractor::new();
-            let r = ext.extract(b"def helper():\n    pass\nclass Widget:\n    pass", "file::unknown.xyz").unwrap();
-            assert!(r.nodes.iter().any(|n| n.label == "helper" && n.node_type == NodeType::Function));
-            assert!(r.nodes.iter().any(|n| n.label == "Widget" && n.node_type == NodeType::Struct));
+            let r = ext
+                .extract(
+                    b"def helper():\n    pass\nclass Widget:\n    pass",
+                    "file::unknown.xyz",
+                )
+                .unwrap();
+            assert!(r
+                .nodes
+                .iter()
+                .any(|n| n.label == "helper" && n.node_type == NodeType::Function));
+            assert!(r
+                .nodes
+                .iter()
+                .any(|n| n.label == "Widget" && n.node_type == NodeType::Struct));
         }
     }
 }

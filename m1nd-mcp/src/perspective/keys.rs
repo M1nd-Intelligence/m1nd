@@ -26,7 +26,11 @@ pub fn edge_content_key(source_ext_id: &str, target_ext_id: &str, relation: &str
 /// Normalize a bidirectional edge key so that the lexicographically smaller
 /// external ID always appears as "source". Returns `(lo, hi)`.
 pub fn normalize_bidi_endpoints<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
-    if a <= b { (a, b) } else { (b, a) }
+    if a <= b {
+        (a, b)
+    } else {
+        (b, a)
+    }
 }
 
 // ---------------------------------------------------------------------------

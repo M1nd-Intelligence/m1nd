@@ -84,7 +84,11 @@ impl CommunityDetector {
                 let target = graph.csr.targets[j].as_usize();
                 let w = graph.csr.read_weight(EdgeIdx::new(j as u32)).get() as f64;
 
-                let (lo, hi) = if i <= target { (i, target) } else { (target, i) };
+                let (lo, hi) = if i <= target {
+                    (i, target)
+                } else {
+                    (target, i)
+                };
                 if !seen.insert((lo, hi)) {
                     continue; // Already processed this undirected edge
                 }
@@ -228,10 +232,7 @@ impl CommunityDetector {
 
     /// Get per-community statistics.
     /// Replaces: topology_v2.py CommunityDetector.community_stats()
-    pub fn community_stats(
-        graph: &Graph,
-        result: &CommunityResult,
-    ) -> Vec<CommunityStats> {
+    pub fn community_stats(graph: &Graph, result: &CommunityResult) -> Vec<CommunityStats> {
         let n = graph.num_nodes() as usize;
         let num_comm = result.num_communities as usize;
         let mut node_counts = vec![0u32; num_comm];
@@ -302,10 +303,7 @@ pub struct BridgeDetector;
 impl BridgeDetector {
     /// Detect all inter-community bridges.
     /// Replaces: topology_v2.py BridgeDetector.detect()
-    pub fn detect(
-        graph: &Graph,
-        communities: &CommunityResult,
-    ) -> M1ndResult<Vec<Bridge>> {
+    pub fn detect(graph: &Graph, communities: &CommunityResult) -> M1ndResult<Vec<Bridge>> {
         let n = graph.num_nodes() as usize;
         let mut bridges = Vec::new();
 
@@ -550,7 +548,9 @@ impl SpectralGapAnalyzer {
                 eigenvalue = dot;
 
                 // Check convergence
-                let residual: f64 = w.iter().zip(v.iter())
+                let residual: f64 = w
+                    .iter()
+                    .zip(v.iter())
                     .map(|(wi, vi)| (wi / new_norm - vi).powi(2))
                     .sum::<f64>()
                     .sqrt();
@@ -698,7 +698,8 @@ impl ActivationFingerprinter {
         graph: &Graph,
     ) -> M1ndResult<Vec<EquivalentPair>> {
         // Group by LSH hash
-        let mut buckets: std::collections::HashMap<u64, Vec<usize>> = std::collections::HashMap::new();
+        let mut buckets: std::collections::HashMap<u64, Vec<usize>> =
+            std::collections::HashMap::new();
         for (i, fp) in fingerprints.iter().enumerate() {
             buckets.entry(fp.lsh_hash).or_default().push(i);
         }
@@ -791,7 +792,11 @@ impl ActivationFingerprinter {
             nb += b[i].get() * b[i].get();
         }
         let denom = na.sqrt() * nb.sqrt();
-        if denom > 0.0 { (dot / denom).min(1.0) } else { 0.0 }
+        if denom > 0.0 {
+            (dot / denom).min(1.0)
+        } else {
+            0.0
+        }
     }
 }
 
@@ -815,10 +820,7 @@ pub struct MultiScaleViewer;
 impl MultiScaleViewer {
     /// Compute multi-scale view (coarsening hierarchy).
     /// Replaces: topology_v2.py MultiScaleView.compute()
-    pub fn compute(
-        graph: &Graph,
-        max_scales: u8,
-    ) -> M1ndResult<Vec<ScaleView>> {
+    pub fn compute(graph: &Graph, max_scales: u8) -> M1ndResult<Vec<ScaleView>> {
         // For now, compute single-scale Louvain
         let detector = CommunityDetector::with_defaults();
         let communities = detector.detect(graph)?;

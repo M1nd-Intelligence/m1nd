@@ -65,19 +65,23 @@ fn parse_descriptor(value: &serde_json::Value) -> M1ndResult<JsonDescriptor> {
 
     let mut nodes = Vec::with_capacity(nodes_arr.len());
     for n in nodes_arr {
-        let id = n.get("id")
+        let id = n
+            .get("id")
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
-        let label = n.get("label")
+        let label = n
+            .get("label")
             .and_then(|v| v.as_str())
             .unwrap_or(&id)
             .to_string();
-        let node_type = n.get("type")
+        let node_type = n
+            .get("type")
             .and_then(|v| v.as_str())
             .unwrap_or("Custom")
             .to_string();
-        let tags = n.get("tags")
+        let tags = n
+            .get("tags")
             .and_then(|v| v.as_array())
             .map(|arr| {
                 arr.iter()
@@ -85,27 +89,38 @@ fn parse_descriptor(value: &serde_json::Value) -> M1ndResult<JsonDescriptor> {
                     .collect()
             })
             .unwrap_or_default();
-        nodes.push(JsonNode { id, label, node_type, tags });
+        nodes.push(JsonNode {
+            id,
+            label,
+            node_type,
+            tags,
+        });
     }
 
     let mut edges = Vec::with_capacity(edges_arr.len());
     for e in edges_arr {
-        let source = e.get("source")
+        let source = e
+            .get("source")
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
-        let target = e.get("target")
+        let target = e
+            .get("target")
             .and_then(|v| v.as_str())
             .unwrap_or("")
             .to_string();
-        let relation = e.get("relation")
+        let relation = e
+            .get("relation")
             .and_then(|v| v.as_str())
             .unwrap_or("relates_to")
             .to_string();
-        let weight = e.get("weight")
-            .and_then(|v| v.as_f64())
-            .unwrap_or(1.0) as f32;
-        edges.push(JsonEdge { source, target, relation, weight });
+        let weight = e.get("weight").and_then(|v| v.as_f64()).unwrap_or(1.0) as f32;
+        edges.push(JsonEdge {
+            source,
+            target,
+            relation,
+            weight,
+        });
     }
 
     Ok(JsonDescriptor { nodes, edges })
@@ -195,8 +210,8 @@ impl IngestAdapter for JsonIngestAdapter {
                 &node.label,
                 node_type,
                 &tags,
-                0.0,  // no timestamp for JSON-sourced nodes
-                0.3,  // default change frequency
+                0.0, // no timestamp for JSON-sourced nodes
+                0.3, // default change frequency
             ) {
                 Ok(_) => stats.nodes_created += 1,
                 Err(M1ndError::DuplicateNode(_)) => {
@@ -264,10 +279,13 @@ mod tests {
     fn write_temp_json(content: &str) -> std::path::PathBuf {
         let dir = std::env::temp_dir().join("m1nd_json_test");
         std::fs::create_dir_all(&dir).unwrap();
-        let path = dir.join(format!("test_{}.json", std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()));
+        let path = dir.join(format!(
+            "test_{}.json",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
         let mut f = std::fs::File::create(&path).unwrap();
         f.write_all(content.as_bytes()).unwrap();
         path
@@ -301,7 +319,10 @@ mod tests {
 
         // Verify node types
         let studio_id = graph.resolve_id("room::studio_a").unwrap();
-        assert_eq!(graph.nodes.node_type[studio_id.as_usize()], NodeType::System);
+        assert_eq!(
+            graph.nodes.node_type[studio_id.as_usize()],
+            NodeType::System
+        );
         let bus_id = graph.resolve_id("bus::master").unwrap();
         assert_eq!(graph.nodes.node_type[bus_id.as_usize()], NodeType::Process);
 
@@ -339,7 +360,10 @@ mod tests {
         assert_eq!(graph.nodes.node_type[concept.as_usize()], NodeType::Concept);
 
         let material = graph.resolve_id("material::copper_wire").unwrap();
-        assert_eq!(graph.nodes.node_type[material.as_usize()], NodeType::Material);
+        assert_eq!(
+            graph.nodes.node_type[material.as_usize()],
+            NodeType::Material
+        );
 
         let process = graph.resolve_id("process::routing").unwrap();
         assert_eq!(graph.nodes.node_type[process.as_usize()], NodeType::Process);
@@ -348,17 +372,26 @@ mod tests {
         assert_eq!(graph.nodes.node_type[product.as_usize()], NodeType::Product);
 
         let supplier = graph.resolve_id("supplier::acme").unwrap();
-        assert_eq!(graph.nodes.node_type[supplier.as_usize()], NodeType::Supplier);
+        assert_eq!(
+            graph.nodes.node_type[supplier.as_usize()],
+            NodeType::Supplier
+        );
 
         let regulatory = graph.resolve_id("reg::iec60065").unwrap();
-        assert_eq!(graph.nodes.node_type[regulatory.as_usize()], NodeType::Regulatory);
+        assert_eq!(
+            graph.nodes.node_type[regulatory.as_usize()],
+            NodeType::Regulatory
+        );
 
         let cost = graph.resolve_id("cost::bom").unwrap();
         assert_eq!(graph.nodes.node_type[cost.as_usize()], NodeType::Cost);
 
         // Unknown type string -> Custom(0)
         let custom = graph.resolve_id("custom::widget").unwrap();
-        assert_eq!(graph.nodes.node_type[custom.as_usize()], NodeType::Custom(0));
+        assert_eq!(
+            graph.nodes.node_type[custom.as_usize()],
+            NodeType::Custom(0)
+        );
 
         std::fs::remove_file(&path).ok();
     }

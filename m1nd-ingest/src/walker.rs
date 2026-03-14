@@ -1,7 +1,7 @@
 // === crates/m1nd-ingest/src/walker.rs ===
 
-use std::path::{Path, PathBuf};
 use m1nd_core::error::{M1ndError, M1ndResult};
+use std::path::{Path, PathBuf};
 
 // ---------------------------------------------------------------------------
 // DirectoryWalker — file discovery
@@ -118,9 +118,7 @@ impl DirectoryWalker {
                 .to_string_lossy()
                 .to_string();
 
-            let extension = path
-                .extension()
-                .map(|e| e.to_string_lossy().to_string());
+            let extension = path.extension().map(|e| e.to_string_lossy().to_string());
 
             let last_modified = metadata
                 .modified()
@@ -143,7 +141,10 @@ impl DirectoryWalker {
         // Enrich with git history if available, and collect commit groups
         let commit_groups = Self::enrich_with_git(&root_canonical, &mut files);
 
-        Ok(WalkResult { files, commit_groups })
+        Ok(WalkResult {
+            files,
+            commit_groups,
+        })
     }
 
     /// Enrich discovered files with git history (commit count + last commit time).
@@ -151,17 +152,12 @@ impl DirectoryWalker {
     /// Also collects commit groups: files that changed together in the same commit.
     /// Gracefully returns empty groups if not in a git repo.
     fn enrich_with_git(root: &Path, files: &mut [DiscoveredFile]) -> Vec<Vec<String>> {
-        use std::process::Command;
         use std::collections::HashMap;
+        use std::process::Command;
 
         // Run git log to get all commits with timestamps and affected files
         let output = match Command::new("git")
-            .args([
-                "log",
-                "--format=%at",
-                "--name-only",
-                "--diff-filter=ACDMR",
-            ])
+            .args(["log", "--format=%at", "--name-only", "--diff-filter=ACDMR"])
             .current_dir(root)
             .output()
         {

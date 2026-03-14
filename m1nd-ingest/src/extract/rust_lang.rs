@@ -1,9 +1,12 @@
 // === crates/m1nd-ingest/src/extract/rust_lang.rs ===
 
+use super::{
+    strip_comments_and_strings, CommentSyntax, ExtractedEdge, ExtractedNode, ExtractionResult,
+    Extractor,
+};
 use m1nd_core::error::M1ndResult;
 use m1nd_core::types::NodeType;
 use regex::Regex;
-use super::{Extractor, ExtractionResult, ExtractedNode, ExtractedEdge, CommentSyntax, strip_comments_and_strings};
 
 /// Rust extractor using regex.
 /// Replaces: ingest.py RustExtractor
@@ -16,17 +19,20 @@ pub struct RustExtractor {
     re_use: Regex,
     re_mod: Regex,
     // Call/reference detection (non-definition lines)
-    re_method_call: Regex,     // .method_name( or ::method_name(
-    re_type_ref: Regex,        // UpperCamelCase identifiers (type references)
-    re_fn_sig_types: Regex,    // Type names in fn signatures: &Type, Type, Box<Type>
+    re_method_call: Regex,  // .method_name( or ::method_name(
+    re_type_ref: Regex,     // UpperCamelCase identifiers (type references)
+    re_fn_sig_types: Regex, // Type names in fn signatures: &Type, Type, Box<Type>
     // Enum variant extraction
-    re_variant: Regex,         // Variant inside enum { } block
+    re_variant: Regex, // Variant inside enum { } block
 }
 
 impl RustExtractor {
     pub fn new() -> Self {
         Self {
-            re_fn: Regex::new(r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?(?:unsafe\s+)?(?:const\s+)?fn\s+(\w+)").unwrap(),
+            re_fn: Regex::new(
+                r"^\s*(?:pub(?:\([^)]*\))?\s+)?(?:async\s+)?(?:unsafe\s+)?(?:const\s+)?fn\s+(\w+)",
+            )
+            .unwrap(),
             re_struct: Regex::new(r"^\s*(?:pub(?:\([^)]*\))?\s+)?struct\s+(\w+)").unwrap(),
             re_enum: Regex::new(r"^\s*(?:pub(?:\([^)]*\))?\s+)?enum\s+(\w+)").unwrap(),
             re_trait: Regex::new(r"^\s*(?:pub(?:\([^)]*\))?\s+)?trait\s+(\w+)").unwrap(),
@@ -40,7 +46,8 @@ impl RustExtractor {
             re_type_ref: Regex::new(r"\b([A-Z][A-Za-z]\w+)\b").unwrap(),
             // Types in fn signatures: after :, ->, in <>, etc.
             // FIX: was `->s*` (missing backslash), now `->\s*`
-            re_fn_sig_types: Regex::new(r"(?::\s*&?(?:mut\s+)?|->\s*&?(?:mut\s+)?|<\s*)([A-Z]\w+)").unwrap(),
+            re_fn_sig_types: Regex::new(r"(?::\s*&?(?:mut\s+)?|->\s*&?(?:mut\s+)?|<\s*)([A-Z]\w+)")
+                .unwrap(),
             // Enum variants: identifiers at the start of a line (with optional whitespace)
             // inside an enum block, e.g. `    VariantName,` or `    VariantName(...)` or `    VariantName { ... }`
             re_variant: Regex::new(r"^\s+([A-Z]\w+)\s*(?:[,({]|$)").unwrap(),
@@ -49,7 +56,9 @@ impl RustExtractor {
 }
 
 impl Default for RustExtractor {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl RustExtractor {
@@ -91,9 +100,9 @@ impl Extractor for RustExtractor {
         });
 
         // Track enum/impl blocks for variant and trait-impl-method extraction
-        let mut in_enum: Option<String> = None;      // Some(enum_node_id) when inside enum { }
-        let mut in_impl_block = false;                // true when inside impl { }
-        let mut impl_is_trait = false;                // true when `impl Trait for Type`
+        let mut in_enum: Option<String> = None; // Some(enum_node_id) when inside enum { }
+        let mut in_impl_block = false; // true when inside impl { }
+        let mut impl_is_trait = false; // true when `impl Trait for Type`
         let mut brace_depth: i32 = 0;
         let mut block_start_depth: i32 = 0;
 
@@ -120,9 +129,19 @@ impl Extractor for RustExtractor {
                 if let Some(caps) = self.re_variant.captures(line) {
                     let variant_name = caps.get(1).unwrap().as_str();
                     // Skip common Rust keywords that might match
-                    if !matches!(variant_name, "Self" | "Some" | "None" | "Ok" | "Err"
-                        | "Box" | "Vec" | "String" | "Option" | "Result")
-                    {
+                    if !matches!(
+                        variant_name,
+                        "Self"
+                            | "Some"
+                            | "None"
+                            | "Ok"
+                            | "Err"
+                            | "Box"
+                            | "Vec"
+                            | "String"
+                            | "Option"
+                            | "Result"
+                    ) {
                         let variant_id = format!("{}::{}", enum_id, variant_name);
                         nodes.push(ExtractedNode {
                             id: variant_id.clone(),
@@ -172,25 +191,35 @@ impl Extractor for RustExtractor {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::struct::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Struct,
-                    tags: vec!["rust".into()], line: ln, end_line: ln,
+                    tags: vec!["rust".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_enum.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::enum::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Enum,
-                    tags: vec!["rust".into()], line: ln, end_line: ln,
+                    tags: vec!["rust".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id.clone(),
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id.clone(),
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
                 // Start tracking enum block for variant extraction
                 if line.contains('{') {
@@ -201,20 +230,27 @@ impl Extractor for RustExtractor {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::trait::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Type,
-                    tags: vec!["rust".into()], line: ln, end_line: ln,
+                    tags: vec!["rust".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_impl.captures(line) {
                 let type_name = caps.get(2).unwrap().as_str();
                 let ref_id = format!("ref::{}", type_name);
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: ref_id.clone(),
-                    relation: "implements".into(), weight: 0.8,
+                    source: file_id.to_string(),
+                    target: ref_id.clone(),
+                    relation: "implements".into(),
+                    weight: 0.8,
                 });
                 unresolved_refs.push(ref_id);
 
@@ -229,25 +265,35 @@ impl Extractor for RustExtractor {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::fn::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Function,
-                    tags: vec!["rust".into()], line: ln, end_line: ln,
+                    tags: vec!["rust".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             } else if let Some(caps) = self.re_mod.captures(line) {
                 let name = caps.get(1).unwrap().as_str();
                 let node_id = format!("{}::mod::{}", file_id, name);
                 nodes.push(ExtractedNode {
-                    id: node_id.clone(), label: name.to_string(),
+                    id: node_id.clone(),
+                    label: name.to_string(),
                     node_type: NodeType::Module,
-                    tags: vec!["rust".into()], line: ln, end_line: ln,
+                    tags: vec!["rust".into()],
+                    line: ln,
+                    end_line: ln,
                 });
                 edges.push(ExtractedEdge {
-                    source: file_id.to_string(), target: node_id,
-                    relation: "contains".into(), weight: 1.0,
+                    source: file_id.to_string(),
+                    target: node_id,
+                    relation: "contains".into(),
+                    weight: 1.0,
                 });
             }
 
@@ -258,17 +304,22 @@ impl Extractor for RustExtractor {
                 for r in refs {
                     let ref_id = format!("ref::{}", r);
                     edges.push(ExtractedEdge {
-                        source: file_id.to_string(), target: ref_id.clone(),
-                        relation: "imports".into(), weight: 0.5,
+                        source: file_id.to_string(),
+                        target: ref_id.clone(),
+                        relation: "imports".into(),
+                        weight: 0.5,
                     });
                     unresolved_refs.push(ref_id);
                 }
             }
 
             // Detect Type::method() calls and .method() calls (not on definition lines)
-            if !line.trim_start().starts_with("pub") && !line.trim_start().starts_with("fn ")
-                && !line.trim_start().starts_with("struct ") && !line.trim_start().starts_with("enum ")
-                && !line.trim_start().starts_with("trait ") && !line.trim_start().starts_with("use ")
+            if !line.trim_start().starts_with("pub")
+                && !line.trim_start().starts_with("fn ")
+                && !line.trim_start().starts_with("struct ")
+                && !line.trim_start().starts_with("enum ")
+                && !line.trim_start().starts_with("trait ")
+                && !line.trim_start().starts_with("use ")
                 && !line.trim_start().starts_with("mod ")
             {
                 // Type::method( calls -- create ref to Type
@@ -282,8 +333,10 @@ impl Extractor for RustExtractor {
                             let ref_id = format!("ref::{}", type_name);
                             if !unresolved_refs.contains(&ref_id) {
                                 edges.push(ExtractedEdge {
-                                    source: file_id.to_string(), target: ref_id.clone(),
-                                    relation: "calls".into(), weight: 0.4,
+                                    source: file_id.to_string(),
+                                    target: ref_id.clone(),
+                                    relation: "calls".into(),
+                                    weight: 0.4,
                                 });
                                 unresolved_refs.push(ref_id);
                             }
@@ -296,16 +349,41 @@ impl Extractor for RustExtractor {
                     if let Some(type_match) = caps.get(1) {
                         let type_name = type_match.as_str();
                         // Skip common std types and primitives
-                        if !matches!(type_name, "Self" | "String" | "Vec" | "Option" | "Result"
-                            | "Box" | "Arc" | "Rc" | "HashMap" | "HashSet" | "BTreeMap"
-                            | "Some" | "None" | "Ok" | "Err" | "Default" | "Debug" | "Clone"
-                            | "Send" | "Sync" | "Sized" | "Copy" | "Display" | "From" | "Into")
-                        {
+                        if !matches!(
+                            type_name,
+                            "Self"
+                                | "String"
+                                | "Vec"
+                                | "Option"
+                                | "Result"
+                                | "Box"
+                                | "Arc"
+                                | "Rc"
+                                | "HashMap"
+                                | "HashSet"
+                                | "BTreeMap"
+                                | "Some"
+                                | "None"
+                                | "Ok"
+                                | "Err"
+                                | "Default"
+                                | "Debug"
+                                | "Clone"
+                                | "Send"
+                                | "Sync"
+                                | "Sized"
+                                | "Copy"
+                                | "Display"
+                                | "From"
+                                | "Into"
+                        ) {
                             let ref_id = format!("ref::{}", type_name);
                             if !unresolved_refs.contains(&ref_id) {
                                 edges.push(ExtractedEdge {
-                                    source: file_id.to_string(), target: ref_id.clone(),
-                                    relation: "references".into(), weight: 0.3,
+                                    source: file_id.to_string(),
+                                    target: ref_id.clone(),
+                                    relation: "references".into(),
+                                    weight: 0.3,
                                 });
                                 unresolved_refs.push(ref_id);
                             }
@@ -317,7 +395,11 @@ impl Extractor for RustExtractor {
             brace_depth += open_count - close_count;
         }
 
-        Ok(ExtractionResult { nodes, edges, unresolved_refs })
+        Ok(ExtractionResult {
+            nodes,
+            edges,
+            unresolved_refs,
+        })
     }
 
     fn extensions(&self) -> &[&str] {

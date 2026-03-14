@@ -79,16 +79,16 @@ impl ReferenceResolver {
             };
 
             // Strip "ref::" prefix if present
-            let clean_label = target_label
-                .strip_prefix("ref::")
-                .unwrap_or(target_label);
+            let clean_label = target_label.strip_prefix("ref::").unwrap_or(target_label);
 
             // Extract the last segment from import path for matching
             // e.g., "m1nd_core::graph::Graph" -> "Graph"
             let last_segment = clean_label.rsplit("::").next().unwrap_or(clean_label);
 
             // Check for import path hint (Task #8)
-            let import_hint = hint_map.get(&(source_id.as_str(), target_label.as_str())).copied();
+            let import_hint = hint_map
+                .get(&(source_id.as_str(), target_label.as_str()))
+                .copied();
 
             // Look up by label in the graph's string interner
             let label_interned = match graph.strings.lookup(last_segment) {
@@ -116,8 +116,9 @@ impl ReferenceResolver {
                     let target = if found.len() == 1 {
                         found[0]
                     } else if let Some(hint) = import_hint {
-                        Self::disambiguate_with_hint(graph, source, &found, hint)
-                            .unwrap_or_else(|| Self::disambiguate(graph, source, &found).unwrap_or(found[0]))
+                        Self::disambiguate_with_hint(graph, source, &found, hint).unwrap_or_else(
+                            || Self::disambiguate(graph, source, &found).unwrap_or(found[0]),
+                        )
                     } else {
                         Self::disambiguate(graph, source, &found).unwrap_or(found[0])
                     };
@@ -151,8 +152,9 @@ impl ReferenceResolver {
                 let target = if candidates.len() == 1 {
                     candidates[0]
                 } else if let Some(hint) = import_hint {
-                    Self::disambiguate_with_hint(graph, source, candidates, hint)
-                        .unwrap_or_else(|| Self::disambiguate(graph, source, candidates).unwrap_or(candidates[0]))
+                    Self::disambiguate_with_hint(graph, source, candidates, hint).unwrap_or_else(
+                        || Self::disambiguate(graph, source, candidates).unwrap_or(candidates[0]),
+                    )
                 } else {
                     Self::disambiguate(graph, source, candidates).unwrap_or(candidates[0])
                 };
@@ -190,11 +192,7 @@ impl ReferenceResolver {
 
     /// Disambiguate among multiple candidates using proximity.
     /// Priority: same file > same directory > same module > first match.
-    fn disambiguate(
-        graph: &Graph,
-        source: NodeId,
-        candidates: &[NodeId],
-    ) -> Option<NodeId> {
+    fn disambiguate(graph: &Graph, source: NodeId, candidates: &[NodeId]) -> Option<NodeId> {
         if candidates.is_empty() {
             return None;
         }
@@ -275,7 +273,11 @@ impl ReferenceResolver {
         }
 
         // Only return if we actually found a match via the hint
-        if best_score > 0 { best } else { None }
+        if best_score > 0 {
+            best
+        } else {
+            None
+        }
     }
 
     /// Compute proximity score between two external IDs.
@@ -296,10 +298,10 @@ impl ReferenceResolver {
 
         // Score based on matching depth
         match matching {
-            0 => 1,        // same project
-            1 => 10,       // same top-level
-            2 => 50,       // same directory/module
-            _ => 100,      // same file or deeper
+            0 => 1,   // same project
+            1 => 10,  // same top-level
+            2 => 50,  // same directory/module
+            _ => 100, // same file or deeper
         }
     }
 }

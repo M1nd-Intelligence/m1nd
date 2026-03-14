@@ -129,7 +129,11 @@ pub fn compute_path_coherence(edge_weights: &[f32]) -> f32 {
 }
 
 /// novelty: 1.0 if target not visited, 0.0 if visited, 0.5 if neighbor of visited.
-pub fn compute_novelty(target: &str, visited: &std::collections::HashSet<String>, neighbor_of_visited: bool) -> f32 {
+pub fn compute_novelty(
+    target: &str,
+    visited: &std::collections::HashSet<String>,
+    neighbor_of_visited: bool,
+) -> f32 {
     if visited.contains(target) {
         0.0
     } else if neighbor_of_visited {
@@ -157,7 +161,7 @@ pub fn build_affinity_candidate(
         candidate_label,
         kind,
         confidence,
-        is_hypothetical: true, // always true for affinity candidates
+        is_hypothetical: true,   // always true for affinity candidates
         proposed_relation: None, // V1: always None
         confidence_breakdown: breakdown,
     })
