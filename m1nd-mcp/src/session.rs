@@ -9,6 +9,7 @@ use m1nd_core::counterfactual::CounterfactualEngine;
 use m1nd_core::topology::TopologyAnalyzer;
 use m1nd_core::resonance::ResonanceEngine;
 use m1nd_core::plasticity::PlasticityEngine;
+use crate::brand;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -170,11 +171,11 @@ impl SessionState {
         match self.plasticity.export_state(&graph) {
             Ok(states) => {
                 if let Err(e) = m1nd_core::snapshot::save_plasticity_state(&states, &self.plasticity_path) {
-                    eprintln!("[m1nd] WARNING: graph saved but plasticity persist failed: {}", e);
+                    eprintln!("{}", brand::log(&format!("WARNING: graph saved but plasticity persist failed: {}", e)));
                 }
             }
             Err(e) => {
-                eprintln!("[m1nd] WARNING: graph saved but plasticity export failed: {}", e);
+                eprintln!("{}", brand::log(&format!("WARNING: graph saved but plasticity export failed: {}", e)));
             }
         }
 

@@ -2,6 +2,7 @@
 
 use m1nd_core::domain::DomainConfig;
 use m1nd_core::error::{M1ndError, M1ndResult};
+use crate::brand;
 use crate::session::SessionState;
 use crate::protocol::*;
 use crate::protocol::layers;
@@ -15,61 +16,71 @@ use std::path::PathBuf;
 // automatically understand how to use m1nd effectively.
 // ---------------------------------------------------------------------------
 const M1ND_INSTRUCTIONS: &str = "\
-m1nd is a neuro-symbolic code graph engine. It ingests codebases into a weighted \
-graph and provides spreading-activation queries, impact analysis, prediction, and \
-stateful perspective navigation. All tool calls require an `agent_id` parameter.
-
-## WORKFLOWS
-
-**Session Start**: `health` → `drift` (recover what changed since last session) → \
-`ingest` (if graph is empty or stale). This gives you codebase-aware context.
-
-**Research**: `ingest` → `activate(query)` → `why(source, target)` → `missing(topic)` → \
+\u{234C}\u{2350}\u{2342}\u{1D53B} m1nd \u{2014} neuro-symbolic code graph engine \u{1F062}\u{27C1}\n\
+\n\
+m1nd ingests codebases into a weighted graph and provides spreading-activation \
+queries, impact analysis, prediction, and stateful perspective navigation. \
+All tool calls require an `agent_id` parameter.\n\
+\n\
+## SYMBOL LEGEND\n\
+\u{234C} signal/flow (activate, ingest, learn, warmup) \u{2502} \
+\u{2350} path/trace (why, trace, timeline, seek) \u{2502} \
+\u{2342} structure (missing, fingerprint, scan, diverge)\n\
+\u{1D53B} dimension (impact, predict, counterfactual) \u{2502} \
+\u{1F062} state (health, drift, locks, trails) \u{2502} \
+\u{27C1} connection (perspective, federate, resonate)\n\
+\n\
+## WORKFLOWS\n\
+\n\
+**Session Start**: `health` \u{2192} `drift` (recover what changed since last session) \u{2192} \
+`ingest` (if graph is empty or stale). This gives you codebase-aware context.\n\
+\n\
+**Research**: `ingest` \u{2192} `activate(query)` \u{2192} `why(source, target)` \u{2192} `missing(topic)` \u{2192} \
 `learn(feedback)`. Use `seek` for keyword search, `scan` for broad discovery, \
-`trace` for dependency chains, `timeline` for temporal ordering.
-
-**Code Change**: `impact(node)` (blast radius) → `predict(node)` (co-change likelihood) → \
-`counterfactual(nodes)` (simulate removal) → `warmup(task_description)` (prime graph). \
-Use `differential` to compare two subgraphs. Use `hypothesize` to test what-if scenarios.
-
+`trace` for dependency chains, `timeline` for temporal ordering.\n\
+\n\
+**Code Change**: `impact(node)` (blast radius) \u{2192} `predict(node)` (co-change likelihood) \u{2192} \
+`counterfactual(nodes)` (simulate removal) \u{2192} `warmup(task_description)` (prime graph). \
+Use `differential` to compare two subgraphs. Use `hypothesize` to test what-if scenarios.\n\
+\n\
 **Deep Analysis**: `resonate(query)` for standing-wave harmonic patterns. \
 `fingerprint(nodes)` for duplicate/equivalence detection. `diverge(node)` for \
-exploring unexpected connections. `federate` to query across graph namespaces.
-
-## PERSPECTIVE SYSTEM (stateful navigation)
-
+exploring unexpected connections. `federate` to query across graph namespaces.\n\
+\n\
+## PERSPECTIVE SYSTEM (stateful navigation)\n\
+\n\
 Perspectives are named, agent-scoped navigation sessions through the graph. \
-Flow: `perspective_start(name, seed_nodes)` → `perspective_follow(node)` (move focus) → \
-`perspective_branch(name)` (fork exploration) → `perspective_back` (undo last move) → \
+Flow: `perspective_start(name, seed_nodes)` \u{2192} `perspective_follow(node)` (move focus) \u{2192} \
+`perspective_branch(name)` (fork exploration) \u{2192} `perspective_back` (undo last move) \u{2192} \
 `perspective_close`. Use `perspective_inspect` to see current state, `perspective_peek` \
 to look at a node without moving, `perspective_list` for all open perspectives, \
 `perspective_compare` to diff two perspectives, `perspective_suggest` for next-step \
 recommendations, `perspective_routes` for paths between nodes, `perspective_affinity` \
-for related-node scoring.
-
-## CONCURRENCY & STATE
-
-`lock_create` / `lock_release` — advisory locks for multi-agent coordination on graph \
+for related-node scoring.\n\
+\n\
+## CONCURRENCY & STATE\n\
+\n\
+`lock_create` / `lock_release` \u{2014} advisory locks for multi-agent coordination on graph \
 regions. `lock_watch` monitors lock state. `lock_diff` shows changes within a lock scope. \
 `lock_rebase` replays external changes into a locked region. \
-`trail_save` / `trail_list` / `trail_resume` / `trail_merge` — persist and restore \
+`trail_save` / `trail_list` / `trail_resume` / `trail_merge` \u{2014} persist and restore \
 exploration trails across sessions. `validate_plan` checks a proposed multi-step plan \
-for structural soundness.
-
-## CRITICAL PATTERNS
-
+for structural soundness.\n\
+\n\
+## CRITICAL PATTERNS\n\
+\n\
 1. **Always call `learn` after using `activate` results.** Feedback (correct/wrong/partial) \
-trains the graph weights via Hebbian learning. Skipping this degrades future queries.
-2. **Use `ingest` at session start** if the graph has zero nodes or the codebase changed.
-3. **Use `drift` to recover context** between sessions — it shows weight changes since \
-a baseline timestamp.
-4. **`warmup` before focused work** — primes activation patterns for a specific task, \
-making subsequent queries faster and more relevant.
-5. **Never call `activate` without `agent_id`** — multi-agent isolation depends on it.
-6. **Prefer `impact` over `activate` for code changes** — impact gives directional \
-blast-radius analysis; activate gives associative exploration.
+trains the graph weights via Hebbian learning. Skipping this degrades future queries.\n\
+2. **Use `ingest` at session start** if the graph has zero nodes or the codebase changed.\n\
+3. **Use `drift` to recover context** between sessions \u{2014} it shows weight changes since \
+a baseline timestamp.\n\
+4. **`warmup` before focused work** \u{2014} primes activation patterns for a specific task, \
+making subsequent queries faster and more relevant.\n\
+5. **Never call `activate` without `agent_id`** \u{2014} multi-agent isolation depends on it.\n\
+6. **Prefer `impact` over `activate` for code changes** \u{2014} impact gives directional \
+blast-radius analysis; activate gives associative exploration.\n\
 7. **Graph persists automatically** every 50 queries and on shutdown. Use `trail_save` \
-for explicit exploration checkpoints.
+for explicit exploration checkpoints.\n\
 ";
 
 #[derive(Clone, Copy, Debug)]
@@ -921,33 +932,32 @@ impl McpServer {
             Some("generic") => DomainConfig::generic(),
             Some("code") | None => DomainConfig::code(),
             Some(other) => {
-                eprintln!("[m1nd] Unknown domain '{}', falling back to 'code'", other);
+                eprintln!("{}", brand::log(&format!("Unknown domain '{}', falling back to 'code'", other)));
                 DomainConfig::code()
             }
         };
-        eprintln!("[m1nd] Domain: {}", domain_config.name);
+        eprintln!("{}", brand::log(&format!("Domain: {}", domain_config.name)));
 
         // Step 1: Try to load graph snapshot
         let (mut graph, graph_loaded) = if config.graph_source.exists() {
             match m1nd_core::snapshot::load_graph(&config.graph_source) {
                 Ok(g) => {
                     eprintln!(
-                        "[m1nd] Loaded graph snapshot: {} nodes, {} edges",
-                        g.num_nodes(),
-                        g.num_edges(),
+                        "{}",
+                        brand::log(&format!("Loaded graph snapshot: {} nodes, {} edges", g.num_nodes(), g.num_edges())),
                     );
                     (g, true)
                 }
                 Err(e) => {
                     eprintln!(
-                        "[m1nd] Failed to load graph snapshot ({}), starting fresh",
-                        e,
+                        "{}",
+                        brand::log(&format!("Failed to load graph snapshot ({}), starting fresh", e)),
                     );
                     (m1nd_core::graph::Graph::new(), false)
                 }
             }
         } else {
-            eprintln!("[m1nd] No graph snapshot found, starting fresh");
+            eprintln!("{}", brand::log("No graph snapshot found, starting fresh"));
             (m1nd_core::graph::Graph::new(), false)
         };
 
@@ -955,8 +965,8 @@ impl McpServer {
         if graph_loaded && !graph.finalized && graph.num_nodes() > 0 {
             if let Err(e) = graph.finalize() {
                 eprintln!(
-                    "[m1nd] Failed to finalize loaded graph ({}), starting fresh",
-                    e,
+                    "{}",
+                    brand::log(&format!("Failed to finalize loaded graph ({}), starting fresh", e)),
                 );
                 graph = m1nd_core::graph::Graph::new();
             }
@@ -973,22 +983,22 @@ impl McpServer {
                     match state.plasticity.import_state(&mut g, &states) {
                         Ok(_) => {
                             eprintln!(
-                                "[m1nd] Loaded plasticity state: {} synaptic records",
-                                states.len(),
+                                "{}",
+                                brand::log(&format!("Loaded plasticity state: {} synaptic records", states.len())),
                             );
                         }
                         Err(e) => {
                             eprintln!(
-                                "[m1nd] Failed to import plasticity state ({}), continuing without it",
-                                e,
+                                "{}",
+                                brand::log(&format!("Failed to import plasticity state ({}), continuing without it", e)),
                             );
                         }
                     }
                 }
                 Err(e) => {
                     eprintln!(
-                        "[m1nd] Failed to load plasticity state ({}), continuing without it",
-                        e,
+                        "{}",
+                        brand::log(&format!("Failed to load plasticity state ({}), continuing without it", e)),
                     );
                 }
             }
@@ -1007,9 +1017,12 @@ impl McpServer {
     /// 7. Ready for connections
     pub fn start(&mut self) -> M1ndResult<()> {
         eprintln!(
-            "[m1nd-mcp] Server ready. {} nodes, {} edges",
-            self.state.graph.read().num_nodes(),
-            self.state.graph.read().num_edges(),
+            "{}",
+            brand::log(&format!(
+                "Server ready. {} nodes, {} edges",
+                self.state.graph.read().num_nodes(),
+                self.state.graph.read().num_edges(),
+            )),
         );
 
         Ok(())
@@ -1089,9 +1102,9 @@ impl McpServer {
 
     /// Graceful shutdown: persist state, flush writes, close connections.
     pub fn shutdown(&mut self) -> M1ndResult<()> {
-        eprintln!("[m1nd-mcp] Shutting down...");
+        eprintln!("{}", brand::log("Shutting down..."));
         let _ = self.state.persist();
-        eprintln!("[m1nd-mcp] State persisted. Goodbye.");
+        eprintln!("{}", brand::log("State persisted. Goodbye."));
         Ok(())
     }
 
@@ -1108,7 +1121,7 @@ impl McpServer {
                     result: Some(serde_json::json!({
                         "protocolVersion": "2024-11-05",
                         "serverInfo": {
-                            "name": "m1nd-mcp",
+                            "name": format!("{} m1nd-mcp", brand::SIG),
                             "version": env!("CARGO_PKG_VERSION"),
                         },
                         "capabilities": {
@@ -1152,16 +1165,20 @@ impl McpServer {
                     self.state.track_agent(agent_id);
                 }
 
+                // Normalize tool name for brand lookup (same as dispatch_tool)
+                let brand_name = tool_name.replace('_', ".");
+
                 // MCP spec: tool execution errors -> isError content, not JSON-RPC errors
                 match self.dispatch_tool(tool_name, &arguments) {
                     Ok(result) => {
+                        let stamped = brand::stamp(&brand_name, result);
                         return Ok(JsonRpcResponse {
                             jsonrpc: "2.0".into(),
                             id: request.id.clone(),
                             result: Some(serde_json::json!({
                                 "content": [{
                                     "type": "text",
-                                    "text": serde_json::to_string_pretty(&result).unwrap_or_default(),
+                                    "text": serde_json::to_string_pretty(&stamped).unwrap_or_default(),
                                 }]
                             })),
                             error: None,
@@ -1174,7 +1191,7 @@ impl McpServer {
                             result: Some(serde_json::json!({
                                 "content": [{
                                     "type": "text",
-                                    "text": format!("Error: {}", e),
+                                    "text": brand::error_line(&format!("{}", e)),
                                 }],
                                 "isError": true
                             })),

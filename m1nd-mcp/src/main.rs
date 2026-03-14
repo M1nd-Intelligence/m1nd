@@ -3,6 +3,7 @@
 // m1nd MCP server binary. Reads config, starts server, serves over stdio.
 // Handles SIGINT for graceful shutdown.
 
+use m1nd_mcp::brand;
 use m1nd_mcp::server::{McpConfig, McpServer};
 use std::path::PathBuf;
 
@@ -13,7 +14,7 @@ fn load_config() -> McpConfig {
         let path = &args[1];
         if let Ok(contents) = std::fs::read_to_string(path) {
             if let Ok(config) = serde_json::from_str::<McpConfig>(&contents) {
-                eprintln!("[m1nd-mcp] Config loaded from {}", path);
+                eprintln!("{}", brand::log(&format!("Config loaded from {}", path)));
                 return config;
             }
         }
@@ -42,18 +43,20 @@ fn load_config() -> McpConfig {
 
 #[tokio::main]
 async fn main() {
+    eprintln!("{}", brand::BANNER);
+
     let config = load_config();
 
     let mut server = match McpServer::new(config) {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("[m1nd-mcp] Failed to create server: {}", e);
+            eprintln!("{}", brand::log(&format!("Failed to create server: {}", e)));
             std::process::exit(1);
         }
     };
 
     if let Err(e) = server.start() {
-        eprintln!("[m1nd-mcp] Failed to start server: {}", e);
+        eprintln!("{}", brand::log(&format!("Failed to start server: {}", e)));
         std::process::exit(1);
     }
 
@@ -68,14 +71,14 @@ async fn main() {
     // Wait for either SIGINT or serve completion
     tokio::select! {
         _ = tokio::signal::ctrl_c() => {
-            eprintln!("[m1nd-mcp] SIGINT received.");
+            eprintln!("{}", brand::log("SIGINT received."));
             // serve_handle will complete when stdin closes or next iteration
         }
         result = serve_handle => {
             match result {
                 Ok(Ok(())) => {}
-                Ok(Err(e)) => eprintln!("[m1nd-mcp] Server error: {}", e),
-                Err(e) => eprintln!("[m1nd-mcp] Task error: {}", e),
+                Ok(Err(e)) => eprintln!("{}", brand::log(&format!("Server error: {}", e))),
+                Err(e) => eprintln!("{}", brand::log(&format!("Task error: {}", e))),
             }
         }
     }
