@@ -1850,6 +1850,30 @@
         </div>
       </div>
 
+      <!-- ── Token Savings (measured) ── -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 48px;">
+        <div style="font-family: var(--mono); font-size: 12px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;">Economia de tokens medida</div>
+        <p style="font-size: 13px; color: var(--text-faint); margin-bottom: 20px;">Backend Python de 335 arquivos, jornada de 8 horas do agente, Claude Opus.</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 24px;">
+          <div style="text-align: center; padding: 16px; border: 1px solid var(--border); border-radius: 8px;">
+            <div style="font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--green);">60%</div>
+            <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">menos tokens de contexto/dia</div>
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-top: 4px;">1,2M &rarr; 480K tokens</div>
+          </div>
+          <div style="text-align: center; padding: 16px; border: 1px solid var(--border); border-radius: 8px;">
+            <div style="font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--green);">62%</div>
+            <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">menos chamadas grep/hora</div>
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-top: 4px;">40 &rarr; 15 chamadas</div>
+          </div>
+          <div style="text-align: center; padding: 16px; border: 1px solid var(--border); border-radius: 8px;">
+            <div style="font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--green);">~50MB</div>
+            <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">footprint total de mem&oacute;ria</div>
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--text-faint); margin-top: 4px;">~10K n&oacute;s, ~27K arestas</div>
+          </div>
+        </div>
+        <p style="font-size: 13px; color: var(--text-dim); line-height: 1.6; margin: 0; font-style: italic;">m1nd n&atilde;o substitui a busca. Ele <strong style="color: var(--text);">foca</strong> a busca. O agente ainda usa grep e l&ecirc; arquivos, mas parte de uma posi&ccedil;&atilde;o muito melhor porque m1nd disse onde procurar.</p>
+      </div>
+
       <table class="vs-table">
         <thead>
           <tr>
@@ -1955,142 +1979,60 @@
     </div>
   </section>
 
-  <!-- ── Competitive Advantage ── -->
+  <!-- ── What Makes It Different ── -->
   <section id="advantage" style="border-top: 1px solid var(--border);">
     <div class="container">
-      <div class="section-label">A vantagem medida</div>
-      <h2 class="section-title">3&ndash;4 anos &agrave; frente. Medido.</h2>
-      <p class="section-desc">Comparamos m1nd com todas as ferramentas da categoria em 16 capacidades. m1nd pontua 16/16. O melhor concorrente pontua 3. Cursor e Copilot pontuam zero.</p>
-
-      <!-- ── Feature coverage bars ── -->
-      <div style="margin-bottom: 64px;">
-        <div style="font-family: var(--mono); font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Capacidades cobertas (de 16)</div>
-
-        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 12px;">
-          <div style="font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--green);">m1nd</div>
-          <div style="background: var(--bg-card); border-radius: 6px; height: 32px; border: 1px solid var(--border); overflow: hidden;">
-            <div style="width: 100%; height: 100%; background: linear-gradient(90deg, var(--green) 0%, rgba(0, 229, 160, 0.7) 100%); border-radius: 5px; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;">
-              <span style="font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--bg);">16/16</span>
-            </div>
-          </div>
-          <div style="font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--green);">100%</div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">CodeGraphCtx</div>
-          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
-            <div style="width: 18.75%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
-          </div>
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">3/16</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Joern</div>
-          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
-            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
-          </div>
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">CodeQL</div>
-          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
-            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
-          </div>
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">ast-grep</div>
-          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
-            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
-          </div>
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Letta Code</div>
-          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
-            <div style="width: 12.5%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
-          </div>
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">2/16</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Sourcegraph</div>
-          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
-            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
-          </div>
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Augment</div>
-          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
-            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
-          </div>
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Greptile</div>
-          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
-            <div style="width: 6.25%; height: 100%; background: var(--text-faint); border-radius: 5px; opacity: 0.5;"></div>
-          </div>
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">1/16</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px; margin-bottom: 8px;">
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Cursor</div>
-          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
-            <div style="width: 0%; height: 100%;"></div>
-          </div>
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">0/16</div>
-        </div>
-        <div style="display: grid; grid-template-columns: 160px 1fr 48px; align-items: center; gap: 16px;">
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">Copilot</div>
-          <div style="background: var(--bg-card); border-radius: 6px; height: 24px; border: 1px solid var(--border); overflow: hidden;">
-            <div style="width: 0%; height: 100%;"></div>
-          </div>
-          <div style="font-family: var(--mono); font-size: 12px; color: var(--text-faint);">0/16</div>
-        </div>
-      </div>
-
-      <!-- ── 6 Defensible Claims ── -->
-      <div style="font-family: var(--mono); font-size: 11px; color: var(--green); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px;">Seis coisas que ningu&eacute;m mais pode afirmar</div>
+      <div class="section-label">Por dentro</div>
+      <h2 class="section-title">Seis t&eacute;cnicas de seis disciplinas</h2>
+      <p class="section-desc">m1nd empresta de neuroci&ecirc;ncia, sociologia, processamento de sinais, f&iacute;sica e sistemas distribu&iacute;dos. Cada t&eacute;cnica resolve um problema espec&iacute;fico no entendimento de c&oacute;digo.</p>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 64px;">
+        <!-- 1 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">01 &mdash; ZERO CONCORRENTES</div>
-          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Plasticidade Hebbian em grafos de c&oacute;digo</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">O grafo se reconecta baseado em quais caminhos de query levam a resultados corretos. Nenhuma outra ferramenta faz isso. Nenhum paper publicado descreve isso para c&oacute;digo.</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">01 &mdash; NEUROCI&Ecirc;NCIA</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Plasticidade Hebbian</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Plasticidade Hebbian adapta pesos de arestas baseado em quais caminhos de query levam a resultados corretos. O grafo aprende com o uso.</div>
         </div>
+
+        <!-- 2 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">02 &mdash; 10-30x MAIS R&Aacute;PIDO</div>
-          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">$0.00/query a 31ms</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Bin&aacute;rio Rust local. Zero tokens de LLM queimados por query. Toda ferramenta dependente de LLM paga $0.10-$0.50 por busca e espera 300ms-2s.</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">02 &mdash; DESEMPENHO</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">$0,00/query a &lt;100ms</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Bin&aacute;rio Rust local. Zero tokens de LLM por query. $0,00/query a &lt;100ms. Toda ferramenta dependente de LLM paga $0,10&ndash;$0,50 e espera 300ms&ndash;2s.</div>
         </div>
+
+        <!-- 3 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">03 &mdash; ZERO ARTE PR&Eacute;VIA</div>
-          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Encontra o que FALTA no c&oacute;digo</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Detec&ccedil;&atilde;o de buracos estruturais da teoria de Burt da sociologia, aplicada a grafos de c&oacute;digo. Encontra lacunas na sua arquitetura que nenhuma busca revela.</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">03 &mdash; SOCIOLOGIA</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Detec&ccedil;&atilde;o de buracos estruturais</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Detec&ccedil;&atilde;o de buracos estruturais da teoria de redes de Burt. Encontra arquitetura ausente que nenhuma busca textual revela.</div>
         </div>
+
+        <!-- 4 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">04 &mdash; MAIOR SUPERF&Iacute;CIE</div>
-          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">43 ferramentas MCP = ciclo cognitivo completo</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Ingerir, ativar, hipotetizar, simular, aprender, navegar, federar. O maior concorrente oferece ~15 ferramentas. A maioria oferece 3-5.</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">04 &mdash; CI&Ecirc;NCIA COGNITIVA</div>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">43 ferramentas = ciclo cognitivo completo</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">43 ferramentas MCP formam um ciclo cognitivo completo: ingerir, ativar, hipotetizar, simular, aprender, navegar, federar.</div>
         </div>
+
+        <!-- 5 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">05 &mdash; T&Eacute;CNICA IN&Eacute;DITA</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">05 &mdash; PROCESSAMENTO DE SINAIS</div>
           <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Cancelamento de ru&iacute;do XLR</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Emprestado da engenharia de &aacute;udio: filtragem Cross-Layer Resonance suprime arestas falso-positivas durante spreading activation. Zero arte pr&eacute;via em grafos de c&oacute;digo. Zero concorrentes, zero papers.</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Cancelamento de ru&iacute;do Cross-Layer Resonance (XLR) suprime arestas falso-positivas durante spreading activation. Emprestado da engenharia de &aacute;udio.</div>
         </div>
+
+        <!-- 6 -->
         <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; border-left: 3px solid var(--green);">
-          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">06 &mdash; OUTROS TENTARAM E FALHARAM</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--green); margin-bottom: 8px;">06 &mdash; SISTEMAS DISTRIBU&Iacute;DOS</div>
           <div style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">Locking de grafo multi-agente</div>
-          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Cursor tentou locking de arquivos multi-agente e abandonou. m1nd entrega 5 ferramentas de lock que funcionam: snapshot, watch, diff, rebase, release. M&uacute;ltiplos agentes, um grafo consistente.</div>
+          <div style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">5 ferramentas de lock permitem m&uacute;ltiplos agentes operarem em um grafo consistente: snapshot, watch, diff, rebase, release.</div>
         </div>
       </div>
 
-      <!-- ── Compact Verdict ── -->
+      <!-- ── Benchmarks link ── -->
       <div style="text-align: center; margin-top: 48px;">
-        <div style="display: inline-block; background: linear-gradient(135deg, rgba(0, 229, 160, 0.08) 0%, rgba(0, 229, 160, 0.03) 100%); border: 1px solid rgba(0, 229, 160, 0.2); border-radius: 16px; padding: 32px 56px;">
-          <div style="font-family: var(--mono); font-size: 48px; font-weight: 700; color: var(--green); line-height: 1;">3&ndash;4 anos &agrave; frente</div>
-          <div style="font-size: 15px; color: var(--text-dim); margin-top: 12px; max-width: 500px;">Constru&iacute;do sobre 6 disciplinas que nenhum concorrente cobre sozinho: ci&ecirc;ncia cognitiva, sociologia, neuroci&ecirc;ncia, processamento de sinais, f&iacute;sica e sistemas distribu&iacute;dos.</div>
-          <a href="https://github.com/maxkle1nz/m1nd/blob/main/docs/m1nd/M1ND-COMPETITIVE-INTELLIGENCE-2026-03-13.md" style="display: inline-block; margin-top: 16px; font-family: var(--mono); font-size: 12px; color: var(--green); text-decoration: underline;">Leia a an&aacute;lise competitiva completa &rarr;</a>
-        </div>
+        <a href="../wiki-build/benchmarks.html" style="display: inline-block; font-family: var(--mono); font-size: 13px; color: var(--green); text-decoration: underline;">Benchmarks t&eacute;cnicos completos &rarr;</a>
       </div>
     </div>
   </section>
