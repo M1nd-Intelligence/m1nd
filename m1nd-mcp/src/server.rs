@@ -8,6 +8,9 @@ use crate::protocol::layers;
 use crate::tools;
 use crate::layer_handlers;
 use crate::surgical_handlers;
+use crate::search_handlers;
+use crate::report_handlers;
+use crate::personality;
 use std::io::{BufRead, Read, Write};
 use std::path::PathBuf;
 
@@ -1141,6 +1144,78 @@ pub fn tool_schemas() -> serde_json::Value {
                     },
                     "required": ["agent_id", "edits"]
                 }
+            },
+            // =================================================================
+            // v0.4.0: search, help, report, panoramic, savings
+            // =================================================================
+            {
+                "name": "m1nd.search",
+                "description": "Low-level code search: literal, regex, or semantic. Returns file matches with context lines and graph node cross-references.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "query": { "type": "string", "description": "Search query string" },
+                        "mode": {
+                            "type": "string",
+                            "enum": ["literal", "regex", "semantic"],
+                            "default": "literal",
+                            "description": "Search mode: literal (substring), regex (pattern), semantic (graph-aware)"
+                        },
+                        "scope": { "type": "string", "description": "File path prefix filter" },
+                        "top_k": { "type": "integer", "default": 50, "description": "Max results (1-500)" },
+                        "context_lines": { "type": "integer", "default": 2, "description": "Lines of context before/after match (0-10)" },
+                        "case_sensitive": { "type": "boolean", "default": false, "description": "Case-sensitive matching" }
+                    },
+                    "required": ["agent_id", "query"]
+                }
+            },
+            {
+                "name": "m1nd.help",
+                "description": "Get help text for m1nd tools. Returns overview or detailed help for a specific tool with visual identity.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "tool_name": { "type": "string", "description": "Specific tool name for detailed help (omit for overview)" }
+                    },
+                    "required": ["agent_id"]
+                }
+            },
+            {
+                "name": "m1nd.report",
+                "description": "Session intelligence report: queries, bugs, graph evolution, and estimated savings.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" }
+                    },
+                    "required": ["agent_id"]
+                }
+            },
+            {
+                "name": "m1nd.panoramic",
+                "description": "Panoramic graph health overview: per-module risk scores combining blast radius, centrality, and churn signals.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "scope": { "type": "string", "description": "File path prefix filter" },
+                        "top_n": { "type": "integer", "default": 50, "description": "Max modules to return (1-1000)" }
+                    },
+                    "required": ["agent_id"]
+                }
+            },
+            {
+                "name": "m1nd.savings",
+                "description": "Estimated token and cost savings from using m1nd. Shows current session and global totals with Gaia counter.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" }
+                    },
+                    "required": ["agent_id"]
+                }
             }
         ]
     })
@@ -1153,13 +1228,29 @@ pub fn tool_schemas() -> serde_json::Value {
 
 /// Dispatch a tool call by name. Normalizes underscores to dots.
 /// Used by both JSON-RPC stdio and HTTP API -- zero duplication.
+///
+/// v0.4.0: wraps all responses with _m1nd metadata, tracks savings.
 pub fn dispatch_tool(
     state: &mut SessionState,
     tool_name: &str,
     params: &serde_json::Value,
 ) -> M1ndResult<serde_json::Value> {
     let normalized = tool_name.replace('_', ".");
-    match normalized.as_str() {
+    let start = std::time::Instant::now();
+
+    // Extract agent_id for tracking
+    let agent_id = params.get("agent_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown")
+        .to_string();
+    let query_preview = params.get("query")
+        .and_then(|v| v.as_str())
+        .unwrap_or_else(|| params.get("claim").and_then(|v| v.as_str())
+            .unwrap_or_else(|| params.get("node_id").and_then(|v| v.as_str())
+                .unwrap_or("")))
+        .to_string();
+
+    let result = match normalized.as_str() {
         name if name.starts_with("m1nd.perspective.") => {
             dispatch_perspective_tool(state, name, params)
         }
@@ -1167,7 +1258,26 @@ pub fn dispatch_tool(
             dispatch_lock_tool(state, name, params)
         }
         _ => dispatch_core_tool(state, &normalized, params),
+    };
+
+    // Post-dispatch: track savings + log query + add _m1nd metadata
+    if let Ok(ref value) = result {
+        let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
+        let result_count = value.get("results")
+            .and_then(|v| v.as_array())
+            .map_or(0, |a| a.len());
+
+        // Track savings (skip meta tools)
+        if !matches!(normalized.as_str(), "m1nd.health" | "m1nd.help" | "m1nd.savings" | "m1nd.report") {
+            state.savings_tracker.record(&normalized, result_count);
+            state.global_savings.total_queries += 1;
+        }
+
+        // Log query
+        state.log_query(&normalized, &agent_id, elapsed_ms, result_count, &query_preview);
     }
+
+    result
 }
 
 /// Dispatch core + superpowers tools (35 tools).
@@ -1368,6 +1478,39 @@ fn dispatch_core_tool(
             let input: layers::LayerInspectInput = serde_json::from_value(params.clone())
                 .map_err(M1ndError::Serde)?;
             layer_handlers::handle_layer_inspect(state, input)
+        }
+        // -----------------------------------------------------------------
+        // v0.4.0: search, help, panoramic, savings, report
+        // -----------------------------------------------------------------
+        "m1nd.search" => {
+            let input: layers::SearchInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = search_handlers::handle_search(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.help" => {
+            let input: layers::HelpInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = search_handlers::handle_help(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.report" => {
+            let input: layers::ReportInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = report_handlers::handle_report(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.panoramic" => {
+            let input: layers::PanoramicInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = report_handlers::handle_panoramic(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.savings" => {
+            let input: layers::SavingsInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = report_handlers::handle_savings(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         // -----------------------------------------------------------------
         // Surgical: context + apply

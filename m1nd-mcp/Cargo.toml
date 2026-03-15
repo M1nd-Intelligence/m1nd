@@ -1,22 +1,29 @@
 [package]
 name = "m1nd-mcp"
-version = "0.3.0"
+version = "0.2.0"
 edition = "2021"
-description = "MCP server for m1nd — 56 tools for AI agents to understand code structure"
-license = "MIT"
-repository = "https://github.com/maxkle1nz/m1nd"
-homepage = "https://m1nd.world"
-readme = "../README.md"
-keywords = ["mcp", "code-graph", "ai-agents", "neuro-symbolic", "developer-tools"]
-categories = ["development-tools", "command-line-utilities"]
+
+[features]
+default = ["serve"]
+serve = ["dep:axum", "dep:tower-http", "dep:rust-embed", "dep:mime_guess", "dep:tokio-stream", "dep:futures"]
 
 [dependencies]
-m1nd-core = { version = "0.3.0", path = "../m1nd-core" }
-m1nd-ingest = { version = "0.3.0", path = "../m1nd-ingest" }
+m1nd-core = { path = "../m1nd-core" }
+m1nd-ingest = { path = "../m1nd-ingest" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 parking_lot = { workspace = true }
-tokio = { version = "1", features = ["io-std", "rt-multi-thread", "macros", "signal"] }
+tokio = { version = "1", features = ["io-std", "rt-multi-thread", "macros", "signal", "sync", "time"] }
+clap = { version = "4", features = ["derive"] }
+regex = "1"
+
+# HTTP server (behind "serve" feature)
+axum = { version = "0.8", optional = true }
+tower-http = { version = "0.6", features = ["cors", "fs", "compression-gzip"], optional = true }
+rust-embed = { version = "8", optional = true }
+mime_guess = { version = "2", optional = true }
+tokio-stream = { version = "0.1", features = ["sync"], optional = true }
+futures = { version = "0.3", optional = true }
 
 [[bin]]
 name = "m1nd-mcp"
@@ -24,6 +31,5 @@ path = "src/main.rs"
 
 [dev-dependencies]
 tempfile = "3.27.0"
-
-[lints]
-workspace = true
+reqwest = { version = "0.12", features = ["json"] }
+tokio-test = "0.4"
