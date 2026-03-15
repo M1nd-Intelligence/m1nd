@@ -8,7 +8,7 @@
 
 <p align="center">
   Moteur de connectome neuro-symbolique avec plasticité Hebbienne, spreading activation
-  et 56 outils MCP. Construit en Rust pour les agents IA.<br/>
+  et 61 outils MCP. Construit en Rust pour les agents IA.<br/>
   <em>(Un graphe de code qui apprend à chaque requête. Posez une question ; il devient plus intelligent.)</em>
 </p>
 
@@ -27,7 +27,7 @@
   <a href="#démarrage-rapide">Démarrage Rapide</a> &middot;
   <a href="#résultats-prouvés">Résultats</a> &middot;
   <a href="#pourquoi-pas-cursorraggrep-">Pourquoi m1nd</a> &middot;
-  <a href="#les-56-outils">Outils</a> &middot;
+  <a href="#les-61-outils">Outils</a> &middot;
   <a href="https://github.com/maxkle1nz/m1nd/wiki">Wiki</a> &middot;
   <a href="EXAMPLES.md">Exemples</a>
 </p>
@@ -171,7 +171,7 @@ Compatible avec tout client MCP : Claude Code, Cursor, Windsurf, Zed ou le vôtr
 
 **Le graphe sauvegarde les enquêtes.** `trail.save` -> `trail.resume` des jours plus tard depuis la même position cognitive exacte. Deux agents sur le même bug ? `trail.merge` -- détection automatique de conflits sur les nœuds partagés.
 
-## Les 56 Outils
+## Les 61 Outils
 
 | Catégorie | Nombre | Points forts |
 |-----------|--------|--------------|
@@ -180,7 +180,8 @@ Compatible avec tout client MCP : Claude Code, Cursor, Windsurf, Zed ou le vôtr
 | **Système de Lock** | 5 | Fixez des régions du sous-graphe, surveillez les changements (lock.diff: 0.08&micro;s) |
 | **Superpowers** | 13 | hypothesize, counterfactual, missing, resonate, fingerprint, trace, predict, trails |
 | **Superpowers Extended** | 9 | antibody, flow_simulate, epidemic, tremor, trust, layers |
-| **Chirurgical** | 2 | surgical_context, apply |
+| **Chirurgical** | 4 | surgical_context, apply, surgical_context_v2, apply_batch |
+| **Intelligence** | 5 | search, help, panoramic, savings, report |
 
 <details>
 <summary><strong>Foundation (13 outils)</strong></summary>
@@ -291,7 +292,7 @@ m1nd-core/     Moteur de graphe, spreading activation, plasticité Hebbienne, mo
                système d'anticorps, simulateur de flux, épidémie, tremor, confiance, détection de couches
 m1nd-ingest/   Extracteurs de langages (28 langages), memory adapter, JSON adapter,
                enrichissement git, résolveur cross-file, diff incrémental
-m1nd-mcp/      Serveur MCP, 56 handlers d'outils, JSON-RPC sur stdio, serveur HTTP + GUI
+m1nd-mcp/      Serveur MCP, 61 handlers d'outils, JSON-RPC sur stdio, serveur HTTP + GUI
 ```
 
 ```mermaid
@@ -311,7 +312,7 @@ graph LR
         SA --> XLR[XLR Annulation de Bruit]
     end
     subgraph MCP
-        XLR --> T[56 Outils]
+        XLR --> T[61 Outils]
         HP --> T
         HY --> T
         SX --> T

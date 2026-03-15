@@ -15,7 +15,7 @@ use crate::types::*;
 /// Default half-life for temporal decay (hours).
 pub const DEFAULT_HALF_LIFE_HOURS: f32 = 168.0; // 7 days
 /// Decay formula: exp(-k * age_hours), k = ln(2) / half_life.
-pub const LN2: f32 = 0.693_147_2;
+pub const LN2: f32 = std::f32::consts::LN_2;
 /// Default chain budget (FM-TMP-005). Prevents combinatorial explosion.
 pub const DEFAULT_CHAIN_BUDGET: u64 = 10_000;
 /// Default max co-change matrix entries (FM-TMP-001). Prevents O(N^2) memory.

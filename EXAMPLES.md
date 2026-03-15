@@ -247,6 +247,178 @@ Real output from running m1nd against a production Python backend (335 files, ~5
 }
 ```
 
+## Search (Literal + Regex full-text search across the graph)
+
+```jsonc
+// Request — literal mode: find all nodes referencing a specific secret key
+{"method":"tools/call","params":{"name":"m1nd.search","arguments":{
+  "agent_id":"dev","query":"ANTHROPIC_API_KEY","mode":"literal","max_results":20
+}}}
+
+// Response (4ms)
+{
+  "matches": [
+    {"node_id": "file::backend/core/config.py", "match": "ANTHROPIC_API_KEY", "line": 42, "context": "api_key = os.getenv(\"ANTHROPIC_API_KEY\")"},
+    {"node_id": "file::backend/core/config.py", "match": "ANTHROPIC_API_KEY", "line": 118, "context": "if not os.environ.get(\"ANTHROPIC_API_KEY\"):"},
+    {"node_id": "file::backend/tests/test_config.py", "match": "ANTHROPIC_API_KEY", "line": 17, "context": "monkeypatch.setenv(\"ANTHROPIC_API_KEY\", \"sk-test\")"}
+  ],
+  "total_matches": 3,
+  "mode": "literal",
+  "query": "ANTHROPIC_API_KEY",
+  "elapsed_ms": 4
+}
+
+// Request — regex mode: find all TODO and FIXME comments across the graph
+{"method":"tools/call","params":{"name":"m1nd.search","arguments":{
+  "agent_id":"dev","query":"TODO|FIXME","mode":"regex","max_results":50
+}}}
+
+// Response (11ms)
+{
+  "matches": [
+    {"node_id": "file::backend/worker.py", "match": "TODO", "line": 89, "context": "# TODO: add backpressure when queue depth exceeds 500"},
+    {"node_id": "file::backend/pool.py", "match": "FIXME", "line": 134, "context": "# FIXME: race condition on double-acquire under high load"},
+    {"node_id": "file::backend/handler.py", "match": "TODO", "line": 211, "context": "# TODO: remove after session_pool migration"},
+    // ... 23 more matches
+  ],
+  "total_matches": 26,
+  "mode": "regex",
+  "query": "TODO|FIXME",
+  "elapsed_ms": 11
+}
+```
+
+## Help (Built-in tool reference)
+
+```jsonc
+// Request — overview: what tools does m1nd have?
+{"method":"tools/call","params":{"name":"m1nd.help","arguments":{
+  "agent_id":"dev","topic":"about"
+}}}
+
+// Response (0ms)
+{
+  "overview": "m1nd — neuro-symbolic connectome engine with Hebbian plasticity and spreading activation.",
+  "tool_count": 61,
+  "categories": [
+    {"name": "Foundation", "count": 13, "tools": ["ingest","activate","impact","why","learn","drift","health","seek","scan","timeline","diverge","warmup","federate"]},
+    {"name": "Perspective Navigation", "count": 12},
+    {"name": "Lock System", "count": 5},
+    {"name": "Superpowers", "count": 13},
+    {"name": "Superpowers Extended", "count": 9},
+    {"name": "Surgical", "count": 4},
+    {"name": "Intelligence", "count": 5, "tools": ["search","help","panoramic","savings","report"]}
+  ],
+  "session_start_recipe": "ingest → activate → warmup → work → learn → savings"
+}
+
+// Request — specific tool: how does activate work?
+{"method":"tools/call","params":{"name":"m1nd.help","arguments":{
+  "agent_id":"dev","topic":"activate"
+}}}
+
+// Response (0ms)
+{
+  "tool": "m1nd.activate",
+  "category": "Foundation",
+  "description": "Spreading activation query — fires from seed nodes matching query, propagates signal across 4 dimensions (structural, semantic, temporal, causal). Returns ranked nodes with activation scores.",
+  "parameters": {
+    "agent_id": "string (required)",
+    "query": "string — natural language or code concept",
+    "top_k": "int (default: 10) — number of results",
+    "decay": "float (default: 0.85) — propagation decay per hop"
+  },
+  "speed": "1.36μs (bench, 1K nodes)",
+  "example": "{\"query\": \"connection pool management\", \"agent_id\": \"dev\", \"top_k\": 5}",
+  "related_tools": ["seek", "warmup", "learn"]
+}
+```
+
+## Panoramic (Full-codebase risk panorama)
+
+```jsonc
+// Request: get a risk map of the top 50 modules
+{"method":"tools/call","params":{"name":"m1nd.panoramic","arguments":{
+  "agent_id":"dev","max_modules":50,"min_risk_score":0.3
+}}}
+
+// Response (38ms) — 50 modules scanned, 12 above risk threshold 0.3
+{
+  "scanned_modules": 50,
+  "above_threshold": 12,
+  "panorama": [
+    {
+      "node_id": "file::backend/pool.py",
+      "risk_score": 0.91,
+      "risk_factors": {
+        "tremor": 0.88,
+        "epidemic_susceptibility": 0.79,
+        "trust_score": 0.31,
+        "blast_radius_pct": 43.7
+      },
+      "recommendation": "HIGH: frequent churn + high centrality + low trust. Prioritize review."
+    },
+    {
+      "node_id": "file::backend/worker.py",
+      "risk_score": 0.74,
+      "risk_factors": {
+        "tremor": 0.61,
+        "epidemic_susceptibility": 0.83,
+        "trust_score": 0.44,
+        "blast_radius_pct": 38.2
+      },
+      "recommendation": "MEDIUM-HIGH: epidemic vector. Add tests before next change."
+    },
+    {
+      "node_id": "file::backend/auth.py",
+      "risk_score": 0.52,
+      "risk_factors": {
+        "tremor": 0.31,
+        "epidemic_susceptibility": 0.55,
+        "trust_score": 0.71,
+        "blast_radius_pct": 19.4
+      },
+      "recommendation": "MEDIUM: acceptable trust score but moderate blast radius."
+    }
+    // ... 9 more modules
+  ],
+  "elapsed_ms": 38
+}
+```
+
+## Savings (Token economy tracker)
+
+```jsonc
+// Request: how many tokens has m1nd saved this session?
+{"method":"tools/call","params":{"name":"m1nd.savings","arguments":{
+  "agent_id":"dev"
+}}}
+
+// Response (0ms)
+{
+  "session": {
+    "queries_served": 47,
+    "estimated_tokens_saved": 186400,
+    "estimated_cost_saved_usd": 0.558,
+    "avg_tokens_per_query_saved": 3966
+  },
+  "cumulative": {
+    "queries_served": 1247,
+    "estimated_tokens_saved": 4943800,
+    "estimated_cost_saved_usd": 14.83,
+    "sessions_tracked": 31
+  },
+  "baseline_assumption": "avg 4K tokens per direct file-read LLM call at $0.003/1K tokens",
+  "note": "m1nd itself consumed 0 LLM tokens. All savings are vs. direct-read baseline."
+}
+
+// Request: reset the session counter
+{"method":"tools/call","params":{"name":"m1nd.savings","arguments":{
+  "agent_id":"dev","reset":true
+}}}
+// → {"reset": true, "session_cleared": true, "cumulative_preserved": true}
+```
+
 ## Apply Batch (Atomic multi-file edits with single re-ingest)
 
 ```jsonc

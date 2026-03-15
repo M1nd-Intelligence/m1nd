@@ -212,6 +212,38 @@ pub enum M1ndError {
     #[error("affinity timeout: {elapsed_ms:.1}ms exceeded budget of {budget_ms:.1}ms")]
     AffinityTimeout { elapsed_ms: f64, budget_ms: f64 },
 
+    // --- Antibody ---
+    /// FM-AB-001: Antibody pattern specificity below minimum threshold.
+    #[error("pattern too broad: specificity {specificity:.2} below minimum {minimum:.2}")]
+    PatternTooBroad { specificity: f32, minimum: f32 },
+
+    /// Antibody not found by ID.
+    #[error("antibody not found: {id}")]
+    AntibodyNotFound { id: String },
+
+    /// Antibody storage limit exceeded.
+    #[error("antibody limit exceeded: {current}/{limit}")]
+    AntibodyLimitExceeded { current: usize, limit: usize },
+
+    // --- Epidemic ---
+    /// Epidemic burnout: too many nodes infected too fast.
+    #[error("epidemic burnout: {infected_pct:.1}% infected in {iteration} iterations")]
+    EpidemicBurnout { infected_pct: f32, iteration: u32 },
+
+    /// No valid infected nodes provided for epidemic simulation.
+    #[error("no valid infected nodes")]
+    NoValidInfectedNodes,
+
+    // --- Flow ---
+    /// No entry points found for flow simulation.
+    #[error("no entry points found for flow simulation")]
+    NoEntryPoints,
+
+    // --- Layers ---
+    /// Layer level not found in detection result.
+    #[error("layer not found: level {level}")]
+    LayerNotFound { level: u8 },
+
     // --- Ingestion (runtime) ---
     /// Tree-sitter or extractor runtime error.
     #[error("ingest error: {0}")]
@@ -223,6 +255,9 @@ pub enum M1ndError {
 
     #[error("serialization error: {0}")]
     Serde(#[from] serde_json::Error),
+
+    #[error("persistence failed: {0}")]
+    PersistenceFailed(String),
 }
 
 /// Convenience alias used throughout the crate.

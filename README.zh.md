@@ -7,7 +7,7 @@
 <h3 align="center">你的 AI 智能体在盲目导航。m1nd 赋予它双眼。</h3>
 
 <p align="center">
-  具备赫布可塑性、扩散激活和 56 个 MCP 工具的神经符号连接组引擎。
+  具备赫布可塑性、扩散激活和 61 个 MCP 工具的神经符号连接组引擎。
   用 Rust 构建，专为 AI 智能体打造。<br/>
   <em>（一个每次查询都会学习的代码图谱。问它一个问题，它就变得更聪明。）</em>
 </p>
@@ -27,7 +27,7 @@
   <a href="#快速开始">快速开始</a> &middot;
   <a href="#验证结果">结果</a> &middot;
   <a href="#为什么不用-cursorraggrep">为什么选 m1nd</a> &middot;
-  <a href="#56-个工具">工具</a> &middot;
+  <a href="#61-个工具">工具</a> &middot;
   <a href="https://github.com/maxkle1nz/m1nd/wiki">Wiki</a> &middot;
   <a href="EXAMPLES.md">示例</a>
 </p>
@@ -170,7 +170,7 @@ cd m1nd && cargo build --release
 
 **图谱保存调查。** `trail.save` -> 数天后从完全相同的认知位置 `trail.resume`。两个智能体调查同一个 bug？`trail.merge` —— 共享节点上的自动冲突检测。
 
-## 56 个工具
+## 61 个工具
 
 | 类别 | 数量 | 亮点 |
 |------|------|------|
@@ -180,6 +180,7 @@ cd m1nd && cargo build --release
 | **超能力** | 13 | hypothesize, counterfactual, missing, resonate, fingerprint, trace, predict, trails |
 | **扩展超能力** | 9 | antibody, flow_simulate, epidemic, tremor, trust, layers |
 | **手术级** | 4 | surgical_context, apply, surgical_context_v2, apply_batch |
+| **智能** | 5 | search, help, panoramic, savings, report |
 
 <details>
 <summary><strong>基础（13 个工具）</strong></summary>
@@ -290,7 +291,7 @@ m1nd-core/     图谱引擎、扩散激活、赫布可塑性、假设引擎、
                抗体系统、流模拟器、流行病、震颤、信任、层级检测
 m1nd-ingest/   语言提取器（28 种语言）、记忆适配器、JSON 适配器、
                Git 丰富化、跨文件解析器、增量差异
-m1nd-mcp/      MCP 服务器、56 个工具处理器、JSON-RPC over stdio、HTTP 服务器 + GUI
+m1nd-mcp/      MCP 服务器、61 个工具处理器、JSON-RPC over stdio、HTTP 服务器 + GUI
 ```
 
 ```mermaid
@@ -310,7 +311,7 @@ graph LR
         SA --> XLR[XLR 噪声消除]
     end
     subgraph MCP
-        XLR --> T[56 个工具]
+        XLR --> T[61 个工具]
         HP --> T
         HY --> T
         SX --> T

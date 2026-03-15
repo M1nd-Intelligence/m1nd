@@ -52,10 +52,7 @@ const DENIED_FILENAMES: &[&str] = &[
 /// allowing any path. At least one ingest must happen before any apply.
 ///
 /// BUG FIX (E3): Deny-list prevents overwriting m1nd's own state files.
-fn validate_path_safety(
-    resolved: &Path,
-    ingest_roots: &[String],
-) -> M1ndResult<PathBuf> {
+fn validate_path_safety(resolved: &Path, ingest_roots: &[String]) -> M1ndResult<PathBuf> {
     // BUG FIX (E4): Block all writes when no ingest roots configured
     if ingest_roots.is_empty() {
         return Err(M1ndError::InvalidParams {
@@ -70,18 +67,26 @@ fn validate_path_safety(
     // Canonicalize the resolved path (follows symlinks, resolves ..)
     // For new files that don't exist yet, canonicalize the parent directory
     let canonical = if resolved.exists() {
-        resolved.canonicalize().map_err(|e| M1ndError::InvalidParams {
-            tool: "m1nd.apply".into(),
-            detail: format!("cannot resolve path {}: {}", resolved.display(), e),
-        })?
+        resolved
+            .canonicalize()
+            .map_err(|e| M1ndError::InvalidParams {
+                tool: "m1nd.apply".into(),
+                detail: format!("cannot resolve path {}: {}", resolved.display(), e),
+            })?
     } else {
         // File doesn't exist yet: canonicalize parent + append filename
         let parent = resolved.parent().unwrap_or(Path::new("."));
         let filename = resolved.file_name().unwrap_or_default();
-        let parent_canonical = parent.canonicalize().map_err(|e| M1ndError::InvalidParams {
-            tool: "m1nd.apply".into(),
-            detail: format!("cannot resolve parent directory {}: {}", parent.display(), e),
-        })?;
+        let parent_canonical = parent
+            .canonicalize()
+            .map_err(|e| M1ndError::InvalidParams {
+                tool: "m1nd.apply".into(),
+                detail: format!(
+                    "cannot resolve parent directory {}: {}",
+                    parent.display(),
+                    e
+                ),
+            })?;
         parent_canonical.join(filename)
     };
 
@@ -157,30 +162,37 @@ fn extract_rust_symbols(lines: &[&str], symbols: &mut Vec<surgical::SurgicalSymb
         let line_num = (i + 1) as u32;
 
         // Match: pub fn, fn, pub struct, struct, pub enum, enum, pub trait, trait, impl
-        let (name, sym_type) = if let Some(rest) = trimmed.strip_prefix("pub fn ")
+        let (name, sym_type) = if let Some(rest) = trimmed
+            .strip_prefix("pub fn ")
             .or_else(|| trimmed.strip_prefix("pub(crate) fn "))
             .or_else(|| trimmed.strip_prefix("pub(super) fn "))
         {
             (extract_identifier(rest), "function")
         } else if let Some(rest) = trimmed.strip_prefix("fn ") {
-            if !trimmed.starts_with("fn ") || trimmed.contains("//") && trimmed.find("//").unwrap() < trimmed.find("fn").unwrap_or(0) {
+            if !trimmed.starts_with("fn ")
+                || trimmed.contains("//")
+                    && trimmed.find("//").unwrap() < trimmed.find("fn").unwrap_or(0)
+            {
                 i += 1;
                 continue;
             }
             (extract_identifier(rest), "function")
-        } else if let Some(rest) = trimmed.strip_prefix("pub struct ")
+        } else if let Some(rest) = trimmed
+            .strip_prefix("pub struct ")
             .or_else(|| trimmed.strip_prefix("pub(crate) struct "))
         {
             (extract_identifier(rest), "struct")
         } else if let Some(rest) = trimmed.strip_prefix("struct ") {
             (extract_identifier(rest), "struct")
-        } else if let Some(rest) = trimmed.strip_prefix("pub enum ")
+        } else if let Some(rest) = trimmed
+            .strip_prefix("pub enum ")
             .or_else(|| trimmed.strip_prefix("pub(crate) enum "))
         {
             (extract_identifier(rest), "enum")
         } else if let Some(rest) = trimmed.strip_prefix("enum ") {
             (extract_identifier(rest), "enum")
-        } else if let Some(rest) = trimmed.strip_prefix("pub trait ")
+        } else if let Some(rest) = trimmed
+            .strip_prefix("pub trait ")
             .or_else(|| trimmed.strip_prefix("pub(crate) trait "))
         {
             (extract_identifier(rest), "trait")
@@ -440,8 +452,14 @@ fn collect_neighbours(
                 }
 
                 let label = graph.strings.resolve(graph.nodes.label[ti]).to_string();
-                let relation = graph.strings.resolve(graph.csr.relations[edge_pos]).to_string();
-                let weight = graph.csr.read_weight(m1nd_core::types::EdgeIdx::new(edge_pos as u32)).get();
+                let relation = graph
+                    .strings
+                    .resolve(graph.csr.relations[edge_pos])
+                    .to_string();
+                let weight = graph
+                    .csr
+                    .read_weight(m1nd_core::types::EdgeIdx::new(edge_pos as u32))
+                    .get();
 
                 let prov = graph.resolve_node_provenance(target);
                 let file_path = prov.source_path.clone().unwrap_or_default();
@@ -455,12 +473,11 @@ fn collect_neighbours(
                 };
 
                 // Classify: test file or callee
-                let is_test = include_tests && (
-                    relation.contains("test") ||
-                    label.contains("test") ||
-                    file_path.contains("test") ||
-                    file_path.contains("spec")
-                );
+                let is_test = include_tests
+                    && (relation.contains("test")
+                        || label.contains("test")
+                        || file_path.contains("test")
+                        || file_path.contains("spec"));
 
                 if is_test {
                     tests.push(neighbour);
@@ -486,7 +503,10 @@ fn collect_neighbours(
 
                 let label = graph.strings.resolve(graph.nodes.label[si]).to_string();
                 let fwd_idx = graph.csr.rev_edge_idx[rev_pos];
-                let relation = graph.strings.resolve(graph.csr.relations[fwd_idx.as_usize()]).to_string();
+                let relation = graph
+                    .strings
+                    .resolve(graph.csr.relations[fwd_idx.as_usize()])
+                    .to_string();
                 let weight = graph.csr.read_weight(fwd_idx).get();
 
                 let prov = graph.resolve_node_provenance(source);
@@ -500,12 +520,11 @@ fn collect_neighbours(
                     edge_weight: weight,
                 };
 
-                let is_test = include_tests && (
-                    relation.contains("test") ||
-                    label.contains("test") ||
-                    file_path.contains("test") ||
-                    file_path.contains("spec")
-                );
+                let is_test = include_tests
+                    && (relation.contains("test")
+                        || label.contains("test")
+                        || file_path.contains("test")
+                        || file_path.contains("spec"));
 
                 if is_test {
                     tests.push(neighbour);
@@ -519,9 +538,21 @@ fn collect_neighbours(
     }
 
     // Sort by edge weight descending for relevance
-    callers.sort_by(|a, b| b.edge_weight.partial_cmp(&a.edge_weight).unwrap_or(std::cmp::Ordering::Equal));
-    callees.sort_by(|a, b| b.edge_weight.partial_cmp(&a.edge_weight).unwrap_or(std::cmp::Ordering::Equal));
-    tests.sort_by(|a, b| b.edge_weight.partial_cmp(&a.edge_weight).unwrap_or(std::cmp::Ordering::Equal));
+    callers.sort_by(|a, b| {
+        b.edge_weight
+            .partial_cmp(&a.edge_weight)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    callees.sort_by(|a, b| {
+        b.edge_weight
+            .partial_cmp(&a.edge_weight)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    tests.sort_by(|a, b| {
+        b.edge_weight
+            .partial_cmp(&a.edge_weight)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     (callers, callees, tests)
 }
@@ -537,10 +568,7 @@ fn resolve_external_id(graph: &m1nd_core::graph::Graph, node: NodeId) -> String 
 }
 
 /// Find graph nodes whose provenance source_path matches the given file path.
-fn find_nodes_for_file(
-    graph: &m1nd_core::graph::Graph,
-    file_path: &str,
-) -> Vec<(NodeId, String)> {
+fn find_nodes_for_file(graph: &m1nd_core::graph::Graph, file_path: &str) -> Vec<(NodeId, String)> {
     let n = graph.num_nodes() as usize;
     let mut results = Vec::new();
 
@@ -593,16 +621,11 @@ pub fn handle_surgical_context(
 
     // Step 1: Resolve and read the file
     let resolved_path = resolve_file_path(&input.file_path, &state.ingest_roots);
-    let file_contents = std::fs::read_to_string(&resolved_path).map_err(|e| {
-        M1ndError::InvalidParams {
+    let file_contents =
+        std::fs::read_to_string(&resolved_path).map_err(|e| M1ndError::InvalidParams {
             tool: "m1nd.surgical_context".into(),
-            detail: format!(
-                "cannot read file {}: {}",
-                resolved_path.display(),
-                e
-            ),
-        }
-    })?;
+            detail: format!("cannot read file {}: {}", resolved_path.display(), e),
+        })?;
 
     let line_count = file_contents.lines().count() as u32;
 
@@ -623,9 +646,7 @@ pub fn handle_surgical_context(
             idx < graph.num_nodes() as usize
                 && graph.nodes.node_type[idx] == m1nd_core::types::NodeType::File
         });
-        file_type_node
-            .or(file_nodes.first())
-            .cloned()
+        file_type_node.or(file_nodes.first()).cloned()
     };
 
     let node_id_str = primary_node
@@ -652,10 +673,10 @@ pub fn handle_surgical_context(
 
     // Step 5: Focused symbol (if requested)
     let focused_symbol = input.symbol.as_ref().and_then(|sym_name| {
-        symbols.iter().find(|s| {
-            s.name.eq_ignore_ascii_case(sym_name)
-                || s.name == *sym_name
-        }).cloned()
+        symbols
+            .iter()
+            .find(|s| s.name.eq_ignore_ascii_case(sym_name) || s.name == *sym_name)
+            .cloned()
     });
 
     let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
@@ -709,10 +730,7 @@ pub fn handle_apply(
 
     // Step 3: Atomic write -- write to temp file, then rename
     let parent = validated_path.parent().unwrap_or(Path::new("."));
-    let temp_path = parent.join(format!(
-        ".m1nd_apply_{}.tmp",
-        std::process::id()
-    ));
+    let temp_path = parent.join(format!(".m1nd_apply_{}.tmp", std::process::id()));
 
     // Ensure parent directory exists
     if !parent.exists() {
@@ -723,11 +741,9 @@ pub fn handle_apply(
     }
 
     // Write to temp file
-    std::fs::write(&temp_path, &input.new_content).map_err(|e| {
-        M1ndError::InvalidParams {
-            tool: "m1nd.apply".into(),
-            detail: format!("cannot write temp file {}: {}", temp_path.display(), e),
-        }
+    std::fs::write(&temp_path, &input.new_content).map_err(|e| M1ndError::InvalidParams {
+        tool: "m1nd.apply".into(),
+        detail: format!("cannot write temp file {}: {}", temp_path.display(), e),
     })?;
 
     // Rename (atomic on same filesystem)
@@ -775,10 +791,8 @@ pub fn handle_apply(
                     if let Some(nodes) = obj.get("nodes_created") {
                         if let Some(n) = nodes.as_u64() {
                             if n > 0 && updated_node_ids.is_empty() {
-                                updated_node_ids.push(format!(
-                                    "file::{}",
-                                    validated_path.to_string_lossy()
-                                ));
+                                updated_node_ids
+                                    .push(format!("file::{}", validated_path.to_string_lossy()));
                             }
                         }
                     }
@@ -933,7 +947,11 @@ pub fn handle_surgical_context_v2(
                 let all_lines: Vec<&str> = content.lines().collect();
                 let file_line_count = all_lines.len();
                 let truncated = file_line_count > max_lines;
-                let excerpt_lines = if truncated { max_lines } else { file_line_count };
+                let excerpt_lines = if truncated {
+                    max_lines
+                } else {
+                    file_line_count
+                };
                 let source_excerpt: String = all_lines
                     .iter()
                     .take(excerpt_lines)
@@ -1052,20 +1070,13 @@ pub fn handle_apply_batch(
                     }
                     return Err(M1ndError::InvalidParams {
                         tool: "m1nd.apply_batch".into(),
-                        detail: format!(
-                            "cannot create directory {}: {}",
-                            parent.display(),
-                            e
-                        ),
+                        detail: format!("cannot create directory {}: {}", parent.display(), e),
                     });
                 }
             }
 
             // BUG FIX (B2): unique temp file per edit (pid + batch_id + index)
-            let tmp_path = parent.join(format!(
-                ".m1nd_batch_{}_{}_{}_.tmp",
-                pid, batch_id, i
-            ));
+            let tmp_path = parent.join(format!(".m1nd_batch_{}_{}_{}_.tmp", pid, batch_id, i));
 
             match std::fs::write(&tmp_path, &edit.new_content) {
                 Ok(_) => {
@@ -1130,8 +1141,16 @@ pub fn handle_apply_batch(
                 old_content.lines().count(),
                 1,
                 edit.new_content.lines().count(),
-                old_content.lines().take(3).map(|l| format!("-{}\n", l)).collect::<String>(),
-                edit.new_content.lines().take(3).map(|l| format!("+{}\n", l)).collect::<String>(),
+                old_content
+                    .lines()
+                    .take(3)
+                    .map(|l| format!("-{}\n", l))
+                    .collect::<String>(),
+                edit.new_content
+                    .lines()
+                    .take(3)
+                    .map(|l| format!("+{}\n", l))
+                    .collect::<String>(),
             );
 
             results.push(surgical::BatchEditResult {
@@ -1157,10 +1176,7 @@ pub fn handle_apply_batch(
             }
 
             // Unique temp file per edit (same fix as atomic)
-            let tmp_path = parent.join(format!(
-                ".m1nd_batch_{}_{}_{}_.tmp",
-                pid, batch_id, i
-            ));
+            let tmp_path = parent.join(format!(".m1nd_batch_{}_{}_{}_.tmp", pid, batch_id, i));
 
             match std::fs::write(&tmp_path, &edit.new_content)
                 .and_then(|_| std::fs::rename(&tmp_path, validated))
@@ -1176,8 +1192,16 @@ pub fn handle_apply_batch(
                         old_content.lines().count(),
                         1,
                         edit.new_content.lines().count(),
-                        old_content.lines().take(3).map(|l| format!("-{}\n", l)).collect::<String>(),
-                        edit.new_content.lines().take(3).map(|l| format!("+{}\n", l)).collect::<String>(),
+                        old_content
+                            .lines()
+                            .take(3)
+                            .map(|l| format!("-{}\n", l))
+                            .collect::<String>(),
+                        edit.new_content
+                            .lines()
+                            .take(3)
+                            .map(|l| format!("+{}\n", l))
+                            .collect::<String>(),
                     );
 
                     results.push(surgical::BatchEditResult {
@@ -1301,7 +1325,13 @@ mod tests {
 
     #[test]
     fn test_find_brace_end_nested() {
-        let lines = vec!["fn foo() {", "    if true {", "        bar();", "    }", "}"];
+        let lines = vec![
+            "fn foo() {",
+            "    if true {",
+            "        bar();",
+            "    }",
+            "}",
+        ];
         assert_eq!(find_brace_end(&lines, 0), 4);
     }
 

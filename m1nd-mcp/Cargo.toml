@@ -1,15 +1,22 @@
 [package]
 name = "m1nd-mcp"
-version = "0.2.0"
+version = "0.4.0"
 edition = "2021"
+description = "MCP server for m1nd — 61 tools for code intelligence, zero LLM tokens"
+license = "MIT"
+repository = "https://github.com/maxkle1nz/m1nd"
+homepage = "https://m1nd.world"
+readme = "../README.md"
+keywords = ["mcp", "code-intelligence", "ai-agents", "code-graph", "developer-tools"]
+categories = ["development-tools"]
 
 [features]
 default = ["serve"]
 serve = ["dep:axum", "dep:tower-http", "dep:rust-embed", "dep:mime_guess", "dep:tokio-stream", "dep:futures"]
 
 [dependencies]
-m1nd-core = { path = "../m1nd-core" }
-m1nd-ingest = { path = "../m1nd-ingest" }
+m1nd-core = { version = "0.4.0", path = "../m1nd-core" }
+m1nd-ingest = { version = "0.4.0", path = "../m1nd-ingest" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 parking_lot = { workspace = true }
@@ -33,3 +40,6 @@ path = "src/main.rs"
 tempfile = "3.27.0"
 reqwest = { version = "0.12", features = ["json"] }
 tokio-test = "0.4"
+
+[lints]
+workspace = true

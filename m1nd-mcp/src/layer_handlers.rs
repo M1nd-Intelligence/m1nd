@@ -6,12 +6,11 @@
 //
 // Pattern: same as tools.rs / perspective_handlers.rs / lock_handlers.rs.
 
-use crate::brand;
 use crate::protocol::layers;
 use crate::session::SessionState;
 use m1nd_core::error::{M1ndError, M1ndResult};
 use m1nd_core::types::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Instant;
@@ -137,8 +136,23 @@ pub fn handle_seek(
         trigram_scores[i] = l2_trigram_similarity(&input.query, &label_lower);
     }
 
-    // Phase 2: Combine with graph re-ranking.
-    // V1 formula: keyword_match * 0.6 + graph_activation(PageRank) * 0.3 + trigram * 0.1
+    // Phase 2: SemanticEngine scores (trigram TF-IDF + co-occurrence).
+    // Build a boost map from the SemanticEngine (char n-gram + DeepWalk-lite co-occurrence).
+    let semantic_scores: HashMap<usize, f32> = {
+        let sem_results = state
+            .orchestrator
+            .semantic
+            .query(&*graph, &input.query, input.top_k * 5)
+            .unwrap_or_default();
+        sem_results
+            .into_iter()
+            .map(|(nid, score)| (nid.as_usize(), score.get()))
+            .collect()
+    };
+    let semantic_used = !semantic_scores.is_empty();
+
+    // Phase 3: Combine with graph re-ranking.
+    // V2 formula: keyword_match * 0.4 + semantic_embedding * 0.3 + graph_activation(PageRank) * 0.2 + trigram * 0.1
     struct RankedNode {
         idx: usize,
         combined: f32,
@@ -151,7 +165,8 @@ pub fn handle_seek(
     for i in 0..n {
         let kw = keyword_scores[i];
         let tri = trigram_scores[i];
-        if kw < 0.01 && tri < 0.15 {
+        let sem = semantic_scores.get(&i).copied().unwrap_or(0.0);
+        if kw < 0.01 && tri < 0.15 && sem < 0.05 {
             continue;
         }
 
@@ -161,7 +176,7 @@ pub fn handle_seek(
             0.0
         };
 
-        let combined = kw * 0.6 + graph_activation * 0.3 + tri * 0.1;
+        let combined = kw * 0.4 + sem * 0.3 + graph_activation * 0.2 + tri * 0.1;
         if combined >= input.min_score {
             ranked.push(RankedNode {
                 idx: i,
@@ -257,7 +272,7 @@ pub fn handle_seek(
         query: input.query,
         results,
         total_candidates_scanned: candidates_scanned,
-        embeddings_used: false,
+        embeddings_used: semantic_used,
         elapsed_ms: start.elapsed().as_secs_f64() * 1000.0,
     })
 }
@@ -743,8 +758,8 @@ fn is_auto_sync_commit(subject: &str) -> bool {
     subject.starts_with("auto-sync from ")
 }
 
-/// Convert a node external_id (e.g. "file::backend/handler.py") to a
-/// relative file path (e.g. "backend/handler.py").
+/// Convert a node external_id (e.g. "file::backend/chat_handler.py") to a
+/// relative file path (e.g. "backend/chat_handler.py").
 fn node_to_file_path(node_id: &str) -> String {
     if let Some(rest) = node_id.strip_prefix("file::") {
         rest.to_string()
@@ -4011,11 +4026,8 @@ pub fn handle_federate(
 
         if !repo_path.exists() {
             eprintln!(
-                "{}",
-                brand::log_colored(&format!(
-                    "federate: Skipping repo '{}': path does not exist: {}",
-                    repo.name, repo.path
-                )),
+                "[m1nd-federate] Skipping repo '{}': path does not exist: {}",
+                repo.name, repo.path
             );
             skipped_repos.push(repo.name.clone());
             repo_results.push(layers::FederateRepoResult {
@@ -4040,11 +4052,8 @@ pub fn handle_federate(
             Ok(result) => result,
             Err(e) => {
                 eprintln!(
-                    "{}",
-                    brand::log_colored(&format!(
-                        "federate: Skipping repo '{}': ingest failed: {}",
-                        repo.name, e
-                    )),
+                    "[m1nd-federate] Skipping repo '{}': ingest failed: {}",
+                    repo.name, e
                 );
                 skipped_repos.push(repo.name.clone());
                 repo_results.push(layers::FederateRepoResult {
@@ -4151,11 +4160,8 @@ pub fn handle_federate(
 
     if let Err(e) = state.persist() {
         eprintln!(
-            "{}",
-            brand::log_colored(&format!(
-                "federate: auto-persist after federation failed: {}",
-                e
-            ))
+            "[m1nd-federate] auto-persist after federation failed: {}",
+            e
         );
     }
 
@@ -5744,4 +5750,992 @@ fn l5_extract_keywords(question: &str) -> Vec<String> {
         .filter(|w| w.len() > 2 && !stop.contains(w))
         .map(|w| w.to_string())
         .collect()
+}
+
+// =========================================================================
+// Superpowers — Antibody / Flow / Epidemic / Tremor / Trust / Layers
+// =========================================================================
+
+/// Handle m1nd.antibody_scan — scan graph against stored bug antibodies.
+pub fn handle_antibody_scan(
+    state: &mut SessionState,
+    input: layers::AntibodyScanInput,
+) -> M1ndResult<serde_json::Value> {
+    use m1nd_core::antibody::{self, AntibodySeverity};
+
+    state.track_agent(&input.agent_id);
+
+    let min_severity = match input.min_severity.to_lowercase().as_str() {
+        "critical" => AntibodySeverity::Critical,
+        "warning" => AntibodySeverity::Warning,
+        _ => AntibodySeverity::Info,
+    };
+
+    let antibody_ids: Option<Vec<String>> = if input.antibody_ids.is_empty() {
+        None
+    } else {
+        Some(input.antibody_ids.clone())
+    };
+
+    let max_per_ab = if input.max_matches_per_antibody > 0 {
+        input.max_matches_per_antibody
+    } else {
+        50
+    };
+
+    let graph = state.graph.read();
+    let result = antibody::scan_antibodies(
+        &graph,
+        &mut state.antibodies,
+        &input.scope,
+        state.last_antibody_scan_generation,
+        input.max_matches,
+        min_severity,
+        antibody_ids.as_deref(),
+        max_per_ab,
+        &input.match_mode,
+        input.similarity_threshold,
+    );
+    drop(graph);
+
+    state.last_antibody_scan_generation = {
+        let g = state.graph.read();
+        g.generation.0
+    };
+
+    Ok(serde_json::json!({
+        "matches": result.matches,
+        "antibodies_checked": result.antibodies_checked,
+        "nodes_scanned": result.nodes_scanned,
+        "elapsed_ms": result.elapsed_ms,
+        "scan_scope": result.scan_scope,
+        "timed_out_antibodies": result.timed_out_antibodies,
+        "auto_disabled_antibodies": result.auto_disabled_antibodies
+    }))
+}
+
+/// Handle m1nd.antibody_list — list all stored bug antibodies.
+pub fn handle_antibody_list(
+    state: &mut SessionState,
+    input: layers::AntibodyListInput,
+) -> M1ndResult<serde_json::Value> {
+    state.track_agent(&input.agent_id);
+
+    let total = state.antibodies.len();
+    let enabled_count = state.antibodies.iter().filter(|a| a.enabled).count();
+    let disabled_count = total - enabled_count;
+
+    let filtered: Vec<&m1nd_core::antibody::Antibody> = if input.include_disabled {
+        state.antibodies.iter().collect()
+    } else {
+        state.antibodies.iter().filter(|a| a.enabled).collect()
+    };
+
+    Ok(serde_json::json!({
+        "antibodies": filtered,
+        "total": total,
+        "enabled": enabled_count,
+        "disabled": disabled_count
+    }))
+}
+
+/// Handle m1nd.antibody_create — create/disable/enable/delete antibody.
+pub fn handle_antibody_create(
+    state: &mut SessionState,
+    input: layers::AntibodyCreateInput,
+) -> M1ndResult<serde_json::Value> {
+    use m1nd_core::antibody::{
+        self, Antibody, AntibodyPattern, AntibodySeverity, PatternEdge, PatternNode,
+    };
+    use m1nd_core::error::M1ndError;
+
+    state.track_agent(&input.agent_id);
+
+    match input.action.as_str() {
+        "disable" => {
+            let ab_id =
+                input
+                    .antibody_id
+                    .as_deref()
+                    .ok_or_else(|| M1ndError::AntibodyNotFound {
+                        id: "missing antibody_id".into(),
+                    })?;
+            let ab = state
+                .antibodies
+                .iter_mut()
+                .find(|a| a.id == ab_id)
+                .ok_or_else(|| M1ndError::AntibodyNotFound {
+                    id: ab_id.to_string(),
+                })?;
+            ab.enabled = false;
+            Ok(serde_json::json!({ "success": true, "action": "disable", "antibody_id": ab_id }))
+        }
+        "enable" => {
+            let ab_id =
+                input
+                    .antibody_id
+                    .as_deref()
+                    .ok_or_else(|| M1ndError::AntibodyNotFound {
+                        id: "missing antibody_id".into(),
+                    })?;
+            let ab = state
+                .antibodies
+                .iter_mut()
+                .find(|a| a.id == ab_id)
+                .ok_or_else(|| M1ndError::AntibodyNotFound {
+                    id: ab_id.to_string(),
+                })?;
+            ab.enabled = true;
+            Ok(serde_json::json!({ "success": true, "action": "enable", "antibody_id": ab_id }))
+        }
+        "delete" => {
+            let ab_id =
+                input
+                    .antibody_id
+                    .as_deref()
+                    .ok_or_else(|| M1ndError::AntibodyNotFound {
+                        id: "missing antibody_id".into(),
+                    })?;
+            let before_len = state.antibodies.len();
+            state.antibodies.retain(|a| a.id != ab_id);
+            if state.antibodies.len() == before_len {
+                return Err(M1ndError::AntibodyNotFound {
+                    id: ab_id.to_string(),
+                });
+            }
+            Ok(serde_json::json!({ "success": true, "action": "delete", "antibody_id": ab_id }))
+        }
+        _ => {
+            // "create" action (default)
+            if state.antibodies.len() >= antibody::MAX_ANTIBODIES {
+                return Err(M1ndError::AntibodyLimitExceeded {
+                    current: state.antibodies.len(),
+                    limit: antibody::MAX_ANTIBODIES,
+                });
+            }
+
+            let name = input.name.unwrap_or_else(|| "unnamed".to_string());
+            let description = input.description.unwrap_or_default();
+            let severity = match input.severity.to_lowercase().as_str() {
+                "critical" => AntibodySeverity::Critical,
+                "info" => AntibodySeverity::Info,
+                _ => AntibodySeverity::Warning,
+            };
+
+            let pattern_input = input.pattern.ok_or_else(|| M1ndError::AntibodyNotFound {
+                id: "pattern required for create".into(),
+            })?;
+
+            let pattern = AntibodyPattern {
+                nodes: pattern_input
+                    .nodes
+                    .into_iter()
+                    .map(|n| PatternNode {
+                        role: n.role,
+                        node_type: n.node_type,
+                        required_tags: n.required_tags,
+                        label_contains: n.label_contains,
+                    })
+                    .collect(),
+                edges: pattern_input
+                    .edges
+                    .into_iter()
+                    .map(|e| PatternEdge {
+                        source_idx: e.source_idx,
+                        target_idx: e.target_idx,
+                        relation: e.relation,
+                    })
+                    .collect(),
+                negative_edges: pattern_input
+                    .negative_edges
+                    .into_iter()
+                    .map(|e| PatternEdge {
+                        source_idx: e.source_idx,
+                        target_idx: e.target_idx,
+                        relation: e.relation,
+                    })
+                    .collect(),
+            };
+
+            let specificity = antibody::compute_specificity(&pattern);
+            if specificity < antibody::MIN_SPECIFICITY {
+                return Err(M1ndError::PatternTooBroad {
+                    specificity,
+                    minimum: antibody::MIN_SPECIFICITY,
+                });
+            }
+
+            let mut warning: Option<String> = None;
+            for existing in &state.antibodies {
+                let sim = antibody::pattern_similarity(&pattern, &existing.pattern);
+                if sim > antibody::DUPLICATE_SIMILARITY_THRESHOLD {
+                    warning = Some(format!(
+                        "Similar antibody exists: '{}' (id: {}, similarity: {:.2})",
+                        existing.name, existing.id, sim
+                    ));
+                    break;
+                }
+            }
+
+            if specificity < 0.3 && warning.is_none() {
+                warning = Some(
+                    "Pattern is very broad - may produce excessive false positives.".to_string(),
+                );
+            }
+
+            let now = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_secs_f64())
+                .unwrap_or(0.0);
+
+            let id = format!(
+                "ab-{:08x}-{:04x}-{:04x}-{:04x}-{:012x}",
+                (now.to_bits() >> 32) as u32,
+                (now.to_bits() >> 16) as u16,
+                ((now.to_bits() >> 8) & 0x0FFF | 0x4000) as u16,
+                ((now.to_bits() & 0x3FFF) | 0x8000) as u16,
+                (now.to_bits() & 0xFFFFFFFFFFFF) as u64
+            );
+
+            let new_antibody = Antibody {
+                id: id.clone(),
+                name,
+                description,
+                pattern,
+                severity,
+                match_count: 0,
+                created_at: now,
+                last_match_at: None,
+                created_by: input.agent_id.clone(),
+                source_query: String::new(),
+                source_nodes: Vec::new(),
+                enabled: true,
+                specificity,
+            };
+
+            let graph = state.graph.read();
+            let initial_matches =
+                antibody::match_antibody(&graph, &new_antibody, antibody::PATTERN_MATCH_TIMEOUT_MS)
+                    .len();
+            drop(graph);
+
+            state.antibodies.push(new_antibody);
+
+            Ok(serde_json::json!({
+                "antibody_id": id,
+                "specificity": specificity,
+                "initial_matches": initial_matches,
+                "warning": warning
+            }))
+        }
+    }
+}
+
+/// Handle m1nd.flow_simulate — concurrent flow simulation for race detection.
+pub fn handle_flow_simulate(
+    state: &mut SessionState,
+    input: layers::FlowSimulateInput,
+) -> M1ndResult<serde_json::Value> {
+    let graph = state.graph.read();
+    let n = graph.num_nodes() as usize;
+    if n == 0 {
+        return Err(M1ndError::NoEntryPoints);
+    }
+
+    let engine = m1nd_core::flow::FlowEngine::new();
+
+    // Build config: merge user-provided patterns with defaults
+    let lock_patterns = if input.lock_patterns.is_empty() {
+        m1nd_core::flow::DEFAULT_LOCK_PATTERNS
+            .iter()
+            .map(|s| s.to_string())
+            .collect()
+    } else {
+        input.lock_patterns.clone()
+    };
+    let read_only_patterns = if input.read_only_patterns.is_empty() {
+        m1nd_core::flow::DEFAULT_READ_ONLY_PATTERNS
+            .iter()
+            .map(|s| s.to_string())
+            .collect()
+    } else {
+        input.read_only_patterns.clone()
+    };
+
+    let config = m1nd_core::flow::FlowConfig {
+        lock_patterns,
+        read_only_patterns,
+        max_depth: input.max_depth,
+        turbulence_threshold: input.turbulence_threshold,
+        include_paths: input.include_paths,
+        max_total_steps: input.max_total_steps,
+        scope_filter: input.scope_filter.clone(),
+        ..m1nd_core::flow::FlowConfig::default()
+    };
+
+    // Resolve entry nodes: label strings -> NodeIds via SeedFinder
+    let entry_nodes = if input.entry_nodes.is_empty() {
+        // Auto-discovery mode (F8)
+        let discovered = engine.discover_entry_points(&graph, 100);
+        if discovered.is_empty() {
+            return Err(M1ndError::NoEntryPoints);
+        }
+        discovered
+    } else {
+        let mut resolved = Vec::new();
+        for label in &input.entry_nodes {
+            match m1nd_core::seed::SeedFinder::find_seeds(&graph, label, 1) {
+                Ok(seeds) if !seeds.is_empty() => {
+                    resolved.push(seeds[0].0);
+                }
+                _ => {} // skip unresolved
+            }
+        }
+        if resolved.is_empty() {
+            return Err(M1ndError::NoEntryPoints);
+        }
+        resolved
+    };
+
+    let result = engine.simulate(&graph, &entry_nodes, input.num_particles, &config)?;
+
+    Ok(serde_json::to_value(&result).unwrap_or_default())
+}
+
+/// Handle m1nd.epidemic — SIR bug propagation prediction.
+pub fn handle_epidemic(
+    state: &mut SessionState,
+    input: layers::EpidemicInput,
+) -> M1ndResult<serde_json::Value> {
+    use m1nd_core::epidemic::{EpidemicConfig, EpidemicDirection, EpidemicEngine};
+
+    let graph = state.graph.read();
+    let n = graph.num_nodes() as usize;
+
+    // Parse direction
+    let direction = match input.direction.to_lowercase().as_str() {
+        "forward" => EpidemicDirection::Forward,
+        "backward" => EpidemicDirection::Backward,
+        _ => EpidemicDirection::Both,
+    };
+
+    // Resolve infected node IDs
+    let mut infected_ids: Vec<m1nd_core::types::NodeId> = Vec::new();
+    let mut unresolved_nodes: Vec<String> = Vec::new();
+    for ext_id in &input.infected_nodes {
+        if let Some(nid) = graph.resolve_id(ext_id) {
+            infected_ids.push(nid);
+        } else {
+            unresolved_nodes.push(ext_id.clone());
+        }
+    }
+
+    if infected_ids.is_empty() {
+        return Err(M1ndError::NoValidInfectedNodes);
+    }
+
+    // Resolve recovered node IDs
+    let mut recovered_ids: Vec<m1nd_core::types::NodeId> = Vec::new();
+    for ext_id in &input.recovered_nodes {
+        if let Some(nid) = graph.resolve_id(ext_id) {
+            recovered_ids.push(nid);
+        } else {
+            unresolved_nodes.push(ext_id.clone());
+        }
+    }
+
+    // Auto-calibrate: adjust infection_rate based on graph density
+    // avg_degree = 2 * edges / nodes (each edge contributes to 2 nodes' degree)
+    // effective_rate = rate / (avg_degree / 2.0) — normalizes so sparse and dense graphs behave similarly
+    let effective_infection_rate = if input.auto_calibrate {
+        input.infection_rate.map(|rate| {
+            let total_edges = graph.num_edges() as f32;
+            let total_nodes = graph.num_nodes().max(1) as f32;
+            let avg_degree = 2.0 * total_edges / total_nodes;
+            let normalizer = (avg_degree / 2.0).max(1.0);
+            rate / normalizer
+        })
+    } else {
+        input.infection_rate
+    };
+
+    // When auto_calibrate is on, use a high promotion threshold to prevent
+    // cascade burnout on dense graphs. On a graph with avg_degree > 4, the
+    // deterministic SIR model causes instant cascade because every touched node
+    // becomes a spreader. By setting promotion_threshold = 1.0, only the original
+    // seed nodes act as spreaders; other nodes accumulate probability but don't
+    // re-spread. This gives a meaningful "blast radius" prediction.
+    let promotion_threshold = if input.auto_calibrate {
+        let total_edges = graph.num_edges() as f32;
+        let total_nodes = graph.num_nodes().max(1) as f32;
+        let avg_degree = 2.0 * total_edges / total_nodes;
+        if avg_degree > 4.0 {
+            // Dense graph: disable promotion entirely (seeds-only spreading)
+            1.0
+        } else {
+            0.0
+        }
+    } else {
+        0.0
+    };
+
+    let config = EpidemicConfig {
+        infection_rate: effective_infection_rate,
+        recovery_rate: input.recovery_rate,
+        iterations: input.iterations,
+        direction,
+        top_k: input.top_k,
+        burnout_threshold: m1nd_core::epidemic::BURNOUT_THRESHOLD,
+        promotion_threshold,
+    };
+
+    let engine = EpidemicEngine::new();
+    let mut result = engine.simulate(&graph, &infected_ids, &recovered_ids, &config)?;
+
+    // Merge unresolved nodes from input resolution
+    result.unresolved_nodes = unresolved_nodes;
+
+    // Apply scope filter: restrict predictions to specific node types
+    if input.scope != "all" {
+        let scope_lower = input.scope.to_lowercase();
+        result.predictions.retain(|p| match scope_lower.as_str() {
+            "files" => p.node_type == "file",
+            "functions" => p.node_type == "function",
+            _ => true,
+        });
+    }
+
+    // Apply min_probability filter
+    if input.min_probability > 0.0 {
+        result
+            .predictions
+            .retain(|p| p.infection_probability >= input.min_probability);
+    }
+
+    Ok(serde_json::to_value(&result).unwrap_or_default())
+}
+
+/// Handle m1nd.tremor — code tremor detection (second derivative).
+pub fn handle_tremor(
+    state: &mut SessionState,
+    input: layers::TremorInput,
+) -> M1ndResult<serde_json::Value> {
+    use m1nd_core::tremor::TremorWindow;
+    use std::str::FromStr as _;
+
+    let window = TremorWindow::from_str(&input.window).unwrap_or(TremorWindow::All);
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs_f64())
+        .unwrap_or(0.0);
+
+    // Apply sensitivity multiplier to threshold
+    let effective_threshold = input.threshold / input.sensitivity.max(0.01);
+
+    let result = state.tremor_registry.analyze(
+        window,
+        effective_threshold,
+        input.top_k,
+        input.node_filter.as_deref(),
+        now,
+        input.min_observations,
+    );
+
+    let tremors_json: Vec<serde_json::Value> = result
+        .tremors
+        .iter()
+        .map(|alert| {
+            serde_json::json!({
+                "node_id": alert.node_id,
+                "label": alert.label,
+                "magnitude": alert.magnitude,
+                "direction": alert.direction,
+                "mean_acceleration": alert.mean_acceleration,
+                "trend_slope": alert.trend_slope,
+                "observation_count": alert.observation_count,
+                "window_start": alert.window_start,
+                "window_end": alert.window_end,
+                "latest_velocity": alert.latest_velocity,
+                "previous_velocity": alert.previous_velocity,
+                "risk_level": alert.risk_level,
+            })
+        })
+        .collect();
+
+    Ok(serde_json::json!({
+        "tremors": tremors_json,
+        "window": result.window,
+        "threshold": result.threshold,
+        "total_nodes_analyzed": result.total_nodes_analyzed,
+        "nodes_with_sufficient_data": result.nodes_with_sufficient_data,
+        "elapsed_ms": result.elapsed_ms,
+    }))
+}
+
+/// Handle m1nd.trust — per-module trust scores from defect history.
+pub fn handle_trust(
+    state: &mut SessionState,
+    input: layers::TrustInput,
+) -> M1ndResult<serde_json::Value> {
+    use m1nd_core::trust::TrustSortBy;
+    use std::str::FromStr as _;
+
+    let sort_by = TrustSortBy::from_str(&input.sort_by).unwrap_or(TrustSortBy::TrustAsc);
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs_f64())
+        .unwrap_or(0.0);
+
+    let half_life_hours = input.decay_half_life_days * 24.0;
+    let result = state.trust_ledger.report(
+        &input.scope,
+        input.min_history,
+        input.top_k,
+        input.node_filter.as_deref(),
+        sort_by,
+        now,
+        half_life_hours,
+        input.risk_cap,
+    );
+
+    let scores_json: Vec<serde_json::Value> = result
+        .trust_scores
+        .iter()
+        .map(|entry| {
+            serde_json::json!({
+                "node_id": entry.node_id,
+                "label": entry.label,
+                "trust_score": entry.trust_score,
+                "defect_density": entry.defect_density,
+                "risk_multiplier": entry.risk_multiplier,
+                "recency_factor": entry.recency_factor,
+                "defect_count": entry.defect_count,
+                "false_alarm_count": entry.false_alarm_count,
+                "partial_count": entry.partial_count,
+                "total_learn_events": entry.total_learn_events,
+                "last_defect_age_hours": entry.last_defect_age_hours,
+                "tier": entry.tier,
+            })
+        })
+        .collect();
+
+    Ok(serde_json::json!({
+        "trust_scores": scores_json,
+        "summary": {
+            "total_nodes_with_history": result.summary.total_nodes_with_history,
+            "high_risk_count": result.summary.high_risk_count,
+            "medium_risk_count": result.summary.medium_risk_count,
+            "low_risk_count": result.summary.low_risk_count,
+            "unknown_count": result.summary.unknown_count,
+            "mean_trust": result.summary.mean_trust,
+        },
+        "scope": result.scope,
+        "elapsed_ms": result.elapsed_ms,
+    }))
+}
+
+/// Handle m1nd.layers — auto-detect architectural layers.
+pub fn handle_layers(
+    state: &mut SessionState,
+    input: layers::LayersInput,
+) -> M1ndResult<serde_json::Value> {
+    let start = Instant::now();
+
+    let graph = state.graph.read();
+    let n = graph.num_nodes() as usize;
+    if n == 0 {
+        return Err(M1ndError::EmptyGraph);
+    }
+
+    // Parse node type filters
+    let node_type_filter: Vec<NodeType> = input
+        .node_types
+        .iter()
+        .filter_map(|t| layer_parse_node_type(t))
+        .collect();
+
+    // Run layer detection
+    let detector =
+        m1nd_core::layer::LayerDetector::new(input.max_layers, input.min_nodes_per_layer);
+    let result = detector.detect(
+        &graph,
+        input.scope.as_deref(),
+        &node_type_filter,
+        input.exclude_tests,
+        &input.naming_strategy,
+    )?;
+
+    // Build reverse lookup: NodeId -> external_id
+    let mut node_to_ext: Vec<String> = vec![String::new(); n];
+    for (&interned, &nid) in &graph.id_to_node {
+        let idx = nid.as_usize();
+        if idx < n {
+            node_to_ext[idx] = graph.strings.resolve(interned).to_string();
+        }
+    }
+
+    // Convert to protocol output
+    let layer_entries: Vec<serde_json::Value> = result
+        .layers
+        .iter()
+        .map(|layer| {
+            let nodes: Vec<serde_json::Value> = layer
+                .nodes
+                .iter()
+                .enumerate()
+                .map(|(i, &nid)| {
+                    let idx = nid.as_usize();
+                    let label = graph.strings.resolve(graph.nodes.label[idx]).to_string();
+                    let nt = layer_node_type_str(&graph.nodes.node_type[idx]);
+                    let out_range = graph.csr.out_range(nid);
+                    let in_range = graph.csr.in_range(nid);
+                    let confidence = layer.node_confidence.get(i).copied().unwrap_or(0.5);
+
+                    serde_json::json!({
+                        "node_id": node_to_ext[idx],
+                        "label": label,
+                        "type": nt,
+                        "in_degree": in_range.len(),
+                        "out_degree": out_range.len(),
+                        "layer_confidence": confidence
+                    })
+                })
+                .collect();
+
+            serde_json::json!({
+                "level": layer.level,
+                "name": layer.name,
+                "description": layer.description,
+                "node_count": layer.nodes.len(),
+                "nodes": nodes,
+                "avg_pagerank": layer.avg_pagerank,
+                "avg_out_degree": layer.avg_out_degree
+            })
+        })
+        .collect();
+
+    // Convert violations (only if requested), respect violation_limit
+    let violation_limit = input.violation_limit;
+    let violation_entries: Vec<serde_json::Value> = if input.include_violations {
+        result
+            .violations
+            .iter()
+            .take(violation_limit)
+            .map(|v| {
+                let src_ext = if (v.source.as_usize()) < n {
+                    &node_to_ext[v.source.as_usize()]
+                } else {
+                    ""
+                };
+                let tgt_ext = if (v.target.as_usize()) < n {
+                    &node_to_ext[v.target.as_usize()]
+                } else {
+                    ""
+                };
+                let severity_str = match v.severity {
+                    m1nd_core::layer::ViolationSeverity::Low => "low",
+                    m1nd_core::layer::ViolationSeverity::Medium => "medium",
+                    m1nd_core::layer::ViolationSeverity::High => "high",
+                    m1nd_core::layer::ViolationSeverity::Critical => "critical",
+                };
+                let vtype_str = match v.violation_type {
+                    m1nd_core::layer::ViolationType::UpwardDependency => "upward_dependency",
+                    m1nd_core::layer::ViolationType::SkipLayerDependency => "skip_layer_dependency",
+                    m1nd_core::layer::ViolationType::CircularDependency => "circular_dependency",
+                };
+
+                serde_json::json!({
+                    "source": src_ext,
+                    "source_layer": v.source_layer,
+                    "target": tgt_ext,
+                    "target_layer": v.target_layer,
+                    "edge_relation": v.edge_relation,
+                    "severity": severity_str,
+                    "violation_type": vtype_str,
+                    "explanation": v.explanation
+                })
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+
+    // Convert utility nodes
+    let utility_entries: Vec<serde_json::Value> = result
+        .utility_nodes
+        .iter()
+        .map(|u| {
+            let ext = if (u.node.as_usize()) < n {
+                &node_to_ext[u.node.as_usize()]
+            } else {
+                ""
+            };
+            let label = graph
+                .strings
+                .resolve(graph.nodes.label[u.node.as_usize()])
+                .to_string();
+            let class_str = match u.classification {
+                m1nd_core::layer::UtilityClassification::CrossCutting => "cross_cutting",
+                m1nd_core::layer::UtilityClassification::Bridge => "bridge",
+                m1nd_core::layer::UtilityClassification::Orphan => "orphan",
+            };
+
+            serde_json::json!({
+                "node_id": ext,
+                "label": label,
+                "used_by_layers": u.used_by_layers,
+                "classification": class_str
+            })
+        })
+        .collect();
+
+    let elapsed = start.elapsed().as_secs_f64() * 1000.0;
+
+    let output = serde_json::json!({
+        "layers": layer_entries,
+        "violations": violation_entries,
+        "utility_nodes": utility_entries,
+        "summary": {
+            "total_nodes_classified": result.total_nodes_classified,
+            "total_layers_detected": result.layers.len(),
+            "total_violations": result.violations.len(),
+            "total_utility_nodes": result.utility_nodes.len(),
+            "layer_separation_score": result.layer_separation_score,
+            "has_cycles": result.has_cycles
+        },
+        "elapsed_ms": elapsed
+    });
+
+    Ok(output)
+}
+
+/// Handle m1nd.layer_inspect — inspect a specific architectural layer.
+pub fn handle_layer_inspect(
+    state: &mut SessionState,
+    input: layers::LayerInspectInput,
+) -> M1ndResult<serde_json::Value> {
+    let start = Instant::now();
+
+    let graph = state.graph.read();
+    let n = graph.num_nodes() as usize;
+    if n == 0 {
+        return Err(M1ndError::EmptyGraph);
+    }
+
+    // Parse node type filters from scope
+    let node_type_filter: Vec<NodeType> = Vec::new();
+
+    // Run layer detection to get current state
+    let detector = m1nd_core::layer::LayerDetector::with_defaults();
+    let result = detector.detect(
+        &graph,
+        input.scope.as_deref(),
+        &node_type_filter,
+        false,
+        "auto",
+    )?;
+
+    // Find the requested layer
+    let layer = result
+        .layers
+        .iter()
+        .find(|l| l.level == input.level)
+        .ok_or(M1ndError::LayerNotFound { level: input.level })?;
+
+    // Compute health
+    let health = detector.layer_health(&graph, &result, input.level)?;
+
+    // Build reverse lookup
+    let mut node_to_ext: Vec<String> = vec![String::new(); n];
+    for (&interned, &nid) in &graph.id_to_node {
+        let idx = nid.as_usize();
+        if idx < n {
+            node_to_ext[idx] = graph.strings.resolve(interned).to_string();
+        }
+    }
+
+    // Build node_layer lookup for connections classification
+    let mut node_layer_map: HashMap<NodeId, u8> = HashMap::new();
+    for l in &result.layers {
+        for &nid in &l.nodes {
+            node_layer_map.insert(nid, l.level);
+        }
+    }
+    let utility_set: HashSet<NodeId> = result.utility_nodes.iter().map(|u| u.node).collect();
+    let layer_node_set: HashSet<NodeId> = layer.nodes.iter().copied().collect();
+
+    // Count violations per node
+    let mut violations_as_source: HashMap<NodeId, u32> = HashMap::new();
+    let mut violations_as_target: HashMap<NodeId, u32> = HashMap::new();
+    for v in &result.violations {
+        *violations_as_source.entry(v.source).or_insert(0) += 1;
+        *violations_as_target.entry(v.target).or_insert(0) += 1;
+    }
+
+    // Build node entries, sorted by PageRank descending
+    let mut node_pr_pairs: Vec<(NodeId, usize, f32)> = layer
+        .nodes
+        .iter()
+        .enumerate()
+        .map(|(i, &nid)| {
+            let pr = graph.nodes.pagerank[nid.as_usize()].get();
+            (nid, i, pr)
+        })
+        .collect();
+    node_pr_pairs.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
+
+    // Limit to top_k
+    let top_k = input.top_k.min(node_pr_pairs.len());
+    let node_entries: Vec<serde_json::Value> = node_pr_pairs[..top_k]
+        .iter()
+        .map(|&(nid, conf_idx, pr)| {
+            let idx = nid.as_usize();
+            let label = graph.strings.resolve(graph.nodes.label[idx]).to_string();
+            let nt = layer_node_type_str(&graph.nodes.node_type[idx]);
+            let out_range = graph.csr.out_range(nid);
+            let in_range = graph.csr.in_range(nid);
+            let confidence = layer.node_confidence.get(conf_idx).copied().unwrap_or(0.5);
+            let v_src = violations_as_source.get(&nid).copied().unwrap_or(0);
+            let v_tgt = violations_as_target.get(&nid).copied().unwrap_or(0);
+
+            // Classify connections
+            let mut connections_up: Vec<String> = Vec::new();
+            let mut connections_down: Vec<String> = Vec::new();
+            let mut connections_lateral: Vec<String> = Vec::new();
+
+            for j in graph.csr.out_range(nid) {
+                let target = graph.csr.targets[j];
+                if utility_set.contains(&target) {
+                    continue;
+                }
+                let tgt_ext = if target.as_usize() < n {
+                    node_to_ext[target.as_usize()].clone()
+                } else {
+                    continue;
+                };
+                if let Some(&tgt_level) = node_layer_map.get(&target) {
+                    if tgt_level < input.level {
+                        connections_up.push(tgt_ext);
+                    } else if tgt_level > input.level {
+                        connections_down.push(tgt_ext);
+                    } else {
+                        connections_lateral.push(tgt_ext);
+                    }
+                }
+            }
+            // Also check incoming for up connections
+            for j in graph.csr.in_range(nid) {
+                let source = graph.csr.rev_sources[j];
+                if utility_set.contains(&source) {
+                    continue;
+                }
+                let src_ext = if source.as_usize() < n {
+                    node_to_ext[source.as_usize()].clone()
+                } else {
+                    continue;
+                };
+                if let Some(&src_level) = node_layer_map.get(&source) {
+                    if src_level < input.level && !connections_up.contains(&src_ext) {
+                        connections_up.push(src_ext);
+                    }
+                }
+            }
+
+            serde_json::json!({
+                "node_id": node_to_ext[idx],
+                "label": label,
+                "type": nt,
+                "pagerank": pr,
+                "in_degree": in_range.len(),
+                "out_degree": out_range.len(),
+                "layer_confidence": confidence,
+                "violations_as_source": v_src,
+                "violations_as_target": v_tgt,
+                "connections_up": connections_up,
+                "connections_down": connections_down,
+                "connections_lateral": connections_lateral
+            })
+        })
+        .collect();
+
+    // Collect intra-layer edges
+    let intra_edges: Vec<serde_json::Value> = if input.include_edges {
+        let mut edges = Vec::new();
+        for &nid in &layer.nodes {
+            for j in graph.csr.out_range(nid) {
+                let target = graph.csr.targets[j];
+                if layer_node_set.contains(&target) && target != nid {
+                    let rel = graph.strings.resolve(graph.csr.relations[j]).to_string();
+                    let w = graph.csr.read_weight(EdgeIdx::new(j as u32)).get();
+                    edges.push(serde_json::json!({
+                        "source": node_to_ext[nid.as_usize()],
+                        "target": node_to_ext[target.as_usize()],
+                        "relation": rel,
+                        "weight": w
+                    }));
+                }
+            }
+        }
+        edges
+    } else {
+        Vec::new()
+    };
+
+    let elapsed = start.elapsed().as_secs_f64() * 1000.0;
+
+    let output = serde_json::json!({
+        "level": layer.level,
+        "name": layer.name,
+        "description": layer.description,
+        "nodes": node_entries,
+        "intra_layer_edges": intra_edges,
+        "layer_health": {
+            "cohesion": health.cohesion,
+            "coupling_up": health.coupling_up,
+            "coupling_down": health.coupling_down,
+            "violation_density": health.violation_density
+        },
+        "elapsed_ms": elapsed
+    });
+
+    Ok(output)
+}
+
+/// Parse node type string to NodeType enum.
+fn layer_parse_node_type(s: &str) -> Option<NodeType> {
+    match s.to_lowercase().as_str() {
+        "file" => Some(NodeType::File),
+        "directory" | "dir" => Some(NodeType::Directory),
+        "function" | "func" => Some(NodeType::Function),
+        "class" => Some(NodeType::Class),
+        "struct" => Some(NodeType::Struct),
+        "enum" => Some(NodeType::Enum),
+        "type" => Some(NodeType::Type),
+        "module" | "mod" => Some(NodeType::Module),
+        _ => None,
+    }
+}
+
+/// Convert NodeType to display string.
+fn layer_node_type_str(nt: &NodeType) -> &'static str {
+    match nt {
+        NodeType::File => "file",
+        NodeType::Directory => "directory",
+        NodeType::Function => "function",
+        NodeType::Class => "class",
+        NodeType::Struct => "struct",
+        NodeType::Enum => "enum",
+        NodeType::Type => "type",
+        NodeType::Module => "module",
+        NodeType::Reference => "reference",
+        NodeType::Concept => "concept",
+        NodeType::Material => "material",
+        NodeType::Process => "process",
+        NodeType::Product => "product",
+        NodeType::Supplier => "supplier",
+        NodeType::Regulatory => "regulatory",
+        NodeType::System => "system",
+        NodeType::Cost => "cost",
+        NodeType::Custom(_) => "custom",
+    }
 }

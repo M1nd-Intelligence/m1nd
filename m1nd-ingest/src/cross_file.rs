@@ -591,7 +591,7 @@ mod tests {
     fn module_index_resolves_bare_name_flat_layout() {
         let mut graph = Graph::with_capacity(4, 4);
         add_file_node(&mut graph, "backend/config.py");
-        add_file_node(&mut graph, "backend/worker.py");
+        add_file_node(&mut graph, "backend/worker_pool.py");
 
         let index = PythonModuleIndex::build(&graph);
 
@@ -601,7 +601,10 @@ mod tests {
             Some("file::backend/config.py"),
             "Bare module name should resolve in flat layout"
         );
-        assert_eq!(index.resolve("worker"), Some("file::backend/worker.py"),);
+        assert_eq!(
+            index.resolve("worker_pool"),
+            Some("file::backend/worker_pool.py"),
+        );
     }
 
     #[test]

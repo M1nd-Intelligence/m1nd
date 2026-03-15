@@ -799,6 +799,264 @@ pub fn json_extractor() -> TreeSitterExtractor {
     TreeSitterExtractor::new(tree_sitter_json::LANGUAGE.into(), json_config())
 }
 
+/// JavaScript language config.
+pub fn javascript_config() -> LanguageConfig {
+    LanguageConfig {
+        lang_tag: "javascript",
+        extensions: &["js", "mjs", "cjs"],
+        function_kinds: &[
+            "function_declaration",
+            "function_expression",
+            "arrow_function",
+            "method_definition",
+            "generator_function_declaration",
+            "generator_function",
+        ],
+        class_kinds: &["class_declaration", "class_expression"],
+        struct_kinds: &[],
+        enum_kinds: &[],
+        type_kinds: &[],
+        module_kinds: &[],
+        import_kinds: &["import_statement", "call_expression"],
+        name_field: "name",
+        alt_name_fields: &[],
+        name_from_first_child: false,
+    }
+}
+
+/// Create a JavaScript extractor.
+pub fn javascript_extractor() -> TreeSitterExtractor {
+    TreeSitterExtractor::new(tree_sitter_javascript::LANGUAGE.into(), javascript_config())
+}
+
+// ---------------------------------------------------------------------------
+// EmbeddedExtractor — parses host language (e.g. HTML) and routes embedded
+// language blocks (e.g. <script>, <style>) to inner extractors.
+// ---------------------------------------------------------------------------
+
+/// Descriptor for an embedded language block found inside a host document.
+struct EmbeddedBlock {
+    /// Text content of the embedded block (without surrounding tags).
+    content: String,
+    /// Line offset in the original host file where this block starts (0-indexed).
+    line_offset: u32,
+    /// Language tag (e.g., "javascript", "css").
+    lang: String,
+}
+
+/// Extracts embedded language blocks from a host language document (e.g. HTML).
+///
+/// Algorithm:
+///   1. Parse host document with tree-sitter (e.g. tree_sitter_html).
+///   2. Walk AST looking for `script_element` / `style_element` nodes.
+///   3. For each block, extract raw_text child content.
+///   4. Re-parse that content with the appropriate inner extractor.
+///   5. Offset extracted node line numbers by the block's start line.
+///   6. Merge all results into one ExtractionResult.
+pub struct EmbeddedExtractor {
+    host_language: tree_sitter::Language,
+    host_config: LanguageConfig,
+    /// (ast_node_kind, language_tag) pairs for embedded block detection.
+    embedded_kinds: Vec<(&'static str, &'static str)>,
+    /// Inner extractors keyed by language tag.
+    inner_extractors: Vec<(String, Box<dyn super::Extractor>)>,
+}
+
+impl EmbeddedExtractor {
+    /// Create an HTML embedded extractor that handles <script> and <style> blocks.
+    pub fn html_embedded() -> Self {
+        Self {
+            host_language: tree_sitter_html::LANGUAGE.into(),
+            host_config: html_config(),
+            embedded_kinds: vec![("script_element", "javascript"), ("style_element", "css")],
+            inner_extractors: vec![
+                ("javascript".into(), Box::new(javascript_extractor())),
+                ("css".into(), Box::new(css_extractor())),
+            ],
+        }
+    }
+
+    /// Find embedded blocks in the host AST.
+    fn find_embedded_blocks(&self, source: &[u8]) -> Vec<EmbeddedBlock> {
+        let mut parser = tree_sitter::Parser::new();
+        if parser.set_language(&self.host_language).is_err() {
+            return Vec::new();
+        }
+        let tree = match parser.parse(source, None) {
+            Some(t) => t,
+            None => return Vec::new(),
+        };
+
+        let mut blocks = Vec::new();
+        let mut stack = vec![tree.root_node()];
+
+        while let Some(node) = stack.pop() {
+            let kind = node.kind();
+
+            // Check if this is an embedded block we care about
+            let lang_opt = self
+                .embedded_kinds
+                .iter()
+                .find(|(k, _)| *k == kind)
+                .map(|(_, l)| *l);
+
+            if let Some(lang_tag) = lang_opt {
+                // For <script src="..."> (external), skip — no raw_text child
+                // For <script type="..."> (inline), extract raw_text
+                let content = self.extract_block_text(node, source, lang_tag);
+                if let Some((text, line_offset)) = content {
+                    if !text.trim().is_empty() {
+                        blocks.push(EmbeddedBlock {
+                            content: text,
+                            line_offset,
+                            lang: lang_tag.to_string(),
+                        });
+                    }
+                }
+                // Don't recurse into embedded blocks
+                continue;
+            }
+
+            // Recurse into children
+            let mut cursor = node.walk();
+            for child in node.named_children(&mut cursor) {
+                stack.push(child);
+            }
+        }
+
+        blocks
+    }
+
+    /// Extract text from an embedded block node.
+    /// Returns (content, line_offset_of_content_start) or None if external/empty.
+    fn extract_block_text(
+        &self,
+        node: tree_sitter::Node<'_>,
+        source: &[u8],
+        _lang: &str,
+    ) -> Option<(String, u32)> {
+        // tree-sitter-html represents inline script/style content as a
+        // `raw_text` child node inside script_element/style_element.
+        // Check for `src` attribute (external script) — skip those.
+        // We detect external scripts by checking if there's NO raw_text child.
+        let mut cursor = node.walk();
+        for child in node.named_children(&mut cursor) {
+            if child.kind() == "raw_text" {
+                let text = child.utf8_text(source).ok()?.to_string();
+                let line_offset = child.start_position().row as u32;
+                return Some((text, line_offset));
+            }
+        }
+        None
+    }
+}
+
+impl super::Extractor for EmbeddedExtractor {
+    fn extract(
+        &self,
+        content: &[u8],
+        file_id: &str,
+    ) -> m1nd_core::error::M1ndResult<super::ExtractionResult> {
+        let mut all_nodes = Vec::new();
+        let mut all_edges = Vec::new();
+        let mut all_refs = Vec::new();
+
+        // File node (always present)
+        let file_label = file_id.rsplit("::").next().unwrap_or(file_id);
+        let line_count = content.iter().filter(|&&b| b == b'\n').count() as u32;
+        all_nodes.push(super::ExtractedNode {
+            id: file_id.to_string(),
+            label: file_label.to_string(),
+            node_type: m1nd_core::types::NodeType::File,
+            tags: vec!["html".into()],
+            line: 1,
+            end_line: line_count.max(1),
+        });
+
+        // Find all embedded blocks
+        let blocks = self.find_embedded_blocks(content);
+
+        for block in &blocks {
+            // Find the inner extractor for this language
+            let extractor = self
+                .inner_extractors
+                .iter()
+                .find(|(lang, _)| lang == &block.lang)
+                .map(|(_, ext)| ext.as_ref());
+
+            let extractor = match extractor {
+                Some(e) => e,
+                None => continue,
+            };
+
+            // Parse the embedded block content
+            let block_bytes = block.content.as_bytes();
+            let inner_result = match extractor.extract(block_bytes, file_id) {
+                Ok(r) => r,
+                Err(e) => {
+                    // Graceful degradation: log and skip this block
+                    eprintln!(
+                        "[m1nd] EmbeddedExtractor: failed to parse {} block in {}: {}",
+                        block.lang, file_id, e
+                    );
+                    continue;
+                }
+            };
+
+            // Merge results, offsetting line numbers and skipping duplicate file node
+            for node in inner_result.nodes {
+                if node.node_type == m1nd_core::types::NodeType::File {
+                    // Skip the inner file node — we already have one
+                    continue;
+                }
+                // Offset line numbers by block start
+                all_nodes.push(super::ExtractedNode {
+                    line: node.line + block.line_offset,
+                    end_line: node.end_line + block.line_offset,
+                    ..node
+                });
+            }
+
+            for edge in inner_result.edges {
+                all_edges.push(edge);
+            }
+            for r in inner_result.unresolved_refs {
+                if !all_refs.contains(&r) {
+                    all_refs.push(r);
+                }
+            }
+        }
+
+        // Add containment edges from file to all top-level nodes
+        for node in &all_nodes {
+            if node.node_type != m1nd_core::types::NodeType::File {
+                // Only add containment edge if one doesn't already exist
+                let already_has_edge = all_edges
+                    .iter()
+                    .any(|e| e.target == node.id && e.relation == "contains");
+                if !already_has_edge {
+                    all_edges.push(super::ExtractedEdge {
+                        source: file_id.to_string(),
+                        target: node.id.clone(),
+                        relation: "contains".into(),
+                        weight: 1.0,
+                    });
+                }
+            }
+        }
+
+        Ok(super::ExtractionResult {
+            nodes: all_nodes,
+            edges: all_edges,
+            unresolved_refs: all_refs,
+        })
+    }
+
+    fn extensions(&self) -> &[&str] {
+        &["html", "htm"]
+    }
+}
+
 // ===========================================================================
 // Tier 2 language configs + factory functions (8 languages)
 // ===========================================================================

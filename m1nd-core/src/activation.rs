@@ -488,7 +488,7 @@ pub fn activate_temporal(
         .unwrap_or(0.0);
 
     let half_life_secs = 168.0 * 3600.0; // 7 days in seconds
-    let k = 0.693_147_2f64 / half_life_secs;
+    let k = std::f64::consts::LN_2 / half_life_secs;
 
     let mut scores = Vec::new();
     for &(node, seed_strength) in seeds {

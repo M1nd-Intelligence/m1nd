@@ -1,6 +1,6 @@
 [package]
 name = "m1nd-core"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 description = "Neuro-symbolic code graph engine — core algorithms, graph, plasticity, resonance"
 license = "MIT"
@@ -19,6 +19,13 @@ smallvec = { workspace = true }
 parking_lot = { workspace = true }
 rayon = { workspace = true }
 static_assertions = { workspace = true }
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "core_benchmarks"
+harness = false
 
 [lints]
 workspace = true

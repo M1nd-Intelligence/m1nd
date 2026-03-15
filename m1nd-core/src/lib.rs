@@ -1,11 +1,15 @@
 #![allow(unused)]
 
 pub mod activation;
+pub mod antibody;
 pub mod builder;
 pub mod counterfactual;
 pub mod domain;
+pub mod epidemic;
 pub mod error;
+pub mod flow;
 pub mod graph;
+pub mod layer;
 pub mod plasticity;
 pub mod query;
 pub mod resonance;
@@ -14,6 +18,8 @@ pub mod semantic;
 pub mod snapshot;
 pub mod temporal;
 pub mod topology;
+pub mod tremor;
+pub mod trust;
 pub mod types;
 pub mod xlr;
 

@@ -2,13 +2,13 @@
 // Handlers for the 12 perspective MCP tools.
 // Split from server.rs dispatch (Theme 8).
 
-use m1nd_core::error::{M1ndError, M1ndResult};
-use m1nd_core::types::EdgeIdx;
-use crate::session::SessionState;
+use crate::perspective::keys::route_content_id;
 use crate::perspective::state::*;
 use crate::perspective::validation::*;
-use crate::perspective::keys::route_content_id;
 use crate::protocol::perspective::*;
+use crate::session::SessionState;
+use m1nd_core::error::{M1ndError, M1ndResult};
+use m1nd_core::types::EdgeIdx;
 use std::collections::HashSet;
 
 // ---------------------------------------------------------------------------
@@ -28,12 +28,12 @@ fn require_perspective<'a>(
     agent_id: &str,
     perspective_id: &str,
 ) -> M1ndResult<&'a PerspectiveState> {
-    state.get_perspective(agent_id, perspective_id).ok_or_else(|| {
-        M1ndError::PerspectiveNotFound {
+    state
+        .get_perspective(agent_id, perspective_id)
+        .ok_or_else(|| M1ndError::PerspectiveNotFound {
             perspective_id: perspective_id.into(),
             agent_id: agent_id.into(),
-        }
-    })
+        })
 }
 
 /// Check perspective ownership and return mutable reference, or error.
@@ -42,12 +42,12 @@ fn require_perspective_mut<'a>(
     agent_id: &str,
     perspective_id: &str,
 ) -> M1ndResult<&'a mut PerspectiveState> {
-    state.get_perspective_mut(agent_id, perspective_id).ok_or_else(|| {
-        M1ndError::PerspectiveNotFound {
+    state
+        .get_perspective_mut(agent_id, perspective_id)
+        .ok_or_else(|| M1ndError::PerspectiveNotFound {
             perspective_id: perspective_id.into(),
             agent_id: agent_id.into(),
-        }
-    })
+        })
 }
 
 /// Synthesize routes from graph for a focus node.
@@ -64,27 +64,40 @@ fn synthesize_routes(
     let version = now_ms();
 
     // Find the focus node in graph: try external_id match first, then label match
-    let focus_nid = graph.id_to_node.iter().find_map(|(interned, &nid)| {
-        let ext_id = graph.strings.resolve(*interned);
-        if ext_id == focus_node { Some(nid) } else { None }
-    }).or_else(|| {
-        // Fallback: match by node label (handles anchor_node = short label)
-        for idx in 0..graph.num_nodes() as usize {
-            if idx < graph.nodes.label.len() {
-                let lbl = graph.strings.resolve(graph.nodes.label[idx]);
-                if lbl == focus_node {
-                    return Some(m1nd_core::types::NodeId::new(idx as u32));
+    let focus_nid = graph
+        .id_to_node
+        .iter()
+        .find_map(|(interned, &nid)| {
+            let ext_id = graph.strings.resolve(*interned);
+            if ext_id == focus_node {
+                Some(nid)
+            } else {
+                None
+            }
+        })
+        .or_else(|| {
+            // Fallback: match by node label (handles anchor_node = short label)
+            for idx in 0..graph.num_nodes() as usize {
+                if idx < graph.nodes.label.len() {
+                    let lbl = graph.strings.resolve(graph.nodes.label[idx]);
+                    if lbl == focus_node {
+                        return Some(m1nd_core::types::NodeId::new(idx as u32));
+                    }
                 }
             }
-        }
-        None
-    }).or_else(|| {
-        // Final fallback: substring match on external_id (contains)
-        graph.id_to_node.iter().find_map(|(interned, &nid)| {
-            let ext_id = graph.strings.resolve(*interned);
-            if ext_id.contains(focus_node) { Some(nid) } else { None }
+            None
         })
-    });
+        .or_else(|| {
+            // Final fallback: substring match on external_id (contains)
+            graph.id_to_node.iter().find_map(|(interned, &nid)| {
+                let ext_id = graph.strings.resolve(*interned);
+                if ext_id.contains(focus_node) {
+                    Some(nid)
+                } else {
+                    None
+                }
+            })
+        });
 
     let focus_nid = match focus_nid {
         Some(nid) => nid,
@@ -99,7 +112,11 @@ fn synthesize_routes(
     if graph.finalized {
         let idx = focus_nid.as_usize();
         if idx < graph.num_nodes() as usize {
-            let start = if idx == 0 { 0 } else { graph.csr.offsets[idx] as usize };
+            let start = if idx == 0 {
+                0
+            } else {
+                graph.csr.offsets[idx] as usize
+            };
             let end = graph.csr.offsets[idx + 1] as usize;
 
             for edge_pos in start..end.min(start + lens.top_k as usize) {
@@ -113,7 +130,10 @@ fn synthesize_routes(
                     continue;
                 }
 
-                let target_label = graph.strings.resolve(graph.nodes.label[target_idx]).to_string();
+                let target_label = graph
+                    .strings
+                    .resolve(graph.nodes.label[target_idx])
+                    .to_string();
                 let _target_type = format!("{:?}", graph.nodes.node_type[target_idx]);
 
                 // Determine route family from edge relation
@@ -134,8 +154,8 @@ fn synthesize_routes(
 
                 // Check provenance availability
                 let provenance_info = graph.resolve_node_provenance(target_nid);
-                let peek_available = !provenance_info.is_empty()
-                    && provenance_info.source_path.is_some();
+                let peek_available =
+                    !provenance_info.is_empty() && provenance_info.source_path.is_some();
 
                 let provenance = if provenance_info.is_empty() {
                     None
@@ -167,27 +187,43 @@ fn synthesize_routes(
     // This prevents dead ends at hub/sink nodes like Files
     if graph.finalized && routes.len() < lens.top_k as usize {
         let remaining = lens.top_k as usize - routes.len();
-        let mut seen_targets: HashSet<String> = routes.iter().map(|r| r.target_label.clone()).collect();
+        let mut seen_targets: HashSet<String> =
+            routes.iter().map(|r| r.target_label.clone()).collect();
 
         for src_idx in 0..graph.num_nodes() as usize {
             if seen_targets.len() >= remaining + routes.len() {
                 break;
             }
-            let src_start = if src_idx == 0 { 0 } else { graph.csr.offsets[src_idx] as usize };
+            let src_start = if src_idx == 0 {
+                0
+            } else {
+                graph.csr.offsets[src_idx] as usize
+            };
             let src_end = graph.csr.offsets[src_idx + 1] as usize;
 
             for edge_pos in src_start..src_end {
-                if edge_pos >= graph.csr.targets.len() { break; }
+                if edge_pos >= graph.csr.targets.len() {
+                    break;
+                }
                 let tgt = graph.csr.targets[edge_pos];
                 if tgt == focus_nid && src_idx != focus_nid.as_usize() {
-                    let src_label = graph.strings.resolve(graph.nodes.label[src_idx]).to_string();
-                    if seen_targets.contains(&src_label) { continue; }
+                    let src_label = graph
+                        .strings
+                        .resolve(graph.nodes.label[src_idx])
+                        .to_string();
+                    if seen_targets.contains(&src_label) {
+                        continue;
+                    }
                     seen_targets.insert(src_label.clone());
 
                     let family = RouteFamily::Structural;
                     let route_id = route_content_id(&src_label, &family);
                     let weight: f32 = graph.csr.read_weight(EdgeIdx::new(edge_pos as u32)).get();
-                    let novelty = if visited.contains(&src_label) { 0.0 } else { 1.0 };
+                    let novelty = if visited.contains(&src_label) {
+                        0.0
+                    } else {
+                        1.0
+                    };
                     let score = (weight * 0.5 + novelty * 0.3).min(1.0); // slightly lower than forward
 
                     let src_nid = m1nd_core::types::NodeId::new(src_idx as u32);
@@ -222,7 +258,9 @@ fn synthesize_routes(
 
     // Sort by score descending, then deterministic tie-breaking (Theme 4)
     routes.sort_by(|a, b| {
-        b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal)
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
             .then_with(|| a.route_id.cmp(&b.route_id))
             .then_with(|| a.target_node.cmp(&b.target_node))
             .then_with(|| a.family.ordinal().cmp(&b.family.ordinal()))
@@ -325,10 +363,16 @@ pub fn handle_perspective_start(
 
     let total_routes = routes.len();
     let page_size = 6u32;
-    let total_pages = if total_routes == 0 { 1 } else { ((total_routes as u32) + page_size - 1) / page_size };
+    let total_pages = if total_routes == 0 {
+        1
+    } else {
+        ((total_routes as u32) + page_size - 1) / page_size
+    };
     let page_routes: Vec<Route> = routes.iter().take(page_size as usize).cloned().collect();
 
-    let suggested = page_routes.first().map(|r| format!("inspect {}", r.route_id));
+    let suggested = page_routes
+        .first()
+        .map(|r| format!("inspect {}", r.route_id));
 
     // Create perspective state
     let persp_state = PerspectiveState {
@@ -465,16 +509,27 @@ pub fn handle_perspective_routes(
 
     let mode_effective = if persp.mode == PerspectiveMode::Anchored {
         let hops = persp.entry_path.len();
-        if hops > 8 { "local".into() } else { "anchored".into() }
+        if hops > 8 {
+            "local".into()
+        } else {
+            "anchored".into()
+        }
     } else {
         "local".into()
     };
 
     let diagnostic = if routes.is_empty() && focus_node.is_none() {
-        Some(empty_diagnostic(state, "no_focus_node",
-            "Perspective has no focus node. Use anchor_node or a more specific query."))
+        Some(empty_diagnostic(
+            state,
+            "no_focus_node",
+            "Perspective has no focus node. Use anchor_node or a more specific query.",
+        ))
     } else if routes.is_empty() {
-        Some(empty_diagnostic(state, "graph_empty", "Try a different query or ingest more data"))
+        Some(empty_diagnostic(
+            state,
+            "graph_empty",
+            "Try a different query or ingest more data",
+        ))
     } else {
         None
     };
@@ -536,15 +591,19 @@ pub fn handle_perspective_inspect(
     }
 
     // Find the route
-    let cached = persp.route_cache.as_ref().ok_or_else(|| M1ndError::RouteNotFound {
-        route_id: format!("{:?}", route_ref),
-        perspective_id: input.perspective_id.clone(),
-    })?;
+    let cached = persp
+        .route_cache
+        .as_ref()
+        .ok_or_else(|| M1ndError::RouteNotFound {
+            route_id: format!("{:?}", route_ref),
+            perspective_id: input.perspective_id.clone(),
+        })?;
 
     let route = match route_ref {
         ValidatedRouteRef::ById(ref id) => cached.routes.iter().find(|r| &r.route_id == id),
         ValidatedRouteRef::ByIndex(idx) => cached.routes.iter().find(|r| r.route_index == idx),
-    }.ok_or_else(|| M1ndError::RouteNotFound {
+    }
+    .ok_or_else(|| M1ndError::RouteNotFound {
         route_id: match &route_ref {
             ValidatedRouteRef::ById(id) => id.clone(),
             ValidatedRouteRef::ByIndex(idx) => format!("index_{}", idx),
@@ -567,7 +626,9 @@ pub fn handle_perspective_inspect(
         target_node: route.target_node.clone(),
         target_label: route.target_label.clone(),
         target_type: "module".into(),
-        path_preview: persp.entry_path.iter()
+        path_preview: persp
+            .entry_path
+            .iter()
             .chain(std::iter::once(&route.target_node))
             .cloned()
             .collect(),
@@ -576,9 +637,21 @@ pub fn handle_perspective_inspect(
         score_breakdown: InspectScoreBreakdown {
             local_activation: route.score * 0.6,
             path_coherence: route.score * 0.25,
-            novelty: if persp.visited_nodes.contains(&route.target_node) { 0.0 } else { 1.0 },
-            anchor_relevance: if persp.mode == PerspectiveMode::Anchored { Some(0.15) } else { None },
-            continuity: if persp.mode == PerspectiveMode::Anchored { Some(0.10) } else { None },
+            novelty: if persp.visited_nodes.contains(&route.target_node) {
+                0.0
+            } else {
+                1.0
+            },
+            anchor_relevance: if persp.mode == PerspectiveMode::Anchored {
+                Some(0.15)
+            } else {
+                None
+            },
+            continuity: if persp.mode == PerspectiveMode::Anchored {
+                Some(0.10)
+            } else {
+                None
+            },
         },
         provenance,
         peek_available: route.peek_available,
@@ -611,15 +684,19 @@ pub fn handle_perspective_peek(
         });
     }
 
-    let cached = persp.route_cache.as_ref().ok_or_else(|| M1ndError::RouteNotFound {
-        route_id: "no cache".into(),
-        perspective_id: input.perspective_id.clone(),
-    })?;
+    let cached = persp
+        .route_cache
+        .as_ref()
+        .ok_or_else(|| M1ndError::RouteNotFound {
+            route_id: "no cache".into(),
+            perspective_id: input.perspective_id.clone(),
+        })?;
 
     let route = match route_ref {
         ValidatedRouteRef::ById(ref id) => cached.routes.iter().find(|r| &r.route_id == id),
         ValidatedRouteRef::ByIndex(idx) => cached.routes.iter().find(|r| r.route_index == idx),
-    }.ok_or_else(|| M1ndError::RouteNotFound {
+    }
+    .ok_or_else(|| M1ndError::RouteNotFound {
         route_id: "not found".into(),
         perspective_id: input.perspective_id.clone(),
     })?;
@@ -632,7 +709,9 @@ pub fn handle_perspective_peek(
     }
 
     // Get source path from provenance
-    let source_path = route.provenance.as_ref()
+    let source_path = route
+        .provenance
+        .as_ref()
         .and_then(|p| p.source_path.as_ref())
         .ok_or_else(|| M1ndError::InvalidParams {
             tool: "perspective.peek".into(),
@@ -684,15 +763,19 @@ pub fn handle_perspective_follow(
             });
         }
 
-        let cached = persp.route_cache.as_ref().ok_or_else(|| M1ndError::RouteNotFound {
-            route_id: "no cache".into(),
-            perspective_id: input.perspective_id.clone(),
-        })?;
+        let cached = persp
+            .route_cache
+            .as_ref()
+            .ok_or_else(|| M1ndError::RouteNotFound {
+                route_id: "no cache".into(),
+                perspective_id: input.perspective_id.clone(),
+            })?;
 
         let route = match &route_ref {
             ValidatedRouteRef::ById(id) => cached.routes.iter().find(|r| &r.route_id == id),
             ValidatedRouteRef::ByIndex(idx) => cached.routes.iter().find(|r| r.route_index == *idx),
-        }.ok_or_else(|| M1ndError::RouteNotFound {
+        }
+        .ok_or_else(|| M1ndError::RouteNotFound {
             route_id: "not found".into(),
             perspective_id: input.perspective_id.clone(),
         })?;
@@ -715,20 +798,31 @@ pub fn handle_perspective_follow(
     // Synthesize new routes at the target
     let mut new_visited = visited;
     new_visited.insert(target_node.clone());
-    let (routes, new_version) = synthesize_routes(state, &target_node, &lens, &new_visited, &mode_ctx);
+    let (routes, new_version) =
+        synthesize_routes(state, &target_node, &lens, &new_visited, &mode_ctx);
 
     let total_routes = routes.len();
     let page_size = 6u32;
-    let total_pages = if total_routes == 0 { 1 } else { ((total_routes as u32) + page_size - 1) / page_size };
+    let total_pages = if total_routes == 0 {
+        1
+    } else {
+        ((total_routes as u32) + page_size - 1) / page_size
+    };
     let page_routes: Vec<Route> = routes.iter().take(page_size as usize).cloned().collect();
 
     let diagnostic = if routes.is_empty() {
-        Some(empty_diagnostic(state, "dead_end", "Try perspective.back or start a new perspective"))
+        Some(empty_diagnostic(
+            state,
+            "dead_end",
+            "Try perspective.back or start a new perspective",
+        ))
     } else {
         None
     };
 
-    let suggested = page_routes.first().map(|r| format!("inspect {}", r.route_id));
+    let suggested = page_routes
+        .first()
+        .map(|r| format!("inspect {}", r.route_id));
 
     let mode_effective = if mode == PerspectiveMode::Anchored {
         "anchored".into()
@@ -817,30 +911,39 @@ pub fn handle_perspective_suggest(
     let suggestion = if let Some(route) = top_route {
         // Has routes: suggest following the highest-scored unvisited route
         let unvisited = cached.and_then(|c| {
-            c.routes.iter().find(|r| !persp.visited_nodes.contains(&r.target_node))
+            c.routes
+                .iter()
+                .find(|r| !persp.visited_nodes.contains(&r.target_node))
         });
         let best = unvisited.unwrap_or(route);
 
         SuggestResult {
             recommended_action: format!("follow {}", best.route_id),
             confidence: best.score.min(0.85),
-            why: format!("Highest-scored {} route to {}", format!("{:?}", best.family).to_lowercase(), best.target_label),
+            why: format!(
+                "Highest-scored {} route to {}",
+                format!("{:?}", best.family).to_lowercase(),
+                best.target_label
+            ),
             based_on: if persp.navigation_history.len() > 1 {
                 "navigation_history".into()
             } else {
                 "initial_ranking".into()
             },
-            alternatives: cached.map(|c| {
-                c.routes.iter()
-                    .filter(|r| r.route_id != best.route_id)
-                    .take(3)
-                    .map(|r| SuggestAlternative {
-                        action: format!("follow {}", r.route_id),
-                        confidence: r.score.min(0.85),
-                        why: format!("{:?} route to {}", r.family, r.target_label),
-                    })
-                    .collect()
-            }).unwrap_or_default(),
+            alternatives: cached
+                .map(|c| {
+                    c.routes
+                        .iter()
+                        .filter(|r| r.route_id != best.route_id)
+                        .take(3)
+                        .map(|r| SuggestAlternative {
+                            action: format!("follow {}", r.route_id),
+                            confidence: r.score.min(0.85),
+                            why: format!("{:?} route to {}", r.family, r.target_label),
+                        })
+                        .collect()
+                })
+                .unwrap_or_default(),
         }
     } else {
         // Cold start or dead end
@@ -858,7 +961,11 @@ pub fn handle_perspective_suggest(
     };
 
     let diagnostic = if top_route.is_none() {
-        Some(empty_diagnostic(state, "dead_end", "Navigate back or start a new perspective"))
+        Some(empty_diagnostic(
+            state,
+            "dead_end",
+            "Navigate back or start a new perspective",
+        ))
     } else {
         None
     };
@@ -884,7 +991,8 @@ pub fn handle_perspective_affinity(
     state: &mut SessionState,
     input: PerspectiveAffinityInput,
 ) -> M1ndResult<serde_json::Value> {
-    let route_ref = validate_route_ref(&input.route_id, &input.route_index, "perspective.affinity")?;
+    let route_ref =
+        validate_route_ref(&input.route_id, &input.route_index, "perspective.affinity")?;
     let persp = require_perspective(state, &input.agent_id, &input.perspective_id)?;
 
     if input.route_set_version != persp.route_set_version {
@@ -894,15 +1002,19 @@ pub fn handle_perspective_affinity(
         });
     }
 
-    let cached = persp.route_cache.as_ref().ok_or_else(|| M1ndError::RouteNotFound {
-        route_id: "no cache".into(),
-        perspective_id: input.perspective_id.clone(),
-    })?;
+    let cached = persp
+        .route_cache
+        .as_ref()
+        .ok_or_else(|| M1ndError::RouteNotFound {
+            route_id: "no cache".into(),
+            perspective_id: input.perspective_id.clone(),
+        })?;
 
     let route = match route_ref {
         ValidatedRouteRef::ById(ref id) => cached.routes.iter().find(|r| &r.route_id == id),
         ValidatedRouteRef::ByIndex(idx) => cached.routes.iter().find(|r| r.route_index == idx),
-    }.ok_or_else(|| M1ndError::RouteNotFound {
+    }
+    .ok_or_else(|| M1ndError::RouteNotFound {
         route_id: "not found".into(),
         perspective_id: input.perspective_id.clone(),
     })?;
@@ -916,7 +1028,11 @@ pub fn handle_perspective_affinity(
         target_node: route.target_node.clone(),
         notice: "Probable connections, not verified edges.".into(),
         candidates,
-        diagnostic: Some(empty_diagnostic(state, "under_indexed", "Affinity requires more graph data for meaningful results")),
+        diagnostic: Some(empty_diagnostic(
+            state,
+            "under_indexed",
+            "Affinity requires more graph data for meaningful results",
+        )),
     };
 
     if let Some(p) = state.get_perspective_mut(&input.agent_id, &input.perspective_id) {
@@ -954,9 +1070,9 @@ pub fn handle_perspective_branch(
 
     let focus = persp.focus_node.clone();
     let branch_count = persp.branches.len();
-    let branch_name = input.branch_name.unwrap_or_else(|| {
-        format!("branch_{}", branch_count + 1)
-    });
+    let branch_name = input
+        .branch_name
+        .unwrap_or_else(|| format!("branch_{}", branch_count + 1));
     let cloned_persp = persp.clone();
 
     // Clone current perspective into a new one
@@ -971,10 +1087,9 @@ pub fn handle_perspective_branch(
     parent.branches.push(new_id.clone());
 
     // Insert new perspective
-    state.perspectives.insert(
-        (input.agent_id.clone(), new_id.clone()),
-        new_persp,
-    );
+    state
+        .perspectives
+        .insert((input.agent_id.clone(), new_id.clone()), new_persp);
 
     let output = PerspectiveBranchOutput {
         perspective_id: input.perspective_id,
@@ -1046,7 +1161,11 @@ pub fn handle_perspective_back(
 
     let total_routes = routes.len();
     let page_size = 6u32;
-    let total_pages = if total_routes == 0 { 1 } else { ((total_routes as u32) + page_size - 1) / page_size };
+    let total_pages = if total_routes == 0 {
+        1
+    } else {
+        ((total_routes as u32) + page_size - 1) / page_size
+    };
     let page_routes: Vec<Route> = routes.iter().take(page_size as usize).cloned().collect();
 
     // Update cache
@@ -1091,9 +1210,18 @@ pub fn handle_perspective_compare(
     let visited_a: HashSet<&String> = persp_a.visited_nodes.iter().collect();
     let visited_b: HashSet<&String> = persp_b.visited_nodes.iter().collect();
 
-    let shared: Vec<String> = visited_a.intersection(&visited_b).map(|s| (*s).clone()).collect();
-    let unique_a: Vec<String> = visited_a.difference(&visited_b).map(|s| (*s).clone()).collect();
-    let unique_b: Vec<String> = visited_b.difference(&visited_a).map(|s| (*s).clone()).collect();
+    let shared: Vec<String> = visited_a
+        .intersection(&visited_b)
+        .map(|s| (*s).clone())
+        .collect();
+    let unique_a: Vec<String> = visited_a
+        .difference(&visited_b)
+        .map(|s| (*s).clone())
+        .collect();
+    let unique_b: Vec<String> = visited_b
+        .difference(&visited_a)
+        .map(|s| (*s).clone())
+        .collect();
 
     let gen_warning = if persp_a.captured_cache_generation != persp_b.captured_cache_generation {
         Some(format!(
@@ -1125,7 +1253,8 @@ pub fn handle_perspective_list(
     state: &SessionState,
     input: PerspectiveListInput,
 ) -> M1ndResult<serde_json::Value> {
-    let perspectives: Vec<PerspectiveSummary> = state.perspectives
+    let perspectives: Vec<PerspectiveSummary> = state
+        .perspectives
         .iter()
         .filter(|((a, _), _)| a == &input.agent_id)
         .map(|((_, _), p)| PerspectiveSummary {
@@ -1162,13 +1291,17 @@ pub fn handle_perspective_close(
     let _ = require_perspective(state, &input.agent_id, &input.perspective_id)?;
 
     // Find and release associated locks
-    let agent_locks: Vec<String> = state.locks.values()
+    let agent_locks: Vec<String> = state
+        .locks
+        .values()
         .filter(|l| l.agent_id == input.agent_id)
         .map(|l| l.lock_id.clone())
         .collect();
 
     // Remove the perspective
-    state.perspectives.remove(&(input.agent_id.clone(), input.perspective_id.clone()));
+    state
+        .perspectives
+        .remove(&(input.agent_id.clone(), input.perspective_id.clone()));
 
     // Remove associated locks (cascade cleanup, Theme 5)
     let mut released = Vec::new();

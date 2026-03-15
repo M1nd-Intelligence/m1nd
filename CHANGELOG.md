@@ -7,6 +7,34 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.4.0] - 2026-03-15
+
+### Added
+
+- **`search`** — Literal and regex full-text search across all graph node labels and source content. Params: `query` (string or regex pattern), `mode` (`"literal"` | `"regex"`), `max_results` (default: 50). Literal example: find all nodes referencing `"ANTHROPIC_API_KEY"`. Regex example: find all `TODO|FIXME` comments across the graph. Zero LLM tokens — pure Rust regex engine.
+
+- **`help`** — Built-in tool reference with per-tool documentation and usage examples. Params: `topic` (optional — tool name like `"activate"`, or `"about"` for overview). Returns structured description, parameters, speed, and example usage. First tool in any new session: call `help(topic="about")` to discover what's available.
+
+- **`panoramic`** — Full-codebase risk panorama. Scans up to N modules (default: 50), computes per-module risk scores from trust ledger + epidemic + tremor, returns ranked list sorted by risk. Params: `max_modules` (default: 50), `min_risk_score` (float, filter threshold). Designed for CI gate and daily health checks.
+
+- **`savings`** — Token economy tracker. Tracks LLM tokens saved vs. direct-read baseline (estimated tokens that would have been spent feeding files to an LLM vs. m1nd's zero-token graph query). Params: `reset` (bool, clear counters). Returns cumulative stats: `queries_served`, `estimated_tokens_saved`, `estimated_cost_saved_usd`.
+
+- **`report`** — Structured session report. Aggregates key session metrics: queries run, top activated nodes, structural holes found, anomalies detected, savings accumulated. Returns markdown-formatted output ready for copy-paste into PR descriptions, commit messages, or agent logs.
+
+### Fixed
+
+- **`perspective.routes`** — Fix: routes returned stale edge weights after a `lock.rebase` operation. Routes now always re-score from the current graph state.
+
+### Changed
+
+- **Visual identity**: ANSI gradient borders on terminal output (⍌⍐⍂𝔻⟁ glyphs), gradient color ramps from green to cyan.
+- **Personality system**: `perspective.suggest` now calls into a personality layer that varies tone across sessions (direct / exploratory / adversarial). Savings tracker auto-updates on every zero-token query.
+- **Test suite**: 425 tests pass. 30 real-world integration tests added: 25/30 pass (5 skipped on CI without corpus).
+- Tool count: 56 → 61
+- Version bump: 0.3.0 → 0.4.0 across all three crates (m1nd-core, m1nd-ingest, m1nd-mcp)
+
+---
+
 ## [0.3.0] - 2026-03-15
 
 ### Added

@@ -4,23 +4,19 @@
 // Search: literal/regex/semantic modes with graph context.
 // Help: self-documenting tool reference with visual identity.
 
-use m1nd_core::error::{M1ndError, M1ndResult};
-use crate::session::SessionState;
-use crate::protocol::layers::{
-    SearchInput, SearchOutput, SearchResultEntry, SearchMode,
-    HelpInput, HelpOutput,
-};
 use crate::personality;
+use crate::protocol::layers::{
+    HelpInput, HelpOutput, SearchInput, SearchMode, SearchOutput, SearchResultEntry,
+};
+use crate::session::SessionState;
+use m1nd_core::error::{M1ndError, M1ndResult};
 use std::time::Instant;
 
 // ---------------------------------------------------------------------------
 // m1nd.search
 // ---------------------------------------------------------------------------
 
-pub fn handle_search(
-    state: &mut SessionState,
-    input: SearchInput,
-) -> M1ndResult<SearchOutput> {
+pub fn handle_search(state: &mut SessionState, input: SearchInput) -> M1ndResult<SearchOutput> {
     let start = Instant::now();
 
     // Validate
@@ -70,7 +66,8 @@ pub fn handle_search(
                     total_matches += 1;
                     if results.len() < top_k {
                         let (file_path, line_number) = extract_provenance(&graph, ext_id);
-                        let (ctx_before, ctx_after) = get_context_lines(&file_path, line_number, context_lines);
+                        let (ctx_before, ctx_after) =
+                            get_context_lines(&file_path, line_number, context_lines);
                         results.push(SearchResultEntry {
                             node_id: ext_id.to_string(),
                             label: ext_id.to_string(),
@@ -89,7 +86,8 @@ pub fn handle_search(
             // Phase 2: Search file contents on disk (the real grep replacement)
             if results.len() < top_k {
                 // Collect unique source files from graph nodes
-                let mut seen_files: std::collections::HashSet<String> = std::collections::HashSet::new();
+                let mut seen_files: std::collections::HashSet<String> =
+                    std::collections::HashSet::new();
                 for (interned, &_nid) in graph.id_to_node.iter() {
                     let ext_id = graph.strings.resolve(*interned);
                     if ext_id.starts_with("file::") {
@@ -118,13 +116,18 @@ pub fn handle_search(
                         state.ingest_roots.iter().map(|s| s.as_str()).collect()
                     };
 
-                    let full_path = roots.iter()
+                    let full_path = roots
+                        .iter()
                         .map(|root| std::path::Path::new(root).join(rel_path))
                         .find(|p| p.exists())
                         .or_else(|| {
                             // Try the rel_path as absolute
                             let p = std::path::PathBuf::from(rel_path);
-                            if p.exists() { Some(p) } else { None }
+                            if p.exists() {
+                                Some(p)
+                            } else {
+                                None
+                            }
                         })
                         .unwrap_or_else(|| std::path::PathBuf::from(rel_path));
 
@@ -140,7 +143,8 @@ pub fn handle_search(
                                 if results.len() < top_k {
                                     let ln = (line_idx + 1) as u32;
                                     let fp = full_path.to_string_lossy().to_string();
-                                    let (ctx_before, ctx_after) = get_context_lines(&fp, ln, context_lines);
+                                    let (ctx_before, ctx_after) =
+                                        get_context_lines(&fp, ln, context_lines);
                                     results.push(SearchResultEntry {
                                         node_id: format!("file::{}", rel_path),
                                         label: rel_path.clone(),
@@ -186,7 +190,8 @@ pub fn handle_search(
                     total_matches += 1;
                     if results.len() < top_k {
                         let (file_path, line_number) = extract_provenance(&graph, ext_id);
-                        let (ctx_before, ctx_after) = get_context_lines(&file_path, line_number, context_lines);
+                        let (ctx_before, ctx_after) =
+                            get_context_lines(&file_path, line_number, context_lines);
 
                         results.push(SearchResultEntry {
                             node_id: ext_id.to_string(),
@@ -222,12 +227,24 @@ pub fn handle_search(
             if let Some(items) = seek_json.get("results").and_then(|v| v.as_array()) {
                 total_matches = items.len();
                 for item in items.iter().take(top_k) {
-                    let node_id = item.get("node_id").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                    let label = item.get("label").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                    let node_id = item
+                        .get("node_id")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    let label = item
+                        .get("label")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string();
                     results.push(SearchResultEntry {
                         node_id: node_id.clone(),
                         label: label.clone(),
-                        node_type: item.get("node_type").and_then(|v| v.as_str()).unwrap_or("File").to_string(),
+                        node_type: item
+                            .get("node_type")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("File")
+                            .to_string(),
                         file_path: node_id.clone(),
                         line_number: 1,
                         matched_line: label,
@@ -289,7 +306,11 @@ fn extract_provenance(graph: &m1nd_core::graph::Graph, ext_id: &str) -> (String,
 }
 
 /// Get context lines around a match from the filesystem.
-fn get_context_lines(file_path: &str, line_number: u32, context_lines: u32) -> (Vec<String>, Vec<String>) {
+fn get_context_lines(
+    file_path: &str,
+    line_number: u32,
+    context_lines: u32,
+) -> (Vec<String>, Vec<String>) {
     if context_lines == 0 || line_number == 0 {
         return (vec![], vec![]);
     }
@@ -304,11 +325,17 @@ fn get_context_lines(file_path: &str, line_number: u32, context_lines: u32) -> (
     let line_idx = (line_number as usize).saturating_sub(1);
 
     let before_start = line_idx.saturating_sub(context_lines as usize);
-    let before: Vec<String> = lines[before_start..line_idx].iter().map(|s| s.to_string()).collect();
+    let before: Vec<String> = lines[before_start..line_idx]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
 
     let after_end = (line_idx + 1 + context_lines as usize).min(lines.len());
     let after: Vec<String> = if line_idx + 1 < lines.len() {
-        lines[line_idx + 1..after_end].iter().map(|s| s.to_string()).collect()
+        lines[line_idx + 1..after_end]
+            .iter()
+            .map(|s| s.to_string())
+            .collect()
     } else {
         vec![]
     };
@@ -335,10 +362,7 @@ fn guess_node_type(ext_id: &str) -> String {
 // m1nd.help
 // ---------------------------------------------------------------------------
 
-pub fn handle_help(
-    _state: &mut SessionState,
-    input: HelpInput,
-) -> M1ndResult<HelpOutput> {
+pub fn handle_help(_state: &mut SessionState, input: HelpInput) -> M1ndResult<HelpOutput> {
     let tool_name = input.tool_name.as_deref();
 
     match tool_name {
@@ -383,7 +407,9 @@ pub fn handle_help(
                 let suggestions = personality::find_similar_tools(name);
                 let formatted = format!(
                     "{}tool '{}' not found.{}\n{}did you mean: {}?{}\n",
-                    personality::ANSI_RED, name, personality::ANSI_RESET,
+                    personality::ANSI_RED,
+                    name,
+                    personality::ANSI_RESET,
                     personality::ANSI_DIM,
                     suggestions.join(", "),
                     personality::ANSI_RESET,

@@ -10,11 +10,11 @@ use serde_json::{json, Value};
 // ---------------------------------------------------------------------------
 
 /// m1nd logo glyphs with their semantic meanings.
-pub const GLYPH_SIGNAL: &str = "\u{234C}";     // ⍌ — spreading activation signal
-pub const GLYPH_PATH: &str = "\u{2350}";       // ⍐ — paths through the graph
-pub const GLYPH_STRUCTURE: &str = "\u{2342}";  // ⍂ — structural analysis
+pub const GLYPH_SIGNAL: &str = "\u{234C}"; // ⍌ — spreading activation signal
+pub const GLYPH_PATH: &str = "\u{2350}"; // ⍐ — paths through the graph
+pub const GLYPH_STRUCTURE: &str = "\u{2342}"; // ⍂ — structural analysis
 pub const GLYPH_DIMENSION: &str = "\u{1D53B}"; // 𝔻 — 4D dimensional scoring
-pub const GLYPH_CONNECTION: &str = "\u{27C1}";  // ⟁ — graph connections, edges
+pub const GLYPH_CONNECTION: &str = "\u{27C1}"; // ⟁ — graph connections, edges
 
 /// ANSI escape codes for m1nd's color palette.
 pub const ANSI_CYAN: &str = "\x1b[38;2;0;212;255m";
@@ -37,7 +37,11 @@ pub fn gradient_top_border(width: usize) -> String {
     let segment = width / colors.len();
     let mut border = String::new();
     for (i, color) in colors.iter().enumerate() {
-        let len = if i == colors.len() - 1 { width - segment * i } else { segment };
+        let len = if i == colors.len() - 1 {
+            width - segment * i
+        } else {
+            segment
+        };
         border.push_str(color);
         for _ in 0..len {
             border.push('\u{2550}'); // ═
@@ -53,7 +57,11 @@ pub fn gradient_bottom_border(width: usize) -> String {
     let segment = width / colors.len();
     let mut border = String::new();
     for (i, color) in colors.iter().enumerate() {
-        let len = if i == colors.len() - 1 { width - segment * i } else { segment };
+        let len = if i == colors.len() - 1 {
+            width - segment * i
+        } else {
+            segment
+        };
         border.push_str(color);
         for _ in 0..len {
             border.push('\u{2550}'); // ═
@@ -133,12 +141,16 @@ pub fn suggest_next(tool_name: &str) -> Vec<String> {
 pub fn personality_line(tool_name: &str, result: &Value) -> String {
     match tool_name {
         "m1nd.activate" => {
-            let count = result.get("results").and_then(|v| v.as_array()).map_or(0, |a| a.len());
+            let count = result
+                .get("results")
+                .and_then(|v| v.as_array())
+                .map_or(0, |a| a.len());
             let query = result.get("query").and_then(|v| v.as_str()).unwrap_or("?");
             if count == 0 {
                 format!("no results for '{}'. try ingest first, or rephrase.", query)
             } else {
-                let top = result.get("results")
+                let top = result
+                    .get("results")
                     .and_then(|v| v.as_array())
                     .and_then(|a| a.first())
                     .and_then(|v| v.get("label"))
@@ -148,29 +160,59 @@ pub fn personality_line(tool_name: &str, result: &Value) -> String {
             }
         }
         "m1nd.impact" => {
-            let total = result.get("blast_radius").and_then(|v| v.as_u64()).unwrap_or(0);
+            let total = result
+                .get("blast_radius")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
             format!("{} nodes in blast radius. careful here.", total)
         }
         "m1nd.search" => {
-            let count = result.get("total_matches").and_then(|v| v.as_u64()).unwrap_or(0);
+            let count = result
+                .get("total_matches")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
             let query = result.get("query").and_then(|v| v.as_str()).unwrap_or("?");
-            let mode = result.get("mode").and_then(|v| v.as_str()).unwrap_or("literal");
+            let mode = result
+                .get("mode")
+                .and_then(|v| v.as_str())
+                .unwrap_or("literal");
             format!("{} matches for '{}' ({})", count, query, mode)
         }
         "m1nd.panoramic" => {
-            let total = result.get("total_modules").and_then(|v| v.as_u64()).unwrap_or(0);
-            let alerts = result.get("critical_alerts")
-                .and_then(|v| v.as_array()).map_or(0, |a| a.len());
+            let total = result
+                .get("total_modules")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
+            let alerts = result
+                .get("critical_alerts")
+                .and_then(|v| v.as_array())
+                .map_or(0, |a| a.len());
             format!("{} modules scanned. {} critical alerts.", total, alerts)
         }
         "m1nd.hypothesize" => {
-            let verdict = result.get("verdict").and_then(|v| v.as_str()).unwrap_or("unknown");
-            let confidence = result.get("confidence").and_then(|v| v.as_f64()).unwrap_or(0.0);
-            format!("verdict: {} ({:.0}% confidence).", verdict, confidence * 100.0)
+            let verdict = result
+                .get("verdict")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown");
+            let confidence = result
+                .get("confidence")
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0);
+            format!(
+                "verdict: {} ({:.0}% confidence).",
+                verdict,
+                confidence * 100.0
+            )
         }
         "m1nd.ingest" => {
-            let nodes = result.get("node_count").and_then(|v| v.as_u64()).unwrap_or(0);
-            let edges = result.get("edge_count").and_then(|v| v.as_u64()).unwrap_or(0);
+            let nodes = result
+                .get("node_count")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
+            let edges = result
+                .get("edge_count")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
             format!("ingested: {} nodes, {} edges. graph ready.", nodes, edges)
         }
         _ => String::new(),
@@ -251,8 +293,16 @@ pub fn tool_docs() -> Vec<ToolDoc> {
                 ("query", "Search query for spreading activation", true),
                 ("agent_id", "Calling agent identifier", true),
                 ("top_k", "Number of top results (default: 20)", false),
-                ("dimensions", "Activation dimensions (structural, semantic, temporal, causal)", false),
-                ("xlr", "Enable XLR noise cancellation (default: true)", false),
+                (
+                    "dimensions",
+                    "Activation dimensions (structural, semantic, temporal, causal)",
+                    false,
+                ),
+                (
+                    "xlr",
+                    "Enable XLR noise cancellation (default: true)",
+                    false,
+                ),
             ],
             returns: "Ranked list of activated nodes with scores, dimensions, ghost edges",
             example: r#"{"query": "rate limiting", "agent_id": "jimi", "top_k": 10}"#,
@@ -266,7 +316,11 @@ pub fn tool_docs() -> Vec<ToolDoc> {
             params: &[
                 ("node_id", "Target node identifier", true),
                 ("agent_id", "Calling agent identifier", true),
-                ("direction", "forward | reverse | both (default: forward)", false),
+                (
+                    "direction",
+                    "forward | reverse | both (default: forward)",
+                    false,
+                ),
             ],
             returns: "Blast radius, depth distribution, causal chains",
             example: r#"{"node_id": "file::backend/chat_handler.py", "agent_id": "jimi"}"#,
@@ -348,7 +402,11 @@ pub fn tool_docs() -> Vec<ToolDoc> {
             params: &[
                 ("agent_id", "Calling agent identifier", true),
                 ("target_node", "Node to find equivalents for", false),
-                ("similarity_threshold", "Cosine similarity threshold (default: 0.85)", false),
+                (
+                    "similarity_threshold",
+                    "Cosine similarity threshold (default: 0.85)",
+                    false,
+                ),
             ],
             returns: "Equivalent node pairs with similarity scores",
             example: r#"{"target_node": "file::utils.py", "agent_id": "jimi"}"#,
@@ -361,7 +419,11 @@ pub fn tool_docs() -> Vec<ToolDoc> {
             one_liner: "Weight drift since last session -- what changed in the graph?",
             params: &[
                 ("agent_id", "Calling agent identifier", true),
-                ("since", "Baseline: last_session (default) or ISO date", false),
+                (
+                    "since",
+                    "Baseline: last_session (default) or ISO date",
+                    false,
+                ),
             ],
             returns: "Edge weight changes, node additions/removals",
             example: r#"{"agent_id": "jimi"}"#,
@@ -416,9 +478,7 @@ pub fn tool_docs() -> Vec<ToolDoc> {
             category: "Foundation",
             glyph: GLYPH_DIMENSION,
             one_liner: "Server health -- graph size, uptime, sessions",
-            params: &[
-                ("agent_id", "Calling agent identifier", true),
-            ],
+            params: &[("agent_id", "Calling agent identifier", true)],
             returns: "Status, node/edge counts, uptime, active sessions",
             example: r#"{"agent_id": "jimi"}"#,
             next: &["ingest", "drift"],
@@ -445,7 +505,11 @@ pub fn tool_docs() -> Vec<ToolDoc> {
             glyph: GLYPH_STRUCTURE,
             one_liner: "Pattern-based structural analysis with graph validation",
             params: &[
-                ("pattern", "Pattern ID (error_handling, concurrency, auth_boundary, etc.)", true),
+                (
+                    "pattern",
+                    "Pattern ID (error_handling, concurrency, auth_boundary, etc.)",
+                    true,
+                ),
                 ("agent_id", "Calling agent identifier", true),
                 ("scope", "File path prefix", false),
             ],
@@ -461,11 +525,23 @@ pub fn tool_docs() -> Vec<ToolDoc> {
             params: &[
                 ("query", "Search term or regex pattern", true),
                 ("agent_id", "Calling agent identifier", true),
-                ("mode", "literal | regex | semantic (default: literal)", false),
+                (
+                    "mode",
+                    "literal | regex | semantic (default: literal)",
+                    false,
+                ),
                 ("scope", "File path prefix filter", false),
                 ("top_k", "Max results (default: 50, max: 500)", false),
-                ("context_lines", "Lines of context (default: 2, max: 10)", false),
-                ("case_sensitive", "Case-sensitive matching (default: false)", false),
+                (
+                    "context_lines",
+                    "Lines of context (default: 2, max: 10)",
+                    false,
+                ),
+                (
+                    "case_sensitive",
+                    "Case-sensitive matching (default: false)",
+                    false,
+                ),
             ],
             returns: "File matches with context lines and graph node cross-references",
             example: r#"{"query": "ANTHROPIC_API_KEY", "agent_id": "jimi", "mode": "literal"}"#,
@@ -544,9 +620,7 @@ pub fn tool_docs() -> Vec<ToolDoc> {
             category: "Superpowers",
             glyph: GLYPH_STRUCTURE,
             one_liner: "Immune system -- scan for known bug patterns",
-            params: &[
-                ("agent_id", "Calling agent identifier", true),
-            ],
+            params: &[("agent_id", "Calling agent identifier", true)],
             returns: "Antibody matches with severity and affected nodes",
             example: r#"{"agent_id": "jimi"}"#,
             next: &["antibody.create", "panoramic"],
@@ -712,9 +786,7 @@ pub fn tool_docs() -> Vec<ToolDoc> {
             category: "Efficiency",
             glyph: GLYPH_DIMENSION,
             one_liner: "Token economy -- how much m1nd saved vs grep/Read",
-            params: &[
-                ("agent_id", "Calling agent identifier", true),
-            ],
+            params: &[("agent_id", "Calling agent identifier", true)],
             returns: "Session + global token/cost savings",
             example: r#"{"agent_id": "jimi"}"#,
             next: &["report", "help"],
@@ -724,9 +796,7 @@ pub fn tool_docs() -> Vec<ToolDoc> {
             category: "Report",
             glyph: GLYPH_DIMENSION,
             one_liner: "Session intelligence report -- queries, savings, graph evolution",
-            params: &[
-                ("agent_id", "Calling agent identifier", true),
-            ],
+            params: &[("agent_id", "Calling agent identifier", true)],
             returns: "Markdown report with query log, savings, graph evolution",
             example: r#"{"agent_id": "jimi"}"#,
             next: &["savings", "trail.save"],
@@ -738,7 +808,11 @@ pub fn tool_docs() -> Vec<ToolDoc> {
             one_liner: "Self-documenting tool reference with visual identity",
             params: &[
                 ("agent_id", "Calling agent identifier", true),
-                ("tool_name", "Specific tool name (omit for full index)", false),
+                (
+                    "tool_name",
+                    "Specific tool name (omit for full index)",
+                    false,
+                ),
             ],
             returns: "Formatted help text with params, examples, and NEXT suggestions",
             example: r#"{"agent_id": "jimi", "tool_name": "activate"}"#,
@@ -755,10 +829,20 @@ pub fn format_help_index() -> String {
 
     out.push_str(&gradient_top_border(width));
     out.push('\n');
-    out.push_str(&format!("{}{}  m1nd  {}-- neuro-symbolic code graph engine{}\n",
-        ANSI_BOLD, ANSI_CYAN, ANSI_DIM, ANSI_RESET));
-    out.push_str(&format!("{}  {} SIGNAL  {} PATH  {} STRUCTURE  {} DIMENSION  {} CONNECTION{}\n",
-        ANSI_DIM, GLYPH_SIGNAL, GLYPH_PATH, GLYPH_STRUCTURE, GLYPH_DIMENSION, GLYPH_CONNECTION, ANSI_RESET));
+    out.push_str(&format!(
+        "{}{}  m1nd  {}-- neuro-symbolic code graph engine{}\n",
+        ANSI_BOLD, ANSI_CYAN, ANSI_DIM, ANSI_RESET
+    ));
+    out.push_str(&format!(
+        "{}  {} SIGNAL  {} PATH  {} STRUCTURE  {} DIMENSION  {} CONNECTION{}\n",
+        ANSI_DIM,
+        GLYPH_SIGNAL,
+        GLYPH_PATH,
+        GLYPH_STRUCTURE,
+        GLYPH_DIMENSION,
+        GLYPH_CONNECTION,
+        ANSI_RESET
+    ));
     out.push_str(&gradient_bottom_border(width));
     out.push('\n');
     out.push('\n');
@@ -777,40 +861,72 @@ pub fn format_help_index() -> String {
 
     for (cat_name, glyph, color) in &categories {
         let cat_tools: Vec<&ToolDoc> = docs.iter().filter(|d| d.category == *cat_name).collect();
-        if cat_tools.is_empty() { continue; }
+        if cat_tools.is_empty() {
+            continue;
+        }
 
-        out.push_str(&format!("{}{} {} ({}):{}\n", color, glyph, cat_name, cat_tools.len(), ANSI_RESET));
+        out.push_str(&format!(
+            "{}{} {} ({}):{}\n",
+            color,
+            glyph,
+            cat_name,
+            cat_tools.len(),
+            ANSI_RESET
+        ));
         for doc in cat_tools {
             let short_name = doc.name.strip_prefix("m1nd.").unwrap_or(doc.name);
-            out.push_str(&format!("  {}{}  {}{}{}\n",
-                ANSI_BOLD, short_name, ANSI_DIM, doc.one_liner, ANSI_RESET));
+            out.push_str(&format!(
+                "  {}{}  {}{}{}\n",
+                ANSI_BOLD, short_name, ANSI_DIM, doc.one_liner, ANSI_RESET
+            ));
         }
         out.push('\n');
     }
 
     // Perspective tools (not in tool_docs, but referenced)
-    out.push_str(&format!("{}{} Perspective (12):{}\n", ANSI_MAGENTA, GLYPH_PATH, ANSI_RESET));
-    for name in &["start", "routes", "inspect", "peek", "follow", "suggest", "affinity", "branch", "back", "compare", "list", "close"] {
-        out.push_str(&format!("  {}perspective.{}  {}stateful graph navigation{}\n",
-            ANSI_BOLD, name, ANSI_DIM, ANSI_RESET));
+    out.push_str(&format!(
+        "{}{} Perspective (12):{}\n",
+        ANSI_MAGENTA, GLYPH_PATH, ANSI_RESET
+    ));
+    for name in &[
+        "start", "routes", "inspect", "peek", "follow", "suggest", "affinity", "branch", "back",
+        "compare", "list", "close",
+    ] {
+        out.push_str(&format!(
+            "  {}perspective.{}  {}stateful graph navigation{}\n",
+            ANSI_BOLD, name, ANSI_DIM, ANSI_RESET
+        ));
     }
     out.push('\n');
 
-    out.push_str(&format!("{}{} Lock (5):{}\n", ANSI_BLUE, GLYPH_CONNECTION, ANSI_RESET));
+    out.push_str(&format!(
+        "{}{} Lock (5):{}\n",
+        ANSI_BLUE, GLYPH_CONNECTION, ANSI_RESET
+    ));
     for name in &["create", "watch", "diff", "rebase", "release"] {
-        out.push_str(&format!("  {}lock.{}  {}concurrent access coordination{}\n",
-            ANSI_BOLD, name, ANSI_DIM, ANSI_RESET));
+        out.push_str(&format!(
+            "  {}lock.{}  {}concurrent access coordination{}\n",
+            ANSI_BOLD, name, ANSI_DIM, ANSI_RESET
+        ));
     }
     out.push('\n');
 
-    out.push_str(&format!("{}{} Trail (4):{}\n", ANSI_GOLD, GLYPH_PATH, ANSI_RESET));
+    out.push_str(&format!(
+        "{}{} Trail (4):{}\n",
+        ANSI_GOLD, GLYPH_PATH, ANSI_RESET
+    ));
     for name in &["save", "resume", "merge", "list"] {
-        out.push_str(&format!("  {}trail.{}  {}investigation memory{}\n",
-            ANSI_BOLD, name, ANSI_DIM, ANSI_RESET));
+        out.push_str(&format!(
+            "  {}trail.{}  {}investigation memory{}\n",
+            ANSI_BOLD, name, ANSI_DIM, ANSI_RESET
+        ));
     }
     out.push('\n');
 
-    out.push_str(&format!("{}use help(tool_name=\"activate\") for detailed help on any tool{}\n", ANSI_DIM, ANSI_RESET));
+    out.push_str(&format!(
+        "{}use help(tool_name=\"activate\") for detailed help on any tool{}\n",
+        ANSI_DIM, ANSI_RESET
+    ));
     out
 }
 
@@ -823,21 +939,34 @@ pub fn format_tool_help(doc: &ToolDoc) -> String {
     out.push('\n');
 
     let short_name = doc.name.strip_prefix("m1nd.").unwrap_or(doc.name);
-    out.push_str(&format!("{}{} {}  {}  m1nd.{}{}\n",
-        ANSI_CYAN, doc.glyph, doc.category.to_uppercase(), ANSI_BOLD, short_name, ANSI_RESET));
+    out.push_str(&format!(
+        "{}{} {}  {}  m1nd.{}{}\n",
+        ANSI_CYAN,
+        doc.glyph,
+        doc.category.to_uppercase(),
+        ANSI_BOLD,
+        short_name,
+        ANSI_RESET
+    ));
     out.push_str(&format!("{}{}{}\n\n", ANSI_DIM, doc.one_liner, ANSI_RESET));
 
     // Params section
     out.push_str(&format!("{}\u{2338} PARAMS{}\n", ANSI_GOLD, ANSI_RESET)); // ⌸
     for (i, (name, desc, required)) in doc.params.iter().enumerate() {
-        let connector = if i == doc.params.len() - 1 { "\u{2514}\u{2500}" } else { "\u{251C}\u{2500}" };
+        let connector = if i == doc.params.len() - 1 {
+            "\u{2514}\u{2500}"
+        } else {
+            "\u{251C}\u{2500}"
+        };
         let req_mark = if *required {
             format!("{}*{}", ANSI_RED, ANSI_RESET)
         } else {
             String::new()
         };
-        out.push_str(&format!("  {} {}{}{} {}{}{}\n",
-            connector, ANSI_BOLD, name, req_mark, ANSI_DIM, desc, ANSI_RESET));
+        out.push_str(&format!(
+            "  {} {}{}{} {}{}{}\n",
+            connector, ANSI_BOLD, name, req_mark, ANSI_DIM, desc, ANSI_RESET
+        ));
     }
     out.push('\n');
 
@@ -852,7 +981,10 @@ pub fn format_tool_help(doc: &ToolDoc) -> String {
     // Next section
     out.push_str(&format!("{}\u{2350} NEXT{}\n", ANSI_CYAN, ANSI_RESET)); // ⍐
     for next in doc.next {
-        out.push_str(&format!("  {} {}{}{}\n", ANSI_CYAN, ANSI_BOLD, next, ANSI_RESET));
+        out.push_str(&format!(
+            "  {} {}{}{}\n",
+            ANSI_CYAN, ANSI_BOLD, next, ANSI_RESET
+        ));
     }
     out.push('\n');
 
@@ -869,23 +1001,64 @@ pub fn format_about() -> String {
     out.push_str(&gradient_top_border(width));
     out.push('\n');
     out.push_str(&format!("{}{}  m1nd{}\n", ANSI_BOLD, ANSI_CYAN, ANSI_RESET));
-    out.push_str(&format!("{}  neuro-symbolic code graph engine{}\n\n", ANSI_DIM, ANSI_RESET));
+    out.push_str(&format!(
+        "{}  neuro-symbolic code graph engine{}\n\n",
+        ANSI_DIM, ANSI_RESET
+    ));
 
-    out.push_str(&format!("{}  created by Max Kleinschmidt{}\n", ANSI_GREEN, ANSI_RESET));
-    out.push_str(&format!("{}  cosmophonix / ROOMANIZER OS{}\n\n", ANSI_DIM, ANSI_RESET));
+    out.push_str(&format!(
+        "{}  created by Max Kleinschmidt{}\n",
+        ANSI_GREEN, ANSI_RESET
+    ));
+    out.push_str(&format!(
+        "{}  cosmophonix / ROOMANIZER OS{}\n\n",
+        ANSI_DIM, ANSI_RESET
+    ));
 
-    out.push_str(&format!("{}  4 letters = 4 dimensions:{}\n", ANSI_BOLD, ANSI_RESET));
-    out.push_str(&format!("  {}M{} = {}STRUCTURAL{} (who calls who)\n", ANSI_BLUE, ANSI_RESET, ANSI_DIM, ANSI_RESET));
-    out.push_str(&format!("  {}1{} = {}TEMPORAL{} (what changed together)\n", ANSI_GOLD, ANSI_RESET, ANSI_DIM, ANSI_RESET));
-    out.push_str(&format!("  {}N{} = {}CAUSAL{} (what broke when this changed)\n", ANSI_MAGENTA, ANSI_RESET, ANSI_DIM, ANSI_RESET));
-    out.push_str(&format!("  {}D{} = {}SEMANTIC{} (naming patterns)\n\n", ANSI_BLUE, ANSI_RESET, ANSI_DIM, ANSI_RESET));
+    out.push_str(&format!(
+        "{}  4 letters = 4 dimensions:{}\n",
+        ANSI_BOLD, ANSI_RESET
+    ));
+    out.push_str(&format!(
+        "  {}M{} = {}STRUCTURAL{} (who calls who)\n",
+        ANSI_BLUE, ANSI_RESET, ANSI_DIM, ANSI_RESET
+    ));
+    out.push_str(&format!(
+        "  {}1{} = {}TEMPORAL{} (what changed together)\n",
+        ANSI_GOLD, ANSI_RESET, ANSI_DIM, ANSI_RESET
+    ));
+    out.push_str(&format!(
+        "  {}N{} = {}CAUSAL{} (what broke when this changed)\n",
+        ANSI_MAGENTA, ANSI_RESET, ANSI_DIM, ANSI_RESET
+    ));
+    out.push_str(&format!(
+        "  {}D{} = {}SEMANTIC{} (naming patterns)\n\n",
+        ANSI_BLUE, ANSI_RESET, ANSI_DIM, ANSI_RESET
+    ));
 
-    out.push_str(&format!("{}  12 disciplines from neuroscience to epidemiology.{}\n", ANSI_DIM, ANSI_RESET));
-    out.push_str(&format!("{}  zero tokens burned. zero API cost. all local Rust.{}\n", ANSI_DIM, ANSI_RESET));
-    out.push_str(&format!("{}  every query makes the graph smarter.{}\n\n", ANSI_DIM, ANSI_RESET));
+    out.push_str(&format!(
+        "{}  12 disciplines from neuroscience to epidemiology.{}\n",
+        ANSI_DIM, ANSI_RESET
+    ));
+    out.push_str(&format!(
+        "{}  zero tokens burned. zero API cost. all local Rust.{}\n",
+        ANSI_DIM, ANSI_RESET
+    ));
+    out.push_str(&format!(
+        "{}  every query makes the graph smarter.{}\n\n",
+        ANSI_DIM, ANSI_RESET
+    ));
 
-    out.push_str(&format!("{}  {} SIGNAL  {} PATH  {} STRUCTURE  {} DIMENSION  {} CONNECTION{}\n",
-        ANSI_DIM, GLYPH_SIGNAL, GLYPH_PATH, GLYPH_STRUCTURE, GLYPH_DIMENSION, GLYPH_CONNECTION, ANSI_RESET));
+    out.push_str(&format!(
+        "{}  {} SIGNAL  {} PATH  {} STRUCTURE  {} DIMENSION  {} CONNECTION{}\n",
+        ANSI_DIM,
+        GLYPH_SIGNAL,
+        GLYPH_PATH,
+        GLYPH_STRUCTURE,
+        GLYPH_DIMENSION,
+        GLYPH_CONNECTION,
+        ANSI_RESET
+    ));
 
     out.push_str(&gradient_bottom_border(width));
     out.push('\n');
@@ -898,7 +1071,8 @@ pub fn find_similar_tools(query: &str) -> Vec<String> {
     let query_lower = query.to_lowercase();
     let query_lower = query_lower.strip_prefix("m1nd.").unwrap_or(&query_lower);
 
-    let mut matches: Vec<(&str, usize)> = docs.iter()
+    let mut matches: Vec<(&str, usize)> = docs
+        .iter()
         .map(|d| {
             let name = d.name.strip_prefix("m1nd.").unwrap_or(d.name);
             let dist = levenshtein_distance(&query_lower, &name.to_lowercase());
@@ -908,7 +1082,11 @@ pub fn find_similar_tools(query: &str) -> Vec<String> {
         .collect();
 
     matches.sort_by_key(|(_, dist)| *dist);
-    matches.into_iter().take(3).map(|(name, _)| name.to_string()).collect()
+    matches
+        .into_iter()
+        .take(3)
+        .map(|(name, _)| name.to_string())
+        .collect()
 }
 
 fn levenshtein_distance(a: &str, b: &str) -> usize {
@@ -918,12 +1096,20 @@ fn levenshtein_distance(a: &str, b: &str) -> usize {
     let b_len = b_bytes.len();
     let mut dp = vec![vec![0usize; b_len + 1]; a_len + 1];
 
-    for i in 0..=a_len { dp[i][0] = i; }
-    for j in 0..=b_len { dp[0][j] = j; }
+    for i in 0..=a_len {
+        dp[i][0] = i;
+    }
+    for j in 0..=b_len {
+        dp[0][j] = j;
+    }
 
     for i in 1..=a_len {
         for j in 1..=b_len {
-            let cost = if a_bytes[i - 1] == b_bytes[j - 1] { 0 } else { 1 };
+            let cost = if a_bytes[i - 1] == b_bytes[j - 1] {
+                0
+            } else {
+                1
+            };
             dp[i][j] = (dp[i - 1][j] + 1)
                 .min(dp[i][j - 1] + 1)
                 .min(dp[i - 1][j - 1] + cost);

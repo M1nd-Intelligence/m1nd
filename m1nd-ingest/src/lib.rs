@@ -75,7 +75,9 @@ impl Default for IngestConfig {
                 "Cargo.lock".into(),
                 "poetry.lock".into(),
             ],
-            parallelism: 8,
+            parallelism: std::thread::available_parallelism()
+                .map(|p| p.get().min(16))
+                .unwrap_or(8),
         }
     }
 }
@@ -170,7 +172,9 @@ impl Ingestor {
             #[cfg(feature = "tier1")]
             "r" | "R" | "Rmd" => Box::new(extract::tree_sitter_ext::r_extractor()),
             #[cfg(feature = "tier1")]
-            "html" | "htm" => Box::new(extract::tree_sitter_ext::html_extractor()),
+            "html" | "htm" => {
+                Box::new(extract::tree_sitter_ext::EmbeddedExtractor::html_embedded())
+            }
             #[cfg(feature = "tier1")]
             "css" => Box::new(extract::tree_sitter_ext::css_extractor()),
             #[cfg(feature = "tier1")]
@@ -216,20 +220,32 @@ impl Ingestor {
         // Phase 2: Extract from each file (parallel via rayon)
         use rayon::prelude::*;
 
+        // Use config.parallelism — ThreadPoolBuilder ensures we don't oversubscribe.
+        let num_threads = self.config.parallelism.max(1).min(64);
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(num_threads)
+            .build()
+            .map_err(|e| M1ndError::InvalidParams {
+                tool: "ingest".into(),
+                detail: format!("thread pool: {}", e),
+            })?;
+
         // Parallel extraction phase: read files and run extractors concurrently.
         // Graph building must remain single-threaded, so we collect results first.
-        let extraction_results: Vec<(String, extract::ExtractionResult)> = walk_result
-            .files
-            .par_iter()
-            .filter_map(|file| {
-                let ext = file.extension.as_deref().unwrap_or("");
-                let extractor = Self::select_extractor(ext);
-                let content = std::fs::read(&file.path).ok()?;
-                let file_id = format!("file::{}", file.relative_path);
-                let result = extractor.extract(&content, &file_id).ok()?;
-                Some((file_id, result))
-            })
-            .collect();
+        let extraction_results: Vec<(String, extract::ExtractionResult)> = pool.install(|| {
+            walk_result
+                .files
+                .par_iter()
+                .filter_map(|file| {
+                    let ext = file.extension.as_deref().unwrap_or("");
+                    let extractor = Self::select_extractor(ext);
+                    let content = std::fs::read(&file.path).ok()?;
+                    let file_id = format!("file::{}", file.relative_path);
+                    let result = extractor.extract(&content, &file_id).ok()?;
+                    Some((file_id, result))
+                })
+                .collect()
+        });
 
         // Sequential post-processing of parallel results
         let mut all_nodes = Vec::new();

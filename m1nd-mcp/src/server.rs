@@ -1,16 +1,16 @@
 // === crates/m1nd-mcp/src/server.rs ===
 
+use crate::layer_handlers;
+use crate::personality;
+use crate::protocol::layers;
+use crate::protocol::*;
+use crate::report_handlers;
+use crate::search_handlers;
+use crate::session::SessionState;
+use crate::surgical_handlers;
+use crate::tools;
 use m1nd_core::domain::DomainConfig;
 use m1nd_core::error::{M1ndError, M1ndResult};
-use crate::session::SessionState;
-use crate::protocol::*;
-use crate::protocol::layers;
-use crate::tools;
-use crate::layer_handlers;
-use crate::surgical_handlers;
-use crate::search_handlers;
-use crate::report_handlers;
-use crate::personality;
 use std::io::{BufRead, Read, Write};
 use std::path::PathBuf;
 
@@ -123,9 +123,8 @@ fn read_request_payload<R: BufRead>(
             })?;
             let mut body = vec![0_u8; length];
             reader.read_exact(&mut body)?;
-            let payload = String::from_utf8(body).map_err(|err| {
-                std::io::Error::new(std::io::ErrorKind::InvalidData, err)
-            })?;
+            let payload = String::from_utf8(body)
+                .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))?;
             return Ok(Some((payload, TransportMode::Framed)));
         }
 
@@ -150,7 +149,12 @@ fn write_response<W: Write>(
     let json = serde_json::to_string(response).unwrap_or_default();
     match mode {
         TransportMode::Framed => {
-            write!(writer, "Content-Length: {}\r\n\r\n{}", json.as_bytes().len(), json)?;
+            write!(
+                writer,
+                "Content-Length: {}\r\n\r\n{}",
+                json.as_bytes().len(),
+                json
+            )?;
         }
         TransportMode::Line => {
             writeln!(writer, "{}", json)?;
@@ -1239,42 +1243,55 @@ pub fn dispatch_tool(
     let start = std::time::Instant::now();
 
     // Extract agent_id for tracking
-    let agent_id = params.get("agent_id")
+    let agent_id = params
+        .get("agent_id")
         .and_then(|v| v.as_str())
         .unwrap_or("unknown")
         .to_string();
-    let query_preview = params.get("query")
+    let query_preview = params
+        .get("query")
         .and_then(|v| v.as_str())
-        .unwrap_or_else(|| params.get("claim").and_then(|v| v.as_str())
-            .unwrap_or_else(|| params.get("node_id").and_then(|v| v.as_str())
-                .unwrap_or("")))
+        .unwrap_or_else(|| {
+            params
+                .get("claim")
+                .and_then(|v| v.as_str())
+                .unwrap_or_else(|| params.get("node_id").and_then(|v| v.as_str()).unwrap_or(""))
+        })
         .to_string();
 
     let result = match normalized.as_str() {
         name if name.starts_with("m1nd.perspective.") => {
             dispatch_perspective_tool(state, name, params)
         }
-        name if name.starts_with("m1nd.lock.") => {
-            dispatch_lock_tool(state, name, params)
-        }
+        name if name.starts_with("m1nd.lock.") => dispatch_lock_tool(state, name, params),
         _ => dispatch_core_tool(state, &normalized, params),
     };
 
     // Post-dispatch: track savings + log query + add _m1nd metadata
     if let Ok(ref value) = result {
         let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
-        let result_count = value.get("results")
+        let result_count = value
+            .get("results")
             .and_then(|v| v.as_array())
             .map_or(0, |a| a.len());
 
         // Track savings (skip meta tools)
-        if !matches!(normalized.as_str(), "m1nd.health" | "m1nd.help" | "m1nd.savings" | "m1nd.report") {
+        if !matches!(
+            normalized.as_str(),
+            "m1nd.health" | "m1nd.help" | "m1nd.savings" | "m1nd.report"
+        ) {
             state.savings_tracker.record(&normalized, result_count);
             state.global_savings.total_queries += 1;
         }
 
         // Log query
-        state.log_query(&normalized, &agent_id, elapsed_ms, result_count, &query_preview);
+        state.log_query(
+            &normalized,
+            &agent_id,
+            elapsed_ms,
+            result_count,
+            &query_preview,
+        );
     }
 
     result
@@ -1288,227 +1305,227 @@ fn dispatch_core_tool(
 ) -> M1ndResult<serde_json::Value> {
     match tool_name {
         "m1nd.activate" => {
-            let input: ActivateInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: ActivateInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = tools::handle_activate(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.impact" => {
-            let input: ImpactInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: ImpactInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = tools::handle_impact(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.missing" => {
-            let input: MissingInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: MissingInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_missing(state, input)
         }
         "m1nd.why" => {
-            let input: WhyInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: WhyInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_why(state, input)
         }
         "m1nd.warmup" => {
-            let input: WarmupInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: WarmupInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_warmup(state, input)
         }
         "m1nd.counterfactual" => {
-            let input: CounterfactualInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: CounterfactualInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_counterfactual(state, input)
         }
         "m1nd.predict" => {
-            let input: PredictInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: PredictInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_predict(state, input)
         }
         "m1nd.fingerprint" => {
-            let input: FingerprintInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: FingerprintInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_fingerprint(state, input)
         }
         "m1nd.drift" => {
-            let input: DriftInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: DriftInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_drift(state, input)
         }
         "m1nd.learn" => {
-            let input: LearnInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: LearnInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_learn(state, input)
         }
         "m1nd.ingest" => {
-            let input: IngestInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: IngestInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_ingest(state, input)
         }
         "m1nd.resonate" => {
-            let input: ResonateInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: ResonateInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_resonate(state, input)
         }
         "m1nd.health" => {
-            let input: HealthInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: HealthInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = tools::handle_health(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         // L2-L7: Superpowers layer tools
         "m1nd.seek" => {
-            let input: layers::SeekInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::SeekInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_seek(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.scan" => {
-            let input: layers::ScanInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::ScanInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_scan(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.timeline" => {
-            let input: layers::TimelineInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::TimelineInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_timeline(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.diverge" => {
-            let input: layers::DivergeInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::DivergeInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_diverge(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.trail.save" => {
-            let input: layers::TrailSaveInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::TrailSaveInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_trail_save(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.trail.resume" => {
-            let input: layers::TrailResumeInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::TrailResumeInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_trail_resume(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.trail.merge" => {
-            let input: layers::TrailMergeInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::TrailMergeInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_trail_merge(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.trail.list" => {
-            let input: layers::TrailListInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::TrailListInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_trail_list(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.hypothesize" => {
-            let input: layers::HypothesizeInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::HypothesizeInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_hypothesize(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.differential" => {
-            let input: layers::DifferentialInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::DifferentialInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_differential(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.trace" => {
-            let input: layers::TraceInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::TraceInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_trace(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.validate.plan" => {
-            let input: layers::ValidatePlanInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::ValidatePlanInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_validate_plan(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.federate" => {
-            let input: layers::FederateInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::FederateInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_federate(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.antibody.scan" => {
-            let input: layers::AntibodyScanInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::AntibodyScanInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_antibody_scan(state, input)
         }
         "m1nd.antibody.list" => {
-            let input: layers::AntibodyListInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::AntibodyListInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_antibody_list(state, input)
         }
         "m1nd.antibody.create" => {
-            let input: layers::AntibodyCreateInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::AntibodyCreateInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_antibody_create(state, input)
         }
         "m1nd.flow.simulate" => {
-            let input: layers::FlowSimulateInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::FlowSimulateInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_flow_simulate(state, input)
         }
         "m1nd.epidemic" => {
-            let input: layers::EpidemicInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::EpidemicInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_epidemic(state, input)
         }
         "m1nd.tremor" => {
-            let input: layers::TremorInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::TremorInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_tremor(state, input)
         }
         "m1nd.trust" => {
-            let input: layers::TrustInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::TrustInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_trust(state, input)
         }
         "m1nd.layers" => {
-            let input: layers::LayersInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::LayersInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_layers(state, input)
         }
         "m1nd.layer.inspect" => {
-            let input: layers::LayerInspectInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::LayerInspectInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_layer_inspect(state, input)
         }
         // -----------------------------------------------------------------
         // v0.4.0: search, help, panoramic, savings, report
         // -----------------------------------------------------------------
         "m1nd.search" => {
-            let input: layers::SearchInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::SearchInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = search_handlers::handle_search(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.help" => {
-            let input: layers::HelpInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::HelpInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = search_handlers::handle_help(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.report" => {
-            let input: layers::ReportInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::ReportInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = report_handlers::handle_report(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.panoramic" => {
-            let input: layers::PanoramicInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::PanoramicInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = report_handlers::handle_panoramic(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd.savings" => {
-            let input: layers::SavingsInput = serde_json::from_value(params.clone())
-                .map_err(M1ndError::Serde)?;
+            let input: layers::SavingsInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = report_handlers::handle_savings(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
@@ -1554,7 +1571,9 @@ fn dispatch_core_tool(
             let output = surgical_handlers::handle_apply_batch(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        _ => Err(M1ndError::UnknownTool { name: tool_name.to_string() }),
+        _ => Err(M1ndError::UnknownTool {
+            name: tool_name.to_string(),
+        }),
     }
 }
 
@@ -1564,107 +1583,109 @@ fn dispatch_perspective_tool(
     tool_name: &str,
     params: &serde_json::Value,
 ) -> M1ndResult<serde_json::Value> {
-    use crate::protocol::perspective::*;
     use crate::perspective_handlers;
+    use crate::protocol::perspective::*;
 
     match tool_name {
         "m1nd.perspective.start" => {
-            let input: PerspectiveStartInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectiveStartInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.start".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_start(state, input)
         }
         "m1nd.perspective.routes" => {
-            let input: PerspectiveRoutesInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectiveRoutesInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.routes".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_routes(state, input)
         }
         "m1nd.perspective.inspect" => {
-            let input: PerspectiveInspectInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectiveInspectInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.inspect".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_inspect(state, input)
         }
         "m1nd.perspective.peek" => {
-            let input: PerspectivePeekInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectivePeekInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.peek".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_peek(state, input)
         }
         "m1nd.perspective.follow" => {
-            let input: PerspectiveFollowInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectiveFollowInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.follow".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_follow(state, input)
         }
         "m1nd.perspective.suggest" => {
-            let input: PerspectiveSuggestInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectiveSuggestInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.suggest".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_suggest(state, input)
         }
         "m1nd.perspective.affinity" => {
-            let input: PerspectiveAffinityInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectiveAffinityInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.affinity".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_affinity(state, input)
         }
         "m1nd.perspective.branch" => {
-            let input: PerspectiveBranchInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectiveBranchInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.branch".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_branch(state, input)
         }
         "m1nd.perspective.back" => {
-            let input: PerspectiveBackInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectiveBackInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.back".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_back(state, input)
         }
         "m1nd.perspective.compare" => {
-            let input: PerspectiveCompareInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectiveCompareInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.compare".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_compare(state, input)
         }
         "m1nd.perspective.list" => {
-            let input: PerspectiveListInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectiveListInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.list".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_list(state, input)
         }
         "m1nd.perspective.close" => {
-            let input: PerspectiveCloseInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: PerspectiveCloseInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.perspective.close".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_close(state, input)
         }
-        _ => Err(M1ndError::UnknownTool { name: tool_name.to_string() }),
+        _ => Err(M1ndError::UnknownTool {
+            name: tool_name.to_string(),
+        }),
     }
 }
 
@@ -1674,51 +1695,53 @@ fn dispatch_lock_tool(
     tool_name: &str,
     params: &serde_json::Value,
 ) -> M1ndResult<serde_json::Value> {
-    use crate::protocol::lock::*;
     use crate::lock_handlers;
+    use crate::protocol::lock::*;
 
     match tool_name {
         "m1nd.lock.create" => {
-            let input: LockCreateInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: LockCreateInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.lock.create".into(),
                     detail: e.to_string(),
                 })?;
             lock_handlers::handle_lock_create(state, input)
         }
         "m1nd.lock.watch" => {
-            let input: LockWatchInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: LockWatchInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.lock.watch".into(),
                     detail: e.to_string(),
                 })?;
             lock_handlers::handle_lock_watch(state, input)
         }
         "m1nd.lock.diff" => {
-            let input: LockDiffInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: LockDiffInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.lock.diff".into(),
                     detail: e.to_string(),
                 })?;
             lock_handlers::handle_lock_diff(state, input)
         }
         "m1nd.lock.rebase" => {
-            let input: LockRebaseInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: LockRebaseInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.lock.rebase".into(),
                     detail: e.to_string(),
                 })?;
             lock_handlers::handle_lock_rebase(state, input)
         }
         "m1nd.lock.release" => {
-            let input: LockReleaseInput = serde_json::from_value(params.clone())
-                .map_err(|e| M1ndError::InvalidParams {
+            let input: LockReleaseInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
                     tool: "m1nd.lock.release".into(),
                     detail: e.to_string(),
                 })?;
             lock_handlers::handle_lock_release(state, input)
         }
-        _ => Err(M1ndError::UnknownTool { name: tool_name.to_string() }),
+        _ => Err(M1ndError::UnknownTool {
+            name: tool_name.to_string(),
+        }),
     }
 }
 
@@ -1963,11 +1986,13 @@ impl McpServer {
             }
             "tools/call" => {
                 // Extract tool name and arguments from params
-                let tool_name = request.params
+                let tool_name = request
+                    .params
                     .get("name")
                     .and_then(|v| v.as_str())
                     .unwrap_or("");
-                let arguments = request.params
+                let arguments = request
+                    .params
                     .get("arguments")
                     .cloned()
                     .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));

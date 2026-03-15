@@ -197,6 +197,12 @@ impl DecayFactor {
 #[repr(transparent)]
 pub struct NodeId(pub u32);
 
+impl serde::Serialize for NodeId {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_u32(self.0)
+    }
+}
+
 impl NodeId {
     #[inline]
     pub const fn new(v: u32) -> Self {

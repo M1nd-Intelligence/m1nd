@@ -29,6 +29,10 @@ unnecessary_to_owned = "allow"
 map_entry = "allow"
 single_match = "allow"
 manual_saturating_arithmetic = "allow"
+derivable_impls = "allow"
+unnecessary_cast = "allow"
+explicit_auto_deref = "allow"
+duplicated_attributes = "allow"
 
 [workspace.dependencies]
 thiserror = "2"

@@ -976,19 +976,45 @@ pub struct FederateCrossRepoEdge {
 // Default value helpers
 // =========================================================================
 
-fn default_top_k() -> usize { 20 }
-fn default_top_k_10() -> usize { 10 }
-fn default_true() -> bool { true }
-fn default_max_hops() -> u8 { 5 }
-fn default_min_score() -> f32 { 0.1 }
-fn default_severity_min() -> f32 { 0.3 }
-fn default_scan_limit() -> usize { 50 }
-fn default_depth_30d() -> String { "30d".into() }
-fn default_confidence() -> f32 { 0.5 }
-fn default_relevance() -> f32 { 0.5 }
-fn default_path_budget() -> usize { 1000 }
-fn default_window_hours() -> f32 { 24.0 }
-fn default_adapter() -> String { "code".into() }
+fn default_top_k() -> usize {
+    20
+}
+fn default_top_k_10() -> usize {
+    10
+}
+fn default_true() -> bool {
+    true
+}
+fn default_max_hops() -> u8 {
+    5
+}
+fn default_min_score() -> f32 {
+    0.1
+}
+fn default_severity_min() -> f32 {
+    0.3
+}
+fn default_scan_limit() -> usize {
+    50
+}
+fn default_depth_30d() -> String {
+    "30d".into()
+}
+fn default_confidence() -> f32 {
+    0.5
+}
+fn default_relevance() -> f32 {
+    0.5
+}
+fn default_path_budget() -> usize {
+    1000
+}
+fn default_window_hours() -> f32 {
+    24.0
+}
+fn default_adapter() -> String {
+    "code".into()
+}
 
 // =========================================================================
 // Superpowers — Antibody / Flow / Epidemic / Tremor / Trust / Layers
@@ -1020,11 +1046,21 @@ pub struct AntibodyScanInput {
     pub max_matches_per_antibody: usize,
 }
 
-fn default_scope_all() -> String { "all".to_string() }
-fn default_severity_info() -> String { "info".to_string() }
-fn default_similarity_threshold() -> f32 { 0.7 }
-fn default_match_mode() -> String { "substring".to_string() }
-fn default_max_matches_per_antibody() -> usize { 50 }
+fn default_scope_all() -> String {
+    "all".to_string()
+}
+fn default_severity_info() -> String {
+    "info".to_string()
+}
+fn default_similarity_threshold() -> f32 {
+    0.7
+}
+fn default_match_mode() -> String {
+    "substring".to_string()
+}
+fn default_max_matches_per_antibody() -> usize {
+    50
+}
 
 // ---------------------------------------------------------------------------
 // m1nd.antibody_list
@@ -1054,8 +1090,12 @@ pub struct AntibodyCreateInput {
     pub pattern: Option<AntibodyPatternInput>,
 }
 
-fn default_action_create() -> String { "create".to_string() }
-fn default_severity_warning() -> String { "warning".to_string() }
+fn default_action_create() -> String {
+    "create".to_string()
+}
+fn default_severity_warning() -> String {
+    "warning".to_string()
+}
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct AntibodyPatternInput {
@@ -1110,10 +1150,18 @@ pub struct FlowSimulateInput {
     pub scope_filter: Option<String>,
 }
 
-fn default_num_particles() -> u32 { 2 }
-fn default_flow_max_depth() -> u8 { 15 }
-fn default_turbulence_threshold() -> f32 { 0.5 }
-fn default_max_total_steps() -> usize { 50000 }
+fn default_num_particles() -> u32 {
+    2
+}
+fn default_flow_max_depth() -> u8 {
+    15
+}
+fn default_turbulence_threshold() -> f32 {
+    0.5
+}
+fn default_max_total_steps() -> usize {
+    50000
+}
 
 // ---------------------------------------------------------------------------
 // m1nd.epidemic
@@ -1145,9 +1193,15 @@ pub struct EpidemicInput {
     pub min_probability: f32,
 }
 
-fn default_epidemic_iterations() -> u32 { 50 }
-fn default_direction_both() -> String { "both".to_string() }
-fn default_min_probability() -> f32 { 0.001 }
+fn default_epidemic_iterations() -> u32 {
+    50
+}
+fn default_direction_both() -> String {
+    "both".to_string()
+}
+fn default_min_probability() -> f32 {
+    0.001
+}
 
 // ---------------------------------------------------------------------------
 // m1nd.tremor
@@ -1173,10 +1227,18 @@ pub struct TremorInput {
     pub sensitivity: f32,
 }
 
-fn default_tremor_window() -> String { "30d".to_string() }
-fn default_tremor_threshold() -> f32 { 0.1 }
-fn default_min_observations() -> usize { 3 }
-fn default_sensitivity() -> f32 { 1.0 }
+fn default_tremor_window() -> String {
+    "30d".to_string()
+}
+fn default_tremor_threshold() -> f32 {
+    0.1
+}
+fn default_min_observations() -> usize {
+    3
+}
+fn default_sensitivity() -> f32 {
+    1.0
+}
 
 // ---------------------------------------------------------------------------
 // m1nd.trust
@@ -1202,11 +1264,21 @@ pub struct TrustInput {
     pub risk_cap: f32,
 }
 
-fn default_scope_file() -> String { "file".to_string() }
-fn default_min_history() -> u32 { 1 }
-fn default_sort_trust_asc() -> String { "trust_asc".to_string() }
-fn default_decay_half_life_days() -> f32 { 30.0 }
-fn default_risk_cap() -> f32 { 3.0 }
+fn default_scope_file() -> String {
+    "file".to_string()
+}
+fn default_min_history() -> u32 {
+    1
+}
+fn default_sort_trust_asc() -> String {
+    "trust_asc".to_string()
+}
+fn default_decay_half_life_days() -> f32 {
+    30.0
+}
+fn default_risk_cap() -> f32 {
+    3.0
+}
 
 // ---------------------------------------------------------------------------
 // m1nd.layers
@@ -1236,10 +1308,18 @@ pub struct LayersInput {
     pub violation_limit: usize,
 }
 
-fn default_max_layers() -> u8 { 8 }
-fn default_min_nodes_per_layer() -> u32 { 2 }
-fn default_naming_strategy() -> String { "auto".to_string() }
-fn default_violation_limit() -> usize { 100 }
+fn default_max_layers() -> u8 {
+    8
+}
+fn default_min_nodes_per_layer() -> u32 {
+    2
+}
+fn default_naming_strategy() -> String {
+    "auto".to_string()
+}
+fn default_violation_limit() -> usize {
+    100
+}
 
 // ---------------------------------------------------------------------------
 // m1nd.layer_inspect
@@ -1302,8 +1382,12 @@ pub struct SurgicalContextInput {
     pub max_deps: usize,
 }
 
-fn default_surgical_max_lines() -> u32 { 200 }
-fn default_surgical_max_deps() -> usize { 20 }
+fn default_surgical_max_lines() -> u32 {
+    200
+}
+fn default_surgical_max_deps() -> usize {
+    20
+}
 
 /// Output for m1nd.surgical_context.
 #[derive(Clone, Debug, Serialize)]
@@ -1404,7 +1488,9 @@ pub struct ApplyInput {
     pub predict_top_k: usize,
 }
 
-fn default_apply_predict_k() -> usize { 5 }
+fn default_apply_predict_k() -> usize {
+    5
+}
 
 /// Output for m1nd.apply.
 #[derive(Clone, Debug, Serialize)]
@@ -1431,6 +1517,251 @@ pub struct ApplyPrediction {
     /// Co-change likelihood [0.0, 1.0].
     pub likelihood: f32,
     pub reason: String,
+}
+
+// =========================================================================
+// v0.4.0: m1nd.search — Literal/Regex Search
+// =========================================================================
+
+/// Search mode for m1nd.search.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SearchMode {
+    /// Exact substring match on node labels and source content.
+    Literal,
+    /// Regex pattern match on node labels and source content.
+    Regex,
+    /// Semantic trigram TF-IDF search (delegates to seek engine).
+    Semantic,
+}
+
+impl Default for SearchMode {
+    fn default() -> Self {
+        SearchMode::Literal
+    }
+}
+
+/// Input for m1nd.search — unified literal/regex/semantic search.
+#[derive(Clone, Debug, Deserialize)]
+pub struct SearchInput {
+    pub agent_id: String,
+    /// The search term: exact string, regex pattern, or natural language query.
+    pub query: String,
+    /// Search mode. Default: "literal".
+    #[serde(default)]
+    pub mode: SearchMode,
+    /// Namespace / file path prefix to limit search scope. None = entire graph.
+    #[serde(default)]
+    pub scope: Option<String>,
+    /// Maximum results to return. Default: 50.
+    #[serde(default = "default_search_top_k")]
+    pub top_k: u32,
+    /// Case-sensitive matching for literal/regex modes. Default: false.
+    #[serde(default)]
+    pub case_sensitive: bool,
+    /// Include N lines of context around each match. Default: 2.
+    #[serde(default = "default_context_lines")]
+    pub context_lines: u32,
+}
+
+fn default_search_top_k() -> u32 {
+    50
+}
+fn default_context_lines() -> u32 {
+    2
+}
+
+/// Output for m1nd.search.
+#[derive(Clone, Debug, Serialize)]
+pub struct SearchOutput {
+    pub query: String,
+    pub mode: String,
+    pub results: Vec<SearchResultEntry>,
+    pub total_matches: usize,
+    pub scope_applied: bool,
+    pub elapsed_ms: f64,
+}
+
+/// A single search result entry.
+#[derive(Clone, Debug, Serialize)]
+pub struct SearchResultEntry {
+    pub node_id: String,
+    pub label: String,
+    #[serde(rename = "type")]
+    pub node_type: String,
+    pub file_path: String,
+    pub line_number: u32,
+    /// The matched line text.
+    pub matched_line: String,
+    /// Lines before the match (up to context_lines).
+    pub context_before: Vec<String>,
+    /// Lines after the match (up to context_lines).
+    pub context_after: Vec<String>,
+    /// Whether the node_id is linked in the graph.
+    pub graph_linked: bool,
+}
+
+// =========================================================================
+// v0.4.0: m1nd.help — Self-Documenting Tool Help
+// =========================================================================
+
+/// Input for m1nd.help — runtime-discoverable documentation.
+#[derive(Clone, Debug, Deserialize)]
+pub struct HelpInput {
+    pub agent_id: String,
+    /// Tool name to look up (e.g. "activate", "m1nd.activate").
+    /// When None, returns a compact index of all tools.
+    #[serde(default)]
+    pub tool_name: Option<String>,
+}
+
+/// Output for m1nd.help.
+#[derive(Clone, Debug, Serialize)]
+pub struct HelpOutput {
+    /// Formatted string for terminal/chat display.
+    /// Contains ANSI box-drawing, params, examples, and NEXT suggestions.
+    pub formatted: String,
+    /// Tool name that was looked up (None = full index).
+    pub tool: Option<String>,
+    /// Whether the tool was found (false = unknown_tool response with suggestions).
+    pub found: bool,
+    /// Suggested tools when tool was not found.
+    #[serde(default)]
+    pub suggestions: Vec<String>,
+}
+
+// =========================================================================
+// v0.4.0: m1nd.report — Session Report
+// =========================================================================
+
+/// Input for m1nd.report — session usage and savings report.
+#[derive(Clone, Debug, Deserialize)]
+pub struct ReportInput {
+    pub agent_id: String,
+}
+
+/// A query record in the session report.
+#[derive(Clone, Debug, Serialize)]
+pub struct ReportQueryEntry {
+    pub tool: String,
+    pub query: String,
+    pub elapsed_ms: f64,
+    /// Whether m1nd answered this query without grep/glob fallback.
+    pub m1nd_answered: bool,
+}
+
+/// Output for m1nd.report — session statistics and token savings.
+#[derive(Clone, Debug, Serialize)]
+pub struct ReportOutput {
+    pub agent_id: String,
+    pub session_queries: u32,
+    pub session_elapsed_ms: f64,
+    /// Queries answered by m1nd in this session (not fallback to grep/glob).
+    pub queries_answered: u32,
+    /// Estimated tokens saved this session (based on avoided grep/glob ops).
+    pub tokens_saved_session: u64,
+    /// Estimated tokens saved globally (all sessions).
+    pub tokens_saved_global: u64,
+    /// CO2 grams saved (0.0002 g per avoided token).
+    pub co2_saved_grams: f64,
+    /// Recent query log (last 10).
+    pub recent_queries: Vec<ReportQueryEntry>,
+    /// Markdown-formatted summary for display.
+    pub markdown_summary: String,
+}
+
+// =========================================================================
+// v0.4.0: m1nd.panoramic — Module Risk Overview
+// =========================================================================
+
+/// Input for m1nd.panoramic — full module risk panorama.
+#[derive(Clone, Debug, Deserialize)]
+pub struct PanoramicInput {
+    pub agent_id: String,
+    /// Namespace prefix to limit scope. None = entire graph.
+    #[serde(default)]
+    pub scope: Option<String>,
+    /// Maximum modules to return. Default: 50.
+    #[serde(default = "default_panoramic_top")]
+    pub top_n: u32,
+}
+
+fn default_panoramic_top() -> u32 {
+    50
+}
+
+/// A single module entry in the panoramic view.
+#[derive(Clone, Debug, Serialize)]
+pub struct PanoramicModule {
+    pub node_id: String,
+    pub label: String,
+    pub file_path: String,
+    /// Blast radius forward (outbound reachable nodes).
+    pub blast_forward: u32,
+    /// Blast radius backward (inbound callers).
+    pub blast_backward: u32,
+    /// PageRank centrality [0.0, 1.0].
+    pub centrality: f32,
+    /// Combined risk score [0.0, 1.0] — weighted: blast*0.5 + centrality*0.3 + churn*0.2.
+    pub combined_risk: f32,
+    /// Whether this module is flagged as critical (combined_risk >= 0.7).
+    pub is_critical: bool,
+}
+
+/// An alert for high-risk modules.
+#[derive(Clone, Debug, Serialize)]
+pub struct PanoramicAlert {
+    pub node_id: String,
+    pub label: String,
+    pub combined_risk: f32,
+    pub reason: String,
+}
+
+/// Output for m1nd.panoramic.
+#[derive(Clone, Debug, Serialize)]
+pub struct PanoramicOutput {
+    pub modules: Vec<PanoramicModule>,
+    pub total_modules: usize,
+    pub critical_alerts: Vec<PanoramicAlert>,
+    pub scope_applied: bool,
+    pub elapsed_ms: f64,
+}
+
+// =========================================================================
+// v0.4.0: m1nd.savings — Token Economy Report
+// =========================================================================
+
+/// Input for m1nd.savings — token savings and economy summary.
+#[derive(Clone, Debug, Deserialize)]
+pub struct SavingsInput {
+    pub agent_id: String,
+}
+
+/// Per-session savings record.
+#[derive(Clone, Debug, Serialize)]
+pub struct SavingsSessionRecord {
+    pub agent_id: String,
+    pub session_start_ms: u64,
+    pub queries: u32,
+    pub tokens_saved: u64,
+    pub co2_grams: f64,
+}
+
+/// Output for m1nd.savings — cumulative token economy stats.
+#[derive(Clone, Debug, Serialize)]
+pub struct SavingsOutput {
+    /// Tokens saved this session.
+    pub session_tokens_saved: u64,
+    /// Tokens saved globally (all agents, all sessions).
+    pub global_tokens_saved: u64,
+    /// CO2 grams saved globally.
+    pub global_co2_grams: f64,
+    /// Cost saved in USD (based on $0.003/1K tokens saved).
+    pub cost_saved_usd: f64,
+    /// Recent sessions (last 5).
+    pub recent_sessions: Vec<SavingsSessionRecord>,
+    /// Formatted display string.
+    pub formatted_summary: String,
 }
 
 // =========================================================================

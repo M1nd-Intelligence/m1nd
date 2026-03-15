@@ -8,7 +8,7 @@
 
 <p align="center">
   Neuro-symbolische Konnektom-Engine mit Hebbscher Plastizität, Spreading Activation
-  und 56 MCP-Tools. In Rust gebaut für KI-Agenten.<br/>
+  und 61 MCP-Tools. In Rust gebaut für KI-Agenten.<br/>
   <em>(Ein Code-Graph, der bei jeder Abfrage lernt. Stell eine Frage; er wird klüger.)</em>
 </p>
 
@@ -27,7 +27,7 @@
   <a href="#schnellstart">Schnellstart</a> &middot;
   <a href="#nachgewiesene-ergebnisse">Ergebnisse</a> &middot;
   <a href="#warum-nicht-einfach-cursorraggrep-nutzen">Warum m1nd</a> &middot;
-  <a href="#die-56-tools">Tools</a> &middot;
+  <a href="#die-61-tools">Tools</a> &middot;
   <a href="https://github.com/maxkle1nz/m1nd/wiki">Wiki</a> &middot;
   <a href="EXAMPLES.md">Beispiele</a>
 </p>
@@ -171,7 +171,7 @@ Funktioniert mit jedem MCP-Client: Claude Code, Cursor, Windsurf, Zed oder deine
 
 **Der Graph speichert Untersuchungen.** `trail.save` -> `trail.resume` Tage später von exakt derselben kognitiven Position. Zwei Agenten am selben Bug? `trail.merge` -- automatische Konflikterkennung auf geteilten Knoten.
 
-## Die 56 Tools
+## Die 61 Tools
 
 | Kategorie | Anzahl | Highlights |
 |-----------|--------|------------|
@@ -180,7 +180,8 @@ Funktioniert mit jedem MCP-Client: Claude Code, Cursor, Windsurf, Zed oder deine
 | **Lock-System** | 5 | Fixiere Subgraph-Regionen, überwache Änderungen (lock.diff: 0.08&micro;s) |
 | **Superpowers** | 13 | hypothesize, counterfactual, missing, resonate, fingerprint, trace, predict, trails |
 | **Superpowers Extended** | 9 | antibody, flow_simulate, epidemic, tremor, trust, layers |
-| **Chirurgisch** | 2 | surgical_context, apply |
+| **Chirurgisch** | 4 | surgical_context, apply, surgical_context_v2, apply_batch |
+| **Intelligenz** | 5 | search, help, panoramic, savings, report |
 
 <details>
 <summary><strong>Foundation (13 Tools)</strong></summary>
@@ -291,7 +292,7 @@ m1nd-core/     Graph-Engine, Spreading Activation, Hebbsche Plastizität, Hypoth
                Antikörper-System, Flusssimulator, Epidemie, Tremor, Vertrauen, Schicht-Erkennung
 m1nd-ingest/   Sprach-Extraktoren (28 Sprachen), Memory Adapter, JSON Adapter,
                Git-Anreicherung, Cross-File-Resolver, inkrementeller Diff
-m1nd-mcp/      MCP-Server, 56 Tool-Handler, JSON-RPC über stdio, HTTP-Server + GUI
+m1nd-mcp/      MCP-Server, 61 Tool-Handler, JSON-RPC über stdio, HTTP-Server + GUI
 ```
 
 ```mermaid
@@ -311,7 +312,7 @@ graph LR
         SA --> XLR[XLR Rauschunterdrückung]
     end
     subgraph MCP
-        XLR --> T[56 Tools]
+        XLR --> T[61 Tools]
         HP --> T
         HY --> T
         SX --> T

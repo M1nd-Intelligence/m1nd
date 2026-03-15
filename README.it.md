@@ -8,7 +8,7 @@
 
 <p align="center">
   Motore di connettoma neuro-simbolico con plasticità Hebbiana, spreading activation
-  e 56 tool MCP. Costruito in Rust per agenti IA.<br/>
+  e 61 tool MCP. Costruito in Rust per agenti IA.<br/>
   <em>(Un grafo del codice che impara ad ogni query. Fagli una domanda; diventa più intelligente.)</em>
 </p>
 
@@ -27,7 +27,7 @@
   <a href="#avvio-rapido">Avvio Rapido</a> &middot;
   <a href="#risultati-comprovati">Risultati</a> &middot;
   <a href="#perché-non-usare-cursorraggrep">Perché m1nd</a> &middot;
-  <a href="#i-56-tool">Tool</a> &middot;
+  <a href="#i-61-tool">Tool</a> &middot;
   <a href="https://github.com/maxkle1nz/m1nd/wiki">Wiki</a> &middot;
   <a href="EXAMPLES.md">Esempi</a>
 </p>
@@ -171,7 +171,7 @@ Compatibile con qualsiasi client MCP: Claude Code, Cursor, Windsurf, Zed o il tu
 
 **Il grafo salva le indagini.** `trail.save` -> `trail.resume` giorni dopo dalla stessa posizione cognitiva esatta. Due agenti sullo stesso bug? `trail.merge` -- rilevamento automatico dei conflitti sui nodi condivisi.
 
-## I 56 Tool
+## I 61 Tool
 
 | Categoria | Quantità | Punti salienti |
 |-----------|----------|----------------|
@@ -180,7 +180,8 @@ Compatibile con qualsiasi client MCP: Claude Code, Cursor, Windsurf, Zed o il tu
 | **Sistema di Lock** | 5 | Fissa regioni del sottografo, monitora i cambiamenti (lock.diff: 0.08&micro;s) |
 | **Superpoteri** | 13 | hypothesize, counterfactual, missing, resonate, fingerprint, trace, predict, trails |
 | **Superpoteri Estesi** | 9 | antibody, flow_simulate, epidemic, tremor, trust, layers |
-| **Chirurgico** | 2 | surgical_context, apply |
+| **Chirurgico** | 4 | surgical_context, apply, surgical_context_v2, apply_batch |
+| **Intelligenza** | 5 | search, help, panoramic, savings, report |
 
 <details>
 <summary><strong>Foundation (13 tool)</strong></summary>
@@ -291,7 +292,7 @@ m1nd-core/     Motore del grafo, spreading activation, plasticità Hebbiana, mot
                sistema di anticorpi, simulatore di flusso, epidemia, tremor, fiducia, rilevamento layer
 m1nd-ingest/   Estrattori di linguaggio (28 linguaggi), memory adapter, JSON adapter,
                arricchimento git, risolutore cross-file, diff incrementale
-m1nd-mcp/      Server MCP, 56 handler di tool, JSON-RPC su stdio, server HTTP + GUI
+m1nd-mcp/      Server MCP, 61 handler di tool, JSON-RPC su stdio, server HTTP + GUI
 ```
 
 ```mermaid
@@ -311,7 +312,7 @@ graph LR
         SA --> XLR[XLR Cancellazione Rumore]
     end
     subgraph MCP
-        XLR --> T[56 Tool]
+        XLR --> T[61 Tool]
         HP --> T
         HY --> T
         SX --> T

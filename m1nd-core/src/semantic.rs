@@ -122,7 +122,11 @@ impl CharNgramIndex {
     /// Build n-gram frequency vector for a string.
     fn build_ngram_vector(s: &str, ngram_size: usize) -> NgramVector {
         let s = if s.len() > MAX_TOKEN_LENGTH {
-            &s[..MAX_TOKEN_LENGTH]
+            let mut end = MAX_TOKEN_LENGTH;
+            while end > 0 && !s.is_char_boundary(end) {
+                end -= 1;
+            }
+            &s[..end]
         } else {
             s
         };

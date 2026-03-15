@@ -1,6 +1,6 @@
 [package]
 name = "m1nd-ingest"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 description = "Code ingestion engine for m1nd — 28 languages via tree-sitter"
 license = "MIT"
@@ -29,6 +29,7 @@ tier1 = [
     "dep:tree-sitter-html",
     "dep:tree-sitter-css",
     "dep:tree-sitter-json",
+    "dep:tree-sitter-javascript",
 ]
 tier2 = [
     "tier1",
@@ -43,18 +44,18 @@ tier2 = [
 ]
 
 [dependencies]
-m1nd-core = { version = "0.3.0", path = "../m1nd-core" }
+m1nd-core = { version = "0.4.0", path = "../m1nd-core" }
 regex = "1"
 walkdir = "2"
 rayon = "1.10"
 serde_json = { workspace = true }
 
 # Tree-sitter core (0.25 — all grammar crates must use new-API via tree-sitter-language)
-tree-sitter = { version = "0.26", optional = true }
+tree-sitter = { version = "0.25", optional = true }
 tree-sitter-language = { version = "0.1", optional = true }
 
-# Tier 1 grammars (14 languages)
-tree-sitter-c = { version = "0.24", optional = true }
+# Tier 1 grammars (15 languages)
+tree-sitter-c = { version = "0.23", optional = true }
 tree-sitter-cpp = { version = "0.23", optional = true }
 tree-sitter-c-sharp = { version = "0.23", optional = true }
 tree-sitter-ruby = { version = "0.23", optional = true }
@@ -68,6 +69,7 @@ tree-sitter-r = { version = "1.2", optional = true }
 tree-sitter-html = { version = "0.23", optional = true }
 tree-sitter-css = { version = "0.25", optional = true }
 tree-sitter-json = { version = "0.24", optional = true }
+tree-sitter-javascript = { version = "0.25", optional = true }
 
 # Tier 2 grammars (8 languages — new-API crates only, no old tree-sitter deps)
 # IMPORTANT: ALL grammar crates MUST depend on tree-sitter-language, NOT old tree-sitter.
