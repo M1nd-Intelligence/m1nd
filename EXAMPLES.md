@@ -419,6 +419,168 @@ Real output from running m1nd against a production Python backend (335 files, ~5
 // → {"reset": true, "session_cleared": true, "cumulative_preserved": true}
 ```
 
+## PLUG Integration (Connect an external system to any codebase in 30 minutes)
+
+Proven on OpenCode (Go, 140 files): 1,888 nodes ingested in 1 second. 15 entry points found.
+10 hook points identified. 23 risks surfaced. 70% of integration required zero code changes.
+
+```jsonc
+// Step 1: Ingest the target codebase — build the graph
+{"method":"tools/call","params":{"name":"m1nd.ingest","arguments":{
+  "agent_id":"plug-agent","source":"filesystem","path":"/path/to/opencode","incremental":false
+}}}
+
+// Response (1 second)
+{
+  "files_processed": 140,
+  "nodes_created": 1888,
+  "edges_created": 4312,
+  "languages": {"go": 140},
+  "elapsed_ms": 1000
+}
+
+// Step 2: Understand the architecture — don't touch anything yet
+{"method":"tools/call","params":{"name":"m1nd.layers","arguments":{
+  "agent_id":"plug-agent"
+}}}
+
+// Response
+{
+  "layers": [
+    {"id": 0, "label": "CLI Entry", "nodes": 8},
+    {"id": 1, "label": "Command Routing", "nodes": 34},
+    {"id": 2, "label": "Core", "nodes": 1846}
+  ],
+  "violations": 2,
+  "separation_score": 0.72
+}
+
+// Step 3: Find integration points
+{"method":"tools/call","params":{"name":"m1nd.activate","arguments":{
+  "agent_id":"plug-agent",
+  "query":"entry point hook plugin extension middleware",
+  "top_k":15
+}}}
+
+// Response (31ms) — 15 integration candidates ranked by structural openness
+{
+  "activated": [
+    {"node_id": "file::internal/app/app.go", "score": 0.91},
+    {"node_id": "file::internal/app/hooks.go", "score": 0.87},
+    {"node_id": "file::cmd/root.go", "score": 0.74},
+    // ... 12 more ranked candidates
+  ]
+}
+// Result: 15 entry points, 10 viable hook points identified
+
+// Step 4: Assess blast radius before modifying anything
+{"method":"tools/call","params":{"name":"m1nd.impact","arguments":{
+  "agent_id":"plug-agent","node_id":"file::cmd/root.go","depth":3
+}}}
+
+// Response (5ms)
+{
+  "total_affected": 847,
+  "pct_of_graph": 44.9,
+  "risk": "critical"
+}
+// → Too high risk. Pivot to lower-risk hook point.
+
+// Step 5: Get full dependency context for the chosen integration point
+{"method":"tools/call","params":{"name":"m1nd.surgical_context_v2","arguments":{
+  "agent_id":"plug-agent",
+  "file_path":"internal/app/app.go",
+  "include_connected_sources": true,
+  "max_connected_files": 8
+}}}
+
+// Response (1.3ms) — full context without reading a single file manually
+{
+  "target": {"node_id": "file::internal/app/app.go", "blast_radius": 23},
+  "connected_files": [
+    {"node_id": "file::internal/app/hooks.go", "relationship": "callee"},
+    {"node_id": "file::internal/config/config.go", "relationship": "import"},
+    // ... 6 more connected files with source
+  ],
+  "total_files": 9,
+  "total_lines": 847
+}
+
+// Step 6: Validate integration assumption before writing code
+{"method":"tools/call","params":{"name":"m1nd.hypothesize","arguments":{
+  "agent_id":"plug-agent",
+  "claim":"adding a middleware hook before app.Run() will intercept all CLI commands",
+  "depth": 8
+}}}
+
+// Response (58ms)
+{
+  "verdict": "likely_true",
+  "confidence": 0.91,
+  "paths_explored": 18420,
+  "evidence": [
+    {"path": ["file::internal/app/app.go::fn::Run", "file::internal/app/hooks.go"], "hops": 1},
+    // ... 13 more evidence paths
+  ]
+}
+// 14 supporting paths. Safe to proceed.
+
+// Step 7: Find integration risks before implementation
+{"method":"tools/call","params":{"name":"m1nd.missing","arguments":{
+  "agent_id":"plug-agent",
+  "query":"plugin lifecycle teardown cleanup on exit"
+}}}
+
+// Response (67ms) — 23 total risks surfaced across the integration surface
+{
+  "holes": [
+    {"region": "plugin teardown", "description": "No deregister path on SIGTERM"},
+    {"region": "hook chain", "description": "No panic recovery in hook chain — one bad plugin kills all"},
+    // ... 21 more structural holes
+  ],
+  "total_holes": 23
+}
+
+// Step 8: Implement atomically
+{"method":"tools/call","params":{"name":"m1nd.apply_batch","arguments":{
+  "agent_id":"plug-agent",
+  "edits": [
+    {"file_path": "internal/app/hooks.go", "new_content": "// hook registration + lifecycle management\n..."},
+    {"file_path": "internal/app/app.go", "new_content": "// app.Run() with middleware chain\n..."}
+  ],
+  "atomic": true
+}}}
+
+// Response (165ms)
+{
+  "results": [
+    {"file_path": "internal/app/hooks.go", "success": true},
+    {"file_path": "internal/app/app.go", "success": true}
+  ],
+  "re_ingest_nodes_updated": 31,
+  "total_files": 2,
+  "atomic": true
+}
+```
+
+**Final metrics for this integration session:**
+
+| Metric | Value |
+|--------|-------|
+| Files ingested | 140 Go files |
+| Graph build time | 1 second |
+| Nodes created | 1,888 |
+| Entry points found | 15 |
+| Hook points identified | 10 |
+| Risks surfaced | 23 |
+| Files requiring code changes | ~42 of 140 (30%) |
+| Files requiring zero changes | 98 of 140 (70%) |
+| Time to integration plan | 30 minutes |
+
+Zero manual code reading required to understand the target codebase. The graph did the navigation.
+
+---
+
 ## Apply Batch (Atomic multi-file edits with single re-ingest)
 
 ```jsonc

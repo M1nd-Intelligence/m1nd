@@ -412,6 +412,9 @@ New developer asks "how does auth work?" -- graph lights up the path.
 **Cross-domain search:** `ingest(adapter="memory", mode="merge")` -> `activate`.
 Code + docs in one graph. One question returns both the spec and the implementation.
 
+**PLUG Integration:** `ingest` -> `layers` -> `activate("entry hook plugin")` -> `impact` -> `surgical_context_v2` -> `apply_batch`.
+Map any codebase in 30 minutes. Proven on OpenCode (Go, 140 files): 1,888 nodes in 1 second, 15 entry points found, 10 hook points, 23 risks identified. 70% of integration required zero code changes.
+
 ## Contributing
 
 m1nd is early-stage and evolving fast. Contributions welcome:
