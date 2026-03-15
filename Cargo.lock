@@ -197,7 +197,7 @@ checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
 
 [[package]]
 name = "m1nd-core"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "parking_lot",
  "rayon",
@@ -210,7 +210,7 @@ dependencies = [
 
 [[package]]
 name = "m1nd-ingest"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "m1nd-core",
  "rayon",
@@ -245,7 +245,7 @@ dependencies = [
 
 [[package]]
 name = "m1nd-mcp"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "m1nd-core",
  "m1nd-ingest",

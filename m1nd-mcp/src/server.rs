@@ -1,13 +1,13 @@
 // === crates/m1nd-mcp/src/server.rs ===
 
-use crate::brand;
-use crate::layer_handlers;
-use crate::protocol::layers;
-use crate::protocol::*;
-use crate::session::SessionState;
-use crate::tools;
 use m1nd_core::domain::DomainConfig;
 use m1nd_core::error::{M1ndError, M1ndResult};
+use crate::session::SessionState;
+use crate::protocol::*;
+use crate::protocol::layers;
+use crate::tools;
+use crate::layer_handlers;
+use crate::surgical_handlers;
 use std::io::{BufRead, Read, Write};
 use std::path::PathBuf;
 
@@ -16,70 +16,61 @@ use std::path::PathBuf;
 // automatically understand how to use m1nd effectively.
 // ---------------------------------------------------------------------------
 const M1ND_INSTRUCTIONS: &str = "\
-\u{234C}\u{2350}\u{2342}\u{1D53B} \u{27C1} \u{2014} neuro-symbolic code graph engine\n\
-\n\
-Ingests codebases into a weighted graph and provides spreading-activation \
-queries, impact analysis, prediction, and stateful perspective navigation. \
-All tool calls require an `agent_id` parameter.\n\
-\n\
-## SYMBOL LEGEND\n\
-\u{234C} signal/flow (activate, ingest, learn, warmup) \u{2502} \
-\u{2350} path/trace (why, trace, timeline, seek) \u{2502} \
-\u{2342} structure (missing, fingerprint, scan, diverge)\n\
-\u{1D53B} dimension (impact, predict, counterfactual) \u{2502} \
-\u{27C1} connection (perspective, federate, resonate)\n\
-\n\
-## WORKFLOWS\n\
-\n\
-**Session Start**: `health` \u{2192} `drift` (recover what changed since last session) \u{2192} \
-`ingest` (if graph is empty or stale). This gives you codebase-aware context.\n\
-\n\
-**Research**: `ingest` \u{2192} `activate(query)` \u{2192} `why(source, target)` \u{2192} `missing(topic)` \u{2192} \
+m1nd is a neuro-symbolic code graph engine. It ingests codebases into a weighted \
+graph and provides spreading-activation queries, impact analysis, prediction, and \
+stateful perspective navigation. All tool calls require an `agent_id` parameter.
+
+## WORKFLOWS
+
+**Session Start**: `health` → `drift` (recover what changed since last session) → \
+`ingest` (if graph is empty or stale). This gives you codebase-aware context.
+
+**Research**: `ingest` → `activate(query)` → `why(source, target)` → `missing(topic)` → \
 `learn(feedback)`. Use `seek` for keyword search, `scan` for broad discovery, \
-`trace` for dependency chains, `timeline` for temporal ordering.\n\
-\n\
-**Code Change**: `impact(node)` (blast radius) \u{2192} `predict(node)` (co-change likelihood) \u{2192} \
-`counterfactual(nodes)` (simulate removal) \u{2192} `warmup(task_description)` (prime graph). \
-Use `differential` to compare two subgraphs. Use `hypothesize` to test what-if scenarios.\n\
-\n\
+`trace` for dependency chains, `timeline` for temporal ordering.
+
+**Code Change**: `impact(node)` (blast radius) → `predict(node)` (co-change likelihood) → \
+`counterfactual(nodes)` (simulate removal) → `warmup(task_description)` (prime graph). \
+Use `differential` to compare two subgraphs. Use `hypothesize` to test what-if scenarios.
+
 **Deep Analysis**: `resonate(query)` for standing-wave harmonic patterns. \
 `fingerprint(nodes)` for duplicate/equivalence detection. `diverge(node)` for \
-exploring unexpected connections. `federate` to query across graph namespaces.\n\
-\n\
-## PERSPECTIVE SYSTEM (stateful navigation)\n\
-\n\
+exploring unexpected connections. `federate` to query across graph namespaces.
+
+## PERSPECTIVE SYSTEM (stateful navigation)
+
 Perspectives are named, agent-scoped navigation sessions through the graph. \
-Flow: `perspective_start(name, seed_nodes)` \u{2192} `perspective_follow(node)` (move focus) \u{2192} \
-`perspective_branch(name)` (fork exploration) \u{2192} `perspective_back` (undo last move) \u{2192} \
+Flow: `perspective_start(name, seed_nodes)` → `perspective_follow(node)` (move focus) → \
+`perspective_branch(name)` (fork exploration) → `perspective_back` (undo last move) → \
 `perspective_close`. Use `perspective_inspect` to see current state, `perspective_peek` \
 to look at a node without moving, `perspective_list` for all open perspectives, \
 `perspective_compare` to diff two perspectives, `perspective_suggest` for next-step \
 recommendations, `perspective_routes` for paths between nodes, `perspective_affinity` \
-for related-node scoring.\n\
-\n\
-## CONCURRENCY & STATE\n\
-\n\
-`lock_create` / `lock_release` \u{2014} advisory locks for multi-agent coordination on graph \
+for related-node scoring.
+
+## CONCURRENCY & STATE
+
+`lock_create` / `lock_release` — advisory locks for multi-agent coordination on graph \
 regions. `lock_watch` monitors lock state. `lock_diff` shows changes within a lock scope. \
 `lock_rebase` replays external changes into a locked region. \
-`trail_save` / `trail_list` / `trail_resume` / `trail_merge` \u{2014} persist and restore \
+`trail_save` / `trail_list` / `trail_resume` / `trail_merge` — persist and restore \
 exploration trails across sessions. `validate_plan` checks a proposed multi-step plan \
-for structural soundness.\n\
-\n\
-## CRITICAL PATTERNS\n\
-\n\
+for structural soundness.
+
+## CRITICAL PATTERNS
+
 1. **Always call `learn` after using `activate` results.** Feedback (correct/wrong/partial) \
-trains the graph weights via Hebbian learning. Skipping this degrades future queries.\n\
-2. **Use `ingest` at session start** if the graph has zero nodes or the codebase changed.\n\
-3. **Use `drift` to recover context** between sessions \u{2014} it shows weight changes since \
-a baseline timestamp.\n\
-4. **`warmup` before focused work** \u{2014} primes activation patterns for a specific task, \
-making subsequent queries faster and more relevant.\n\
-5. **Never call `activate` without `agent_id`** \u{2014} multi-agent isolation depends on it.\n\
-6. **Prefer `impact` over `activate` for code changes** \u{2014} impact gives directional \
-blast-radius analysis; activate gives associative exploration.\n\
+trains the graph weights via Hebbian learning. Skipping this degrades future queries.
+2. **Use `ingest` at session start** if the graph has zero nodes or the codebase changed.
+3. **Use `drift` to recover context** between sessions — it shows weight changes since \
+a baseline timestamp.
+4. **`warmup` before focused work** — primes activation patterns for a specific task, \
+making subsequent queries faster and more relevant.
+5. **Never call `activate` without `agent_id`** — multi-agent isolation depends on it.
+6. **Prefer `impact` over `activate` for code changes** — impact gives directional \
+blast-radius analysis; activate gives associative exploration.
 7. **Graph persists automatically** every 50 queries and on shutdown. Use `trail_save` \
-for explicit exploration checkpoints.\n\
+for explicit exploration checkpoints.
 ";
 
 #[derive(Clone, Copy, Debug)]
@@ -129,8 +120,9 @@ fn read_request_payload<R: BufRead>(
             })?;
             let mut body = vec![0_u8; length];
             reader.read_exact(&mut body)?;
-            let payload = String::from_utf8(body)
-                .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))?;
+            let payload = String::from_utf8(body).map_err(|err| {
+                std::io::Error::new(std::io::ErrorKind::InvalidData, err)
+            })?;
             return Ok(Some((payload, TransportMode::Framed)));
         }
 
@@ -155,12 +147,7 @@ fn write_response<W: Write>(
     let json = serde_json::to_string(response).unwrap_or_default();
     match mode {
         TransportMode::Framed => {
-            write!(
-                writer,
-                "Content-Length: {}\r\n\r\n{}",
-                json.as_bytes().len(),
-                json
-            )?;
+            write!(writer, "Content-Length: {}\r\n\r\n{}", json.as_bytes().len(), json)?;
         }
         TransportMode::Line => {
             writeln!(writer, "{}", json)?;
@@ -220,7 +207,8 @@ pub struct McpServer {
 }
 
 /// List of all registered MCP tool schemas with full inputSchema per MCP spec.
-fn tool_schemas() -> serde_json::Value {
+/// Public so the HTTP server can cache and serve it.
+pub fn tool_schemas() -> serde_json::Value {
     serde_json::json!({
         "tools": [
             {
@@ -719,7 +707,7 @@ fn tool_schemas() -> serde_json::Value {
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "node": { "type": "string", "description": "Node external_id (e.g. file::backend/handler.py)" },
+                        "node": { "type": "string", "description": "Node external_id (e.g. file::backend/chat_handler.py)" },
                         "agent_id": { "type": "string", "description": "Calling agent identifier" },
                         "depth": { "type": "string", "default": "30d", "description": "Time depth: 7d, 30d, 90d, all" },
                         "include_co_changes": { "type": "boolean", "default": true, "description": "Include co-changed files with coupling scores" },
@@ -815,7 +803,7 @@ fn tool_schemas() -> serde_json::Value {
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "claim": { "type": "string", "description": "Natural language claim (e.g. 'handler never validates session tokens')" },
+                        "claim": { "type": "string", "description": "Natural language claim (e.g. 'chat_handler never validates session tokens')" },
                         "agent_id": { "type": "string", "description": "Calling agent identifier" },
                         "max_hops": { "type": "integer", "default": 5, "description": "Max BFS hops for evidence search" },
                         "include_ghost_edges": { "type": "boolean", "default": true, "description": "Include ghost edges as weak evidence" },
@@ -913,9 +901,615 @@ fn tool_schemas() -> serde_json::Value {
                     },
                     "required": ["agent_id", "repos"]
                 }
+            },
+            // =================================================================
+            // Superpowers: Antibody / Flow / Epidemic / Tremor / Trust / Layers
+            // =================================================================
+            {
+                "name": "m1nd.antibody_scan",
+                "description": "Scan code graph against stored bug antibodies (immune memory patterns). Returns matches where known bug patterns recur.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "scope": { "type": "string", "default": "all", "description": "\"all\" = entire graph, \"changed\" = nodes since last scan" },
+                        "antibody_ids": { "type": "array", "items": { "type": "string" }, "description": "Optional: only scan specific antibodies" },
+                        "max_matches": { "type": "integer", "default": 50, "description": "Maximum matches to return" },
+                        "min_severity": { "type": "string", "default": "info", "description": "Minimum severity: info, warning, critical" },
+                        "similarity_threshold": { "type": "number", "default": 0.7, "description": "Fuzzy match threshold for label matching (0.0-1.0)" },
+                        "match_mode": { "type": "string", "default": "substring", "description": "Label match mode: exact, substring, regex" },
+                        "max_matches_per_antibody": { "type": "integer", "default": 50, "description": "Maximum matches per individual antibody" }
+                    },
+                    "required": ["agent_id"]
+                }
+            },
+            {
+                "name": "m1nd.antibody_list",
+                "description": "List all stored bug antibodies with metadata, match history, and specificity scores.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "include_disabled": { "type": "boolean", "default": false, "description": "Include disabled antibodies" }
+                    },
+                    "required": ["agent_id"]
+                }
+            },
+            {
+                "name": "m1nd.antibody_create",
+                "description": "Create, disable, enable, or delete a bug antibody pattern.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "action": { "type": "string", "default": "create", "description": "Action: create, disable, enable, delete" },
+                        "antibody_id": { "type": "string", "description": "Required for disable/enable/delete" },
+                        "name": { "type": "string", "description": "Antibody name (for create)" },
+                        "description": { "type": "string", "description": "What this pattern detects" },
+                        "severity": { "type": "string", "default": "warning", "description": "info, warning, critical" },
+                        "pattern": { "type": "object", "description": "Pattern definition with nodes/edges/negative_edges" }
+                    },
+                    "required": ["agent_id"]
+                }
+            },
+            {
+                "name": "m1nd.flow_simulate",
+                "description": "Simulate concurrent execution flow. Detects race conditions via particle collision on shared mutable state without synchronization.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "entry_nodes": { "type": "array", "items": { "type": "string" }, "description": "Starting nodes. Auto-discovered if empty." },
+                        "num_particles": { "type": "integer", "default": 2, "description": "Particles per entry point" },
+                        "lock_patterns": { "type": "array", "items": { "type": "string" }, "description": "Regex patterns for lock/mutex detection" },
+                        "read_only_patterns": { "type": "array", "items": { "type": "string" }, "description": "Regex patterns for read-only operations" },
+                        "max_depth": { "type": "integer", "default": 15, "description": "Maximum BFS depth" },
+                        "turbulence_threshold": { "type": "number", "default": 0.5, "description": "Minimum score to report" },
+                        "include_paths": { "type": "boolean", "default": true, "description": "Include particle paths in output" },
+                        "max_total_steps": { "type": "integer", "default": 50000, "description": "Global step budget across all particles" },
+                        "scope_filter": { "type": "string", "description": "Substring filter to limit which nodes particles can enter" }
+                    },
+                    "required": ["agent_id"]
+                }
+            },
+            {
+                "name": "m1nd.epidemic",
+                "description": "Predict bug propagation via SIR epidemiological model. Given known buggy modules, predicts which neighbors are most likely to harbor undiscovered bugs.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "infected_nodes": { "type": "array", "items": { "type": "string" }, "description": "Known buggy node IDs" },
+                        "recovered_nodes": { "type": "array", "items": { "type": "string" }, "description": "Already-fixed node IDs" },
+                        "infection_rate": { "type": "number", "description": "Uniform infection rate. If omitted, derived from edge weights." },
+                        "recovery_rate": { "type": "number", "default": 0, "description": "SIR recovery rate" },
+                        "iterations": { "type": "integer", "default": 50, "description": "Simulation iterations" },
+                        "direction": { "type": "string", "default": "both", "description": "Propagation direction: forward, backward, both" },
+                        "top_k": { "type": "integer", "default": 20, "description": "Max predictions to return" },
+                        "auto_calibrate": { "type": "boolean", "default": true, "description": "Auto-adjust infection_rate based on graph density" },
+                        "scope": { "type": "string", "default": "all", "description": "Filter predictions: files, functions, all" },
+                        "min_probability": { "type": "number", "default": 0.001, "description": "Filter out predictions below this probability" }
+                    },
+                    "required": ["agent_id", "infected_nodes"]
+                }
+            },
+            {
+                "name": "m1nd.tremor",
+                "description": "Detect code tremors: modules with accelerating change frequency (second derivative). Earthquake precursor analogy for imminent bugs.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "window": { "type": "string", "default": "30d", "description": "Time window: 7d, 30d, 90d, all" },
+                        "threshold": { "type": "number", "default": 0.1, "description": "Minimum magnitude to report" },
+                        "top_k": { "type": "integer", "default": 20, "description": "Max results" },
+                        "node_filter": { "type": "string", "description": "Filter to nodes matching this prefix" },
+                        "include_history": { "type": "boolean", "default": false, "description": "Include observation history" },
+                        "min_observations": { "type": "integer", "default": 3, "description": "Minimum data points to compute tremor" },
+                        "sensitivity": { "type": "number", "default": 1.0, "description": "Multiplier on acceleration threshold (higher = more sensitive)" }
+                    },
+                    "required": ["agent_id"]
+                }
+            },
+            {
+                "name": "m1nd.trust",
+                "description": "Per-module trust scores from defect history. Actuarial risk assessment: more confirmed bugs = lower trust = higher risk.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "scope": { "type": "string", "default": "file", "description": "Node type scope: file, function, class, all" },
+                        "min_history": { "type": "integer", "default": 1, "description": "Minimum learn events for inclusion" },
+                        "top_k": { "type": "integer", "default": 20, "description": "Max results" },
+                        "node_filter": { "type": "string", "description": "Filter to nodes matching this prefix" },
+                        "sort_by": { "type": "string", "default": "trust_asc", "description": "Sort: trust_asc, trust_desc, defects_desc, recency" },
+                        "decay_half_life_days": { "type": "number", "default": 30.0, "description": "How fast old defects lose weight (days)" },
+                        "risk_cap": { "type": "number", "default": 3.0, "description": "Maximum risk multiplier" }
+                    },
+                    "required": ["agent_id"]
+                }
+            },
+            {
+                "name": "m1nd.layers",
+                "description": "Auto-detect architectural layers from graph topology. Returns layer assignments plus dependency violations (edges going against expected flow).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "scope": { "type": "string", "description": "File path prefix to limit scope" },
+                        "max_layers": { "type": "integer", "default": 8, "description": "Maximum layers to detect" },
+                        "include_violations": { "type": "boolean", "default": true, "description": "Include violation analysis" },
+                        "min_nodes_per_layer": { "type": "integer", "default": 2, "description": "Minimum nodes for a layer to be reported" },
+                        "node_types": { "type": "array", "items": { "type": "string" }, "description": "Filter by node types" },
+                        "naming_strategy": { "type": "string", "default": "auto", "description": "Layer naming: auto, path_prefix, pagerank" },
+                        "exclude_tests": { "type": "boolean", "default": false, "description": "Exclude test files from layer detection" },
+                        "violation_limit": { "type": "integer", "default": 100, "description": "Maximum violations to return" }
+                    },
+                    "required": ["agent_id"]
+                }
+            },
+            {
+                "name": "m1nd.layer_inspect",
+                "description": "Inspect a specific architectural layer: nodes, connections, violations, and health metrics.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "level": { "type": "integer", "description": "Layer level to inspect" },
+                        "scope": { "type": "string", "description": "File path prefix to limit scope" },
+                        "include_edges": { "type": "boolean", "default": true, "description": "Include inter-layer edges" },
+                        "top_k": { "type": "integer", "default": 50, "description": "Max nodes to return per layer" }
+                    },
+                    "required": ["agent_id", "level"]
+                }
+            },
+            // =================================================================
+            // Surgical: context + apply
+            // =================================================================
+            {
+                "name": "m1nd.surgical_context",
+                "description": "Return full context for surgical LLM editing: file contents, symbols, and graph neighbourhood (callers, callees, tests). Use before m1nd.apply.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": { "type": "string", "description": "Absolute or workspace-relative path to the file being edited" },
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "symbol": { "type": "string", "description": "Optional: narrow context to a specific symbol (function/struct/class name)" },
+                        "radius": { "type": "integer", "default": 1, "description": "BFS radius for graph neighbourhood (1 or 2)" },
+                        "include_tests": { "type": "boolean", "default": true, "description": "Include test files in the neighbourhood" }
+                    },
+                    "required": ["file_path", "agent_id"]
+                }
+            },
+            {
+                "name": "m1nd.apply",
+                "description": "Write LLM-edited code back to a file and trigger incremental re-ingest so the graph stays coherent. Always call m1nd.surgical_context first.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": { "type": "string", "description": "Absolute or workspace-relative path of the file to overwrite" },
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "new_content": { "type": "string", "description": "New file contents (full replacement, UTF-8)" },
+                        "description": { "type": "string", "description": "Human-readable description of the edit" },
+                        "reingest": { "type": "boolean", "default": true, "description": "Re-ingest the file after writing (recommended)" }
+                    },
+                    "required": ["file_path", "agent_id", "new_content"]
+                }
             }
         ]
     })
+}
+
+// ---------------------------------------------------------------------------
+// Free dispatch functions — used by both JSON-RPC stdio and HTTP API.
+// Zero duplication: McpServer::dispatch_tool() delegates to these.
+// ---------------------------------------------------------------------------
+
+/// Dispatch a tool call by name. Normalizes underscores to dots.
+/// Used by both JSON-RPC stdio and HTTP API -- zero duplication.
+pub fn dispatch_tool(
+    state: &mut SessionState,
+    tool_name: &str,
+    params: &serde_json::Value,
+) -> M1ndResult<serde_json::Value> {
+    let normalized = tool_name.replace('_', ".");
+    match normalized.as_str() {
+        name if name.starts_with("m1nd.perspective.") => {
+            dispatch_perspective_tool(state, name, params)
+        }
+        name if name.starts_with("m1nd.lock.") => {
+            dispatch_lock_tool(state, name, params)
+        }
+        _ => dispatch_core_tool(state, &normalized, params),
+    }
+}
+
+/// Dispatch core + superpowers tools (35 tools).
+fn dispatch_core_tool(
+    state: &mut SessionState,
+    tool_name: &str,
+    params: &serde_json::Value,
+) -> M1ndResult<serde_json::Value> {
+    match tool_name {
+        "m1nd.activate" => {
+            let input: ActivateInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = tools::handle_activate(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.impact" => {
+            let input: ImpactInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = tools::handle_impact(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.missing" => {
+            let input: MissingInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            tools::handle_missing(state, input)
+        }
+        "m1nd.why" => {
+            let input: WhyInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            tools::handle_why(state, input)
+        }
+        "m1nd.warmup" => {
+            let input: WarmupInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            tools::handle_warmup(state, input)
+        }
+        "m1nd.counterfactual" => {
+            let input: CounterfactualInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            tools::handle_counterfactual(state, input)
+        }
+        "m1nd.predict" => {
+            let input: PredictInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            tools::handle_predict(state, input)
+        }
+        "m1nd.fingerprint" => {
+            let input: FingerprintInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            tools::handle_fingerprint(state, input)
+        }
+        "m1nd.drift" => {
+            let input: DriftInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            tools::handle_drift(state, input)
+        }
+        "m1nd.learn" => {
+            let input: LearnInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            tools::handle_learn(state, input)
+        }
+        "m1nd.ingest" => {
+            let input: IngestInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            tools::handle_ingest(state, input)
+        }
+        "m1nd.resonate" => {
+            let input: ResonateInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            tools::handle_resonate(state, input)
+        }
+        "m1nd.health" => {
+            let input: HealthInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = tools::handle_health(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        // L2-L7: Superpowers layer tools
+        "m1nd.seek" => {
+            let input: layers::SeekInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_seek(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.scan" => {
+            let input: layers::ScanInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_scan(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.timeline" => {
+            let input: layers::TimelineInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_timeline(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.diverge" => {
+            let input: layers::DivergeInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_diverge(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.trail.save" => {
+            let input: layers::TrailSaveInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_trail_save(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.trail.resume" => {
+            let input: layers::TrailResumeInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_trail_resume(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.trail.merge" => {
+            let input: layers::TrailMergeInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_trail_merge(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.trail.list" => {
+            let input: layers::TrailListInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_trail_list(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.hypothesize" => {
+            let input: layers::HypothesizeInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_hypothesize(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.differential" => {
+            let input: layers::DifferentialInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_differential(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.trace" => {
+            let input: layers::TraceInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_trace(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.validate.plan" => {
+            let input: layers::ValidatePlanInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_validate_plan(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.federate" => {
+            let input: layers::FederateInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            let output = layer_handlers::handle_federate(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.antibody.scan" => {
+            let input: layers::AntibodyScanInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            layer_handlers::handle_antibody_scan(state, input)
+        }
+        "m1nd.antibody.list" => {
+            let input: layers::AntibodyListInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            layer_handlers::handle_antibody_list(state, input)
+        }
+        "m1nd.antibody.create" => {
+            let input: layers::AntibodyCreateInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            layer_handlers::handle_antibody_create(state, input)
+        }
+        "m1nd.flow.simulate" => {
+            let input: layers::FlowSimulateInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            layer_handlers::handle_flow_simulate(state, input)
+        }
+        "m1nd.epidemic" => {
+            let input: layers::EpidemicInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            layer_handlers::handle_epidemic(state, input)
+        }
+        "m1nd.tremor" => {
+            let input: layers::TremorInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            layer_handlers::handle_tremor(state, input)
+        }
+        "m1nd.trust" => {
+            let input: layers::TrustInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            layer_handlers::handle_trust(state, input)
+        }
+        "m1nd.layers" => {
+            let input: layers::LayersInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            layer_handlers::handle_layers(state, input)
+        }
+        "m1nd.layer.inspect" => {
+            let input: layers::LayerInspectInput = serde_json::from_value(params.clone())
+                .map_err(M1ndError::Serde)?;
+            layer_handlers::handle_layer_inspect(state, input)
+        }
+        // -----------------------------------------------------------------
+        // Surgical: context + apply
+        // -----------------------------------------------------------------
+        "m1nd.surgical.context" => {
+            let input: crate::protocol::surgical::SurgicalContextInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.surgical_context".into(),
+                    detail: e.to_string(),
+                })?;
+            let output = surgical_handlers::handle_surgical_context(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.apply" => {
+            let input: crate::protocol::surgical::ApplyInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.apply".into(),
+                    detail: e.to_string(),
+                })?;
+            let output = surgical_handlers::handle_apply(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        _ => Err(M1ndError::UnknownTool { name: tool_name.to_string() }),
+    }
+}
+
+/// Dispatch perspective tools (12 tools).
+fn dispatch_perspective_tool(
+    state: &mut SessionState,
+    tool_name: &str,
+    params: &serde_json::Value,
+) -> M1ndResult<serde_json::Value> {
+    use crate::protocol::perspective::*;
+    use crate::perspective_handlers;
+
+    match tool_name {
+        "m1nd.perspective.start" => {
+            let input: PerspectiveStartInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.start".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_start(state, input)
+        }
+        "m1nd.perspective.routes" => {
+            let input: PerspectiveRoutesInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.routes".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_routes(state, input)
+        }
+        "m1nd.perspective.inspect" => {
+            let input: PerspectiveInspectInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.inspect".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_inspect(state, input)
+        }
+        "m1nd.perspective.peek" => {
+            let input: PerspectivePeekInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.peek".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_peek(state, input)
+        }
+        "m1nd.perspective.follow" => {
+            let input: PerspectiveFollowInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.follow".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_follow(state, input)
+        }
+        "m1nd.perspective.suggest" => {
+            let input: PerspectiveSuggestInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.suggest".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_suggest(state, input)
+        }
+        "m1nd.perspective.affinity" => {
+            let input: PerspectiveAffinityInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.affinity".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_affinity(state, input)
+        }
+        "m1nd.perspective.branch" => {
+            let input: PerspectiveBranchInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.branch".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_branch(state, input)
+        }
+        "m1nd.perspective.back" => {
+            let input: PerspectiveBackInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.back".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_back(state, input)
+        }
+        "m1nd.perspective.compare" => {
+            let input: PerspectiveCompareInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.compare".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_compare(state, input)
+        }
+        "m1nd.perspective.list" => {
+            let input: PerspectiveListInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.list".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_list(state, input)
+        }
+        "m1nd.perspective.close" => {
+            let input: PerspectiveCloseInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.perspective.close".into(),
+                    detail: e.to_string(),
+                })?;
+            perspective_handlers::handle_perspective_close(state, input)
+        }
+        _ => Err(M1ndError::UnknownTool { name: tool_name.to_string() }),
+    }
+}
+
+/// Dispatch lock tools (5 tools).
+fn dispatch_lock_tool(
+    state: &mut SessionState,
+    tool_name: &str,
+    params: &serde_json::Value,
+) -> M1ndResult<serde_json::Value> {
+    use crate::protocol::lock::*;
+    use crate::lock_handlers;
+
+    match tool_name {
+        "m1nd.lock.create" => {
+            let input: LockCreateInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.lock.create".into(),
+                    detail: e.to_string(),
+                })?;
+            lock_handlers::handle_lock_create(state, input)
+        }
+        "m1nd.lock.watch" => {
+            let input: LockWatchInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.lock.watch".into(),
+                    detail: e.to_string(),
+                })?;
+            lock_handlers::handle_lock_watch(state, input)
+        }
+        "m1nd.lock.diff" => {
+            let input: LockDiffInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.lock.diff".into(),
+                    detail: e.to_string(),
+                })?;
+            lock_handlers::handle_lock_diff(state, input)
+        }
+        "m1nd.lock.rebase" => {
+            let input: LockRebaseInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.lock.rebase".into(),
+                    detail: e.to_string(),
+                })?;
+            lock_handlers::handle_lock_rebase(state, input)
+        }
+        "m1nd.lock.release" => {
+            let input: LockReleaseInput = serde_json::from_value(params.clone())
+                .map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.lock.release".into(),
+                    detail: e.to_string(),
+                })?;
+            lock_handlers::handle_lock_release(state, input)
+        }
+        _ => Err(M1ndError::UnknownTool { name: tool_name.to_string() }),
+    }
 }
 
 impl McpServer {
@@ -935,51 +1529,33 @@ impl McpServer {
             Some("generic") => DomainConfig::generic(),
             Some("code") | None => DomainConfig::code(),
             Some(other) => {
-                eprintln!(
-                    "{}",
-                    brand::log_colored(&format!(
-                        "Unknown domain '{}', falling back to 'code'",
-                        other
-                    ))
-                );
+                eprintln!("[m1nd] Unknown domain '{}', falling back to 'code'", other);
                 DomainConfig::code()
             }
         };
-        eprintln!(
-            "{}",
-            brand::log_colored(&format!("Domain: {}", domain_config.name))
-        );
+        eprintln!("[m1nd] Domain: {}", domain_config.name);
 
         // Step 1: Try to load graph snapshot
         let (mut graph, graph_loaded) = if config.graph_source.exists() {
             match m1nd_core::snapshot::load_graph(&config.graph_source) {
                 Ok(g) => {
                     eprintln!(
-                        "{}",
-                        brand::log_colored(&format!(
-                            "Loaded graph snapshot: {} nodes, {} edges",
-                            g.num_nodes(),
-                            g.num_edges()
-                        )),
+                        "[m1nd] Loaded graph snapshot: {} nodes, {} edges",
+                        g.num_nodes(),
+                        g.num_edges(),
                     );
                     (g, true)
                 }
                 Err(e) => {
                     eprintln!(
-                        "{}",
-                        brand::log_colored(&format!(
-                            "Failed to load graph snapshot ({}), starting fresh",
-                            e
-                        )),
+                        "[m1nd] Failed to load graph snapshot ({}), starting fresh",
+                        e,
                     );
                     (m1nd_core::graph::Graph::new(), false)
                 }
             }
         } else {
-            eprintln!(
-                "{}",
-                brand::log_colored("No graph snapshot found, starting fresh")
-            );
+            eprintln!("[m1nd] No graph snapshot found, starting fresh");
             (m1nd_core::graph::Graph::new(), false)
         };
 
@@ -987,11 +1563,8 @@ impl McpServer {
         if graph_loaded && !graph.finalized && graph.num_nodes() > 0 {
             if let Err(e) = graph.finalize() {
                 eprintln!(
-                    "{}",
-                    brand::log_colored(&format!(
-                        "Failed to finalize loaded graph ({}), starting fresh",
-                        e
-                    )),
+                    "[m1nd] Failed to finalize loaded graph ({}), starting fresh",
+                    e,
                 );
                 graph = m1nd_core::graph::Graph::new();
             }
@@ -1008,31 +1581,22 @@ impl McpServer {
                     match state.plasticity.import_state(&mut g, &states) {
                         Ok(_) => {
                             eprintln!(
-                                "{}",
-                                brand::log_colored(&format!(
-                                    "Loaded plasticity state: {} synaptic records",
-                                    states.len()
-                                )),
+                                "[m1nd] Loaded plasticity state: {} synaptic records",
+                                states.len(),
                             );
                         }
                         Err(e) => {
                             eprintln!(
-                                "{}",
-                                brand::log_colored(&format!(
-                                    "Failed to import plasticity state ({}), continuing without it",
-                                    e
-                                )),
+                                "[m1nd] Failed to import plasticity state ({}), continuing without it",
+                                e,
                             );
                         }
                     }
                 }
                 Err(e) => {
                     eprintln!(
-                        "{}",
-                        brand::log_colored(&format!(
-                            "Failed to load plasticity state ({}), continuing without it",
-                            e
-                        )),
+                        "[m1nd] Failed to load plasticity state ({}), continuing without it",
+                        e,
                     );
                 }
             }
@@ -1041,22 +1605,26 @@ impl McpServer {
         Ok(Self { config, state })
     }
 
+    /// Consume the McpServer and return the SessionState.
+    /// Used by the HTTP server to take ownership of the session state
+    /// and wrap it in Arc<Mutex<>> for shared concurrent access.
+    pub fn into_session_state(self) -> SessionState {
+        self.state
+    }
+
     /// Startup sequence (03-MCP Section 1.2):
     /// 1. Load graph snapshot       (done in new())
     /// 2. Load plasticity state     (done in new())
     /// 3. Compute PageRank          (done in new() via finalize)
     /// 4. Build CSR (finalize)      (done in new() via finalize)
     /// 5. Warm up engines           (engines built in new())
-    /// 6. Register MCP tools (43 tools)
+    /// 6. Register MCP tools (13 tools)
     /// 7. Ready for connections
     pub fn start(&mut self) -> M1ndResult<()> {
         eprintln!(
-            "{}",
-            brand::log_colored(&format!(
-                "Server ready. {} nodes, {} edges",
-                self.state.graph.read().num_nodes(),
-                self.state.graph.read().num_edges(),
-            )),
+            "[m1nd-mcp] Server ready. {} nodes, {} edges",
+            self.state.graph.read().num_nodes(),
+            self.state.graph.read().num_edges(),
         );
 
         Ok(())
@@ -1136,9 +1704,9 @@ impl McpServer {
 
     /// Graceful shutdown: persist state, flush writes, close connections.
     pub fn shutdown(&mut self) -> M1ndResult<()> {
-        eprintln!("{}", brand::log_colored("Shutting down..."));
+        eprintln!("[m1nd-mcp] Shutting down...");
         let _ = self.state.persist();
-        eprintln!("{}", brand::log_colored("State persisted. Goodbye."));
+        eprintln!("[m1nd-mcp] State persisted. Goodbye.");
         Ok(())
     }
 
@@ -1155,7 +1723,7 @@ impl McpServer {
                     result: Some(serde_json::json!({
                         "protocolVersion": "2024-11-05",
                         "serverInfo": {
-                            "name": format!("{}", brand::SIG),
+                            "name": "m1nd-mcp",
                             "version": env!("CARGO_PKG_VERSION"),
                         },
                         "capabilities": {
@@ -1185,13 +1753,11 @@ impl McpServer {
             }
             "tools/call" => {
                 // Extract tool name and arguments from params
-                let tool_name = request
-                    .params
+                let tool_name = request.params
                     .get("name")
                     .and_then(|v| v.as_str())
                     .unwrap_or("");
-                let arguments = request
-                    .params
+                let arguments = request.params
                     .get("arguments")
                     .cloned()
                     .unwrap_or(serde_json::Value::Object(serde_json::Map::new()));
@@ -1201,20 +1767,16 @@ impl McpServer {
                     self.state.track_agent(agent_id);
                 }
 
-                // Normalize tool name for brand lookup (same as dispatch_tool)
-                let brand_name = tool_name.replace('_', ".");
-
                 // MCP spec: tool execution errors -> isError content, not JSON-RPC errors
-                match self.dispatch_tool(tool_name, &arguments) {
+                match self.dispatch_tool_call(tool_name, &arguments) {
                     Ok(result) => {
-                        let stamped = brand::stamp(&brand_name, result);
                         return Ok(JsonRpcResponse {
                             jsonrpc: "2.0".into(),
                             id: request.id.clone(),
                             result: Some(serde_json::json!({
                                 "content": [{
                                     "type": "text",
-                                    "text": serde_json::to_string_pretty(&stamped).unwrap_or_default(),
+                                    "text": serde_json::to_string_pretty(&result).unwrap_or_default(),
                                 }]
                             })),
                             error: None,
@@ -1227,7 +1789,7 @@ impl McpServer {
                             result: Some(serde_json::json!({
                                 "content": [{
                                     "type": "text",
-                                    "text": brand::error_line(&format!("{}", e)),
+                                    "text": format!("Error: {}", e),
                                 }],
                                 "isError": true
                             })),
@@ -1252,373 +1814,12 @@ impl McpServer {
         }
     }
 
-    /// Dispatch a tool call by name (Theme 8: split into sub-dispatchers).
-    /// Tool name normalization: _ → . before matching.
-    fn dispatch_tool(
+    /// Dispatch a tool call by name. Delegates to the free dispatch_tool() function.
+    fn dispatch_tool_call(
         &mut self,
         tool_name: &str,
         params: &serde_json::Value,
     ) -> M1ndResult<serde_json::Value> {
-        // Theme 8: normalize underscores to dots
-        let normalized = tool_name.replace('_', ".");
-
-        match normalized.as_str() {
-            name if name.starts_with("m1nd.perspective.") => {
-                self.dispatch_perspective_tool(name, params)
-            }
-            name if name.starts_with("m1nd.lock.") => self.dispatch_lock_tool(name, params),
-            _ => self.dispatch_core_tool(&normalized, params),
-        }
-    }
-
-    /// Dispatch core tools (existing 43 tools).
-    fn dispatch_core_tool(
-        &mut self,
-        tool_name: &str,
-        params: &serde_json::Value,
-    ) -> M1ndResult<serde_json::Value> {
-        match tool_name {
-            "m1nd.activate" => {
-                let input: ActivateInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = tools::handle_activate(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.impact" => {
-                let input: ImpactInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = tools::handle_impact(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.missing" => {
-                let input: MissingInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                tools::handle_missing(&mut self.state, input)
-            }
-            "m1nd.why" => {
-                let input: WhyInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                tools::handle_why(&mut self.state, input)
-            }
-            "m1nd.warmup" => {
-                let input: WarmupInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                tools::handle_warmup(&mut self.state, input)
-            }
-            "m1nd.counterfactual" => {
-                let input: CounterfactualInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                tools::handle_counterfactual(&mut self.state, input)
-            }
-            "m1nd.predict" => {
-                let input: PredictInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                tools::handle_predict(&mut self.state, input)
-            }
-            "m1nd.fingerprint" => {
-                let input: FingerprintInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                tools::handle_fingerprint(&mut self.state, input)
-            }
-            "m1nd.drift" => {
-                let input: DriftInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                tools::handle_drift(&mut self.state, input)
-            }
-            "m1nd.learn" => {
-                let input: LearnInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                tools::handle_learn(&mut self.state, input)
-            }
-            "m1nd.ingest" => {
-                let input: IngestInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                tools::handle_ingest(&mut self.state, input)
-            }
-            "m1nd.resonate" => {
-                let input: ResonateInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                tools::handle_resonate(&mut self.state, input)
-            }
-            "m1nd.health" => {
-                let input: HealthInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = tools::handle_health(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-
-            // =============================================================
-            // L2-L7: Superpowers layer tools
-            // =============================================================
-            "m1nd.seek" => {
-                let input: layers::SeekInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_seek(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.scan" => {
-                let input: layers::ScanInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_scan(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.timeline" => {
-                let input: layers::TimelineInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_timeline(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.diverge" => {
-                let input: layers::DivergeInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_diverge(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.trail.save" => {
-                let input: layers::TrailSaveInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_trail_save(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.trail.resume" => {
-                let input: layers::TrailResumeInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_trail_resume(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.trail.merge" => {
-                let input: layers::TrailMergeInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_trail_merge(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.trail.list" => {
-                let input: layers::TrailListInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_trail_list(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.hypothesize" => {
-                let input: layers::HypothesizeInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_hypothesize(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.differential" => {
-                let input: layers::DifferentialInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_differential(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.trace" => {
-                let input: layers::TraceInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_trace(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.validate.plan" => {
-                let input: layers::ValidatePlanInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_validate_plan(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-            "m1nd.federate" => {
-                let input: layers::FederateInput =
-                    serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
-                let output = layer_handlers::handle_federate(&mut self.state, input)?;
-                serde_json::to_value(output).map_err(M1ndError::Serde)
-            }
-
-            _ => Err(M1ndError::UnknownTool {
-                name: tool_name.to_string(),
-            }),
-        }
-    }
-
-    /// Dispatch perspective tools (12 tools).
-    fn dispatch_perspective_tool(
-        &mut self,
-        tool_name: &str,
-        params: &serde_json::Value,
-    ) -> M1ndResult<serde_json::Value> {
-        use crate::perspective_handlers;
-        use crate::protocol::perspective::*;
-
-        match tool_name {
-            "m1nd.perspective.start" => {
-                let input: PerspectiveStartInput =
-                    serde_json::from_value(params.clone()).map_err(|e| {
-                        M1ndError::InvalidParams {
-                            tool: "m1nd.perspective.start".into(),
-                            detail: e.to_string(),
-                        }
-                    })?;
-                perspective_handlers::handle_perspective_start(&mut self.state, input)
-            }
-            "m1nd.perspective.routes" => {
-                let input: PerspectiveRoutesInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.routes".into(),
-                        detail: e.to_string(),
-                    })?;
-                perspective_handlers::handle_perspective_routes(&mut self.state, input)
-            }
-            "m1nd.perspective.inspect" => {
-                let input: PerspectiveInspectInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.inspect".into(),
-                        detail: e.to_string(),
-                    })?;
-                perspective_handlers::handle_perspective_inspect(&mut self.state, input)
-            }
-            "m1nd.perspective.peek" => {
-                let input: PerspectivePeekInput =
-                    serde_json::from_value(params.clone()).map_err(|e| {
-                        M1ndError::InvalidParams {
-                            tool: "m1nd.perspective.peek".into(),
-                            detail: e.to_string(),
-                        }
-                    })?;
-                perspective_handlers::handle_perspective_peek(&mut self.state, input)
-            }
-            "m1nd.perspective.follow" => {
-                let input: PerspectiveFollowInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.follow".into(),
-                        detail: e.to_string(),
-                    })?;
-                perspective_handlers::handle_perspective_follow(&mut self.state, input)
-            }
-            "m1nd.perspective.suggest" => {
-                let input: PerspectiveSuggestInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.suggest".into(),
-                        detail: e.to_string(),
-                    })?;
-                perspective_handlers::handle_perspective_suggest(&mut self.state, input)
-            }
-            "m1nd.perspective.affinity" => {
-                let input: PerspectiveAffinityInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.affinity".into(),
-                        detail: e.to_string(),
-                    })?;
-                perspective_handlers::handle_perspective_affinity(&mut self.state, input)
-            }
-            "m1nd.perspective.branch" => {
-                let input: PerspectiveBranchInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.branch".into(),
-                        detail: e.to_string(),
-                    })?;
-                perspective_handlers::handle_perspective_branch(&mut self.state, input)
-            }
-            "m1nd.perspective.back" => {
-                let input: PerspectiveBackInput =
-                    serde_json::from_value(params.clone()).map_err(|e| {
-                        M1ndError::InvalidParams {
-                            tool: "m1nd.perspective.back".into(),
-                            detail: e.to_string(),
-                        }
-                    })?;
-                perspective_handlers::handle_perspective_back(&mut self.state, input)
-            }
-            "m1nd.perspective.compare" => {
-                let input: PerspectiveCompareInput = serde_json::from_value(params.clone())
-                    .map_err(|e| M1ndError::InvalidParams {
-                        tool: "m1nd.perspective.compare".into(),
-                        detail: e.to_string(),
-                    })?;
-                perspective_handlers::handle_perspective_compare(&mut self.state, input)
-            }
-            "m1nd.perspective.list" => {
-                let input: PerspectiveListInput =
-                    serde_json::from_value(params.clone()).map_err(|e| {
-                        M1ndError::InvalidParams {
-                            tool: "m1nd.perspective.list".into(),
-                            detail: e.to_string(),
-                        }
-                    })?;
-                perspective_handlers::handle_perspective_list(&self.state, input)
-            }
-            "m1nd.perspective.close" => {
-                let input: PerspectiveCloseInput =
-                    serde_json::from_value(params.clone()).map_err(|e| {
-                        M1ndError::InvalidParams {
-                            tool: "m1nd.perspective.close".into(),
-                            detail: e.to_string(),
-                        }
-                    })?;
-                perspective_handlers::handle_perspective_close(&mut self.state, input)
-            }
-            _ => Err(M1ndError::UnknownTool {
-                name: tool_name.to_string(),
-            }),
-        }
-    }
-
-    /// Dispatch lock tools (5 tools).
-    fn dispatch_lock_tool(
-        &mut self,
-        tool_name: &str,
-        params: &serde_json::Value,
-    ) -> M1ndResult<serde_json::Value> {
-        use crate::lock_handlers;
-        use crate::protocol::lock::*;
-
-        match tool_name {
-            "m1nd.lock.create" => {
-                let input: LockCreateInput =
-                    serde_json::from_value(params.clone()).map_err(|e| {
-                        M1ndError::InvalidParams {
-                            tool: "m1nd.lock.create".into(),
-                            detail: e.to_string(),
-                        }
-                    })?;
-                lock_handlers::handle_lock_create(&mut self.state, input)
-            }
-            "m1nd.lock.watch" => {
-                let input: LockWatchInput =
-                    serde_json::from_value(params.clone()).map_err(|e| {
-                        M1ndError::InvalidParams {
-                            tool: "m1nd.lock.watch".into(),
-                            detail: e.to_string(),
-                        }
-                    })?;
-                lock_handlers::handle_lock_watch(&mut self.state, input)
-            }
-            "m1nd.lock.diff" => {
-                let input: LockDiffInput = serde_json::from_value(params.clone()).map_err(|e| {
-                    M1ndError::InvalidParams {
-                        tool: "m1nd.lock.diff".into(),
-                        detail: e.to_string(),
-                    }
-                })?;
-                lock_handlers::handle_lock_diff(&mut self.state, input)
-            }
-            "m1nd.lock.rebase" => {
-                let input: LockRebaseInput =
-                    serde_json::from_value(params.clone()).map_err(|e| {
-                        M1ndError::InvalidParams {
-                            tool: "m1nd.lock.rebase".into(),
-                            detail: e.to_string(),
-                        }
-                    })?;
-                lock_handlers::handle_lock_rebase(&mut self.state, input)
-            }
-            "m1nd.lock.release" => {
-                let input: LockReleaseInput =
-                    serde_json::from_value(params.clone()).map_err(|e| {
-                        M1ndError::InvalidParams {
-                            tool: "m1nd.lock.release".into(),
-                            detail: e.to_string(),
-                        }
-                    })?;
-                lock_handlers::handle_lock_release(&mut self.state, input)
-            }
-            _ => Err(M1ndError::UnknownTool {
-                name: tool_name.to_string(),
-            }),
-        }
+        dispatch_tool(&mut self.state, tool_name, params)
     }
 }

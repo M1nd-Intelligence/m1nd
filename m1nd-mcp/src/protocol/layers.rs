@@ -199,7 +199,7 @@ pub struct ScanContextNode {
 /// Returns change history, co-change partners, velocity, and stability.
 #[derive(Clone, Debug, Deserialize)]
 pub struct TimelineInput {
-    /// Node external_id (e.g. "file::backend/handler.py").
+    /// Node external_id (e.g. "file::backend/chat_handler.py").
     pub node: String,
     pub agent_id: String,
     /// Time depth: "7d", "30d", "90d", "all". Default: "30d".
@@ -568,9 +568,9 @@ pub struct TrailListOutput {
 pub struct HypothesizeInput {
     /// Natural language claim about the codebase.
     /// Examples:
-    ///   "handler never validates session tokens"
-    ///   "all external calls go through the router"
-    ///   "auditor is independent of messaging"
+    ///   "chat_handler never validates session tokens"
+    ///   "all external calls go through smart_router"
+    ///   "critic is independent of whatsapp"
     pub claim: String,
     pub agent_id: String,
     /// Max BFS hops for evidence search. Default: 5.
@@ -976,44 +976,461 @@ pub struct FederateCrossRepoEdge {
 // Default value helpers
 // =========================================================================
 
-fn default_top_k() -> usize {
-    20
+fn default_top_k() -> usize { 20 }
+fn default_top_k_10() -> usize { 10 }
+fn default_true() -> bool { true }
+fn default_max_hops() -> u8 { 5 }
+fn default_min_score() -> f32 { 0.1 }
+fn default_severity_min() -> f32 { 0.3 }
+fn default_scan_limit() -> usize { 50 }
+fn default_depth_30d() -> String { "30d".into() }
+fn default_confidence() -> f32 { 0.5 }
+fn default_relevance() -> f32 { 0.5 }
+fn default_path_budget() -> usize { 1000 }
+fn default_window_hours() -> f32 { 24.0 }
+fn default_adapter() -> String { "code".into() }
+
+// =========================================================================
+// Superpowers — Antibody / Flow / Epidemic / Tremor / Trust / Layers
+// =========================================================================
+
+// ---------------------------------------------------------------------------
+// m1nd.antibody_scan
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct AntibodyScanInput {
+    pub agent_id: String,
+    #[serde(default = "default_scope_all")]
+    pub scope: String,
+    #[serde(default)]
+    pub antibody_ids: Vec<String>,
+    #[serde(default = "default_scan_limit")]
+    pub max_matches: usize,
+    #[serde(default = "default_severity_info")]
+    pub min_severity: String,
+    /// Fuzzy match threshold for label matching (0.0-1.0, default 0.7).
+    #[serde(default = "default_similarity_threshold")]
+    pub similarity_threshold: f32,
+    /// Match mode for label comparison: "exact", "substring", "regex" (default "substring").
+    #[serde(default = "default_match_mode")]
+    pub match_mode: String,
+    /// Maximum matches per individual antibody (default 50).
+    #[serde(default = "default_max_matches_per_antibody")]
+    pub max_matches_per_antibody: usize,
 }
-fn default_top_k_10() -> usize {
-    10
+
+fn default_scope_all() -> String { "all".to_string() }
+fn default_severity_info() -> String { "info".to_string() }
+fn default_similarity_threshold() -> f32 { 0.7 }
+fn default_match_mode() -> String { "substring".to_string() }
+fn default_max_matches_per_antibody() -> usize { 50 }
+
+// ---------------------------------------------------------------------------
+// m1nd.antibody_list
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct AntibodyListInput {
+    pub agent_id: String,
+    #[serde(default)]
+    pub include_disabled: bool,
 }
-fn default_true() -> bool {
-    true
+
+// ---------------------------------------------------------------------------
+// m1nd.antibody_create
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct AntibodyCreateInput {
+    pub agent_id: String,
+    #[serde(default = "default_action_create")]
+    pub action: String,
+    pub antibody_id: Option<String>,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    #[serde(default = "default_severity_warning")]
+    pub severity: String,
+    pub pattern: Option<AntibodyPatternInput>,
 }
-fn default_max_hops() -> u8 {
-    5
+
+fn default_action_create() -> String { "create".to_string() }
+fn default_severity_warning() -> String { "warning".to_string() }
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct AntibodyPatternInput {
+    pub nodes: Vec<PatternNodeInput>,
+    pub edges: Vec<PatternEdgeInput>,
+    #[serde(default)]
+    pub negative_edges: Vec<PatternEdgeInput>,
 }
-fn default_min_score() -> f32 {
-    0.1
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct PatternNodeInput {
+    pub role: String,
+    pub node_type: Option<String>,
+    #[serde(default)]
+    pub required_tags: Vec<String>,
+    pub label_contains: Option<String>,
 }
-fn default_severity_min() -> f32 {
-    0.3
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct PatternEdgeInput {
+    pub source_idx: usize,
+    pub target_idx: usize,
+    pub relation: Option<String>,
 }
-fn default_scan_limit() -> usize {
-    50
+
+// ---------------------------------------------------------------------------
+// m1nd.flow_simulate
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct FlowSimulateInput {
+    pub agent_id: String,
+    #[serde(default)]
+    pub entry_nodes: Vec<String>,
+    #[serde(default = "default_num_particles")]
+    pub num_particles: u32,
+    #[serde(default)]
+    pub lock_patterns: Vec<String>,
+    #[serde(default)]
+    pub read_only_patterns: Vec<String>,
+    #[serde(default = "default_flow_max_depth")]
+    pub max_depth: u8,
+    #[serde(default = "default_turbulence_threshold")]
+    pub turbulence_threshold: f32,
+    #[serde(default = "default_true")]
+    pub include_paths: bool,
+    /// Global step budget across all particles (default 50000).
+    #[serde(default = "default_max_total_steps")]
+    pub max_total_steps: usize,
+    /// Regex to limit which nodes particles can enter (default: no filter).
+    #[serde(default)]
+    pub scope_filter: Option<String>,
 }
-fn default_depth_30d() -> String {
-    "30d".into()
+
+fn default_num_particles() -> u32 { 2 }
+fn default_flow_max_depth() -> u8 { 15 }
+fn default_turbulence_threshold() -> f32 { 0.5 }
+fn default_max_total_steps() -> usize { 50000 }
+
+// ---------------------------------------------------------------------------
+// m1nd.epidemic
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct EpidemicInput {
+    pub agent_id: String,
+    pub infected_nodes: Vec<String>,
+    #[serde(default)]
+    pub recovered_nodes: Vec<String>,
+    pub infection_rate: Option<f32>,
+    #[serde(default)]
+    pub recovery_rate: f32,
+    #[serde(default = "default_epidemic_iterations")]
+    pub iterations: u32,
+    #[serde(default = "default_direction_both")]
+    pub direction: String,
+    #[serde(default = "default_top_k")]
+    pub top_k: usize,
+    /// Auto-adjust infection_rate based on graph density (default true).
+    #[serde(default = "default_true")]
+    pub auto_calibrate: bool,
+    /// Filter predictions to node types: "files", "functions", "all" (default "all").
+    #[serde(default = "default_scope_all")]
+    pub scope: String,
+    /// Filter out predictions below this probability (default 0.001).
+    #[serde(default = "default_min_probability")]
+    pub min_probability: f32,
 }
-fn default_confidence() -> f32 {
-    0.5
+
+fn default_epidemic_iterations() -> u32 { 50 }
+fn default_direction_both() -> String { "both".to_string() }
+fn default_min_probability() -> f32 { 0.001 }
+
+// ---------------------------------------------------------------------------
+// m1nd.tremor
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct TremorInput {
+    pub agent_id: String,
+    #[serde(default = "default_tremor_window")]
+    pub window: String,
+    #[serde(default = "default_tremor_threshold")]
+    pub threshold: f32,
+    #[serde(default = "default_top_k")]
+    pub top_k: usize,
+    pub node_filter: Option<String>,
+    #[serde(default)]
+    pub include_history: bool,
+    /// Minimum data points to compute tremor (default 3).
+    #[serde(default = "default_min_observations")]
+    pub min_observations: usize,
+    /// Multiplier on acceleration threshold (default 1.0).
+    #[serde(default = "default_sensitivity")]
+    pub sensitivity: f32,
 }
-fn default_relevance() -> f32 {
-    0.5
+
+fn default_tremor_window() -> String { "30d".to_string() }
+fn default_tremor_threshold() -> f32 { 0.1 }
+fn default_min_observations() -> usize { 3 }
+fn default_sensitivity() -> f32 { 1.0 }
+
+// ---------------------------------------------------------------------------
+// m1nd.trust
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct TrustInput {
+    pub agent_id: String,
+    #[serde(default = "default_scope_file")]
+    pub scope: String,
+    #[serde(default = "default_min_history")]
+    pub min_history: u32,
+    #[serde(default = "default_top_k")]
+    pub top_k: usize,
+    pub node_filter: Option<String>,
+    #[serde(default = "default_sort_trust_asc")]
+    pub sort_by: String,
+    /// How fast old defects lose weight, in days (default 30.0).
+    #[serde(default = "default_decay_half_life_days")]
+    pub decay_half_life_days: f32,
+    /// Maximum risk multiplier cap (default 3.0).
+    #[serde(default = "default_risk_cap")]
+    pub risk_cap: f32,
 }
-fn default_path_budget() -> usize {
-    1000
+
+fn default_scope_file() -> String { "file".to_string() }
+fn default_min_history() -> u32 { 1 }
+fn default_sort_trust_asc() -> String { "trust_asc".to_string() }
+fn default_decay_half_life_days() -> f32 { 30.0 }
+fn default_risk_cap() -> f32 { 3.0 }
+
+// ---------------------------------------------------------------------------
+// m1nd.layers
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct LayersInput {
+    pub agent_id: String,
+    #[serde(default)]
+    pub scope: Option<String>,
+    #[serde(default = "default_max_layers")]
+    pub max_layers: u8,
+    #[serde(default = "default_true")]
+    pub include_violations: bool,
+    #[serde(default = "default_min_nodes_per_layer")]
+    pub min_nodes_per_layer: u32,
+    #[serde(default)]
+    pub node_types: Vec<String>,
+    /// Naming strategy: "auto", "path_prefix", "pagerank" (default "auto").
+    #[serde(default = "default_naming_strategy")]
+    pub naming_strategy: String,
+    /// Exclude test files from layer detection (default false).
+    #[serde(default)]
+    pub exclude_tests: bool,
+    /// Maximum violations to return (default 100).
+    #[serde(default = "default_violation_limit")]
+    pub violation_limit: usize,
 }
-fn default_window_hours() -> f32 {
-    24.0
+
+fn default_max_layers() -> u8 { 8 }
+fn default_min_nodes_per_layer() -> u32 { 2 }
+fn default_naming_strategy() -> String { "auto".to_string() }
+fn default_violation_limit() -> usize { 100 }
+
+// ---------------------------------------------------------------------------
+// m1nd.layer_inspect
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct LayerInspectInput {
+    pub agent_id: String,
+    pub level: u8,
+    #[serde(default)]
+    pub scope: Option<String>,
+    #[serde(default = "default_true")]
+    pub include_edges: bool,
+    #[serde(default = "default_scan_limit")]
+    pub top_k: usize,
 }
-fn default_adapter() -> String {
-    "code".into()
+
+// =========================================================================
+// TEMPESTA — m1nd.surgical_context + m1nd.apply
+// (ORACLE-TESTS golden test contracts — Step 7 of Grounded One-Shot Build)
+// =========================================================================
+
+// ---------------------------------------------------------------------------
+// m1nd.surgical_context
+//
+// Returns a rich, surgery-ready view of a single graph node:
+//   - source code peek (file content window around the node)
+//   - callers + callees (direct neighbours by relation)
+//   - blast radius (forward/backward impact count)
+//   - trust score (actuarial defect rate from TrustLedger)
+//
+// Designed to give a builder agent EXACTLY what it needs to make a safe,
+// targeted edit without having to call ingest + impact + peek separately.
+// ---------------------------------------------------------------------------
+
+/// Input for m1nd.surgical_context.
+#[derive(Clone, Debug, Deserialize)]
+pub struct SurgicalContextInput {
+    /// External node ID or label to inspect.
+    pub node_id: String,
+    pub agent_id: String,
+    /// Maximum source lines to return around the node's line range.
+    /// Default: 200. Hard cap: 1000 (to prevent huge context blobs).
+    #[serde(default = "default_surgical_max_lines")]
+    pub max_lines: u32,
+    /// Include callers (nodes that depend on this node). Default: true.
+    #[serde(default = "default_true")]
+    pub include_callers: bool,
+    /// Include callees (nodes this node depends on). Default: true.
+    #[serde(default = "default_true")]
+    pub include_callees: bool,
+    /// Include blast radius counts. Default: true.
+    #[serde(default = "default_true")]
+    pub include_blast_radius: bool,
+    /// Include trust score from TrustLedger. Default: true.
+    #[serde(default = "default_true")]
+    pub include_trust_score: bool,
+    /// Maximum callers/callees to return. Default: 20.
+    #[serde(default = "default_surgical_max_deps")]
+    pub max_deps: usize,
+}
+
+fn default_surgical_max_lines() -> u32 { 200 }
+fn default_surgical_max_deps() -> usize { 20 }
+
+/// Output for m1nd.surgical_context.
+#[derive(Clone, Debug, Serialize)]
+pub struct SurgicalContextOutput {
+    /// The resolved external node ID.
+    pub node_id: String,
+    pub label: String,
+    #[serde(rename = "type")]
+    pub node_type: String,
+    /// Source code peek (may be None if file not found or binary).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source: Option<SurgicalSourcePeek>,
+    /// Nodes that call/import this node.
+    pub callers: Vec<SurgicalDep>,
+    /// Nodes that this node calls/imports.
+    pub callees: Vec<SurgicalDep>,
+    /// Number of nodes in the forward blast radius (nodes this affects).
+    pub blast_radius_forward: usize,
+    /// Number of nodes in the backward blast radius (nodes that affect this).
+    pub blast_radius_backward: usize,
+    /// Trust score [0.0, 1.0]; 1.0 = perfectly trustworthy, 0.0 = very risky.
+    /// None if no defect history is recorded.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trust_score: Option<f32>,
+    /// Whether the source file was modified after the last graph ingest.
+    pub source_stale: bool,
+    pub elapsed_ms: f64,
+}
+
+/// Source code window around a node.
+#[derive(Clone, Debug, Serialize)]
+pub struct SurgicalSourcePeek {
+    pub file_path: String,
+    /// Actual start line of the returned window (1-indexed).
+    pub line_start: u32,
+    /// Actual end line of the returned window (1-indexed).
+    pub line_end: u32,
+    /// The source text. May be truncated if `truncated` is true.
+    pub content: String,
+    /// True if the content was truncated due to `max_lines` or char cap.
+    pub truncated: bool,
+    /// True if file was modified since last ingest (provenance stale).
+    pub stale: bool,
+}
+
+/// A single caller or callee dependency.
+#[derive(Clone, Debug, Serialize)]
+pub struct SurgicalDep {
+    pub node_id: String,
+    pub label: String,
+    #[serde(rename = "type")]
+    pub node_type: String,
+    /// Relation type: "imports", "calls", "tests", etc.
+    pub relation: String,
+    /// Edge weight [0.0, 1.0].
+    pub weight: f32,
+}
+
+// ---------------------------------------------------------------------------
+// m1nd.apply
+//
+// Surgically write a line-range replacement into a source file and
+// immediately re-ingest the file into the graph.
+//
+// Behaviour contract:
+//   1. Validate the target path is within the project (no path traversal).
+//   2. Verify the node exists in the graph and retrieve its provenance.
+//   3. If the file has been modified since last ingest, return ApplyStaleError.
+//   4. Write `new_content` to the file at [line_start, line_end].
+//   5. Re-ingest the file (incremental merge).
+//   6. Run m1nd.predict on the modified node.
+//   7. Return the unified diff + predict results.
+// ---------------------------------------------------------------------------
+
+/// Input for m1nd.apply.
+#[derive(Clone, Debug, Deserialize)]
+pub struct ApplyInput {
+    /// External node ID identifying the target file/function.
+    pub node_id: String,
+    pub agent_id: String,
+    /// Absolute path to the file to write.
+    pub file_path: String,
+    /// Start line of the range to replace (1-indexed, inclusive).
+    pub line_start: u32,
+    /// End line of the range to replace (1-indexed, inclusive).
+    pub line_end: u32,
+    /// New content to write into [line_start, line_end].
+    /// Lines NOT in this range are preserved.
+    pub new_content: String,
+    /// If true, abort if the file was modified since last ingest. Default: true.
+    #[serde(default = "default_true")]
+    pub fail_on_stale: bool,
+    /// If true, run m1nd.predict after write and include results. Default: true.
+    #[serde(default = "default_true")]
+    pub include_predictions: bool,
+    /// Top-K co-change predictions to include. Default: 5.
+    #[serde(default = "default_apply_predict_k")]
+    pub predict_top_k: usize,
+}
+
+fn default_apply_predict_k() -> usize { 5 }
+
+/// Output for m1nd.apply.
+#[derive(Clone, Debug, Serialize)]
+pub struct ApplyOutput {
+    pub node_id: String,
+    pub file_path: String,
+    pub lines_replaced: u32,
+    /// Unified diff of the change.
+    pub diff: String,
+    /// True if the graph was successfully re-ingested after write.
+    pub graph_updated: bool,
+    /// New node count after re-ingest.
+    pub node_count: u32,
+    /// Co-change predictions from the modified node.
+    pub predictions: Vec<ApplyPrediction>,
+    pub elapsed_ms: f64,
+}
+
+/// A single co-change prediction from m1nd.predict.
+#[derive(Clone, Debug, Serialize)]
+pub struct ApplyPrediction {
+    pub node_id: String,
+    pub label: String,
+    /// Co-change likelihood [0.0, 1.0].
+    pub likelihood: f32,
+    pub reason: String,
 }
 
 // =========================================================================
@@ -1125,11 +1542,11 @@ mod tests {
     #[test]
     fn hypothesize_input_minimal() {
         let json = r#"{
-            "claim": "handler never validates session tokens",
+            "claim": "chat_handler never validates session tokens",
             "agent_id": "jimi"
         }"#;
         let input: HypothesizeInput = serde_json::from_str(json).unwrap();
-        assert_eq!(input.claim, "handler never validates session tokens");
+        assert_eq!(input.claim, "chat_handler never validates session tokens");
         assert_eq!(input.max_hops, 5);
         assert!(input.include_ghost_edges);
         assert!(input.include_partial_flow);
@@ -1198,5 +1615,72 @@ mod tests {
         assert!(!input.incremental);
         assert_eq!(input.repos[0].name, "my-project");
         assert_eq!(input.repos[1].adapter, "code");
+    }
+
+    // --- TEMPESTA: surgical_context + apply schema parity ---
+
+    #[test]
+    fn surgical_context_input_minimal() {
+        let json = r#"{"node_id": "file::backend/chat_handler.py", "agent_id": "jimi"}"#;
+        let input: SurgicalContextInput = serde_json::from_str(json).unwrap();
+        assert_eq!(input.node_id, "file::backend/chat_handler.py");
+        assert_eq!(input.agent_id, "jimi");
+        assert_eq!(input.max_lines, 200);
+        assert!(input.include_callers);
+        assert!(input.include_callees);
+        assert!(input.include_blast_radius);
+        assert!(input.include_trust_score);
+        assert_eq!(input.max_deps, 20);
+    }
+
+    #[test]
+    fn surgical_context_input_custom_max_lines() {
+        let json = r#"{
+            "node_id": "func::handle_chat",
+            "agent_id": "forge",
+            "max_lines": 50,
+            "include_callers": false,
+            "max_deps": 5
+        }"#;
+        let input: SurgicalContextInput = serde_json::from_str(json).unwrap();
+        assert_eq!(input.max_lines, 50);
+        assert!(!input.include_callers);
+        assert!(input.include_callees);
+        assert_eq!(input.max_deps, 5);
+    }
+
+    #[test]
+    fn apply_input_minimal() {
+        let json = r#"{
+            "node_id": "func::handle_chat",
+            "agent_id": "forge",
+            "file_path": "/tmp/project/backend/chat_handler.py",
+            "line_start": 42,
+            "line_end": 55,
+            "new_content": "def handle_chat(request):\n    return Response(200)\n"
+        }"#;
+        let input: ApplyInput = serde_json::from_str(json).unwrap();
+        assert_eq!(input.node_id, "func::handle_chat");
+        assert_eq!(input.line_start, 42);
+        assert_eq!(input.line_end, 55);
+        assert!(input.fail_on_stale);
+        assert!(input.include_predictions);
+        assert_eq!(input.predict_top_k, 5);
+    }
+
+    #[test]
+    fn apply_input_no_predictions() {
+        let json = r#"{
+            "node_id": "func::process_task",
+            "agent_id": "forge",
+            "file_path": "/tmp/project/backend/worker_pool.py",
+            "line_start": 10,
+            "line_end": 10,
+            "new_content": "    pass\n",
+            "include_predictions": false
+        }"#;
+        let input: ApplyInput = serde_json::from_str(json).unwrap();
+        assert!(!input.include_predictions);
+        assert!(input.fail_on_stale); // default still true
     }
 }
