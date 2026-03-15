@@ -130,3 +130,156 @@ pub struct ApplyOutput {
     /// Elapsed milliseconds.
     pub elapsed_ms: f64,
 }
+
+// ---------------------------------------------------------------------------
+// m1nd.surgical_context_v2
+// ---------------------------------------------------------------------------
+
+/// Input for m1nd.surgical_context_v2.
+///
+/// Extended version that also fetches source code for each connected file
+/// (callers, callees, tests), respects per-file line caps, and returns
+/// total_lines for context budget management.
+#[derive(Clone, Debug, Deserialize)]
+pub struct SurgicalContextV2Input {
+    /// Absolute or workspace-relative path to the target file.
+    pub file_path: String,
+    /// Calling agent identifier.
+    pub agent_id: String,
+    /// Optional: narrow to a specific symbol within the file.
+    #[serde(default)]
+    pub symbol: Option<String>,
+    /// BFS radius for graph neighbourhood. Default: 1.
+    #[serde(default = "default_radius")]
+    pub radius: u32,
+    /// Include test files in the neighbourhood. Default: true.
+    #[serde(default = "default_true")]
+    pub include_tests: bool,
+    /// Maximum number of connected files to include source for. Default: 5.
+    #[serde(default = "default_max_connected_files")]
+    pub max_connected_files: usize,
+    /// Maximum lines to return per connected file. Default: 60.
+    #[serde(default = "default_max_lines_per_file")]
+    pub max_lines_per_file: usize,
+}
+
+fn default_max_connected_files() -> usize { 5 }
+fn default_max_lines_per_file() -> usize { 60 }
+
+/// Source excerpt for a connected file in v2 context.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ConnectedFileSource {
+    /// Graph node ID for this connected file.
+    pub node_id: String,
+    /// Human-readable label.
+    pub label: String,
+    /// Absolute path to the file.
+    pub file_path: String,
+    /// How this file relates to the target: "caller", "callee", or "test".
+    pub relation_type: String,
+    /// Edge weight from the graph.
+    pub edge_weight: f32,
+    /// Source excerpt (up to max_lines_per_file lines).
+    pub source_excerpt: String,
+    /// Number of lines in the excerpt.
+    pub excerpt_lines: usize,
+    /// True when the file had more lines than max_lines_per_file.
+    pub truncated: bool,
+}
+
+/// Output for m1nd.surgical_context_v2.
+#[derive(Clone, Debug, Serialize)]
+pub struct SurgicalContextV2Output {
+    /// Absolute path of the target file (resolved).
+    pub file_path: String,
+    /// Full contents of the target file.
+    pub file_contents: String,
+    /// Total lines in the target file.
+    pub line_count: u32,
+    /// Graph node ID for the target file.
+    pub node_id: String,
+    /// Symbols defined in the target file.
+    pub symbols: Vec<SurgicalSymbol>,
+    /// Focused symbol (when `symbol` input provided).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub focused_symbol: Option<SurgicalSymbol>,
+    /// Connected files with source excerpts (callers + callees + tests combined,
+    /// capped at max_connected_files, ordered by edge_weight descending).
+    pub connected_files: Vec<ConnectedFileSource>,
+    /// Sum of all lines returned: line_count + sum(excerpt_lines).
+    pub total_lines: usize,
+    /// Elapsed milliseconds.
+    pub elapsed_ms: f64,
+}
+
+// ---------------------------------------------------------------------------
+// m1nd.apply_batch
+// ---------------------------------------------------------------------------
+
+/// A single file edit within an apply_batch request.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BatchEditItem {
+    /// Absolute or workspace-relative path of the file to write.
+    pub file_path: String,
+    /// New full contents for the file (UTF-8).
+    pub new_content: String,
+    /// Optional description for the apply log.
+    #[serde(default)]
+    pub description: Option<String>,
+}
+
+/// Per-file result within an apply_batch response.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct BatchEditResult {
+    /// Absolute path that was written (or attempted).
+    pub file_path: String,
+    /// True when this specific file was written successfully.
+    pub success: bool,
+    /// Unified diff for this file.
+    pub diff: String,
+    /// Lines added in this file.
+    pub lines_added: i32,
+    /// Lines removed in this file.
+    pub lines_removed: i32,
+    /// Failure reason when success=false.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+/// Input for m1nd.apply_batch.
+///
+/// Writes multiple files atomically: either ALL succeed or NONE are written
+/// (rollback on partial failure when atomic=true).
+/// A single incremental re-ingest covers all modified files.
+#[derive(Clone, Debug, Deserialize)]
+pub struct ApplyBatchInput {
+    /// Calling agent identifier.
+    pub agent_id: String,
+    /// Files to write. Empty list is a no-op (returns success immediately).
+    pub edits: Vec<BatchEditItem>,
+    /// When true (default), abort and rollback all writes if any single file fails.
+    #[serde(default = "default_true")]
+    pub atomic: bool,
+    /// Re-ingest all modified files after writing. Default: true.
+    #[serde(default = "default_true")]
+    pub reingest: bool,
+}
+
+/// Output for m1nd.apply_batch.
+#[derive(Clone, Debug, Serialize)]
+pub struct ApplyBatchOutput {
+    /// True when all files were written successfully.
+    pub all_succeeded: bool,
+    /// Number of files successfully written.
+    pub files_written: usize,
+    /// Total files attempted.
+    pub files_total: usize,
+    /// Per-file results (one entry per input edit, in input order).
+    pub results: Vec<BatchEditResult>,
+    /// Whether a re-ingest was triggered (single pass covering all files).
+    pub reingested: bool,
+    /// Total bytes written across all files.
+    pub total_bytes_written: usize,
+    /// Elapsed milliseconds.
+    pub elapsed_ms: f64,
+}

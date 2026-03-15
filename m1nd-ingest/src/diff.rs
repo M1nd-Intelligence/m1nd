@@ -188,9 +188,19 @@ impl GraphDiff {
                     );
                     applied += 1;
                 }
-                DiffAction::RemoveNode(_ext_id) => {
-                    // Graph doesn't support node removal in CSR —
-                    // mark as removed via tag or skip. For now, count it.
+                DiffAction::RemoveNode(ext_id) => {
+                    // BUG FIX (C3/BUG-2): CSR doesn't support structural node
+                    // removal, but we can soft-delete by tagging the node as
+                    // "__m1nd_deleted". Query paths should filter these out.
+                    if let Some(node_id) = graph.resolve_id(ext_id) {
+                        let idx = node_id.as_usize();
+                        if idx < graph.nodes.tags.len() {
+                            let deleted_tag = graph.strings.get_or_intern("__m1nd_deleted");
+                            if !graph.nodes.tags[idx].contains(&deleted_tag) {
+                                graph.nodes.tags[idx].push(deleted_tag);
+                            }
+                        }
+                    }
                     applied += 1;
                 }
                 DiffAction::ModifyNode {

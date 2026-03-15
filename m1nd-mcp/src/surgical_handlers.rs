@@ -36,21 +36,66 @@ fn resolve_file_path(file_path: &str, ingest_roots: &[String]) -> PathBuf {
     }
 }
 
+/// Deny-list: m1nd state files that must never be overwritten by apply/apply_batch.
+const DENIED_FILENAMES: &[&str] = &[
+    "graph_snapshot.json",
+    "plasticity_state.json",
+    "antibodies.json",
+    "tremor_state.json",
+    "trust_state.json",
+];
+
 /// Validate that a path is within allowed workspace roots.
 /// Returns Ok(canonical_path) or Err if path traversal is detected.
+///
+/// BUG FIX (E4): When ingest_roots is empty, REFUSE all writes instead of
+/// allowing any path. At least one ingest must happen before any apply.
+///
+/// BUG FIX (E3): Deny-list prevents overwriting m1nd's own state files.
 fn validate_path_safety(
     resolved: &Path,
     ingest_roots: &[String],
 ) -> M1ndResult<PathBuf> {
-    // Canonicalize the resolved path (follows symlinks, resolves ..)
-    let canonical = resolved.canonicalize().map_err(|e| M1ndError::InvalidParams {
-        tool: "m1nd.apply".into(),
-        detail: format!("cannot resolve path {}: {}", resolved.display(), e),
-    })?;
-
-    // If no ingest roots configured, allow any path
+    // BUG FIX (E4): Block all writes when no ingest roots configured
     if ingest_roots.is_empty() {
-        return Ok(canonical);
+        return Err(M1ndError::InvalidParams {
+            tool: "m1nd.apply".into(),
+            detail: format!(
+                "path {} cannot be written: no ingest roots configured (run m1nd.ingest first)",
+                resolved.display()
+            ),
+        });
+    }
+
+    // Canonicalize the resolved path (follows symlinks, resolves ..)
+    // For new files that don't exist yet, canonicalize the parent directory
+    let canonical = if resolved.exists() {
+        resolved.canonicalize().map_err(|e| M1ndError::InvalidParams {
+            tool: "m1nd.apply".into(),
+            detail: format!("cannot resolve path {}: {}", resolved.display(), e),
+        })?
+    } else {
+        // File doesn't exist yet: canonicalize parent + append filename
+        let parent = resolved.parent().unwrap_or(Path::new("."));
+        let filename = resolved.file_name().unwrap_or_default();
+        let parent_canonical = parent.canonicalize().map_err(|e| M1ndError::InvalidParams {
+            tool: "m1nd.apply".into(),
+            detail: format!("cannot resolve parent directory {}: {}", parent.display(), e),
+        })?;
+        parent_canonical.join(filename)
+    };
+
+    // BUG FIX (E3): Deny-list for m1nd state files
+    if let Some(filename) = canonical.file_name().and_then(|f| f.to_str()) {
+        if DENIED_FILENAMES.contains(&filename) {
+            return Err(M1ndError::InvalidParams {
+                tool: "m1nd.apply".into(),
+                detail: format!(
+                    "path {} is a protected m1nd state file and cannot be overwritten",
+                    resolved.display()
+                ),
+            });
+        }
     }
 
     // Check that canonical path starts with at least one ingest root
@@ -766,6 +811,448 @@ pub fn handle_apply(
         lines_removed,
         reingested,
         updated_node_ids,
+        elapsed_ms,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// m1nd.surgical_context_v2
+// ---------------------------------------------------------------------------
+
+/// Handle m1nd.surgical_context_v2.
+///
+/// Returns V1 surgical context for the primary file PLUS source code
+/// of connected files (callers, callees, tests), sorted by edge_weight,
+/// capped at max_connected_files, truncated at max_lines_per_file.
+///
+/// Steps:
+///   1. Delegate to handle_surgical_context() for the primary file (V1 output).
+///   2. Collect unique file paths from primary.callers + callees + tests.
+///   3. Deduplicate by file_path (keep highest weight per path).
+///   4. Sort by edge_weight descending, take top max_connected_files.
+///   5. Read each connected file's source (truncate to max_lines_per_file).
+///   6. Assemble SurgicalContextV2Output.
+pub fn handle_surgical_context_v2(
+    state: &mut SessionState,
+    input: surgical::SurgicalContextV2Input,
+) -> M1ndResult<surgical::SurgicalContextV2Output> {
+    let start = Instant::now();
+
+    // Step 1: Get V1 context for the primary file
+    let v1_input = surgical::SurgicalContextInput {
+        file_path: input.file_path.clone(),
+        agent_id: input.agent_id.clone(),
+        symbol: input.symbol.clone(),
+        radius: input.radius,
+        include_tests: input.include_tests,
+    };
+    let primary = handle_surgical_context(state, v1_input)?;
+
+    // Step 2: Collect candidate files from neighbourhood
+    // Use a HashMap to deduplicate by file_path, keeping highest weight
+    let primary_path = primary.file_path.clone();
+    let primary_node_id = primary.node_id.clone();
+    let mut candidate_map: std::collections::HashMap<String, (String, String, String, f32)> =
+        std::collections::HashMap::new(); // path -> (node_id, label, relation, weight)
+
+    for caller in &primary.callers {
+        if !caller.file_path.is_empty() && caller.file_path != primary_path {
+            let entry = candidate_map.entry(caller.file_path.clone()).or_insert((
+                caller.node_id.clone(),
+                caller.label.clone(),
+                "caller".to_string(),
+                caller.edge_weight,
+            ));
+            if caller.edge_weight > entry.3 {
+                *entry = (
+                    caller.node_id.clone(),
+                    caller.label.clone(),
+                    "caller".to_string(),
+                    caller.edge_weight,
+                );
+            }
+        }
+    }
+    for callee in &primary.callees {
+        if !callee.file_path.is_empty() && callee.file_path != primary_path {
+            let entry = candidate_map.entry(callee.file_path.clone()).or_insert((
+                callee.node_id.clone(),
+                callee.label.clone(),
+                "callee".to_string(),
+                callee.edge_weight,
+            ));
+            if callee.edge_weight > entry.3 {
+                *entry = (
+                    callee.node_id.clone(),
+                    callee.label.clone(),
+                    "callee".to_string(),
+                    callee.edge_weight,
+                );
+            }
+        }
+    }
+    for test in &primary.tests {
+        if !test.file_path.is_empty() && test.file_path != primary_path {
+            let entry = candidate_map.entry(test.file_path.clone()).or_insert((
+                test.node_id.clone(),
+                test.label.clone(),
+                "test".to_string(),
+                test.edge_weight,
+            ));
+            if test.edge_weight > entry.3 {
+                *entry = (
+                    test.node_id.clone(),
+                    test.label.clone(),
+                    "test".to_string(),
+                    test.edge_weight,
+                );
+            }
+        }
+    }
+
+    // Also exclude primary node_id from connected set (circular guard)
+    candidate_map.retain(|_, (nid, _, _, _)| *nid != primary_node_id);
+
+    // Step 3: Sort by edge_weight descending, cap at max_connected_files
+    let mut scored: Vec<(String, String, String, String, f32)> = candidate_map
+        .into_iter()
+        .map(|(path, (nid, label, rel, w))| (path, nid, label, rel, w))
+        .collect();
+    scored.sort_by(|a, b| b.4.partial_cmp(&a.4).unwrap_or(std::cmp::Ordering::Equal));
+    scored.truncate(input.max_connected_files);
+
+    // Step 4: Read each connected file, build ConnectedFileSource
+    let mut connected_files: Vec<surgical::ConnectedFileSource> = Vec::new();
+    let mut total_lines = primary.line_count as usize;
+    let max_lines = input.max_lines_per_file;
+
+    for (path, node_id, label, relation_type, edge_weight) in &scored {
+        let resolved = resolve_file_path(path, &state.ingest_roots);
+        match std::fs::read_to_string(&resolved) {
+            Ok(content) => {
+                let all_lines: Vec<&str> = content.lines().collect();
+                let file_line_count = all_lines.len();
+                let truncated = file_line_count > max_lines;
+                let excerpt_lines = if truncated { max_lines } else { file_line_count };
+                let source_excerpt: String = all_lines
+                    .iter()
+                    .take(excerpt_lines)
+                    .cloned()
+                    .collect::<Vec<&str>>()
+                    .join("\n");
+
+                total_lines += excerpt_lines;
+
+                connected_files.push(surgical::ConnectedFileSource {
+                    node_id: node_id.clone(),
+                    label: label.clone(),
+                    file_path: resolved.to_string_lossy().to_string(),
+                    relation_type: relation_type.clone(),
+                    edge_weight: *edge_weight,
+                    source_excerpt,
+                    excerpt_lines,
+                    truncated,
+                });
+            }
+            Err(e) => {
+                // Non-fatal: skip unreadable/binary files
+                eprintln!(
+                    "[m1nd] WARNING: surgical_context_v2 cannot read connected file {}: {}",
+                    resolved.display(),
+                    e
+                );
+            }
+        }
+    }
+
+    let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
+    state.track_agent(&input.agent_id);
+
+    Ok(surgical::SurgicalContextV2Output {
+        file_path: primary.file_path,
+        file_contents: primary.file_contents,
+        line_count: primary.line_count,
+        node_id: primary.node_id,
+        symbols: primary.symbols,
+        focused_symbol: primary.focused_symbol,
+        connected_files,
+        total_lines,
+        elapsed_ms,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// m1nd.apply_batch
+// ---------------------------------------------------------------------------
+
+/// Handle m1nd.apply_batch.
+///
+/// Writes multiple files atomically and triggers a single bulk re-ingest.
+///
+/// Steps:
+///   1. Empty edits = fast-path no-op.
+///   2. Resolve and validate all file paths (path safety check) BEFORE any writes.
+///   3. Read old content for each file (for diff).
+///   4. ATOMIC mode: write all files to unique temp files first.
+///      If any temp write fails, clean up all temp files and return error.
+///      Then rename all temp files to targets.
+///   5. NON-ATOMIC mode: write each file independently via temp+rename.
+///   6. Compute diffs per file.
+///   7. If reingest: bulk re-ingest all modified files in one pass.
+///   8. Assemble ApplyBatchOutput.
+pub fn handle_apply_batch(
+    state: &mut SessionState,
+    input: surgical::ApplyBatchInput,
+) -> M1ndResult<surgical::ApplyBatchOutput> {
+    let start = Instant::now();
+
+    // Step 1: Empty edits = fast-path no-op
+    if input.edits.is_empty() {
+        return Ok(surgical::ApplyBatchOutput {
+            all_succeeded: true,
+            files_written: 0,
+            files_total: 0,
+            results: Vec::new(),
+            reingested: false,
+            total_bytes_written: 0,
+            elapsed_ms: start.elapsed().as_secs_f64() * 1000.0,
+        });
+    }
+
+    // Step 2: Resolve and validate ALL paths upfront (fail-fast before any writes)
+    let mut resolved_edits: Vec<(PathBuf, &surgical::BatchEditItem, String)> = Vec::new();
+    for edit in &input.edits {
+        let resolved = resolve_file_path(&edit.file_path, &state.ingest_roots);
+        let validated = validate_path_safety(&resolved, &state.ingest_roots)?;
+        // Read old content for diff (empty string if new file)
+        let old_content = std::fs::read_to_string(&validated).unwrap_or_default();
+        resolved_edits.push((validated, edit, old_content));
+    }
+
+    let mut results: Vec<surgical::BatchEditResult> = Vec::new();
+    let mut total_bytes_written: usize = 0;
+
+    if input.atomic {
+        // --- ATOMIC MODE: all-or-nothing ---
+
+        // Phase 1: Write all to unique temp files
+        let mut temp_files: Vec<(PathBuf, PathBuf)> = Vec::new(); // (tmp_path, target_path)
+        let pid = std::process::id();
+        let batch_id = start.elapsed().as_nanos(); // unique per batch call
+
+        for (i, (validated, edit, _old)) in resolved_edits.iter().enumerate() {
+            let parent = validated.parent().unwrap_or(Path::new("."));
+
+            // Ensure parent directory exists
+            if !parent.exists() {
+                if let Err(e) = std::fs::create_dir_all(parent) {
+                    // Clean up temp files written so far
+                    for (tmp, _) in &temp_files {
+                        let _ = std::fs::remove_file(tmp);
+                    }
+                    return Err(M1ndError::InvalidParams {
+                        tool: "m1nd.apply_batch".into(),
+                        detail: format!(
+                            "cannot create directory {}: {}",
+                            parent.display(),
+                            e
+                        ),
+                    });
+                }
+            }
+
+            // BUG FIX (B2): unique temp file per edit (pid + batch_id + index)
+            let tmp_path = parent.join(format!(
+                ".m1nd_batch_{}_{}_{}_.tmp",
+                pid, batch_id, i
+            ));
+
+            match std::fs::write(&tmp_path, &edit.new_content) {
+                Ok(_) => {
+                    temp_files.push((tmp_path, validated.clone()));
+                }
+                Err(e) => {
+                    // Clean up already-written temp files
+                    for (tmp, _) in &temp_files {
+                        let _ = std::fs::remove_file(tmp);
+                    }
+                    return Err(M1ndError::InvalidParams {
+                        tool: "m1nd.apply_batch".into(),
+                        detail: format!(
+                            "atomic batch failed: cannot write temp file for {}: {}",
+                            validated.display(),
+                            e
+                        ),
+                    });
+                }
+            }
+        }
+
+        // Phase 2: Rename all temp files to targets (atomic per-file)
+        let mut renamed_files: Vec<(PathBuf, String)> = Vec::new(); // (target, old_content for rollback)
+        for (idx, (tmp_path, target_path)) in temp_files.iter().enumerate() {
+            if let Err(e) = std::fs::rename(tmp_path, target_path) {
+                // Rename failure: rollback already-renamed files by restoring old content
+                for (rollback_target, old_content) in &renamed_files {
+                    let _ = std::fs::write(rollback_target, old_content);
+                }
+                // Clean up remaining temp files
+                for (tmp, _) in temp_files.iter().skip(idx) {
+                    let _ = std::fs::remove_file(tmp);
+                }
+                return Err(M1ndError::InvalidParams {
+                    tool: "m1nd.apply_batch".into(),
+                    detail: format!(
+                        "atomic rename failed {} -> {}: {}",
+                        tmp_path.display(),
+                        target_path.display(),
+                        e
+                    ),
+                });
+            }
+            // Track for potential rollback
+            renamed_files.push((
+                target_path.clone(),
+                resolved_edits[idx].2.clone(), // old_content
+            ));
+        }
+
+        // Phase 3: Compute diffs for all successfully written files
+        for (validated, edit, old_content) in &resolved_edits {
+            let (added, removed) = diff_summary(old_content, &edit.new_content);
+            let bytes = edit.new_content.len();
+            total_bytes_written += bytes;
+
+            // Build a simple unified diff string
+            let diff_str = format!(
+                "@@ -{},{} +{},{} @@\n{}{}",
+                1,
+                old_content.lines().count(),
+                1,
+                edit.new_content.lines().count(),
+                old_content.lines().take(3).map(|l| format!("-{}\n", l)).collect::<String>(),
+                edit.new_content.lines().take(3).map(|l| format!("+{}\n", l)).collect::<String>(),
+            );
+
+            results.push(surgical::BatchEditResult {
+                file_path: validated.to_string_lossy().to_string(),
+                success: true,
+                diff: diff_str,
+                lines_added: added,
+                lines_removed: removed,
+                error: None,
+            });
+        }
+    } else {
+        // --- NON-ATOMIC MODE: write each file independently ---
+        let pid = std::process::id();
+        let batch_id = start.elapsed().as_nanos();
+
+        for (i, (validated, edit, old_content)) in resolved_edits.iter().enumerate() {
+            let parent = validated.parent().unwrap_or(Path::new("."));
+
+            // Ensure parent directory exists
+            if !parent.exists() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+
+            // Unique temp file per edit (same fix as atomic)
+            let tmp_path = parent.join(format!(
+                ".m1nd_batch_{}_{}_{}_.tmp",
+                pid, batch_id, i
+            ));
+
+            match std::fs::write(&tmp_path, &edit.new_content)
+                .and_then(|_| std::fs::rename(&tmp_path, validated))
+            {
+                Ok(_) => {
+                    let (added, removed) = diff_summary(old_content, &edit.new_content);
+                    let bytes = edit.new_content.len();
+                    total_bytes_written += bytes;
+
+                    let diff_str = format!(
+                        "@@ -{},{} +{},{} @@\n{}{}",
+                        1,
+                        old_content.lines().count(),
+                        1,
+                        edit.new_content.lines().count(),
+                        old_content.lines().take(3).map(|l| format!("-{}\n", l)).collect::<String>(),
+                        edit.new_content.lines().take(3).map(|l| format!("+{}\n", l)).collect::<String>(),
+                    );
+
+                    results.push(surgical::BatchEditResult {
+                        file_path: validated.to_string_lossy().to_string(),
+                        success: true,
+                        diff: diff_str,
+                        lines_added: added,
+                        lines_removed: removed,
+                        error: None,
+                    });
+                }
+                Err(e) => {
+                    let _ = std::fs::remove_file(&tmp_path);
+                    results.push(surgical::BatchEditResult {
+                        file_path: validated.to_string_lossy().to_string(),
+                        success: false,
+                        diff: String::new(),
+                        lines_added: 0,
+                        lines_removed: 0,
+                        error: Some(e.to_string()),
+                    });
+                }
+            }
+        }
+    }
+
+    // Step 7: Bulk re-ingest (single pass covering all successfully written files)
+    let files_written = results.iter().filter(|r| r.success).count();
+    let all_succeeded = files_written == input.edits.len();
+
+    let reingested = if input.reingest && files_written > 0 {
+        let successful_paths: Vec<String> = results
+            .iter()
+            .filter(|r| r.success)
+            .map(|r| r.file_path.clone())
+            .collect();
+
+        let mut any_ingested = false;
+        for path in &successful_paths {
+            let ingest_input = crate::protocol::IngestInput {
+                path: path.clone(),
+                agent_id: input.agent_id.clone(),
+                mode: "merge".to_string(),
+                incremental: true,
+                adapter: "code".to_string(),
+                namespace: None,
+            };
+
+            match crate::tools::handle_ingest(state, ingest_input) {
+                Ok(_) => {
+                    any_ingested = true;
+                }
+                Err(e) => {
+                    eprintln!(
+                        "[m1nd] WARNING: apply_batch re-ingest failed for {}: {}",
+                        path, e
+                    );
+                }
+            }
+        }
+        any_ingested
+    } else {
+        false
+    };
+
+    let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
+    state.track_agent(&input.agent_id);
+
+    Ok(surgical::ApplyBatchOutput {
+        all_succeeded,
+        files_written,
+        files_total: input.edits.len(),
+        results,
+        reingested,
+        total_bytes_written,
         elapsed_ms,
     })
 }

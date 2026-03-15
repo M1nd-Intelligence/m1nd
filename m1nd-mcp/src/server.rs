@@ -1095,6 +1095,52 @@ pub fn tool_schemas() -> serde_json::Value {
                     },
                     "required": ["file_path", "agent_id", "new_content"]
                 }
+            },
+            // =================================================================
+            // Surgical V2: context_v2 + apply_batch
+            // =================================================================
+            {
+                "name": "m1nd.surgical_context_v2",
+                "description": "Get full surgical context for a file PLUS source code of connected files (callers, callees, tests). Returns a complete workspace snapshot in one call. Superset of m1nd.surgical_context.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "file_path": { "type": "string", "description": "Absolute or workspace-relative path to the primary file" },
+                        "symbol": { "type": "string", "description": "Optional: narrow context to a specific symbol (function/struct/class name)" },
+                        "include_tests": { "type": "boolean", "default": true, "description": "Include test files in the neighbourhood" },
+                        "radius": { "type": "integer", "default": 1, "description": "BFS radius for graph neighbourhood (1 or 2)" },
+                        "max_connected_files": { "type": "integer", "default": 5, "description": "Maximum number of connected files to include source for" },
+                        "max_lines_per_file": { "type": "integer", "default": 60, "description": "Maximum lines per connected file (primary file is unbounded)" }
+                    },
+                    "required": ["agent_id", "file_path"]
+                }
+            },
+            {
+                "name": "m1nd.apply_batch",
+                "description": "Atomically write multiple files and trigger a single bulk re-ingest. Use after m1nd.surgical_context_v2 when editing a file and its callers/tests together. All-or-nothing by default.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "edits": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "file_path": { "type": "string", "description": "Absolute or workspace-relative path of the file to write" },
+                                    "new_content": { "type": "string", "description": "New file contents (full replacement, UTF-8)" },
+                                    "description": { "type": "string", "description": "Optional human-readable label for this edit" }
+                                },
+                                "required": ["file_path", "new_content"]
+                            },
+                            "description": "List of file edits to apply"
+                        },
+                        "atomic": { "type": "boolean", "default": true, "description": "All-or-nothing: if any file fails, none are written" },
+                        "reingest": { "type": "boolean", "default": true, "description": "Re-ingest all modified files after writing" }
+                    },
+                    "required": ["agent_id", "edits"]
+                }
             }
         ]
     })
@@ -1342,6 +1388,27 @@ fn dispatch_core_tool(
                     detail: e.to_string(),
                 })?;
             let output = surgical_handlers::handle_apply(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        // -----------------------------------------------------------------
+        // Surgical V2: context_v2 + apply_batch
+        // -----------------------------------------------------------------
+        "m1nd.surgical.context.v2" => {
+            let input: crate::protocol::surgical::SurgicalContextV2Input =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.surgical_context_v2".into(),
+                    detail: e.to_string(),
+                })?;
+            let output = surgical_handlers::handle_surgical_context_v2(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd.apply.batch" => {
+            let input: crate::protocol::surgical::ApplyBatchInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd.apply_batch".into(),
+                    detail: e.to_string(),
+                })?;
+            let output = surgical_handlers::handle_apply_batch(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         _ => Err(M1ndError::UnknownTool { name: tool_name.to_string() }),
