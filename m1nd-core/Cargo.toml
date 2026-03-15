@@ -1,12 +1,13 @@
 [package]
 name = "m1nd-core"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Neuro-symbolic code graph engine — core algorithms, graph, plasticity, resonance"
 license = "MIT"
 repository = "https://github.com/maxkle1nz/m1nd"
 homepage = "https://m1nd.world"
 documentation = "https://m1nd.world/wiki-build/architecture.html"
+readme = "../README.md"
 keywords = ["code-graph", "neuro-symbolic", "mcp", "hebbian", "spreading-activation"]
 categories = ["development-tools", "algorithms"]
 
