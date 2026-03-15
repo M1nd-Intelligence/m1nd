@@ -8,7 +8,7 @@
 
 <p align="center">
   Motor de conectoma neuro-simbólico com plasticidade Hebbiana, spreading activation
-  e 54 ferramentas MCP. Feito em Rust para agentes de IA.<br/>
+  e 56 ferramentas MCP. Feito em Rust para agentes de IA.<br/>
   <em>(Um grafo de código que aprende a cada consulta. Faça uma pergunta; ele fica mais inteligente.)</em>
 </p>
 
@@ -27,7 +27,7 @@
   <a href="#início-rápido">Início Rápido</a> &middot;
   <a href="#resultados-comprovados">Resultados</a> &middot;
   <a href="#por-que-não-usar-cursorraggrep">Por que m1nd</a> &middot;
-  <a href="#as-54-ferramentas">Ferramentas</a> &middot;
+  <a href="#as-56-ferramentas">Ferramentas</a> &middot;
   <a href="https://github.com/maxkle1nz/m1nd/wiki">Wiki</a> &middot;
   <a href="EXAMPLES.md">Exemplos</a>
 </p>
@@ -171,7 +171,7 @@ Funciona com qualquer cliente MCP: Claude Code, Cursor, Windsurf, Zed ou o seu p
 
 **O grafo salva investigações.** `trail.save` -> `trail.resume` dias depois da mesma posição cognitiva exata. Dois agentes no mesmo bug? `trail.merge` -- detecção automática de conflitos em nós compartilhados.
 
-## As 54 Ferramentas
+## As 56 Ferramentas
 
 | Categoria | Quantidade | Destaques |
 |-----------|------------|-----------|
@@ -270,12 +270,14 @@ Funciona com qualquer cliente MCP: Claude Code, Cursor, Windsurf, Zed ou o seu p
 </details>
 
 <details>
-<summary><strong>Cirúrgico (2 ferramentas)</strong></summary>
+<summary><strong>Cirúrgico (4 ferramentas)</strong></summary>
 
 | Ferramenta | O Que Faz | Velocidade |
 |------------|-----------|------------|
 | `surgical_context` | Contexto completo para um nó de código: fonte, callers, callees, testes, score de confiança, raio de impacto — em uma chamada | varia |
-| `apply` | Escreva o código editado de volta ao arquivo, escrita atômica, re-ingesta o grafo, executa predict | varia |
+| `apply` | Escreve o código editado de volta ao arquivo, escrita atômica, re-ingesta o grafo, executa predict | 3.5ms |
+| `surgical_context_v2` | Todos os arquivos conectados com código-fonte em UMA chamada — contexto completo de dependências sem múltiplas requisições | 1.3ms |
+| `apply_batch` | Escreve múltiplos arquivos atomicamente, re-ingesta única, retorna diffs por arquivo | 165ms |
 </details>
 
 [Referência completa da API com exemplos ->](https://github.com/maxkle1nz/m1nd/wiki/API-Reference)
@@ -289,7 +291,7 @@ m1nd-core/     Motor de grafo, spreading activation, plasticidade Hebbiana, moto
                sistema de anticorpos, simulador de fluxo, epidemia, tremor, confiança, detecção de camadas
 m1nd-ingest/   Extratores de linguagem (28 linguagens), memory adapter, JSON adapter,
                enriquecimento git, resolvedor cross-file, diff incremental
-m1nd-mcp/      Servidor MCP, 54 handlers de ferramentas, JSON-RPC sobre stdio, servidor HTTP + GUI
+m1nd-mcp/      Servidor MCP, 56 handlers de ferramentas, JSON-RPC sobre stdio, servidor HTTP + GUI
 ```
 
 ```mermaid
@@ -309,7 +311,7 @@ graph LR
         SA --> XLR[XLR Cancelamento de Ruído]
     end
     subgraph MCP
-        XLR --> T[54 Ferramentas]
+        XLR --> T[56 Ferramentas]
         HP --> T
         HY --> T
         SX --> T

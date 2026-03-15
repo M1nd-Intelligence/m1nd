@@ -8,7 +8,7 @@
 
 <p align="center">
   Neuro-symbolische Konnektom-Engine mit Hebbscher Plastizität, Spreading Activation
-  und 54 MCP-Tools. In Rust gebaut für KI-Agenten.<br/>
+  und 56 MCP-Tools. In Rust gebaut für KI-Agenten.<br/>
   <em>(Ein Code-Graph, der bei jeder Abfrage lernt. Stell eine Frage; er wird klüger.)</em>
 </p>
 
@@ -27,7 +27,7 @@
   <a href="#schnellstart">Schnellstart</a> &middot;
   <a href="#nachgewiesene-ergebnisse">Ergebnisse</a> &middot;
   <a href="#warum-nicht-einfach-cursorraggrep-nutzen">Warum m1nd</a> &middot;
-  <a href="#die-54-tools">Tools</a> &middot;
+  <a href="#die-56-tools">Tools</a> &middot;
   <a href="https://github.com/maxkle1nz/m1nd/wiki">Wiki</a> &middot;
   <a href="EXAMPLES.md">Beispiele</a>
 </p>
@@ -171,7 +171,7 @@ Funktioniert mit jedem MCP-Client: Claude Code, Cursor, Windsurf, Zed oder deine
 
 **Der Graph speichert Untersuchungen.** `trail.save` -> `trail.resume` Tage später von exakt derselben kognitiven Position. Zwei Agenten am selben Bug? `trail.merge` -- automatische Konflikterkennung auf geteilten Knoten.
 
-## Die 54 Tools
+## Die 56 Tools
 
 | Kategorie | Anzahl | Highlights |
 |-----------|--------|------------|
@@ -270,12 +270,14 @@ Funktioniert mit jedem MCP-Client: Claude Code, Cursor, Windsurf, Zed oder deine
 </details>
 
 <details>
-<summary><strong>Chirurgisch (2 Tools)</strong></summary>
+<summary><strong>Chirurgisch (4 Tools)</strong></summary>
 
 | Tool | Was Es Tut | Geschwindigkeit |
 |------|-----------|-----------------|
 | `surgical_context` | Vollständiger Kontext für einen Code-Knoten: Quelle, Caller, Callees, Tests, Trust-Score, Blast-Radius — in einem Aufruf | variiert |
-| `apply` | Schreibt bearbeiteten Code zurück in die Datei, atomares Schreiben, re-ingestiert den Graphen, führt predict aus | variiert |
+| `apply` | Schreibt bearbeiteten Code zurück in die Datei, atomares Schreiben, re-ingestiert den Graphen, führt predict aus | 3.5ms |
+| `surgical_context_v2` | Alle verbundenen Dateien mit Quellcode in EINEM Aufruf — vollständiger Abhängigkeitskontext ohne mehrere Round-Trips | 1.3ms |
+| `apply_batch` | Schreibt mehrere Dateien atomar, einmaliges Re-Ingest, gibt Diffs pro Datei zurück | 165ms |
 </details>
 
 [Vollständige API-Referenz mit Beispielen ->](https://github.com/maxkle1nz/m1nd/wiki/API-Reference)
@@ -289,7 +291,7 @@ m1nd-core/     Graph-Engine, Spreading Activation, Hebbsche Plastizität, Hypoth
                Antikörper-System, Flusssimulator, Epidemie, Tremor, Vertrauen, Schicht-Erkennung
 m1nd-ingest/   Sprach-Extraktoren (28 Sprachen), Memory Adapter, JSON Adapter,
                Git-Anreicherung, Cross-File-Resolver, inkrementeller Diff
-m1nd-mcp/      MCP-Server, 54 Tool-Handler, JSON-RPC über stdio, HTTP-Server + GUI
+m1nd-mcp/      MCP-Server, 56 Tool-Handler, JSON-RPC über stdio, HTTP-Server + GUI
 ```
 
 ```mermaid
@@ -309,7 +311,7 @@ graph LR
         SA --> XLR[XLR Rauschunterdrückung]
     end
     subgraph MCP
-        XLR --> T[54 Tools]
+        XLR --> T[56 Tools]
         HP --> T
         HY --> T
         SX --> T

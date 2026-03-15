@@ -207,3 +207,81 @@ Real output from running m1nd against a production Python backend (335 files, ~5
   "related_test_files": ["file::tests/test_worker.py", "file::tests/test_pool.py"]
 }
 ```
+
+## Surgical Context V2 (Multi-file dependency context in one call)
+
+```jsonc
+// Get full context for a file including all connected sources
+{"method":"tools/call","params":{"name":"m1nd.surgical_context_v2","arguments":{
+  "agent_id":"dev",
+  "file_path":"backend/chat_handler.py",
+  "include_connected_sources": true,
+  "max_connected_files": 5,
+  "max_lines_per_file": 500
+}}}
+
+// Response (1.3ms) — includes target file + all connected files with source
+{
+  "target": {
+    "node_id": "file::backend/chat_handler.py",
+    "source": "class ChatHandler:\n    def handle(self, msg):\n        ...",
+    "trust_score": 0.82,
+    "blast_radius": 14
+  },
+  "connected_files": [
+    {
+      "node_id": "file::backend/worker_pool.py",
+      "relationship": "callee",
+      "source": "class WorkerPool:\n    def acquire(self):\n        ...",
+      "lines_included": 143
+    },
+    {
+      "node_id": "file::backend/tests/test_chat_handler.py",
+      "relationship": "test",
+      "source": "def test_handle_message():\n    handler = ChatHandler()\n    ...",
+      "lines_included": 67
+    }
+  ],
+  "total_files": 3,
+  "total_lines": 356
+}
+```
+
+## Apply Batch (Atomic multi-file edits with single re-ingest)
+
+```jsonc
+// Write multiple files in one atomic operation, re-ingest once
+{"method":"tools/call","params":{"name":"m1nd.apply_batch","arguments":{
+  "agent_id":"dev",
+  "edits": [
+    {
+      "file_path": "backend/chat_handler.py",
+      "new_content": "class ChatHandler:\n    def handle(self, msg: Message) -> Response:\n        ..."
+    },
+    {
+      "file_path": "backend/types.py",
+      "new_content": "from dataclasses import dataclass\n\n@dataclass\nclass Message:\n    content: str\n    ..."
+    }
+  ],
+  "atomic": true
+}}}
+
+// Response (165ms) — per-file diffs + single re-ingest result
+{
+  "results": [
+    {
+      "file_path": "backend/chat_handler.py",
+      "success": true,
+      "diff": "@@ -1,3 +1,3 @@\n class ChatHandler:\n-    def handle(self, msg):\n+    def handle(self, msg: Message) -> Response:\n         ..."
+    },
+    {
+      "file_path": "backend/types.py",
+      "success": true,
+      "diff": "@@ -0,0 +1,5 @@\n+from dataclasses import dataclass\n+\n+@dataclass\n+class Message:\n+    content: str\n+    ..."
+    }
+  ],
+  "re_ingest_nodes_updated": 47,
+  "total_files": 2,
+  "atomic": true
+}
+```

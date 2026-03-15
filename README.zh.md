@@ -7,7 +7,7 @@
 <h3 align="center">你的 AI 智能体在盲目导航。m1nd 赋予它双眼。</h3>
 
 <p align="center">
-  具备赫布可塑性、扩散激活和 54 个 MCP 工具的神经符号连接组引擎。
+  具备赫布可塑性、扩散激活和 56 个 MCP 工具的神经符号连接组引擎。
   用 Rust 构建，专为 AI 智能体打造。<br/>
   <em>（一个每次查询都会学习的代码图谱。问它一个问题，它就变得更聪明。）</em>
 </p>
@@ -27,7 +27,7 @@
   <a href="#快速开始">快速开始</a> &middot;
   <a href="#验证结果">结果</a> &middot;
   <a href="#为什么不用-cursorraggrep">为什么选 m1nd</a> &middot;
-  <a href="#54-个工具">工具</a> &middot;
+  <a href="#56-个工具">工具</a> &middot;
   <a href="https://github.com/maxkle1nz/m1nd/wiki">Wiki</a> &middot;
   <a href="EXAMPLES.md">示例</a>
 </p>
@@ -170,7 +170,7 @@ cd m1nd && cargo build --release
 
 **图谱保存调查。** `trail.save` -> 数天后从完全相同的认知位置 `trail.resume`。两个智能体调查同一个 bug？`trail.merge` —— 共享节点上的自动冲突检测。
 
-## 54 个工具
+## 56 个工具
 
 | 类别 | 数量 | 亮点 |
 |------|------|------|
@@ -179,7 +179,7 @@ cd m1nd && cargo build --release
 | **锁定系统** | 5 | 固定子图区域，监视变化（lock.diff: 0.08&micro;s） |
 | **超能力** | 13 | hypothesize, counterfactual, missing, resonate, fingerprint, trace, predict, trails |
 | **扩展超能力** | 9 | antibody, flow_simulate, epidemic, tremor, trust, layers |
-| **手术级** | 2 | surgical_context, apply |
+| **手术级** | 4 | surgical_context, apply, surgical_context_v2, apply_batch |
 
 <details>
 <summary><strong>基础（13 个工具）</strong></summary>
@@ -269,12 +269,14 @@ cd m1nd && cargo build --release
 </details>
 
 <details>
-<summary><strong>外科手术 (2 个工具)</strong></summary>
+<summary><strong>外科手术 (4 个工具)</strong></summary>
 
 | 工具 | 功能 | 速度 |
 |------|------|------|
 | `surgical_context` | 一次调用获取代码节点的完整上下文：源码、调用者、被调用者、测试、信任分、爆炸半径 | 不定 |
-| `apply` | 将编辑后的代码原子写入文件，重新摄取图，运行 predict | 不定 |
+| `apply` | 将编辑后的代码原子写入文件，重新摄取图，运行 predict | 3.5ms |
+| `surgical_context_v2` | 一次调用获取所有连接文件的源码 — 完整依赖上下文，无需多次请求 | 1.3ms |
+| `apply_batch` | 原子写入多个文件，单次重新摄取，返回每个文件的 diff | 165ms |
 </details>
 
 [完整 API 参考及示例 ->](https://github.com/maxkle1nz/m1nd/wiki/API-Reference)
@@ -288,7 +290,7 @@ m1nd-core/     图谱引擎、扩散激活、赫布可塑性、假设引擎、
                抗体系统、流模拟器、流行病、震颤、信任、层级检测
 m1nd-ingest/   语言提取器（28 种语言）、记忆适配器、JSON 适配器、
                Git 丰富化、跨文件解析器、增量差异
-m1nd-mcp/      MCP 服务器、54 个工具处理器、JSON-RPC over stdio、HTTP 服务器 + GUI
+m1nd-mcp/      MCP 服务器、56 个工具处理器、JSON-RPC over stdio、HTTP 服务器 + GUI
 ```
 
 ```mermaid
@@ -308,7 +310,7 @@ graph LR
         SA --> XLR[XLR 噪声消除]
     end
     subgraph MCP
-        XLR --> T[54 个工具]
+        XLR --> T[56 个工具]
         HP --> T
         HY --> T
         SX --> T
