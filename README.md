@@ -48,7 +48,7 @@
 ---
 
 <p align="center">
-  <img src=".github/demo-short.gif" alt="m1nd — 5 real queries in 1.8 seconds, zero tokens" width="720" />
+  <img src=".github/demo-cinema.gif" alt="m1nd — 5 real queries, 1.9 seconds, zero tokens, 8 invisible bugs" width="720" />
 </p>
 
 m1nd doesn't search your codebase -- it *activates* it. Fire a query into the graph and watch
