@@ -1,0 +1,68 @@
+<svg width="1280" height="640" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="35%" cy="50%" r="40%">
+      <stop offset="0%" style="stop-color:#00E5A0;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#0A0F1A;stop-opacity:0"/>
+    </radialGradient>
+    <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#00E5A0;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#00E5A0;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="#0A0F1A"/>
+  <rect width="1280" height="640" fill="url(#glow)"/>
+
+  <!-- Graph edges -->
+  <g stroke="#00E5A0" stroke-opacity="0.2" stroke-width="1">
+    <line x1="200" y1="180" x2="350" y2="280"/>
+    <line x1="350" y1="280" x2="280" y2="420"/>
+    <line x1="350" y1="280" x2="480" y2="200"/>
+    <line x1="480" y1="200" x2="420" y2="350"/>
+    <line x1="420" y1="350" x2="280" y2="420"/>
+    <line x1="200" y1="180" x2="150" y2="340"/>
+    <line x1="150" y1="340" x2="280" y2="420"/>
+    <line x1="480" y1="200" x2="520" y2="380"/>
+    <line x1="520" y1="380" x2="420" y2="350"/>
+    <line x1="350" y1="280" x2="420" y2="350"/>
+    <line x1="200" y1="180" x2="480" y2="200"/>
+    <line x1="150" y1="340" x2="350" y2="280"/>
+  </g>
+
+  <!-- Bright edges (activation path) -->
+  <g stroke="#00E5A0" stroke-opacity="0.6" stroke-width="2">
+    <line x1="350" y1="280" x2="480" y2="200"/>
+    <line x1="350" y1="280" x2="420" y2="350"/>
+    <line x1="420" y1="350" x2="520" y2="380"/>
+  </g>
+
+  <!-- Graph nodes (dim) -->
+  <circle cx="200" cy="180" r="6" fill="#4A5568"/>
+  <circle cx="150" cy="340" r="5" fill="#4A5568"/>
+  <circle cx="280" cy="420" r="5" fill="#4A5568"/>
+
+  <!-- Graph nodes (active) -->
+  <circle cx="350" cy="280" r="12" fill="#00E5A0" opacity="0.9"/>
+  <circle cx="350" cy="280" r="24" fill="#00E5A0" opacity="0.1"/>
+  <circle cx="480" cy="200" r="8" fill="#00E5A0" opacity="0.7"/>
+  <circle cx="480" cy="200" r="16" fill="#00E5A0" opacity="0.08"/>
+  <circle cx="420" cy="350" r="9" fill="#00E5A0" opacity="0.6"/>
+  <circle cx="520" cy="380" r="7" fill="#00E5A0" opacity="0.5"/>
+
+  <!-- Bug nodes (red) -->
+  <circle cx="180" cy="450" r="5" fill="#FF4757" opacity="0.7"/>
+  <circle cx="500" cy="140" r="4" fill="#FF4757" opacity="0.6"/>
+
+  <!-- Text: m1nd -->
+  <text x="720" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="120" font-weight="700" fill="#E2E8F0">m<tspan fill="#00E5A0">1</tspan>nd</text>
+
+  <!-- Subtitle -->
+  <text x="720" y="340" font-family="system-ui, -apple-system, sans-serif" font-size="32" fill="#94A3B8">Code Intelligence for AI Agents</text>
+
+  <!-- Stats line -->
+  <text x="720" y="400" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#64748B">52 MCP tools · zero LLM tokens · Hebbian plasticity · Rust</text>
+
+  <!-- Bottom stat -->
+  <text x="720" y="460" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#475569">39 bugs found in one session · 89% accuracy · 1.36μs activate</text>
+</svg>
