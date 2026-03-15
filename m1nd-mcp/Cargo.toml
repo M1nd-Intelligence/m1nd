@@ -1,6 +1,6 @@
 [package]
 name = "m1nd-mcp"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "MCP server for m1nd — 43 tools for AI agents to understand code structure"
 license = "MIT"
@@ -10,8 +10,8 @@ keywords = ["mcp", "code-graph", "ai-agents", "neuro-symbolic", "developer-tools
 categories = ["development-tools", "command-line-utilities"]
 
 [dependencies]
-m1nd-core = { version = "0.1.0", path = "../m1nd-core" }
-m1nd-ingest = { version = "0.1.0", path = "../m1nd-ingest" }
+m1nd-core = { version = "0.2.0", path = "../m1nd-core" }
+m1nd-ingest = { version = "0.2.0", path = "../m1nd-ingest" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 parking_lot = { workspace = true }

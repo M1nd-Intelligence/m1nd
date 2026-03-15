@@ -1,6 +1,6 @@
 [package]
 name = "m1nd-ingest"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "Code ingestion engine for m1nd — 28 languages via tree-sitter"
 license = "MIT"
@@ -42,7 +42,7 @@ tier2 = [
 ]
 
 [dependencies]
-m1nd-core = { version = "0.1.0", path = "../m1nd-core" }
+m1nd-core = { version = "0.2.0", path = "../m1nd-core" }
 regex = "1"
 walkdir = "2"
 rayon = "1.10"
