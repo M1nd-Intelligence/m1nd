@@ -194,7 +194,7 @@ Example schema entry:
 
 ### Tool Categories
 
-The 43 tools are organized into functional groups:
+The 61 tools are organized into functional groups:
 
 **Core Query Tools** (13):
 

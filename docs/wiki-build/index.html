@@ -1,662 +1,320 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wiki — m1nd</title>
-  <meta name="description" content="m1nd wiki — complete documentation for the neuro-symbolic connectome engine. 43 MCP tools, 6 engines, zero LLM cost.">
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+<!DOCTYPE HTML>
+<html lang="en" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Introduction - m1nd Documentation</title>
 
-    :root {
-      --bg: #0a0a0f;
-      --bg-raised: #0f1118;
-      --bg-card: #13151e;
-      --bg-sidebar: #0c0c14;
-      --border: #1e2433;
-      --border-hover: #2a3040;
-      --text: #f0f2f5;
-      --text-dim: #8b9daf;
-      --text-faint: #5a6577;
-      --cyan: #00d4ff;
-      --yellow: #ffd700;
-      --magenta: #ff00ff;
-      --blue: #4169e1;
-      --green: #00ff88;
-      --cyan-dim: rgba(0, 212, 255, 0.12);
-      --yellow-dim: rgba(255, 215, 0, 0.12);
-      --magenta-dim: rgba(255, 0, 255, 0.10);
-      --blue-dim: rgba(65, 105, 225, 0.12);
-      --green-dim: rgba(0, 255, 136, 0.10);
-      --cyan-glow: rgba(0, 212, 255, 0.25);
-      --yellow-glow: rgba(255, 215, 0, 0.25);
-      --magenta-glow: rgba(255, 0, 255, 0.20);
-      --blue-glow: rgba(65, 105, 225, 0.25);
-      --green-glow: rgba(0, 255, 136, 0.20);
-      --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-      --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
 
-    html { scroll-behavior: smooth; }
+        <!-- Custom HTML head -->
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
+        <meta name="description" content="Complete documentation for m1nd — the neuro-symbolic connectome engine">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
 
-    /* Grid background */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(30, 36, 51, 0.18) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(30, 36, 51, 0.18) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-      z-index: 0;
-    }
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-2459343d.css">
+        <link rel="stylesheet" href="css/chrome-ae938929.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
 
-    /* Neural noise layer */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 600px 400px at 20% 30%, rgba(0, 212, 255, 0.03), transparent),
-        radial-gradient(ellipse 500px 350px at 80% 70%, rgba(255, 0, 255, 0.02), transparent),
-        radial-gradient(ellipse 400px 300px at 50% 50%, rgba(0, 255, 136, 0.02), transparent);
-      pointer-events: none;
-      z-index: 0;
-    }
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
 
-    a { color: var(--cyan); text-decoration: none; transition: color 0.2s, opacity 0.2s; }
-    a:hover { opacity: 0.85; }
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
 
-    /* ---- NAV ---- */
-    .wiki-nav {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      background: rgba(10, 10, 15, 0.88);
-      backdrop-filter: blur(24px) saturate(180%);
-      border-bottom: 1px solid var(--border);
-      height: 56px;
-    }
-    .wiki-nav-inner {
-      max-width: 1200px; margin: 0 auto; padding: 0 24px;
-      display: flex; align-items: center; justify-content: space-between;
-      height: 100%;
-    }
-    .wiki-nav-logo {
-      font-family: var(--mono); font-size: 20px; font-weight: 700;
-      color: var(--text); text-decoration: none; letter-spacing: 1px;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .wiki-nav-logo .glyphs {
-      font-size: 16px; letter-spacing: 3px;
-    }
-    .wiki-nav-logo .g-cy { color: var(--cyan); }
-    .wiki-nav-logo .g-ye { color: var(--yellow); }
-    .wiki-nav-logo .g-ma { color: var(--magenta); }
-    .wiki-nav-logo .g-bl { color: var(--blue); }
-    .wiki-nav-logo .g-gr { color: var(--green); }
-    .wiki-nav-logo .sep { color: var(--text-faint); font-weight: 400; }
-    .wiki-nav-logo .wiki-label { color: var(--text-dim); font-weight: 400; font-size: 14px; }
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/custom-a18dc32c.css">
 
-    .wiki-nav-links {
-      display: flex; gap: 6px; align-items: center;
-    }
-    .wiki-nav-links a {
-      color: var(--text-dim); font-size: 13px; font-weight: 500;
-      padding: 6px 14px; border-radius: 8px; text-decoration: none;
-      transition: all 0.2s;
-    }
-    .wiki-nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
-    .wiki-nav-links a.active { color: var(--cyan); background: var(--cyan-dim); }
-    .wiki-nav-links a.home-link {
-      color: var(--text-faint); border: 1px solid var(--border);
-    }
-    .wiki-nav-links a.home-link:hover { border-color: var(--cyan); color: var(--cyan); }
 
-    /* Mobile nav */
-    .nav-hamburger {
-      display: none; background: none; border: none; cursor: pointer;
-      color: var(--text-dim); padding: 8px;
-    }
-    .nav-hamburger svg { width: 24px; height: 24px; }
-    .mobile-menu {
-      display: none; position: fixed; top: 56px; left: 0; right: 0;
-      background: var(--bg-card); border-bottom: 1px solid var(--border);
-      padding: 16px 24px; z-index: 99;
-    }
-    .mobile-menu.open { display: block; }
-    .mobile-menu a {
-      display: block; color: var(--text-dim); font-size: 14px;
-      padding: 10px 0; border-bottom: 1px solid var(--border);
-    }
-    .mobile-menu a:last-child { border-bottom: none; }
-    .mobile-menu a:hover { color: var(--cyan); }
-
-    @media (max-width: 860px) {
-      .wiki-nav-links { display: none; }
-      .nav-hamburger { display: block; }
-    }
-
-    /* ---- LAYOUT ---- */
-    .wiki-container {
-      max-width: 1200px; margin: 0 auto; padding: 0 24px;
-      position: relative; z-index: 1;
-    }
-
-    /* ---- HERO ---- */
-    .wiki-hero {
-      padding-top: 120px; padding-bottom: 64px; text-align: center;
-    }
-    .hero-glyphs {
-      font-size: clamp(48px, 10vw, 88px);
-      letter-spacing: clamp(8px, 2vw, 20px);
-      margin-bottom: 24px;
-      line-height: 1;
-      user-select: none;
-    }
-    .hero-glyphs span { transition: text-shadow 0.3s, transform 0.3s; display: inline-block; }
-    .hero-glyphs span:hover { transform: scale(1.15) translateY(-4px); }
-    .hero-glyphs .g-cy { color: var(--cyan); }
-    .hero-glyphs .g-cy:hover { text-shadow: 0 0 40px var(--cyan-glow), 0 0 80px var(--cyan-glow); }
-    .hero-glyphs .g-ye { color: var(--yellow); }
-    .hero-glyphs .g-ye:hover { text-shadow: 0 0 40px var(--yellow-glow), 0 0 80px var(--yellow-glow); }
-    .hero-glyphs .g-ma { color: var(--magenta); }
-    .hero-glyphs .g-ma:hover { text-shadow: 0 0 40px var(--magenta-glow), 0 0 80px var(--magenta-glow); }
-    .hero-glyphs .g-bl { color: var(--blue); }
-    .hero-glyphs .g-bl:hover { text-shadow: 0 0 40px var(--blue-glow), 0 0 80px var(--blue-glow); }
-    .hero-glyphs .g-gr { color: var(--green); }
-    .hero-glyphs .g-gr:hover { text-shadow: 0 0 40px var(--green-glow), 0 0 80px var(--green-glow); }
-
-    .hero-title {
-      font-family: var(--mono); font-size: clamp(22px, 4vw, 36px);
-      font-weight: 700; letter-spacing: -1px; margin-bottom: 16px;
-    }
-    .hero-subtitle {
-      font-size: clamp(15px, 2vw, 18px); color: var(--text-dim);
-      max-width: 640px; margin: 0 auto 48px; line-height: 1.7;
-    }
-
-    /* ---- DOMAIN MAP ---- */
-    .domain-map {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 16px;
-      margin-bottom: 80px;
-    }
-
-    .domain-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px 20px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s ease;
-      cursor: default;
-    }
-    .domain-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      opacity: 0.6;
-      transition: opacity 0.3s;
-    }
-    .domain-card:hover::before { opacity: 1; }
-    .domain-card:hover { transform: translateY(-4px); border-color: var(--border-hover); }
-
-    .domain-card.signal::before { background: var(--cyan); }
-    .domain-card.signal:hover { box-shadow: 0 8px 40px rgba(0, 212, 255, 0.08); }
-    .domain-card.path::before { background: var(--yellow); }
-    .domain-card.path:hover { box-shadow: 0 8px 40px rgba(255, 215, 0, 0.08); }
-    .domain-card.structure::before { background: var(--magenta); }
-    .domain-card.structure:hover { box-shadow: 0 8px 40px rgba(255, 0, 255, 0.06); }
-    .domain-card.dimension::before { background: var(--blue); }
-    .domain-card.dimension:hover { box-shadow: 0 8px 40px rgba(65, 105, 225, 0.08); }
-    .domain-card.connection::before { background: var(--green); }
-    .domain-card.connection:hover { box-shadow: 0 8px 40px rgba(0, 255, 136, 0.06); }
-
-    .domain-glyph {
-      font-size: 42px;
-      margin-bottom: 12px;
-      line-height: 1;
-    }
-    .domain-card.signal .domain-glyph { color: var(--cyan); }
-    .domain-card.path .domain-glyph { color: var(--yellow); }
-    .domain-card.structure .domain-glyph { color: var(--magenta); }
-    .domain-card.dimension .domain-glyph { color: var(--blue); }
-    .domain-card.connection .domain-glyph { color: var(--green); }
-
-    .domain-name {
-      font-family: var(--mono); font-weight: 700; font-size: 14px;
-      text-transform: uppercase; letter-spacing: 2px;
-      margin-bottom: 8px;
-    }
-    .domain-card.signal .domain-name { color: var(--cyan); }
-    .domain-card.path .domain-name { color: var(--yellow); }
-    .domain-card.structure .domain-name { color: var(--magenta); }
-    .domain-card.dimension .domain-name { color: var(--blue); }
-    .domain-card.connection .domain-name { color: var(--green); }
-
-    .domain-desc {
-      font-size: 13px; color: var(--text-dim); line-height: 1.5;
-      margin-bottom: 12px;
-    }
-    .domain-tools {
-      font-family: var(--mono); font-size: 11px; color: var(--text-faint);
-    }
-
-    @media (max-width: 860px) {
-      .domain-map { grid-template-columns: repeat(2, 1fr); }
-      .domain-card:last-child { grid-column: span 2; }
-    }
-    @media (max-width: 480px) {
-      .domain-map { grid-template-columns: 1fr; }
-      .domain-card:last-child { grid-column: span 1; }
-    }
-
-    /* ---- PAGES GRID ---- */
-    .section-label {
-      font-family: var(--mono); font-size: 12px;
-      text-transform: uppercase; letter-spacing: 3px;
-      margin-bottom: 12px;
-    }
-    .section-title {
-      font-size: clamp(24px, 4vw, 36px); font-weight: 700;
-      letter-spacing: -1px; margin-bottom: 16px;
-    }
-    .section-desc {
-      color: var(--text-dim); font-size: 16px; max-width: 560px;
-      margin-bottom: 48px; line-height: 1.6;
-    }
-
-    .pages-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
-      margin-bottom: 80px;
-    }
-    .page-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 32px 28px;
-      text-decoration: none;
-      color: var(--text);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    .page-card:hover {
-      border-color: var(--border-hover);
-      transform: translateY(-3px);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-    }
-    .page-card::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 2px;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .page-card:hover::after { opacity: 1; }
-    .page-card.pg-tools::after { background: linear-gradient(90deg, var(--cyan), var(--green)); }
-    .page-card.pg-arch::after { background: linear-gradient(90deg, var(--blue), var(--magenta)); }
-    .page-card.pg-quick::after { background: linear-gradient(90deg, var(--green), var(--cyan)); }
-    .page-card.pg-bench::after { background: linear-gradient(90deg, var(--yellow), var(--cyan)); }
-    .page-card.pg-patterns::after { background: linear-gradient(90deg, var(--magenta), var(--yellow)); }
-
-    .page-card-icon {
-      font-size: 32px; margin-bottom: 16px;
-    }
-    .page-card-title {
-      font-family: var(--mono); font-weight: 700; font-size: 18px;
-      margin-bottom: 8px;
-    }
-    .page-card-desc {
-      font-size: 14px; color: var(--text-dim); line-height: 1.6;
-      margin-bottom: 16px;
-    }
-    .page-card-meta {
-      font-family: var(--mono); font-size: 11px; color: var(--text-faint);
-      display: flex; gap: 16px;
-    }
-
-    /* ---- STATS BAR ---- */
-    .stats-bar {
-      display: flex; flex-wrap: wrap; gap: 2px;
-      margin-bottom: 80px;
-      border-radius: 14px;
-      overflow: hidden;
-    }
-    .stat-item {
-      flex: 1; min-width: 160px;
-      background: var(--bg-card);
-      padding: 24px 20px;
-      text-align: center;
-    }
-    .stat-value {
-      font-family: var(--mono); font-size: 28px; font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .stat-value.cy { color: var(--cyan); }
-    .stat-value.ye { color: var(--yellow); }
-    .stat-value.ma { color: var(--magenta); }
-    .stat-value.bl { color: var(--blue); }
-    .stat-value.gr { color: var(--green); }
-    .stat-label {
-      font-size: 12px; color: var(--text-faint);
-      font-family: var(--mono); text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    /* ---- QUICK LINKS ---- */
-    .quick-links {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 12px; margin-bottom: 80px;
-    }
-    .quick-link {
-      display: flex; align-items: center; gap: 12px;
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 10px; padding: 16px 20px;
-      text-decoration: none; color: var(--text);
-      transition: all 0.2s;
-    }
-    .quick-link:hover { border-color: var(--cyan); background: rgba(0, 212, 255, 0.03); }
-    .quick-link .ql-glyph { font-size: 20px; }
-    .quick-link .ql-title { font-weight: 600; font-size: 14px; }
-    .quick-link .ql-desc { font-size: 12px; color: var(--text-dim); }
-    .quick-link .ql-arrow { margin-left: auto; color: var(--text-faint); font-size: 18px; }
-
-    /* ---- FOOTER ---- */
-    .wiki-footer {
-      border-top: 1px solid var(--border);
-      padding: 40px 0;
-      text-align: center;
-    }
-    .footer-glyphs {
-      font-size: 20px; letter-spacing: 6px; margin-bottom: 12px;
-    }
-    .footer-text {
-      font-size: 13px; color: var(--text-faint);
-      font-family: var(--mono);
-    }
-    .footer-links {
-      display: flex; gap: 24px; justify-content: center;
-      margin-top: 16px;
-    }
-    .footer-links a {
-      color: var(--text-dim); font-size: 13px;
-    }
-    .footer-links a:hover { color: var(--cyan); }
-
-    /* ---- ANIMATIONS ---- */
-    @keyframes glyph-pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
-    @keyframes float-up {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .wiki-hero { animation: float-up 0.6s ease-out; }
-    .domain-card { animation: float-up 0.5s ease-out backwards; }
-    .domain-card:nth-child(1) { animation-delay: 0.1s; }
-    .domain-card:nth-child(2) { animation-delay: 0.15s; }
-    .domain-card:nth-child(3) { animation-delay: 0.2s; }
-    .domain-card:nth-child(4) { animation-delay: 0.25s; }
-    .domain-card:nth-child(5) { animation-delay: 0.3s; }
-    .page-card { animation: float-up 0.5s ease-out backwards; }
-    .page-card:nth-child(1) { animation-delay: 0.2s; }
-    .page-card:nth-child(2) { animation-delay: 0.25s; }
-    .page-card:nth-child(3) { animation-delay: 0.3s; }
-    .page-card:nth-child(4) { animation-delay: 0.35s; }
-    .page-card:nth-child(5) { animation-delay: 0.4s; }
-  </style>
-</head>
-<body>
-
-  <!-- NAV -->
-  <nav class="wiki-nav">
-    <div class="wiki-nav-inner">
-      <a href="index.html" class="wiki-nav-logo">
-        <span class="glyphs"><span class="g-cy">&#x234C;</span><span class="g-ye">&#x2350;</span><span class="g-ma">&#x2342;</span><span class="g-bl">&#x1D53B;</span> <span class="g-gr">&#x27C1;</span></span>
-        <span class="sep">/</span>
-        <span class="wiki-label">wiki</span>
-      </a>
-      <div class="wiki-nav-links">
-        <a href="index.html" class="active">Home</a>
-        <a href="tools.html">Tools</a>
-        <a href="architecture.html">Architecture</a>
-        <a href="quickstart.html">Quickstart</a>
-        <a href="benchmarks.html">Benchmarks</a>
-        <a href="patterns.html">Patterns</a>
-        <a href="../index.html" class="home-link">Main Site</a>
-      </div>
-      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.toggle('open')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-      </button>
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex-93e3b672.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-35a7562c.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
     </div>
-  </nav>
-  <div class="mobile-menu" id="mobileMenu">
-    <a href="index.html">Home</a>
-    <a href="tools.html">Tools</a>
-    <a href="architecture.html">Architecture</a>
-    <a href="quickstart.html">Quickstart</a>
-    <a href="benchmarks.html">Benchmarks</a>
-    <a href="patterns.html">Patterns</a>
-    <a href="../index.html">Main Site</a>
-  </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
 
-  <div class="wiki-container">
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
 
-    <!-- HERO -->
-    <section class="wiki-hero">
-      <div class="hero-glyphs">
-        <span class="g-cy">&#x234C;</span><span class="g-ye">&#x2350;</span><span class="g-ma">&#x2342;</span><span class="g-bl">&#x1D53B;</span> <span class="g-gr">&#x27C1;</span>
-      </div>
-      <h1 class="hero-title">Neuro-Symbolic Connectome Engine</h1>
-      <p class="hero-subtitle">
-        43 MCP tools. 6 computation engines. Zero LLM cost.<br>
-        A local Rust binary that gives AI agents structural understanding of your codebase.
-      </p>
-    </section>
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
 
-    <!-- DOMAIN MAP -->
-    <div class="domain-map">
-      <div class="domain-card signal">
-        <div class="domain-glyph">&#x234C;</div>
-        <div class="domain-name">Signal</div>
-        <div class="domain-desc">Activation, flow, propagation. How information spreads through the graph.</div>
-        <div class="domain-tools">activate &middot; ingest &middot; learn &middot; warmup</div>
-      </div>
-      <div class="domain-card path">
-        <div class="domain-glyph">&#x2350;</div>
-        <div class="domain-name">Path</div>
-        <div class="domain-desc">Tracing, dependency chains, temporal ordering, directed search.</div>
-        <div class="domain-tools">why &middot; trace &middot; timeline &middot; seek</div>
-      </div>
-      <div class="domain-card structure">
-        <div class="domain-glyph">&#x2342;</div>
-        <div class="domain-name">Structure</div>
-        <div class="domain-desc">Gaps, holes, duplicates, divergence. The shape of what is missing.</div>
-        <div class="domain-tools">missing &middot; fingerprint &middot; scan &middot; diverge</div>
-      </div>
-      <div class="domain-card dimension">
-        <div class="domain-glyph">&#x1D53B;</div>
-        <div class="domain-name">Dimension</div>
-        <div class="domain-desc">Blast radius, prediction, what-if simulation, differential analysis.</div>
-        <div class="domain-tools">impact &middot; predict &middot; counterfactual &middot; differential &middot; hypothesize</div>
-      </div>
-      <div class="domain-card connection">
-        <div class="domain-glyph">&#x27C1;</div>
-        <div class="domain-name">Connection</div>
-        <div class="domain-desc">Perspectives, federation, resonance. How parts relate across boundaries.</div>
-        <div class="domain-tools">resonate &middot; federate &middot; perspective.* (12 tools)</div>
-      </div>
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">m1nd Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/maxkle1nz/m1nd" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/maxkle1nz/m1nd/edit/main/docs/wiki/src/src/introduction.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                            <span class=fa-svg id="git-edit-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M421.7 220.3l-11.3 11.3-22.6 22.6-205 205c-6.6 6.6-14.8 11.5-23.8 14.1L30.8 511c-8.4 2.5-17.5 .2-23.7-6.1S-1.5 489.7 1 481.2L38.7 353.1c2.6-9 7.5-17.2 14.1-23.8l205-205 22.6-22.6 11.3-11.3 33.9 33.9 62.1 62.1 33.9 33.9zM96 353.9l-9.3 9.3c-.9 .9-1.6 2.1-2 3.4l-25.3 86 86-25.3c1.3-.4 2.5-1.1 3.4-2l9.3-9.3H112c-8.8 0-16-7.2-16-16V353.9zM453.3 19.3l39.4 39.4c25 25 25 65.5 0 90.5l-14.5 14.5-22.6 22.6-11.3 11.3-33.9-33.9-62.1-62.1L314.3 67.7l11.3-11.3 22.6-22.6 14.5-14.5c25-25 65.5-25 90.5 0z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
+<p>m1nd is a neuro-symbolic connectome engine built in Rust. It ingests a codebase into a weighted, directed graph — then lets you fire queries into that graph and watch where the energy goes. Signal propagates across structural, semantic, temporal, and causal dimensions. The graph learns from every interaction via Hebbian plasticity: paths you use get stronger, paths you ignore decay. The result is a code intelligence layer that adapts to how you think about your codebase. It ships as an <a href="https://modelcontextprotocol.io/">MCP</a> server with 61 tools, runs on stdio, and works with any MCP-compatible client.</p>
+<h2 id="the-problem"><a class="header" href="#the-problem">The Problem</a></h2>
+<p>AI coding agents are powerful reasoners but terrible navigators. An LLM can analyze a function you paste into its context window, but it cannot <em>find</em> the right function in a codebase of 10,000 files without burning tokens on speculative grep, glob, and tree walks. The existing tools fail in different ways:</p>
+<ul>
+<li><strong>Full-text search</strong> finds what you <em>said</em>, not what you <em>meant</em>. Searching for “authentication” won’t surface the session middleware that enforces it.</li>
+<li><strong>RAG</strong> retrieves chunks by embedding similarity, but each retrieval is stateless. It has no memory of what it retrieved last time, and no way to express relationships between results.</li>
+<li><strong>Static analysis</strong> produces call graphs and ASTs, but they are frozen snapshots. They cannot answer “what if I remove this module?” or “what changed since my last session?”</li>
+<li><strong>Knowledge graphs</strong> require manual curation and only return what was explicitly encoded.</li>
+</ul>
+<p>m1nd solves this with a fundamentally different approach: spreading activation on a learned graph. Instead of matching tokens or embedding vectors, it propagates energy from seed nodes through weighted edges and observes the activation pattern that emerges. The graph topology determines where signal flows. Hebbian learning determines how strongly.</p>
+<pre><code>335 files -&gt; 9,767 nodes -&gt; 26,557 edges in 0.91s
+activate in 31ms | impact in 5ms | trace in 3.5ms | learn in &lt;1ms
+</code></pre>
+<p>No LLM calls. No API keys. No network. The binary is ~8MB of pure Rust.</p>
+<h2 id="key-capabilities"><a class="header" href="#key-capabilities">Key Capabilities</a></h2>
+<h3 id="spreading-activation"><a class="header" href="#spreading-activation">Spreading Activation</a></h3>
+<p>The core query primitive. Fire a signal into the graph from one or more seed nodes. The signal propagates through the CSR adjacency structure, decaying at each hop, inhibited by negative edges, and scored across four dimensions:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Dimension</th><th>Source</th><th>What It Captures</th></tr>
+</thead>
+<tbody>
+<tr><td>Structural</td><td>CSR adjacency + PageRank</td><td>Graph distance, edge types, centrality</td></tr>
+<tr><td>Semantic</td><td>Trigram matching on identifiers</td><td>Naming patterns, token overlap</td></tr>
+<tr><td>Temporal</td><td>Git history + learn feedback</td><td>Co-change frequency, recency decay</td></tr>
+<tr><td>Causal</td><td>Stacktrace mapping + call chains</td><td>Error proximity, suspiciousness</td></tr>
+</tbody>
+</table>
+</div>
+<p>The engine selects between a wavefront (BFS-parallel) and a heap (priority-queue) propagation strategy at runtime based on seed density and average degree. Results are merged with adaptive dimension weighting and a resonance bonus for nodes that score across 3 or 4 dimensions.</p>
+<pre><code class="language-jsonc">// Ask: "What's related to authentication?"
+{"method": "tools/call", "params": {
+  "name": "m1nd.activate",
+  "arguments": {"query": "authentication", "agent_id": "dev"}
+}}
+// -&gt; auth.py fires -&gt; propagates to session, middleware, JWT, user model
+//    4-dimensional relevance ranking in 31ms
+</code></pre>
+<h3 id="hebbian-plasticity"><a class="header" href="#hebbian-plasticity">Hebbian Plasticity</a></h3>
+<p>The graph learns. When you tell m1nd that results were useful, edge weights strengthen along the activated paths (<code>delta_w = learning_rate * activation_src * activation_tgt</code>). When results go unused, inactive edges decay. After sustained strengthening, edges receive a permanent Long-Term Potentiation (LTP) bonus. After sustained weakening, Long-Term Depression (LTD) applies a permanent penalty. Homeostatic normalization prevents runaway weights by scaling incoming edges when their sum exceeds a ceiling.</p>
+<pre><code class="language-jsonc">// Tell the graph what was useful
+{"method": "tools/call", "params": {
+  "name": "m1nd.learn",
+  "arguments": {
+    "feedback": "correct",
+    "node_ids": ["file::auth.py", "file::middleware.py"],
+    "agent_id": "dev"
+  }
+}}
+// -&gt; 740 edges strengthened. Next query for "authentication" is smarter.
+</code></pre>
+<p>Plasticity state persists to disk. Across sessions, the graph evolves to match how your team navigates the codebase.</p>
+<h3 id="structural-hole-detection"><a class="header" href="#structural-hole-detection">Structural Hole Detection</a></h3>
+<p><code>m1nd.missing</code> finds gaps in the graph — nodes or edges that <em>should</em> exist based on the surrounding topology but don’t. If every other module in a cluster has error handling and one doesn’t, that’s a structural hole. If two subsystems communicate through a single bridge node, that’s a fragility point. This turns the graph into a specification-free audit tool.</p>
+<h3 id="counterfactual-simulation"><a class="header" href="#counterfactual-simulation">Counterfactual Simulation</a></h3>
+<p>“What breaks if I delete <code>worker.py</code>?” The counterfactual engine uses a zero-allocation bitset mask (no graph clone) to virtually remove nodes and their incident edges, then re-runs spreading activation to measure the impact. The output includes orphaned nodes, weakened nodes, reachability loss, and cascade depth. Synergy analysis reveals whether removing two modules together is worse than the sum of removing them individually.</p>
+<pre><code>counterfactual("worker.py") -&gt; 4,189 affected nodes, cascade at depth 3
+counterfactual("config.py")  -&gt; 2,531 affected nodes (despite being universally imported)
+</code></pre>
+<h3 id="perspectives"><a class="header" href="#perspectives">Perspectives</a></h3>
+<p>Stateful graph navigation. Open a perspective anchored to a node, list available routes, follow edges, peek at source code, and branch explorations. Perspectives carry confidence calibration and epistemic safety checks. Two agents can open independent perspectives on the same graph and later compare them to find shared nodes and divergent conclusions.</p>
+<h3 id="xlr-noise-cancellation"><a class="header" href="#xlr-noise-cancellation">XLR Noise Cancellation</a></h3>
+<p>Borrowed from professional audio engineering. Like a balanced XLR cable, m1nd transmits signal on two inverted channels — hot (from your query seeds) and cold (from automatically selected anti-seeds that are structurally similar but semantically distant). The cold signal cancels common-mode noise: the generic infrastructure that every query touches. What survives is the differential signal specific to your actual question. Sigmoid gating, density-adaptive strength, and seed immunity prevent over-cancellation.</p>
+<h2 id="who-this-is-for"><a class="header" href="#who-this-is-for">Who This Is For</a></h2>
+<ul>
+<li><strong>AI agent developers</strong> who need their agents to navigate code without wasting context tokens on trial-and-error search.</li>
+<li><strong>IDE and tool builders</strong> looking for an MCP-compatible code intelligence backend that goes beyond static analysis.</li>
+<li><strong>Anyone using MCP clients</strong> (Claude Code, Cursor, Windsurf, Zed, Cline, Roo Code, Continue, OpenCode, Amazon Q, GitHub Copilot) who wants a graph that learns from their workflow.</li>
+<li><strong>Multi-agent orchestrators</strong> who need a shared, persistent code graph that multiple agents can query, learn from, and lock regions of concurrently.</li>
+</ul>
+<p>m1nd is <em>not</em> a replacement for full-text search, and it does not use neural embeddings (v1 uses trigram matching for the semantic dimension). If you need “find code that <em>means</em> X but never uses the word,” m1nd will not do it yet. See <a href="faq.html">the FAQ</a> for more on current limitations.</p>
+<h2 id="how-to-read-this-wiki"><a class="header" href="#how-to-read-this-wiki">How to Read This Wiki</a></h2>
+<p>This wiki is organized into four sections. Read them in order for a full understanding, or jump to the section you need.</p>
+<p><strong><a href="architecture/overview.html">Architecture</a></strong> — How m1nd is built. The three crates (<code>m1nd-core</code>, <code>m1nd-ingest</code>, <code>m1nd-mcp</code>), the CSR graph representation, the activation engine hierarchy, and the MCP server protocol layer. Start here if you want to contribute or understand the internals.</p>
+<p><strong><a href="concepts/spreading-activation.html">Concepts</a></strong> — The ideas behind the implementation. Spreading activation, Hebbian plasticity, XLR noise cancellation, and structural hole detection explained with enough depth to reason about behavior and tune parameters.</p>
+<p><strong><a href="api-reference/overview.html">API Reference</a></strong> — All 43 MCP tools documented with parameters, return types, and usage examples. Organized by function: activation and queries, analysis and prediction, memory and learning, exploration and discovery, perspective navigation, and lifecycle administration.</p>
+<p><strong><a href="tutorials/quickstart.html">Tutorials</a></strong> — Practical walkthroughs. Quick start, your first query, and multi-agent workflows with trail save/resume/merge.</p>
+<p>The <strong><a href="benchmarks.html">Benchmarks</a></strong> page has real performance numbers from a production codebase (335 files, ~52K lines, 9,767 nodes, 26,557 edges). The <strong><a href="changelog.html">Changelog</a></strong> tracks what changed between versions.</p>
+<hr>
+<pre><code>cargo build --release
+./target/release/m1nd-mcp
+</code></pre>
+<p>The server starts, listens on stdio, and waits for JSON-RPC. The graph is empty until you call <code>m1nd.ingest</code>. From there, every query teaches it something.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+                            <a rel="next prefetch" href="architecture/overview.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+                    <a rel="next prefetch" href="architecture/overview.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-c2a407aa.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
     </div>
-
-    <!-- STATS BAR -->
-    <div class="stats-bar">
-      <div class="stat-item">
-        <div class="stat-value cy">43</div>
-        <div class="stat-label">MCP Tools</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value ye">6</div>
-        <div class="stat-label">Engines</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value ma">31ms</div>
-        <div class="stat-label">Avg Query</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value bl">~50MB</div>
-        <div class="stat-label">Memory</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value gr">$0</div>
-        <div class="stat-label">LLM Cost</div>
-      </div>
-    </div>
-
-    <!-- PAGES -->
-    <div class="section-label" style="color: var(--cyan);">Documentation</div>
-    <h2 class="section-title">Explore the Wiki</h2>
-    <p class="section-desc">
-      Everything you need to understand, deploy, and build with the connectome engine.
-    </p>
-
-    <div class="pages-grid">
-      <a href="tools.html" class="page-card pg-tools">
-        <div class="page-card-icon" style="color: var(--cyan);">&#x234C;</div>
-        <div class="page-card-title">Tool Reference</div>
-        <div class="page-card-desc">Complete reference for all 43 MCP tools. Grouped by semantic domain with parameters, examples, and use cases.</div>
-        <div class="page-card-meta">
-          <span>43 tools</span>
-          <span>6 domains</span>
-        </div>
-      </a>
-      <a href="architecture.html" class="page-card pg-arch">
-        <div class="page-card-icon" style="color: var(--blue);">&#x1D53B;</div>
-        <div class="page-card-title">Architecture</div>
-        <div class="page-card-desc">How the engine works internally. Graph structure, 6 computation engines, data flow, and the MCP protocol layer.</div>
-        <div class="page-card-meta">
-          <span>6 engines</span>
-          <span>SharedGraph</span>
-        </div>
-      </a>
-      <a href="quickstart.html" class="page-card pg-quick">
-        <div class="page-card-icon" style="color: var(--green);">&#x27C1;</div>
-        <div class="page-card-title">Quickstart</div>
-        <div class="page-card-desc">Get running in under 2 minutes. Binary download, cargo install, build from source, and MCP client configuration.</div>
-        <div class="page-card-meta">
-          <span>3 install methods</span>
-          <span>2 min setup</span>
-        </div>
-      </a>
-      <a href="benchmarks.html" class="page-card pg-bench">
-        <div class="page-card-icon" style="color: var(--yellow);">&#x2350;</div>
-        <div class="page-card-title">Benchmarks</div>
-        <div class="page-card-desc">Performance data with visual charts. Token savings, grep reduction, memory footprint, and query latency.</div>
-        <div class="page-card-meta">
-          <span>60% token savings</span>
-          <span>62% fewer greps</span>
-        </div>
-      </a>
-      <a href="patterns.html" class="page-card pg-patterns">
-        <div class="page-card-icon" style="color: var(--magenta);">&#x2342;</div>
-        <div class="page-card-title">Patterns &amp; Workflows</div>
-        <div class="page-card-desc">Proven usage patterns. Research flow, code change workflow, build loop, session recovery, and multi-agent setups.</div>
-        <div class="page-card-meta">
-          <span>4 workflows</span>
-          <span>Visual flowcharts</span>
-        </div>
-      </a>
-    </div>
-
-    <!-- QUICK LINKS -->
-    <div class="section-label" style="color: var(--yellow);">Quick Links</div>
-    <h2 class="section-title" style="margin-bottom: 32px;">Jump In</h2>
-
-    <div class="quick-links">
-      <a href="tools.html#signal" class="quick-link">
-        <span class="ql-glyph" style="color: var(--cyan);">&#x234C;</span>
-        <div>
-          <div class="ql-title">activate</div>
-          <div class="ql-desc">Spreading activation query</div>
-        </div>
-        <span class="ql-arrow">&#x2192;</span>
-      </a>
-      <a href="tools.html#path" class="quick-link">
-        <span class="ql-glyph" style="color: var(--yellow);">&#x2350;</span>
-        <div>
-          <div class="ql-title">why</div>
-          <div class="ql-desc">Explain path between nodes</div>
-        </div>
-        <span class="ql-arrow">&#x2192;</span>
-      </a>
-      <a href="tools.html#structure" class="quick-link">
-        <span class="ql-glyph" style="color: var(--magenta);">&#x2342;</span>
-        <div>
-          <div class="ql-title">missing</div>
-          <div class="ql-desc">Find structural holes</div>
-        </div>
-        <span class="ql-arrow">&#x2192;</span>
-      </a>
-      <a href="tools.html#dimension" class="quick-link">
-        <span class="ql-glyph" style="color: var(--blue);">&#x1D53B;</span>
-        <div>
-          <div class="ql-title">impact</div>
-          <div class="ql-desc">Blast radius analysis</div>
-        </div>
-        <span class="ql-arrow">&#x2192;</span>
-      </a>
-      <a href="tools.html#connection" class="quick-link">
-        <span class="ql-glyph" style="color: var(--green);">&#x27C1;</span>
-        <div>
-          <div class="ql-title">perspective.start</div>
-          <div class="ql-desc">Begin graph exploration</div>
-        </div>
-        <span class="ql-arrow">&#x2192;</span>
-      </a>
-      <a href="architecture.html#engines" class="quick-link">
-        <span class="ql-glyph" style="color: var(--magenta);">&#x2342;</span>
-        <div>
-          <div class="ql-title">6 Engines</div>
-          <div class="ql-desc">Query, Temporal, Counterfactual...</div>
-        </div>
-        <span class="ql-arrow">&#x2192;</span>
-      </a>
-    </div>
-
-  </div>
-
-  <!-- FOOTER -->
-  <footer class="wiki-footer">
-    <div class="wiki-container">
-      <div class="footer-glyphs">
-        <span style="color: var(--cyan);">&#x234C;</span><span style="color: var(--yellow);">&#x2350;</span><span style="color: var(--magenta);">&#x2342;</span><span style="color: var(--blue);">&#x1D53B;</span> <span style="color: var(--green);">&#x27C1;</span>
-      </div>
-      <div class="footer-text">neuro-symbolic connectome engine</div>
-      <div class="footer-links">
-        <a href="../index.html">Main Site</a>
-        <a href="tools.html">Tools</a>
-        <a href="architecture.html">Architecture</a>
-        <a href="quickstart.html">Quickstart</a>
-      </div>
-    </div>
-  </footer>
-
-</body>
+    </body>
 </html>

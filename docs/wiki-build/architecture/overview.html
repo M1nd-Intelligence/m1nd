@@ -36,10 +36,10 @@
             const path_to_root = "../";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-7447e1d8.js";
+            window.path_to_searchindex_js = "../searchindex-93e3b672.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-72b55f3c.js"></script>
+        <script src="../toc-35a7562c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -215,7 +215,7 @@ static_assertions = "1"
 <pre><code class="language-mermaid">graph TD
     subgraph "m1nd-mcp (Transport)"
         STDIO["JSON-RPC stdio&lt;br/&gt;dual: framed + line"]
-        DISPATCH["Tool Dispatch&lt;br/&gt;43 tools"]
+        DISPATCH["Tool Dispatch&lt;br/&gt;61 tools"]
         SESSION["SessionState&lt;br/&gt;SharedGraph + Engines"]
         PERSIST["Auto-Persist&lt;br/&gt;every 50 queries"]
     end
@@ -273,7 +273,7 @@ static_assertions = "1"
 <li><strong>Transport</strong>: JSON-RPC message arrives on stdin (either Content-Length framed or raw line JSON).</li>
 <li><strong>Dispatch</strong>: <code>McpServer.serve()</code> parses the JSON-RPC request, matches the tool name, extracts parameters.</li>
 <li><strong>Session</strong>: The tool handler acquires a read lock on <code>SharedGraph</code> (<code>Arc&lt;parking_lot::RwLock&lt;Graph&gt;&gt;</code>).</li>
-<li><strong>Seed Finding</strong>: <code>SeedFinder</code> locates matching nodes via a 5-level cascade: exact label, prefix, substring, tag, fuzzy trigram.</li>
+<li><strong>Seed Finding</strong>: <code>SeedFinder</code> locates matching nodes via multi-strategy matching (exact label, prefix, substring, tag, fuzzy trigram – all checked per token with early-continue on strong matches).</li>
 <li><strong>Activation</strong>: <code>HybridEngine</code> auto-selects heap or wavefront strategy based on seed ratio and average degree.</li>
 <li><strong>Dimensions</strong>: Four dimensions run: Structural (BFS/heap propagation), Semantic (trigram TF-IDF + co-occurrence PPMI), Temporal (decay + velocity), Causal (forward/backward with discount).</li>
 <li><strong>Merge</strong>: <code>merge_dimensions()</code> combines results with adaptive weights <code>[0.35, 0.25, 0.15, 0.25]</code> and resonance bonus (4-dim: 1.5x, 3-dim: 1.3x).</li>
@@ -317,7 +317,7 @@ impl FiniteF32 {
 <h3 id="atomic-persistence"><a class="header" href="#atomic-persistence">Atomic Persistence</a></h3>
 <p>Graph and plasticity state are saved via atomic write: serialize to a temporary file, then <code>rename()</code> over the target. This prevents corruption on crash (FM-PL-008). The NaN firewall at the export boundary rejects any non-finite values that might have leaked through.</p>
 <h2 id="performance-characteristics"><a class="header" href="#performance-characteristics">Performance Characteristics</a></h2>
-<p>Benchmarks on the a production codebase (335 files, ~52K lines, Python + Rust + TypeScript):</p>
+<p>Benchmarks on a production codebase (335 files, ~52K lines, Python + Rust + TypeScript):</p>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -327,7 +327,7 @@ impl FiniteF32 {
 <tr><td>Full ingest</td><td>~910ms</td><td>Walk + parallel extract + resolve + finalize (CSR + PageRank)</td></tr>
 <tr><td>Activate query</td><td>~31ms</td><td>4-dimension with XLR, top-20 results</td></tr>
 <tr><td>Impact analysis</td><td>~5ms</td><td>BFS blast radius, 3-hop default</td></tr>
-<tr><td>Predict (co-change)</td><td>~8ms</td><td>Co-change matrix lookup + velocity scoring</td></tr>
+<tr><td>Predict (co-change)</td><td>&lt;1ms</td><td>Co-change matrix lookup + velocity scoring</td></tr>
 <tr><td>Graph persist</td><td>~45ms</td><td>Atomic JSON write, ~2MB snapshot</td></tr>
 <tr><td>Plasticity update</td><td>~2ms</td><td>5-step Hebbian cycle on co-activated edges</td></tr>
 </tbody>

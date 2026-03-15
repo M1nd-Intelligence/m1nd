@@ -36,10 +36,10 @@
             const path_to_root = "../";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-7447e1d8.js";
+            window.path_to_searchindex_js = "../searchindex-93e3b672.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-72b55f3c.js"></script>
+        <script src="../toc-35a7562c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -208,7 +208,7 @@
   "params": {
     "name": "m1nd.impact",
     "arguments": {
-      "agent_id": "orchestrator",
+      "agent_id": "jimi",
       "node_id": "file::handler.py",
       "direction": "forward",
       "include_causal_chains": true
@@ -222,7 +222,7 @@
   "source_label": "handler.py",
   "direction": "forward",
   "blast_radius": [
-    { "node_id": "file::chat_routes.py", "label": "chat_routes.py", "type": "file", "signal_strength": 0.91, "hop_distance": 1 },
+    { "node_id": "file::routes.py", "label": "routes.py", "type": "file", "signal_strength": 0.91, "hop_distance": 1 },
     { "node_id": "file::ws_relay.py", "label": "ws_relay.py", "type": "file", "signal_strength": 0.78, "hop_distance": 1 },
     { "node_id": "file::parser.py", "label": "parser.py", "type": "file", "signal_strength": 0.65, "hop_distance": 2 }
   ],
@@ -230,7 +230,7 @@
   "max_hops_reached": 3,
   "causal_chains": [
     {
-      "path": ["handler.py", "chat_routes.py", "main.py"],
+      "path": ["handler.py", "routes.py", "main.py"],
       "relations": ["imported_by", "registered_in"],
       "cumulative_strength": 0.82
     }
@@ -275,7 +275,7 @@
   "params": {
     "name": "m1nd.predict",
     "arguments": {
-      "agent_id": "orchestrator",
+      "agent_id": "jimi",
       "changed_node": "file::pool.py",
       "top_k": 5
     }
@@ -331,7 +331,7 @@
   "params": {
     "name": "m1nd.counterfactual",
     "arguments": {
-      "agent_id": "orchestrator",
+      "agent_id": "jimi",
       "node_ids": ["file::worker.py"],
       "include_cascade": true
     }
@@ -388,7 +388,7 @@
   "params": {
     "name": "m1nd.fingerprint",
     "arguments": {
-      "agent_id": "orchestrator",
+      "agent_id": "jimi",
       "target_node": "file::pool.py",
       "similarity_threshold": 0.7
     }
@@ -445,7 +445,7 @@
   "params": {
     "name": "m1nd.hypothesize",
     "arguments": {
-      "agent_id": "orchestrator",
+      "agent_id": "jimi",
       "claim": "worker depends on messaging at runtime"
     }
   }
@@ -526,7 +526,7 @@
   "params": {
     "name": "m1nd.differential",
     "arguments": {
-      "agent_id": "orchestrator",
+      "agent_id": "jimi",
       "snapshot_a": "/path/to/before.json",
       "snapshot_b": "current",
       "question": "what new coupling was introduced?"
@@ -577,7 +577,7 @@
 <tbody>
 <tr><td><code>agent_id</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Calling agent identifier.</td></tr>
 <tr><td><code>baseline</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Baseline reference. Values: ISO date (<code>"2026-03-01"</code>), git ref (SHA or tag), or <code>"last_session"</code> to use the saved GraphFingerprint.</td></tr>
-<tr><td><code>scope</code></td><td><code>string</code></td><td>No</td><td>–</td><td>File path glob to limit scope. Example: <code>"backend/orchestrator*"</code>. <code>None</code> = all nodes.</td></tr>
+<tr><td><code>scope</code></td><td><code>string</code></td><td>No</td><td>–</td><td>File path glob to limit scope. Example: <code>"backend/runtime*"</code>. <code>None</code> = all nodes.</td></tr>
 <tr><td><code>include_coupling_changes</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Include coupling matrix delta between communities.</td></tr>
 <tr><td><code>include_anomalies</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Detect anomalies: test deficits, velocity spikes, new coupling, isolation.</td></tr>
 </tbody>
@@ -591,9 +591,9 @@
   "params": {
     "name": "m1nd.diverge",
     "arguments": {
-      "agent_id": "orchestrator",
+      "agent_id": "jimi",
       "baseline": "2026-03-01",
-      "scope": "backend/orchestrator*"
+      "scope": "backend/runtime*"
     }
   }
 }
@@ -616,7 +616,7 @@
     { "type": "test_deficit", "file": "orchestrator_runtime_guard.py", "detail": "New file with 0 test files", "severity": "warning" },
     { "type": "velocity_spike", "file": "orchestrator_v2.py", "detail": "450 lines added in 12 days", "severity": "info" }
   ],
-  "summary": "23% structural drift. 1 new file (untested). orchestrator coupling strengthened.",
+  "summary": "23% structural drift. 1 new file (untested). Orchestrator coupling strengthened.",
   "elapsed_ms": 85.0
 }
 </code></pre>

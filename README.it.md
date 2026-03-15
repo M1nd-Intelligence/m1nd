@@ -9,11 +9,11 @@
 <p align="center">
   Motore di connettoma neuro-simbolico con plasticità Hebbiana, spreading activation
   e 61 tool MCP. Costruito in Rust per agenti IA.<br/>
-  <em>(Un grafo del codice che impara ad ogni query. Fagli una domanda; diventa più intelligente.)</em>
+  <em>Non legge il tuo codice. Pensa al tuo codice.</em>
 </p>
 
 <p align="center">
-  <strong>39 bug trovati in una sessione &middot; 89% di precisione nelle ipotesi &middot; 1.36&micro;s activate &middot; Zero token LLM</strong>
+  <strong>39 bug trovati in una sessione &middot; 89% di precisione nelle ipotesi &middot; Zero token LLM</strong>
 </p>
 
 <p align="center">
@@ -302,7 +302,7 @@ Tre crate Rust. Nessuna dipendenza runtime. Nessuna chiamata LLM. Nessuna chiave
 ```
 m1nd-core/     Motore del grafo, spreading activation, plasticità Hebbiana, motore di ipotesi,
                sistema di anticorpi, simulatore di flusso, epidemia, tremor, fiducia, rilevamento layer
-m1nd-ingest/   Estrattori di linguaggio (28 linguaggi), memory adapter, JSON adapter,
+m1nd-ingest/   Estrattori di linguaggio (27+ linguaggi), memory adapter, JSON adapter,
                arricchimento git, risolutore cross-file, diff incrementale
 m1nd-mcp/      Server MCP, 61 handler di tool, JSON-RPC su stdio, server HTTP + GUI
 ```
@@ -310,7 +310,7 @@ m1nd-mcp/      Server MCP, 61 handler di tool, JSON-RPC su stdio, server HTTP + 
 ```mermaid
 graph LR
     subgraph Ingest
-        A[Codice / 28 linguaggi] --> R[Reference Resolver]
+        A[Codice / 27+ linguaggi] --> R[Reference Resolver]
         MA[Memory adapter] --> R
         JA[JSON adapter] --> R
         R --> GD[Arricchimento Git]
@@ -335,7 +335,7 @@ graph LR
     HTTP --> B[Browser su localhost:1337]
 ```
 
-28 linguaggi via tree-sitter su due tier. Il build predefinito include il Tier 2 (8 linguaggi).
+27+ linguaggi via tree-sitter su due tier. Il build predefinito include il Tier 2 (8 linguaggi).
 Aggiungi `--features tier1` per tutti i 28. [Dettagli linguaggi ->](https://github.com/maxkle1nz/m1nd/wiki/Ingest-Adapters)
 
 ## Quando NON Usare m1nd

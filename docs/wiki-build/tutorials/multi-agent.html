@@ -36,10 +36,10 @@
             const path_to_root = "../";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-7447e1d8.js";
+            window.path_to_searchindex_js = "../searchindex-93e3b672.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-72b55f3c.js"></script>
+        <script src="../toc-35a7562c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -194,10 +194,10 @@
 <p>The graph is shared. Learning by one agent benefits all agents. Perspectives are isolated per agent. Trails can be shared across agents.</p>
 <h2 id="agent-id-conventions"><a class="header" href="#agent-id-conventions">Agent ID Conventions</a></h2>
 <p>Every m1nd tool requires an <code>agent_id</code> parameter. This is a free-form string, but consistent naming matters:</p>
-<pre><code>agent_id: "orchestrator"          -- orchestrator
-agent_id: "auditor-1"   -- security hardening agent
+<pre><code>agent_id: "orchestrator"    -- orchestrator
+agent_id: "auditor-1"       -- security hardening agent
 agent_id: "builder-api"     -- API building agent
-agent_id: "analyzer-core"  -- performance analysis agent
+agent_id: "analyzer-core"   -- performance analysis agent
 </code></pre>
 <p><strong>Recommended convention</strong>: <code>{archetype}-{task}</code> for short-lived task agents, simple names for persistent agents.</p>
 <p>Rules:</p>
@@ -301,8 +301,8 @@ agent_id: "analyzer-core"  -- performance analysis agent
 }
 // -&gt; [{"perspective_id": "persp-d4e5f6", "focus": "file::worker.py", ...}]
 </code></pre>
-<h3 id="comparing-perspectives-across-agents"><a class="header" href="#comparing-perspectives-across-agents">Comparing Perspectives Across Agents</a></h3>
-<p>You <em>can</em> explicitly compare two perspectives from different agents using <code>perspective.compare</code>. This is useful for discovering where two independent investigations overlap:</p>
+<h3 id="comparing-perspectives"><a class="header" href="#comparing-perspectives">Comparing Perspectives</a></h3>
+<p>You can compare two perspectives owned by the same agent using <code>perspective.compare</code>. This is useful for discovering where two investigation branches overlap:</p>
 <pre><code class="language-jsonc">{
   "method": "tools/call",
   "params": {
@@ -310,7 +310,7 @@ agent_id: "analyzer-core"  -- performance analysis agent
     "arguments": {
       "agent_id": "agent-a",
       "perspective_id_a": "persp-a1b2c3",
-      "perspective_id_b": "persp-d4e5f6"
+      "perspective_id_b": "persp-a4d5e6"
     }
   }
 }
@@ -327,6 +327,9 @@ agent_id: "analyzer-core"  -- performance analysis agent
   }
 }
 </code></pre>
+<blockquote>
+<p><strong>Note</strong>: In V1, both perspectives must belong to the same agent. Cross-agent perspective comparison is planned for V2. To compare findings across agents, use the trail system (trail.save + trail.merge) instead.</p>
+</blockquote>
 <h2 id="lock-system-for-concurrent-access"><a class="header" href="#lock-system-for-concurrent-access">Lock System for Concurrent Access</a></h2>
 <p>When multiple agents might modify the same region of the codebase simultaneously, the lock system prevents conflicts.</p>
 <h3 id="agent-a-lock-the-auth-region"><a class="header" href="#agent-a-lock-the-auth-region">Agent A: Lock the Auth Region</a></h3>
@@ -502,19 +505,19 @@ agent_id: "analyzer-core"  -- performance analysis agent
   }
 }
 </code></pre>
-<h2 id="real-world-example-production-system"><a class="header" href="#real-world-example-production-system">Real-World Example: Multi-Agent Production System</a></h2>
-<p>a production system is a multi-agent orchestration system that uses m1nd as its shared code intelligence layer. Here is how it works in production:</p>
+<h2 id="real-world-example-multi-agent-production-system"><a class="header" href="#real-world-example-multi-agent-production-system">Real-World Example: Multi-Agent Production System</a></h2>
+<p>The following example is based on a production system that uses m1nd as its shared code intelligence layer. Here is how it works in practice:</p>
 <h3 id="architecture"><a class="header" href="#architecture">Architecture</a></h3>
 <pre><code>orchestrator
   |
-  +-- auditor-1 (security agent)     --+
-  +-- builder-api (API builder)           --+-- All share one m1nd instance
-  +-- analyzer-core (performance)        --+
-  +-- sentinel-files (file watcher)     --+
-  +-- critic-quality (code reviewer)    --+
-  +-- ... 14 more agents               --+
+  +-- auditor-1 (security agent)       --+
+  +-- builder-api (API builder)         --+-- All share one m1nd instance
+  +-- analyzer-core (performance)       --+
+  +-- watcher-files (file watcher)      --+
+  +-- reviewer-quality (code reviewer)  --+
+  +-- ... additional agents            --+
 </code></pre>
-<p>One m1nd instance serves all agents. The graph covers a 335-file Python backend (~52K lines), a React frontend, and MCP server infrastructure.</p>
+<p>One m1nd instance serves all agents. The graph covers a Python backend, a React frontend, and server infrastructure.</p>
 <h3 id="orchestrator-boot-sequence"><a class="header" href="#orchestrator-boot-sequence">Orchestrator Boot Sequence</a></h3>
 <p>When the orchestrator starts a session:</p>
 <pre><code class="language-jsonc">// Step 1: Check m1nd health
@@ -576,7 +579,7 @@ agent_id: "analyzer-core"  -- performance analysis agent
 // Orchestrator merges with Agent B's independent findings
 {"method":"tools/call","params":{"name":"m1nd.trail.merge","arguments":{
   "agent_id":"orchestrator",
-  "trail_ids":["trail-hacker-001","trail-analyst-002"]
+  "trail_ids":["trail-auditor-001","trail-analyzer-002"]
 }}}
 </code></pre>
 <h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>

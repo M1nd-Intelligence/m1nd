@@ -36,10 +36,10 @@
             const path_to_root = "../";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-7447e1d8.js";
+            window.path_to_searchindex_js = "../searchindex-93e3b672.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-72b55f3c.js"></script>
+        <script src="../toc-35a7562c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -208,10 +208,10 @@
 <p><strong>Framed mode</strong> (HTTP-style headers):</p>
 <pre><code>Content-Length: 142\r\n
 \r\n
-{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"orchestrator"}},"id":1}
+{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"jimi"}},"id":1}
 </code></pre>
 <p><strong>Line mode</strong> (raw JSON):</p>
-<pre><code>{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"orchestrator"}},"id":1}
+<pre><code>{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"jimi"}},"id":1}
 </code></pre>
 <p>Detection is based on the first non-whitespace byte: if it is <code>{</code> or <code>[</code>, the message is treated as line-mode JSON. Otherwise, it is parsed as framed with <code>Content-Length</code> headers. Responses are written in the same mode as the incoming request.</p>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -239,7 +239,7 @@
         "name": "m1nd.activate",
         "arguments": {
             "query": "chat handler",
-            "agent_id": "orchestrator",
+            "agent_id": "jimi",
             "top_k": 20,
             "dimensions": ["structural", "semantic", "temporal", "causal"],
             "xlr": true
@@ -348,7 +348,7 @@
 }
 </code></pre>
 <h3 id="tool-categories"><a class="header" href="#tool-categories">Tool Categories</a></h3>
-<p>The 43 tools are organized into functional groups:</p>
+<p>The 61 tools are organized into functional groups:</p>
 <p><strong>Core Query Tools</strong> (13):</p>
 <div class="table-wrapper">
 <table>

@@ -35,7 +35,7 @@ Dependencies flow strictly downward: `m1nd-mcp` depends on both `m1nd-core` and 
 graph TD
     subgraph "m1nd-mcp (Transport)"
         STDIO["JSON-RPC stdio<br/>dual: framed + line"]
-        DISPATCH["Tool Dispatch<br/>43 tools"]
+        DISPATCH["Tool Dispatch<br/>61 tools"]
         SESSION["SessionState<br/>SharedGraph + Engines"]
         PERSIST["Auto-Persist<br/>every 50 queries"]
     end

@@ -1,6 +1,6 @@
 # Introduction
 
-m1nd is a neuro-symbolic connectome engine built in Rust. It ingests a codebase into a weighted, directed graph --- then lets you fire queries into that graph and watch where the energy goes. Signal propagates across structural, semantic, temporal, and causal dimensions. The graph learns from every interaction via Hebbian plasticity: paths you use get stronger, paths you ignore decay. The result is a code intelligence layer that adapts to how you think about your codebase. It ships as an [MCP](https://modelcontextprotocol.io/) server with 43 tools, runs on stdio, and works with any MCP-compatible client.
+m1nd is a neuro-symbolic connectome engine built in Rust. It ingests a codebase into a weighted, directed graph --- then lets you fire queries into that graph and watch where the energy goes. Signal propagates across structural, semantic, temporal, and causal dimensions. The graph learns from every interaction via Hebbian plasticity: paths you use get stronger, paths you ignore decay. The result is a code intelligence layer that adapts to how you think about your codebase. It ships as an [MCP](https://modelcontextprotocol.io/) server with 61 tools, runs on stdio, and works with any MCP-compatible client.
 
 ## The Problem
 

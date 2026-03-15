@@ -219,4 +219,4 @@ Then list available tools:
 {"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}
 ```
 
-This returns the full schema for all 43 tools with `inputSchema` for each.
+This returns the full schema for all 61 tools with `inputSchema` for each.

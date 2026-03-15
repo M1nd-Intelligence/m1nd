@@ -24,7 +24,7 @@ Three reasons: cost, privacy, and latency. Cloud code search means your propriet
 
 ### What makes m1nd "agent-native"?
 
-m1nd was built from the ground up as an MCP server, not retrofitted. It exposes 43 tools that AI agents call natively -- spreading activation, impact analysis, counterfactual simulation, hypothesis testing, and a full Perspective navigation system with 12 stateful tools for browsing the code graph. Multiple agents share the same graph instance simultaneously, each with isolated perspectives. The graph learns from agent feedback via Hebbian plasticity, getting smarter with every interaction. No other code intelligence tool provides persistent, learning, multi-agent structural reasoning over MCP.
+m1nd was built from the ground up as an MCP server, not retrofitted. It exposes 61 tools that AI agents call natively -- spreading activation, impact analysis, counterfactual simulation, hypothesis testing, and a full Perspective navigation system with 12 stateful tools for browsing the code graph. Multiple agents share the same graph instance simultaneously, each with isolated perspectives. The graph learns from agent feedback via Hebbian plasticity, getting smarter with every interaction. No other code intelligence tool provides persistent, learning, multi-agent structural reasoning over MCP.
 
 ---
 

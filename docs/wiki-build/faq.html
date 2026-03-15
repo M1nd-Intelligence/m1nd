@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-7447e1d8.js";
+            window.path_to_searchindex_js = "searchindex-93e3b672.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-72b55f3c.js"></script>
+        <script src="toc-35a7562c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -182,6 +182,20 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="frequently-asked-questions"><a class="header" href="#frequently-asked-questions">Frequently Asked Questions</a></h1>
+<h2 id="why-m1nd"><a class="header" href="#why-m1nd">Why m1nd?</a></h2>
+<h3 id="why-not-just-use-grepripgrep"><a class="header" href="#why-not-just-use-grepripgrep">Why not just use grep/ripgrep?</a></h3>
+<p>Grep finds text. m1nd finds structure, relationships, and consequences. Grep tells you “this string appears on line 47 of auth.py.” m1nd tells you “auth.py is structurally connected to 12 modules, and changing it cascades to 4,271 nodes across 3 layers.” Grep answers in 5ms but cannot reason about dependencies, simulate deletions, or learn which results were useful. m1nd answers in 31ms and gets smarter every time you use it. Use both: grep for exact text, m1nd for structural reasoning.</p>
+<h3 id="how-does-m1nd-compare-to-ai-powered-code-search-cursor-github-copilot-search"><a class="header" href="#how-does-m1nd-compare-to-ai-powered-code-search-cursor-github-copilot-search">How does m1nd compare to AI-powered code search (Cursor, GitHub Copilot search)?</a></h3>
+<p>AI-powered code search sends your query (and often your code) to an LLM, costing tokens per search. Cursor’s codebase indexing and Copilot’s @workspace search embed your code into vectors and retrieve top-K chunks – each query burns $0.05-$0.50 in API costs. m1nd runs locally in Rust with zero LLM calls, zero tokens, and zero network round-trips. A spreading activation query returns ranked results in 31ms at $0.00. m1nd also maintains a persistent graph that learns from feedback via Hebbian plasticity – something no embedding-based search can do.</p>
+<h3 id="whats-the-real-cost-of-llm-based-code-search"><a class="header" href="#whats-the-real-cost-of-llm-based-code-search">What’s the real cost of LLM-based code search?</a></h3>
+<p>Every LLM-based code search burns tokens: the query, the retrieved context, and the model’s processing. At 100 searches per day, that is $5-$50/day per developer in API costs alone. In early 2026, Cursor users reported monthly overages exceeding $22,000 for teams with heavy codebase search usage. m1nd processes the same queries locally for $0.00 – no API keys, no cloud egress, no token metering, no surprise bills. The 8MB binary pays for itself on day one.</p>
+<h3 id="does-m1nd-replace-my-ides-search"><a class="header" href="#does-m1nd-replace-my-ides-search">Does m1nd replace my IDE’s search?</a></h3>
+<p>No. m1nd complements your IDE’s search, not replaces it. Use your IDE’s go-to-definition and find-references for precise, language-server-powered navigation. Use grep/ripgrep for fast text matching. Use m1nd for the questions those tools cannot answer: blast radius analysis, counterfactual simulation (“what breaks if I delete this module?”), structural hole detection (“what is missing?”), and hypothesis testing. m1nd adds a reasoning layer on top of your existing toolchain through 43 MCP tools that any compatible editor can call.</p>
+<h3 id="why-local-first-why-not-cloud"><a class="header" href="#why-local-first-why-not-cloud">Why local-first? Why not cloud?</a></h3>
+<p>Three reasons: cost, privacy, and latency. Cloud code search means your proprietary code leaves your machine on every query, each query costs tokens, and network round-trips add 100-500ms of latency. m1nd runs as a single 8MB binary on your machine. Your code never leaves localhost. Queries resolve in 31-77ms. There are no API keys to manage, no cloud accounts to provision, no egress fees, and no vendor lock-in. The graph persists to a local JSON file you own and can inspect, copy, or delete at any time.</p>
+<h3 id="what-makes-m1nd-agent-native"><a class="header" href="#what-makes-m1nd-agent-native">What makes m1nd “agent-native”?</a></h3>
+<p>m1nd was built from the ground up as an MCP server, not retrofitted. It exposes 61 tools that AI agents call natively – spreading activation, impact analysis, counterfactual simulation, hypothesis testing, and a full Perspective navigation system with 12 stateful tools for browsing the code graph. Multiple agents share the same graph instance simultaneously, each with isolated perspectives. The graph learns from agent feedback via Hebbian plasticity, getting smarter with every interaction. No other code intelligence tool provides persistent, learning, multi-agent structural reasoning over MCP.</p>
+<hr>
 <h2 id="general"><a class="header" href="#general">General</a></h2>
 <h3 id="what-is-m1nd"><a class="header" href="#what-is-m1nd">What is m1nd?</a></h3>
 <p>m1nd is a neuro-symbolic connectome engine for code intelligence. It parses your codebase into a weighted graph and provides 43 MCP tools for querying, learning, and navigating it. Built in Rust, it runs locally as an MCP server and works with any MCP-compatible AI agent (Claude Code, Cursor, Windsurf, Zed, etc.).</p>
@@ -229,6 +243,10 @@
 <h3 id="how-large-is-the-binary"><a class="header" href="#how-large-is-the-binary">How large is the binary?</a></h3>
 <p>Approximately 8MB for a release build. No runtime dependencies, no shared libraries. The binary is fully self-contained.</p>
 <h3 id="can-i-install-from-cratesio"><a class="header" href="#can-i-install-from-cratesio">Can I install from crates.io?</a></h3>
+<p>Not yet. For now, build from source:</p>
+<pre><code class="language-bash">git clone https://github.com/maxkle1nz/m1nd.git
+cd m1nd &amp;&amp; cargo build --release
+</code></pre>
 <p>Yes: <code>cargo install m1nd-mcp</code></p>
 <hr>
 <h2 id="usage"><a class="header" href="#usage">Usage</a></h2>

@@ -9,11 +9,11 @@
 <p align="center">
   Moteur de connectome neuro-symbolique avec plasticité Hebbienne, spreading activation
   et 61 outils MCP. Construit en Rust pour les agents IA.<br/>
-  <em>(Un graphe de code qui apprend à chaque requête. Posez une question ; il devient plus intelligent.)</em>
+  <em>Il ne lit pas votre code. Il réfléchit à votre code.</em>
 </p>
 
 <p align="center">
-  <strong>39 bugs trouvés en une session &middot; 89% de précision des hypothèses &middot; 1.36&micro;s activate &middot; Zéro token LLM</strong>
+  <strong>39 bugs trouvés en une session &middot; 89% de précision des hypothèses &middot; Zéro token LLM</strong>
 </p>
 
 <p align="center">
@@ -302,7 +302,7 @@ Trois crates Rust. Aucune dépendance runtime. Aucun appel LLM. Aucune clé API.
 ```
 m1nd-core/     Moteur de graphe, spreading activation, plasticité Hebbienne, moteur d'hypothèses,
                système d'anticorps, simulateur de flux, épidémie, tremor, confiance, détection de couches
-m1nd-ingest/   Extracteurs de langages (28 langages), memory adapter, JSON adapter,
+m1nd-ingest/   Extracteurs de langages (27+ langages), memory adapter, JSON adapter,
                enrichissement git, résolveur cross-file, diff incrémental
 m1nd-mcp/      Serveur MCP, 61 handlers d'outils, JSON-RPC sur stdio, serveur HTTP + GUI
 ```
@@ -310,7 +310,7 @@ m1nd-mcp/      Serveur MCP, 61 handlers d'outils, JSON-RPC sur stdio, serveur HT
 ```mermaid
 graph LR
     subgraph Ingest
-        A[Code / 28 langages] --> R[Reference Resolver]
+        A[Code / 27+ langages] --> R[Reference Resolver]
         MA[Memory adapter] --> R
         JA[JSON adapter] --> R
         R --> GD[Enrichissement Git]
@@ -335,8 +335,8 @@ graph LR
     HTTP --> B[Navigateur sur localhost:1337]
 ```
 
-28 langages via tree-sitter en deux tiers. Le build par défaut inclut le Tier 2 (8 langages).
-Ajoutez `--features tier1` pour les 28. [Détails des langages ->](https://github.com/maxkle1nz/m1nd/wiki/Ingest-Adapters)
+27+ langages via tree-sitter en deux tiers. Le build par défaut inclut le Tier 2 (8 langages).
+Ajoutez `--features tier1` pour les 27+. [Détails des langages ->](https://github.com/maxkle1nz/m1nd/wiki/Ingest-Adapters)
 
 ## Quand NE PAS Utiliser m1nd
 
@@ -377,5 +377,6 @@ MIT -- voir [LICENSE](LICENSE).
 
 <p align="center">
   Créé par <a href="https://github.com/cosmophonix">Max Elias Kleinschmidt</a><br/>
-  <em>Le graphe doit apprendre.</em>
+  <em>L'IA doit amplifier, jamais remplacer. Humain et machine en symbiose.</em><br/>
+  <em>Si vous pouvez le rêver, vous pouvez le construire. m1nd raccourcit la distance.</em>
 </p>

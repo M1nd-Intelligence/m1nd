@@ -9,11 +9,11 @@
 <p align="center">
   Neuro-symbolic connectome engine with Hebbian plasticity, spreading activation,
   and 61 MCP tools. Built in Rust for AI agents.<br/>
-  <em>(A code graph that learns from every query. Ask it a question; it gets smarter.)</em>
+  <em>It doesn't read your code. It thinks about your code.</em>
 </p>
 
 <p align="center">
-  <strong>39 bugs found in one session &middot; 89% hypothesis accuracy &middot; 1.36&micro;s activate &middot; Zero LLM tokens</strong>
+  <strong>39 bugs found in one session &middot; 89% hypothesis accuracy &middot; Zero LLM tokens</strong>
 </p>
 
 <p align="center">
@@ -302,7 +302,7 @@ Three Rust crates. No runtime dependencies. No LLM calls. No API keys. ~8MB bina
 ```
 m1nd-core/     Graph engine, spreading activation, Hebbian plasticity, hypothesis engine,
                antibody system, flow simulator, epidemic, tremor, trust, layer detection
-m1nd-ingest/   Language extractors (28 languages), memory adapter, JSON adapter,
+m1nd-ingest/   Language extractors (27+ languages), memory adapter, JSON adapter,
                git enrichment, cross-file resolver, incremental diff
 m1nd-mcp/      MCP server, 61 tool handlers, JSON-RPC over stdio, HTTP server + GUI
 ```
@@ -310,7 +310,7 @@ m1nd-mcp/      MCP server, 61 tool handlers, JSON-RPC over stdio, HTTP server + 
 ```mermaid
 graph LR
     subgraph Ingest
-        A[Code / 28 langs] --> R[Reference Resolver]
+        A[Code / 27+ langs] --> R[Reference Resolver]
         MA[Memory adapter] --> R
         JA[JSON adapter] --> R
         R --> GD[Git enrichment]
@@ -335,8 +335,8 @@ graph LR
     HTTP --> B[Browser on localhost:1337]
 ```
 
-28 languages via tree-sitter across two tiers. Default build includes Tier 2 (8 langs).
-Add `--features tier1` for all 28. [Language details ->](https://github.com/maxkle1nz/m1nd/wiki/Ingest-Adapters)
+27+ languages via tree-sitter across two tiers. Default build includes Tier 2 (8 langs).
+Add `--features tier1` for all 27+. [Language details ->](https://github.com/maxkle1nz/m1nd/wiki/Ingest-Adapters)
 
 ## When NOT to Use m1nd
 
@@ -377,5 +377,6 @@ MIT -- see [LICENSE](LICENSE).
 
 <p align="center">
   Created by <a href="https://github.com/cosmophonix">Max Elias Kleinschmidt</a><br/>
-  <em>The graph must learn.</em>
+  <em>AI should amplify, never replace. Human and machine in symbiosis.</em><br/>
+  <em>If you can dream it, you can build it. m1nd shortens the distance.</em>
 </p>

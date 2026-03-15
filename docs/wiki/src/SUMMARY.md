@@ -22,7 +22,7 @@
 
 ---
 
-# API Reference — 43 Tools
+# API Reference — 61 Tools
 
 - [Overview](api-reference/overview.md)
 - [Activation & Queries](api-reference/activation.md)

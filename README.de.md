@@ -9,11 +9,11 @@
 <p align="center">
   Neuro-symbolische Konnektom-Engine mit Hebbscher Plastizität, Spreading Activation
   und 61 MCP-Tools. In Rust gebaut für KI-Agenten.<br/>
-  <em>(Ein Code-Graph, der bei jeder Abfrage lernt. Stell eine Frage; er wird klüger.)</em>
+  <em>Es liest deinen Code nicht. Es denkt über deinen Code nach.</em>
 </p>
 
 <p align="center">
-  <strong>39 Bugs in einer Sitzung gefunden &middot; 89% Hypothesen-Genauigkeit &middot; 1.36&micro;s activate &middot; Null LLM-Tokens</strong>
+  <strong>39 Bugs in einer Sitzung gefunden &middot; 89% Hypothesen-Genauigkeit &middot; Null LLM-Tokens</strong>
 </p>
 
 <p align="center">
@@ -302,7 +302,7 @@ Drei Rust-Crates. Keine Laufzeitabhängigkeiten. Keine LLM-Aufrufe. Keine API-Sc
 ```
 m1nd-core/     Graph-Engine, Spreading Activation, Hebbsche Plastizität, Hypothesen-Engine,
                Antikörper-System, Flusssimulator, Epidemie, Tremor, Vertrauen, Schicht-Erkennung
-m1nd-ingest/   Sprach-Extraktoren (28 Sprachen), Memory Adapter, JSON Adapter,
+m1nd-ingest/   Sprach-Extraktoren (27+ Sprachen), Memory Adapter, JSON Adapter,
                Git-Anreicherung, Cross-File-Resolver, inkrementeller Diff
 m1nd-mcp/      MCP-Server, 61 Tool-Handler, JSON-RPC über stdio, HTTP-Server + GUI
 ```
@@ -310,7 +310,7 @@ m1nd-mcp/      MCP-Server, 61 Tool-Handler, JSON-RPC über stdio, HTTP-Server + 
 ```mermaid
 graph LR
     subgraph Ingest
-        A[Code / 28 Sprachen] --> R[Reference Resolver]
+        A[Code / 27+ Sprachen] --> R[Reference Resolver]
         MA[Memory Adapter] --> R
         JA[JSON Adapter] --> R
         R --> GD[Git-Anreicherung]
@@ -335,8 +335,8 @@ graph LR
     HTTP --> B[Browser auf localhost:1337]
 ```
 
-28 Sprachen via tree-sitter in zwei Tiers. Der Standard-Build enthält Tier 2 (8 Sprachen).
-Füge `--features tier1` hinzu für alle 28. [Sprachdetails ->](https://github.com/maxkle1nz/m1nd/wiki/Ingest-Adapters)
+27+ Sprachen via tree-sitter in zwei Tiers. Der Standard-Build enthält Tier 2 (8 Sprachen).
+Füge `--features tier1` hinzu für alle 27+. [Sprachdetails ->](https://github.com/maxkle1nz/m1nd/wiki/Ingest-Adapters)
 
 ## Wann m1nd NICHT Verwenden
 
@@ -377,5 +377,6 @@ MIT -- siehe [LICENSE](LICENSE).
 
 <p align="center">
   Erstellt von <a href="https://github.com/cosmophonix">Max Elias Kleinschmidt</a><br/>
-  <em>Der Graph muss lernen.</em>
+  <em>KI soll verstärken, niemals ersetzen. Mensch und Maschine in Symbiose.</em><br/>
+  <em>Wenn du es träumen kannst, kannst du es bauen. m1nd verkürzt den Weg.</em>
 </p>

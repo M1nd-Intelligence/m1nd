@@ -1,484 +1,474 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Benchmarks — m1nd Wiki</title>
-  <meta name="description" content="m1nd performance benchmarks: 60% token reduction, 62% fewer grep calls, ~50MB memory, sub-100ms queries.">
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --bg: #0a0a0f; --bg-raised: #0f1118; --bg-card: #13151e;
-      --border: #1e2433; --border-hover: #2a3040;
-      --text: #f0f2f5; --text-dim: #8b9daf; --text-faint: #5a6577;
-      --cyan: #00d4ff; --yellow: #ffd700; --magenta: #ff00ff;
-      --blue: #4169e1; --green: #00ff88;
-      --cyan-dim: rgba(0, 212, 255, 0.12); --yellow-dim: rgba(255, 215, 0, 0.12);
-      --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
-      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.6; -webkit-font-smoothing: antialiased; }
-    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(30,36,51,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(30,36,51,0.18) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: 0; }
-    a { color: var(--cyan); text-decoration: none; transition: color 0.2s; }
-    a:hover { opacity: 0.85; }
+<!DOCTYPE HTML>
+<html lang="en" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Benchmarks - m1nd Documentation</title>
 
-    /* NAV */
-    .wiki-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,15,0.88); backdrop-filter: blur(24px) saturate(180%); border-bottom: 1px solid var(--border); height: 56px; }
-    .wiki-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 100%; }
-    .wiki-nav-logo { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
-    .wiki-nav-logo .glyphs { font-size: 16px; letter-spacing: 3px; }
-    .g-cy { color: var(--cyan); } .g-ye { color: var(--yellow); } .g-ma { color: var(--magenta); } .g-bl { color: var(--blue); } .g-gr { color: var(--green); }
-    .wiki-nav-logo .sep { color: var(--text-faint); font-weight: 400; }
-    .wiki-nav-logo .wiki-label { color: var(--text-dim); font-weight: 400; font-size: 14px; }
-    .wiki-nav-links { display: flex; gap: 6px; align-items: center; }
-    .wiki-nav-links a { color: var(--text-dim); font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: 8px; transition: all 0.2s; }
-    .wiki-nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
-    .wiki-nav-links a.active { color: var(--yellow); background: var(--yellow-dim); }
-    .wiki-nav-links a.home-link { color: var(--text-faint); border: 1px solid var(--border); }
-    .wiki-nav-links a.home-link:hover { border-color: var(--cyan); color: var(--cyan); }
-    .nav-hamburger { display: none; background: none; border: none; cursor: pointer; color: var(--text-dim); padding: 8px; }
-    .nav-hamburger svg { width: 24px; height: 24px; }
-    .mobile-menu { display: none; position: fixed; top: 56px; left: 0; right: 0; background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 16px 24px; z-index: 99; }
-    .mobile-menu.open { display: block; }
-    .mobile-menu a { display: block; color: var(--text-dim); font-size: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-    .mobile-menu a:last-child { border-bottom: none; }
-    @media (max-width: 860px) { .wiki-nav-links { display: none; } .nav-hamburger { display: block; } }
 
-    .wiki-container { max-width: 900px; margin: 0 auto; padding: 80px 24px 80px; position: relative; z-index: 1; }
-    .page-header { margin-bottom: 56px; }
-    .breadcrumb { font-family: var(--mono); font-size: 12px; color: var(--text-faint); margin-bottom: 16px; }
-    .breadcrumb a { color: var(--text-dim); }
-    .page-header h1 { font-family: var(--mono); font-size: clamp(28px,5vw,42px); font-weight: 700; letter-spacing: -1px; margin-bottom: 12px; }
-    .page-header .page-desc { font-size: 17px; color: var(--text-dim); max-width: 640px; line-height: 1.7; }
+        <!-- Custom HTML head -->
 
-    .bench-section { margin-bottom: 72px; scroll-margin-top: 72px; }
-    .section-label { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 12px; }
-    .section-title { font-size: clamp(22px,4vw,32px); font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; }
-    .section-desc { color: var(--text-dim); font-size: 15px; line-height: 1.7; margin-bottom: 32px; max-width: 680px; }
+        <meta name="description" content="Complete documentation for m1nd — the neuro-symbolic connectome engine">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
 
-    /* HERO STATS */
-    .hero-stats {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px; margin-bottom: 64px;
-    }
-    .hero-stat {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 16px; padding: 28px 24px; text-align: center;
-      position: relative; overflow: hidden;
-      transition: transform 0.3s, border-color 0.3s;
-    }
-    .hero-stat:hover { transform: translateY(-3px); border-color: var(--border-hover); }
-    .hero-stat::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; opacity: 0.5;
-    }
-    .hero-stat:nth-child(1)::before { background: var(--cyan); }
-    .hero-stat:nth-child(2)::before { background: var(--yellow); }
-    .hero-stat:nth-child(3)::before { background: var(--green); }
-    .hero-stat:nth-child(4)::before { background: var(--blue); }
-    .hs-value {
-      font-family: var(--mono); font-size: 36px; font-weight: 700; margin-bottom: 4px;
-    }
-    .hero-stat:nth-child(1) .hs-value { color: var(--cyan); }
-    .hero-stat:nth-child(2) .hs-value { color: var(--yellow); }
-    .hero-stat:nth-child(3) .hs-value { color: var(--green); }
-    .hero-stat:nth-child(4) .hs-value { color: var(--blue); }
-    .hs-label { font-size: 13px; color: var(--text-faint); font-family: var(--mono); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-    .hs-detail { font-size: 13px; color: var(--text-dim); }
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-2459343d.css">
+        <link rel="stylesheet" href="css/chrome-ae938929.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
 
-    /* BAR CHARTS */
-    .chart-container {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 16px; padding: 32px; margin-bottom: 24px;
-    }
-    .chart-title {
-      font-family: var(--mono); font-weight: 700; font-size: 15px;
-      margin-bottom: 4px;
-    }
-    .chart-subtitle { font-size: 12px; color: var(--text-faint); margin-bottom: 24px; }
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
 
-    .bar-chart { }
-    .bar-row {
-      display: grid; grid-template-columns: 120px 1fr 60px;
-      align-items: center; gap: 16px; margin-bottom: 16px;
-    }
-    .bar-label { font-family: var(--mono); font-size: 13px; color: var(--text-dim); text-align: right; }
-    .bar-track {
-      height: 32px; background: var(--bg-raised); border-radius: 8px;
-      overflow: hidden; position: relative;
-    }
-    .bar-fill {
-      height: 100%; border-radius: 8px;
-      transition: width 1s ease-out;
-      position: relative;
-    }
-    .bar-fill::after {
-      content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 2px;
-      background: rgba(255,255,255,0.3);
-    }
-    .bar-value { font-family: var(--mono); font-size: 14px; font-weight: 700; }
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
 
-    /* COMPARISON BARS */
-    .compare-group { margin-bottom: 32px; }
-    .compare-label {
-      font-family: var(--mono); font-size: 12px; color: var(--text-faint);
-      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
-    }
-    .compare-pair { margin-bottom: 20px; }
-    .compare-row {
-      display: grid; grid-template-columns: 100px 1fr 80px;
-      align-items: center; gap: 12px; margin-bottom: 6px;
-    }
-    .compare-row .cr-label { font-family: var(--mono); font-size: 12px; color: var(--text-dim); text-align: right; }
-    .compare-row .cr-track { height: 24px; background: var(--bg-raised); border-radius: 6px; overflow: hidden; }
-    .compare-row .cr-fill { height: 100%; border-radius: 6px; }
-    .compare-row .cr-value { font-family: var(--mono); font-size: 13px; font-weight: 600; }
-    .cr-before { background: rgba(255, 51, 102, 0.25); }
-    .cr-after { background: rgba(0, 255, 136, 0.25); }
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/custom-a18dc32c.css">
 
-    /* LATENCY TABLE */
-    .latency-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px; margin-bottom: 32px;
-    }
-    .latency-card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 12px; padding: 20px; text-align: center;
-      transition: border-color 0.2s;
-    }
-    .latency-card:hover { border-color: var(--border-hover); }
-    .lat-tool { font-family: var(--mono); font-weight: 700; font-size: 14px; margin-bottom: 6px; }
-    .lat-time { font-family: var(--mono); font-size: 24px; font-weight: 700; margin-bottom: 2px; }
-    .lat-unit { font-size: 11px; color: var(--text-faint); font-family: var(--mono); }
 
-    /* MEMORY VISUAL */
-    .memory-visual {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 16px; padding: 32px; margin-bottom: 32px;
-    }
-    .mem-bar-container {
-      position: relative; height: 48px; background: var(--bg-raised);
-      border-radius: 10px; overflow: hidden; margin-bottom: 16px;
-    }
-    .mem-bar-fill {
-      height: 100%; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--mono); font-size: 14px; font-weight: 700;
-    }
-    .mem-scale {
-      display: flex; justify-content: space-between;
-      font-family: var(--mono); font-size: 11px; color: var(--text-faint);
-    }
-
-    /* INSIGHT BOX */
-    .insight-box {
-      background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(0, 255, 136, 0.05));
-      border: 1px solid rgba(0, 212, 255, 0.15);
-      border-radius: 16px; padding: 32px; margin-bottom: 40px;
-      text-align: center;
-    }
-    .insight-quote {
-      font-family: var(--mono); font-size: clamp(18px, 3vw, 24px);
-      font-weight: 700; color: var(--text); margin-bottom: 12px;
-      line-height: 1.4;
-    }
-    .insight-quote span { color: var(--cyan); }
-    .insight-detail { font-size: 15px; color: var(--text-dim); max-width: 560px; margin: 0 auto; }
-
-    /* GRAPH SCALE TABLE */
-    .scale-table {
-      width: 100%; border-collapse: collapse; font-size: 14px;
-    }
-    .scale-table th {
-      text-align: left; padding: 10px 14px;
-      font-family: var(--mono); font-size: 11px; color: var(--text-faint);
-      text-transform: uppercase; letter-spacing: 1px;
-      border-bottom: 2px solid var(--border);
-    }
-    .scale-table td {
-      padding: 10px 14px; border-bottom: 1px solid var(--border);
-      color: var(--text-dim);
-    }
-    .scale-table td:first-child { font-weight: 600; color: var(--text); }
-    .scale-table td .fast { color: var(--green); font-weight: 600; }
-    .scale-table td .ok { color: var(--yellow); font-weight: 600; }
-
-    .wiki-footer { border-top: 1px solid var(--border); padding: 40px 24px; text-align: center; }
-    .footer-glyphs { font-size: 20px; letter-spacing: 6px; margin-bottom: 12px; }
-    .footer-text { font-size: 13px; color: var(--text-faint); font-family: var(--mono); }
-    .footer-links { display: flex; gap: 24px; justify-content: center; margin-top: 16px; }
-    .footer-links a { color: var(--text-dim); font-size: 13px; }
-
-    @keyframes float-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    .bench-section { animation: float-up 0.5s ease-out backwards; }
-    @keyframes grow-bar { from { width: 0; } }
-    .bar-fill, .cr-fill { animation: grow-bar 1.2s ease-out; }
-  </style>
-</head>
-<body>
-  <nav class="wiki-nav">
-    <div class="wiki-nav-inner">
-      <a href="index.html" class="wiki-nav-logo">
-        <span class="glyphs"><span class="g-cy">&#x234C;</span><span class="g-ye">&#x2350;</span><span class="g-ma">&#x2342;</span><span class="g-bl">&#x1D53B;</span> <span class="g-gr">&#x27C1;</span></span>
-        <span class="sep">/</span><span class="wiki-label">wiki</span>
-      </a>
-      <div class="wiki-nav-links">
-        <a href="index.html">Home</a><a href="tools.html">Tools</a><a href="architecture.html">Architecture</a>
-        <a href="quickstart.html">Quickstart</a><a href="benchmarks.html" class="active">Benchmarks</a>
-        <a href="patterns.html">Patterns</a><a href="../index.html" class="home-link">Main Site</a>
-      </div>
-      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.toggle('open')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-      </button>
-    </div>
-  </nav>
-  <div class="mobile-menu" id="mobileMenu">
-    <a href="index.html">Home</a><a href="tools.html">Tools</a><a href="architecture.html">Architecture</a>
-    <a href="quickstart.html">Quickstart</a><a href="benchmarks.html">Benchmarks</a><a href="patterns.html">Patterns</a>
-    <a href="../index.html">Main Site</a>
-  </div>
-
-  <div class="wiki-container">
-    <div class="page-header">
-      <div class="breadcrumb"><a href="index.html">Wiki</a> / Benchmarks</div>
-      <h1>Benchmarks</h1>
-      <p class="page-desc">Measured performance data from production use on a 5000-node codebase graph. m1nd does not replace search. It focuses search.</p>
-    </div>
-
-    <!-- HERO STATS -->
-    <div class="hero-stats">
-      <div class="hero-stat">
-        <div class="hs-value">60%</div>
-        <div class="hs-label">Token Reduction</div>
-        <div class="hs-detail">1.2M &#x2192; 480K tokens/day</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hs-value">62%</div>
-        <div class="hs-label">Fewer Greps</div>
-        <div class="hs-detail">40 &#x2192; 15 calls/hour</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hs-value">~50MB</div>
-        <div class="hs-label">Memory</div>
-        <div class="hs-detail">5000-node graph</div>
-      </div>
-      <div class="hero-stat">
-        <div class="hs-value">&lt;100ms</div>
-        <div class="hs-label">Query Latency</div>
-        <div class="hs-detail">Activate, median</div>
-      </div>
-    </div>
-
-    <!-- TOKEN SAVINGS -->
-    <section class="bench-section" id="tokens">
-      <div class="section-label" style="color: var(--cyan);">&#x234C; Token Efficiency</div>
-      <h2 class="section-title">Context Token Savings</h2>
-      <p class="section-desc">m1nd reduces context token consumption by focusing agent attention on relevant code before it reads files. Instead of grepping everything and dumping results into context, agents query the graph first.</p>
-
-      <div class="chart-container">
-        <div class="chart-title" style="color: var(--cyan);">Daily Token Consumption</div>
-        <div class="chart-subtitle">Tokens consumed by agent context per working day</div>
-
-        <div class="compare-group">
-          <div class="compare-label">Context Tokens / Day</div>
-          <div class="compare-pair">
-            <div class="compare-row">
-              <span class="cr-label">Without</span>
-              <div class="cr-track"><div class="cr-fill cr-before" style="width: 100%;"></div></div>
-              <span class="cr-value" style="color: #ff3366;">1.2M</span>
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex-93e3b672.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-35a7562c.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
             </div>
-            <div class="compare-row">
-              <span class="cr-label">With m1nd</span>
-              <div class="cr-track"><div class="cr-fill cr-after" style="width: 40%;"></div></div>
-              <span class="cr-value" style="color: var(--green);">480K</span>
-            </div>
-          </div>
         </div>
-
-        <div class="compare-group">
-          <div class="compare-label">Grep Calls / Hour</div>
-          <div class="compare-pair">
-            <div class="compare-row">
-              <span class="cr-label">Without</span>
-              <div class="cr-track"><div class="cr-fill cr-before" style="width: 100%;"></div></div>
-              <span class="cr-value" style="color: #ff3366;">40</span>
-            </div>
-            <div class="compare-row">
-              <span class="cr-label">With m1nd</span>
-              <div class="cr-track"><div class="cr-fill cr-after" style="width: 37.5%;"></div></div>
-              <span class="cr-value" style="color: var(--green);">15</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="insight-box">
-        <div class="insight-quote">"m1nd does not replace search.<br><span>It focuses search.</span>"</div>
-        <div class="insight-detail">Agents still use grep and glob. But they ask the graph <em>where</em> to search first, reducing wasted reads by 60%.</div>
-      </div>
-    </section>
-
-    <!-- LATENCY -->
-    <section class="bench-section" id="latency">
-      <div class="section-label" style="color: var(--yellow);">&#x2350; Latency</div>
-      <h2 class="section-title">Query Latency</h2>
-      <p class="section-desc">All queries complete in under 100ms. The graph lives in memory -- no disk I/O on the hot path.</p>
-
-      <div class="latency-grid">
-        <div class="latency-card">
-          <div class="lat-tool" style="color: var(--cyan);">activate</div>
-          <div class="lat-time" style="color: var(--green);">&lt;100</div>
-          <div class="lat-unit">ms (p95)</div>
-        </div>
-        <div class="latency-card">
-          <div class="lat-tool" style="color: var(--blue);">impact</div>
-          <div class="lat-time" style="color: var(--green);">&lt;50</div>
-          <div class="lat-unit">ms (p95)</div>
-        </div>
-        <div class="latency-card">
-          <div class="lat-tool" style="color: var(--yellow);">why</div>
-          <div class="lat-time" style="color: var(--green);">&lt;80</div>
-          <div class="lat-unit">ms (p95)</div>
-        </div>
-        <div class="latency-card">
-          <div class="lat-tool" style="color: var(--magenta);">missing</div>
-          <div class="lat-time" style="color: var(--green);">&lt;120</div>
-          <div class="lat-unit">ms (p95)</div>
-        </div>
-        <div class="latency-card">
-          <div class="lat-tool" style="color: var(--green);">resonate</div>
-          <div class="lat-time" style="color: var(--green);">&lt;150</div>
-          <div class="lat-unit">ms (p95)</div>
-        </div>
-        <div class="latency-card">
-          <div class="lat-tool" style="color: var(--cyan);">ingest</div>
-          <div class="lat-time" style="color: var(--yellow);">&lt;2000</div>
-          <div class="lat-unit">ms (full rebuild)</div>
-        </div>
-      </div>
-
-      <div class="chart-container">
-        <div class="chart-title" style="color: var(--yellow);">Query Latency Distribution</div>
-        <div class="chart-subtitle">Milliseconds by tool category (p95)</div>
-        <div class="bar-chart">
-          <div class="bar-row">
-            <span class="bar-label">impact</span>
-            <div class="bar-track"><div class="bar-fill" style="width: 25%; background: linear-gradient(90deg, var(--blue), rgba(65,105,225,0.5));"></div></div>
-            <span class="bar-value" style="color: var(--blue);">&lt;50ms</span>
-          </div>
-          <div class="bar-row">
-            <span class="bar-label">why</span>
-            <div class="bar-track"><div class="bar-fill" style="width: 40%; background: linear-gradient(90deg, var(--yellow), rgba(255,215,0,0.5));"></div></div>
-            <span class="bar-value" style="color: var(--yellow);">&lt;80ms</span>
-          </div>
-          <div class="bar-row">
-            <span class="bar-label">activate</span>
-            <div class="bar-track"><div class="bar-fill" style="width: 50%; background: linear-gradient(90deg, var(--cyan), rgba(0,212,255,0.5));"></div></div>
-            <span class="bar-value" style="color: var(--cyan);">&lt;100ms</span>
-          </div>
-          <div class="bar-row">
-            <span class="bar-label">missing</span>
-            <div class="bar-track"><div class="bar-fill" style="width: 60%; background: linear-gradient(90deg, var(--magenta), rgba(255,0,255,0.5));"></div></div>
-            <span class="bar-value" style="color: var(--magenta);">&lt;120ms</span>
-          </div>
-          <div class="bar-row">
-            <span class="bar-label">resonate</span>
-            <div class="bar-track"><div class="bar-fill" style="width: 75%; background: linear-gradient(90deg, var(--green), rgba(0,255,136,0.5));"></div></div>
-            <span class="bar-value" style="color: var(--green);">&lt;150ms</span>
-          </div>
-          <div class="bar-row">
-            <span class="bar-label">ingest (full)</span>
-            <div class="bar-track"><div class="bar-fill" style="width: 100%; background: linear-gradient(90deg, var(--yellow), rgba(255,215,0,0.3));"></div></div>
-            <span class="bar-value" style="color: var(--yellow);">&lt;2s</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MEMORY -->
-    <section class="bench-section" id="memory">
-      <div class="section-label" style="color: var(--green);">&#x27C1; Memory</div>
-      <h2 class="section-title">Memory Footprint</h2>
-      <p class="section-desc">The entire graph lives in memory for instant access. Rust's zero-cost abstractions keep the footprint minimal even for large codebases.</p>
-
-      <div class="memory-visual">
-        <div class="chart-title" style="color: var(--green); margin-bottom: 16px;">RAM Usage: 5000-node graph</div>
-        <div class="mem-bar-container">
-          <div class="mem-bar-fill" style="width: 10%; background: linear-gradient(90deg, var(--green), rgba(0,255,136,0.6));">
-            ~50 MB
-          </div>
-        </div>
-        <div class="mem-scale">
-          <span>0</span>
-          <span>100 MB</span>
-          <span>200 MB</span>
-          <span>300 MB</span>
-          <span>400 MB</span>
-          <span>500 MB</span>
-        </div>
-      </div>
-
-      <div class="chart-container">
-        <div class="chart-title" style="color: var(--green);">Memory by Graph Size</div>
-        <div class="chart-subtitle">Approximate RAM usage for different codebase sizes</div>
-        <table class="scale-table">
-          <thead>
-            <tr><th>Graph Size</th><th>Nodes</th><th>Edges</th><th>RAM</th><th>Load Time</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Small project</td><td>500</td><td>1,200</td><td><span class="fast">~8 MB</span></td><td><span class="fast">&lt;200ms</span></td></tr>
-            <tr><td>Medium project</td><td>2,000</td><td>5,000</td><td><span class="fast">~25 MB</span></td><td><span class="fast">&lt;800ms</span></td></tr>
-            <tr><td>Large project</td><td>5,000</td><td>12,000</td><td><span class="fast">~50 MB</span></td><td><span class="fast">&lt;2s</span></td></tr>
-            <tr><td>Monorepo</td><td>15,000</td><td>40,000</td><td><span class="ok">~150 MB</span></td><td><span class="ok">&lt;5s</span></td></tr>
-            <tr><td>Enterprise</td><td>50,000</td><td>120,000</td><td><span class="ok">~500 MB</span></td><td><span class="ok">&lt;15s</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- KEY INSIGHT -->
-    <section class="bench-section" id="insight">
-      <div class="section-label" style="color: var(--magenta);">&#x2342; Key Insight</div>
-      <h2 class="section-title">How m1nd Saves Tokens</h2>
-      <p class="section-desc">The savings come from precision, not replacement. Here is the mechanism.</p>
-
-      <div class="chart-container" style="border-left: 3px solid var(--cyan);">
-        <div class="chart-title" style="color: var(--cyan);">Without m1nd</div>
-        <div class="chart-subtitle" style="margin-bottom: 16px;">Agent exploring "authentication" in a 200-file backend</div>
-        <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 2;">
-          <div>1. <span style="color: var(--yellow);">grep</span> "auth" across all files &#x2192; 47 matches &#x2192; <span style="color: #ff3366;">~12K tokens read into context</span></div>
-          <div>2. Read 8 files to understand scope &#x2192; <span style="color: #ff3366;">~24K tokens</span></div>
-          <div>3. Realize 3 files were irrelevant &#x2192; <span style="color: #ff3366;">~9K tokens wasted</span></div>
-          <div>4. <span style="color: var(--yellow);">grep</span> again with refined terms &#x2192; <span style="color: #ff3366;">~6K tokens</span></div>
-          <div style="margin-top: 8px; color: var(--text-faint);">Total: ~51K tokens, 4+ tool calls</div>
-        </div>
-      </div>
-
-      <div class="chart-container" style="border-left: 3px solid var(--green);">
-        <div class="chart-title" style="color: var(--green);">With m1nd</div>
-        <div class="chart-subtitle" style="margin-bottom: 16px;">Same task, same codebase</div>
-        <div style="font-family: var(--mono); font-size: 13px; color: var(--text-dim); line-height: 2;">
-          <div>1. <span style="color: var(--cyan);">m1nd.activate</span>("authentication") &#x2192; 12 ranked nodes &#x2192; <span style="color: var(--green);">~800 tokens</span></div>
-          <div>2. Read 5 files (the right ones) &#x2192; <span style="color: var(--green);">~15K tokens</span></div>
-          <div>3. <span style="color: var(--cyan);">m1nd.learn</span>("correct") &#x2192; graph improves &#x2192; <span style="color: var(--green);">~100 tokens</span></div>
-          <div style="margin-top: 8px; color: var(--text-faint);">Total: ~16K tokens, 3 tool calls</div>
-        </div>
-      </div>
-
-      <div class="insight-box">
-        <div class="insight-quote">69% fewer tokens.<br>Same outcome. <span>Better next time.</span></div>
-        <div class="insight-detail">The graph learns from feedback. Each session makes the next session more efficient. This is compounding intelligence.</div>
-      </div>
-    </section>
-
-  </div>
-
-  <footer class="wiki-footer">
-    <div class="footer-glyphs"><span class="g-cy">&#x234C;</span><span class="g-ye">&#x2350;</span><span class="g-ma">&#x2342;</span><span class="g-bl">&#x1D53B;</span> <span class="g-gr">&#x27C1;</span></div>
-    <div class="footer-text">neuro-symbolic connectome engine</div>
-    <div class="footer-links">
-      <a href="index.html">Wiki Home</a><a href="tools.html">Tools</a><a href="architecture.html">Architecture</a><a href="../index.html">Main Site</a>
     </div>
-  </footer>
-</body>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">m1nd Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/maxkle1nz/m1nd" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/maxkle1nz/m1nd/edit/main/docs/wiki/src/src/benchmarks.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                            <span class=fa-svg id="git-edit-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M421.7 220.3l-11.3 11.3-22.6 22.6-205 205c-6.6 6.6-14.8 11.5-23.8 14.1L30.8 511c-8.4 2.5-17.5 .2-23.7-6.1S-1.5 489.7 1 481.2L38.7 353.1c2.6-9 7.5-17.2 14.1-23.8l205-205 22.6-22.6 11.3-11.3 33.9 33.9 62.1 62.1 33.9 33.9zM96 353.9l-9.3 9.3c-.9 .9-1.6 2.1-2 3.4l-25.3 86 86-25.3c1.3-.4 2.5-1.1 3.4-2l9.3-9.3H112c-8.8 0-16-7.2-16-16V353.9zM453.3 19.3l39.4 39.4c25 25 25 65.5 0 90.5l-14.5 14.5-22.6 22.6-11.3 11.3-33.9-33.9-62.1-62.1L314.3 67.7l11.3-11.3 22.6-22.6 14.5-14.5c25-25 65.5-25 90.5 0z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="benchmarks"><a class="header" href="#benchmarks">Benchmarks</a></h1>
+<p>All numbers in this document are from real execution against a production Python backend: 335 files, approximately 52,000 lines of code, producing a graph of 9,767 nodes and 26,557 edges.</p>
+<p>No synthetic benchmarks. No cherry-picked runs. These are the numbers you get when you run m1nd against a real codebase.</p>
+<h2 id="core-operations"><a class="header" href="#core-operations">Core Operations</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Operation</th><th>Time</th><th>Scale</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Full ingest</strong></td><td>910ms</td><td>335 files -&gt; 9,767 nodes, 26,557 edges</td></tr>
+<tr><td><strong>Spreading activation</strong></td><td>31-77ms</td><td>15-20 results from 9,767 nodes</td></tr>
+<tr><td><strong>Blast radius</strong> (depth=3)</td><td>5-52ms</td><td>Up to 4,271 affected nodes</td></tr>
+<tr><td><strong>Stacktrace analysis</strong></td><td>3.5ms</td><td>5 frames -&gt; 4 suspects ranked</td></tr>
+<tr><td><strong>Plan validation</strong></td><td>10ms</td><td>7 files -&gt; 43,152 blast radius</td></tr>
+<tr><td><strong>Counterfactual cascade</strong></td><td>3ms</td><td>Full BFS on 26,557 edges</td></tr>
+<tr><td><strong>Hypothesis testing</strong></td><td>58ms</td><td>25,015 paths explored</td></tr>
+<tr><td><strong>Pattern scan</strong> (all 8 patterns)</td><td>38ms</td><td>335 files, 50 findings per pattern</td></tr>
+<tr><td><strong>Multi-repo federation</strong></td><td>1.3s</td><td>11,217 nodes, 18,203 cross-repo edges</td></tr>
+<tr><td><strong>Lock diff</strong></td><td>0.08us</td><td>1,639-node subgraph comparison</td></tr>
+<tr><td><strong>Trail merge</strong></td><td>1.2ms</td><td>5 hypotheses, 3 conflicts detected</td></tr>
+<tr><td><strong>Hebbian learn</strong></td><td>&lt;1ms</td><td>740 edges adjusted</td></tr>
+<tr><td><strong>Health check</strong></td><td>&lt;1ms</td><td>Statistics only</td></tr>
+<tr><td><strong>Seek</strong> (semantic search)</td><td>10-15ms</td><td>20 results</td></tr>
+<tr><td><strong>Warmup</strong> (task priming)</td><td>82-89ms</td><td>50 seed nodes primed</td></tr>
+<tr><td><strong>Resonate</strong> (standing wave)</td><td>37-52ms</td><td>Harmonic analysis</td></tr>
+<tr><td><strong>Fingerprint</strong> (twin detection)</td><td>1-107ms</td><td>Topology comparison</td></tr>
+<tr><td><strong>Why</strong> (path explanation)</td><td>5-6ms</td><td>Shortest path between two nodes</td></tr>
+<tr><td><strong>Drift</strong> (weight changes)</td><td>23ms</td><td>Since last session</td></tr>
+<tr><td><strong>Timeline</strong> (temporal history)</td><td>~1ms</td><td>Node change history</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="comparison-table"><a class="header" href="#comparison-table">Comparison Table</a></h2>
+<h3 id="m1nd-vs-grep--ripgrep"><a class="header" href="#m1nd-vs-grep--ripgrep">m1nd vs grep / ripgrep</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Dimension</th><th>ripgrep</th><th>m1nd</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Query type</strong></td><td>Text pattern (regex)</td><td>Natural language intent</td></tr>
+<tr><td><strong>Returns</strong></td><td>Lines matching pattern</td><td>Ranked nodes with 4D scores</td></tr>
+<tr><td><strong>Relationships</strong></td><td>None</td><td>Full graph traversal</td></tr>
+<tr><td><strong>Learning</strong></td><td>None</td><td>Hebbian plasticity</td></tr>
+<tr><td><strong>“What if?” queries</strong></td><td>Not possible</td><td>Counterfactual, hypothesis, impact</td></tr>
+<tr><td><strong>Speed (simple query)</strong></td><td>~5ms</td><td>31-77ms</td></tr>
+<tr><td><strong>Speed (structural query)</strong></td><td>Not possible</td><td>3-58ms</td></tr>
+<tr><td><strong>Memory</strong></td><td>~10MB</td><td>~50MB</td></tr>
+<tr><td><strong>Cost per query</strong></td><td>Zero</td><td>Zero</td></tr>
+</tbody>
+</table>
+</div>
+<p>ripgrep is faster for simple text matching and always will be. m1nd answers questions ripgrep cannot ask.</p>
+<h3 id="m1nd-vs-rag"><a class="header" href="#m1nd-vs-rag">m1nd vs RAG</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Dimension</th><th>RAG</th><th>m1nd</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Retrieval method</strong></td><td>Embedding similarity (top-K)</td><td>Spreading activation (4D)</td></tr>
+<tr><td><strong>Statefulness</strong></td><td>Stateless per query</td><td>Persistent graph + learning</td></tr>
+<tr><td><strong>Relationships</strong></td><td>Not tracked</td><td>First-class edges</td></tr>
+<tr><td><strong>Learning</strong></td><td>None</td><td>Hebbian feedback loop</td></tr>
+<tr><td><strong>Investigation memory</strong></td><td>None</td><td>Trail save/resume/merge</td></tr>
+<tr><td><strong>Structural queries</strong></td><td>Not possible</td><td>Impact, counterfactual, hypothesis</td></tr>
+<tr><td><strong>Setup cost</strong></td><td>Embedding computation</td><td>910ms ingest</td></tr>
+<tr><td><strong>Cost per query</strong></td><td>LLM tokens for embedding</td><td>Zero</td></tr>
+<tr><td><strong>Typical query latency</strong></td><td>200-500ms (includes API call)</td><td>31-77ms (local)</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="m1nd-vs-static-analysis-sourcegraph-scip-lsp"><a class="header" href="#m1nd-vs-static-analysis-sourcegraph-scip-lsp">m1nd vs Static Analysis (Sourcegraph, SCIP, LSP)</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Dimension</th><th>Static Analysis</th><th>m1nd</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Accuracy</strong></td><td>Language-server precise</td><td>Structural heuristic</td></tr>
+<tr><td><strong>Learning</strong></td><td>None</td><td>Hebbian plasticity</td></tr>
+<tr><td><strong>Temporal intelligence</strong></td><td>git blame only</td><td>Co-change velocity + decay</td></tr>
+<tr><td><strong>“What if?” simulation</strong></td><td>Not possible</td><td>Counterfactual cascade</td></tr>
+<tr><td><strong>Hypothesis testing</strong></td><td>Not possible</td><td>Bayesian path analysis</td></tr>
+<tr><td><strong>Investigation state</strong></td><td>Not tracked</td><td>Trail system</td></tr>
+<tr><td><strong>Multi-agent</strong></td><td>Read-only sharing</td><td>Shared graph + isolated perspectives</td></tr>
+<tr><td><strong>Cost</strong></td><td>Hosted SaaS or self-hosted infra</td><td>Single binary, zero cost</td></tr>
+<tr><td><strong>Setup</strong></td><td>Minutes to hours (indexing)</td><td>910ms (ingest)</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="summary-use-the-right-tool"><a class="header" href="#summary-use-the-right-tool">Summary: Use the Right Tool</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Task</th><th>Best Tool</th></tr>
+</thead>
+<tbody>
+<tr><td>Find text in files</td><td>ripgrep</td></tr>
+<tr><td>Find semantically similar code</td><td>RAG</td></tr>
+<tr><td>Go-to-definition, find references</td><td>LSP / Sourcegraph</td></tr>
+<tr><td>Understand blast radius of a change</td><td><strong>m1nd</strong></td></tr>
+<tr><td>Simulate module removal</td><td><strong>m1nd</strong></td></tr>
+<tr><td>Test structural hypotheses</td><td><strong>m1nd</strong></td></tr>
+<tr><td>Learn from agent feedback</td><td><strong>m1nd</strong></td></tr>
+<tr><td>Persist investigation state</td><td><strong>m1nd</strong></td></tr>
+<tr><td>Multi-agent shared code intelligence</td><td><strong>m1nd</strong></td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="cost-comparison-tokens-saved"><a class="header" href="#cost-comparison-tokens-saved">Cost Comparison: Tokens Saved</a></h2>
+<p>In a typical AI agent coding session, the agent calls grep/ripgrep 20-50 times and reads 10-30 files to navigate a codebase. Each file read costs tokens (the file content is sent to the LLM).</p>
+<p>m1nd replaces many of these exploratory reads with graph queries that return <em>ranked results</em> rather than raw file contents. The agent reads fewer files because it reads the <em>right</em> files first.</p>
+<h3 id="estimated-token-savings"><a class="header" href="#estimated-token-savings">Estimated Token Savings</a></h3>
+<p>Assumptions: 335-file Python backend, 8-hour agent workday, agent using Claude Opus.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Without m1nd</th><th>With m1nd</th></tr>
+</thead>
+<tbody>
+<tr><td>~40 grep calls/hour</td><td>~15 grep calls/hour</td></tr>
+<tr><td>~20 file reads/hour</td><td>~8 file reads/hour</td></tr>
+<tr><td>~150K tokens/hour (context)</td><td>~60K tokens/hour (context)</td></tr>
+<tr><td>~1.2M tokens/day</td><td>~480K tokens/day</td></tr>
+</tbody>
+</table>
+</div>
+<p><strong>Estimated savings: ~720K tokens/day</strong> (60% reduction in context tokens).</p>
+<p>These are estimates based on production usage in a multi-agent system. Your mileage varies with codebase size, task type, and agent behavior.</p>
+<p>The key insight: m1nd does not replace search. It <em>focuses</em> search. The agent still uses grep and reads files, but it starts from a much better position because m1nd told it where to look.</p>
+<h2 id="cost-comparison"><a class="header" href="#cost-comparison">Cost Comparison</a></h2>
+<h3 id="cost-per-investigation-cycle"><a class="header" href="#cost-per-investigation-cycle">Cost per Investigation Cycle</a></h3>
+<p>A typical investigation cycle – finding related code, understanding dependencies, checking blast radius – involves multiple queries. Here is what that costs across different tools:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Tool</th><th>Cost per Investigation</th><th>Latency</th><th>Runs Locally</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>m1nd</strong> (activate + impact + why)</td><td><strong>$0.00</strong></td><td>~120ms total</td><td>Yes</td></tr>
+<tr><td>LLM grep (Cursor codebase search)</td><td>$0.05-$0.50</td><td>500-2000ms</td><td>No (cloud)</td></tr>
+<tr><td>Copilot @workspace query</td><td>$0.10-$0.30</td><td>1000-3000ms</td><td>No (cloud)</td></tr>
+<tr><td>Manual grep + file reads via agent</td><td>$0.02-$0.15 (token cost)</td><td>varies</td><td>Partially</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="monthly-projection-for-a-team"><a class="header" href="#monthly-projection-for-a-team">Monthly Projection for a Team</a></h3>
+<p>At 100 code searches per developer per day (a conservative estimate for an active agent-assisted workflow):</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Scenario</th><th>Daily Cost</th><th>Monthly Cost (22 days)</th><th>Annual Cost</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>m1nd</strong> (5 devs, 100 searches/day each)</td><td><strong>$0.00</strong></td><td><strong>$0.00</strong></td><td><strong>$0.00</strong></td></tr>
+<tr><td>LLM grep at $0.10 avg (5 devs)</td><td>$50.00</td><td>$1,100</td><td>$13,200</td></tr>
+<tr><td>LLM grep at $0.25 avg (5 devs)</td><td>$125.00</td><td>$2,750</td><td>$33,000</td></tr>
+<tr><td>LLM grep at $0.50 avg (heavy usage)</td><td>$250.00</td><td>$5,500</td><td>$66,000</td></tr>
+</tbody>
+</table>
+</div>
+<p>These numbers are not hypothetical. In early 2026, Cursor users reported monthly overages exceeding $22,000 when teams relied heavily on AI-powered codebase search with uncapped token consumption. The per-query cost is small; the volume makes it expensive.</p>
+<h3 id="what-you-do-not-pay-for-with-m1nd"><a class="header" href="#what-you-do-not-pay-for-with-m1nd">What You Do Not Pay For with m1nd</a></h3>
+<ul>
+<li><strong>No API keys.</strong> m1nd makes zero network calls. There is nothing to provision or rotate.</li>
+<li><strong>No cloud egress.</strong> Your code stays on your machine. No bytes leave localhost.</li>
+<li><strong>No token metering.</strong> Queries are pure Rust graph computation. There are no tokens, no embeddings, no LLM inference.</li>
+<li><strong>No surprise bills.</strong> The cost is fixed at zero regardless of query volume, team size, or codebase scale.</li>
+<li><strong>No vendor lock-in.</strong> The graph persists to a local JSON file. Switch tools anytime, your data stays.</li>
+</ul>
+<p>The 8MB m1nd binary replaces an unbounded cloud cost center with a local, zero-cost, sub-100ms reasoning engine.</p>
+<h2 id="memory-and-cpu-usage"><a class="header" href="#memory-and-cpu-usage">Memory and CPU Usage</a></h2>
+<h3 id="memory"><a class="header" href="#memory">Memory</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Component</th><th>Size</th></tr>
+</thead>
+<tbody>
+<tr><td>Graph (9,767 nodes, 26,557 edges)</td><td>~2MB</td></tr>
+<tr><td>Plasticity state</td><td>~500KB</td></tr>
+<tr><td>Perspective state (per active perspective)</td><td>~100KB</td></tr>
+<tr><td>Lock baselines (per lock)</td><td>~200KB</td></tr>
+<tr><td>Trail storage (per saved trail)</td><td>~50KB</td></tr>
+<tr><td>JSON-RPC server overhead</td><td>~5MB</td></tr>
+<tr><td><strong>Typical total</strong></td><td><strong>~50MB</strong></td></tr>
+</tbody>
+</table>
+</div>
+<p>Memory scales linearly with graph size. A 100K-node graph would use approximately 20MB for the graph alone, with similar overhead for the server.</p>
+<h3 id="cpu"><a class="header" href="#cpu">CPU</a></h3>
+<p>m1nd is single-threaded for graph operations (no lock contention, deterministic results). Ingest uses Rayon for parallel file parsing. During query serving, CPU usage is negligible between queries and spikes briefly during activation (31-77ms of computation).</p>
+<p>On an Apple M2, the server at idle uses &lt;0.1% CPU. During a burst of queries, it peaks at ~5% of a single core.</p>
+<h2 id="scaling-characteristics"><a class="header" href="#scaling-characteristics">Scaling Characteristics</a></h2>
+<h3 id="ingest-time-vs-codebase-size"><a class="header" href="#ingest-time-vs-codebase-size">Ingest Time vs Codebase Size</a></h3>
+<p>Ingest scales linearly with file count. Reference resolution is roughly O(n log n) where n is the number of cross-file references.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Files</th><th>Estimated Ingest Time</th><th>Estimated Nodes</th></tr>
+</thead>
+<tbody>
+<tr><td>100</td><td>~270ms</td><td>~3,000</td></tr>
+<tr><td>335</td><td>910ms (measured)</td><td>9,767 (measured)</td></tr>
+<tr><td>1,000</td><td>~2.7s</td><td>~29,000</td></tr>
+<tr><td>10,000</td><td>~27s</td><td>~290,000</td></tr>
+<tr><td>100,000</td><td>~4.5min</td><td>~2,900,000</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="activation-time-vs-graph-size"><a class="header" href="#activation-time-vs-graph-size">Activation Time vs Graph Size</a></h3>
+<p>Spreading activation is bounded by the number of edges traversed, which depends on graph density and query specificity rather than total graph size. Activation in a 100K-node graph is estimated at 100-200ms.</p>
+<h3 id="persistence-time-vs-state-size"><a class="header" href="#persistence-time-vs-state-size">Persistence Time vs State Size</a></h3>
+<p>JSON serialization scales linearly with state size. A 10K-node graph persists in under 100ms. A 100K-node graph would take approximately 1 second.</p>
+<h2 id="reproducibility"><a class="header" href="#reproducibility">Reproducibility</a></h2>
+<p>To reproduce these benchmarks:</p>
+<pre><code class="language-bash">git clone https://github.com/cosmophonix/m1nd.git
+cd m1nd
+cargo build --release
+
+# Start the server
+./target/release/m1nd-mcp
+</code></pre>
+<p>Then send the JSON-RPC calls from the <a href="https://github.com/maxkle1nz/m1nd/blob/main/EXAMPLES.md">Examples</a> document against your own codebase. Times will vary based on:</p>
+<ul>
+<li>Hardware (CPU speed, memory bandwidth)</li>
+<li>Codebase size and language</li>
+<li>Graph density (codebases with many cross-references produce denser graphs)</li>
+<li>Plasticity state (learned weights affect activation propagation paths)</li>
+</ul>
+<p>Report your benchmarks via GitHub Issues with the <code>benchmark</code> label.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="faq.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="changelog.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="faq.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="changelog.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-c2a407aa.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
 </html>
