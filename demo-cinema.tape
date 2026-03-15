@@ -19,13 +19,13 @@ Sleep 300ms
 Enter
 
 # problem text appears over ~7s with sleeps built into the script
-Sleep 9s
+Sleep 11s
 
 # Act 2: THE MOMENT — queries slam, numbers appear fast
-Sleep 7s
+Sleep 9s
 
 # Act 3: SLOW MOTION — each line appears with pauses
-Sleep 14s
+Sleep 16s
 
 # Act 4: KNOCKOUT — table + punchline + CTA
-Sleep 12s
+Sleep 14s
