@@ -25,6 +25,7 @@
 
 <p align="center">
   <a href="#avvio-rapido">Avvio Rapido</a> &middot;
+  <a href="#configura-il-tuo-agente">Configura il Tuo Agente</a> &middot;
   <a href="#risultati-comprovati">Risultati</a> &middot;
   <a href="#perché-non-usare-cursorraggrep">Perché m1nd</a> &middot;
   <a href="#i-61-tool">Tool</a> &middot;
@@ -132,6 +133,54 @@ Compatibile con qualsiasi client MCP: Claude Code, Cursor, Windsurf, Zed o il tu
 **Ha funzionato?** [Metti una stella a questo repo](https://github.com/maxkle1nz/m1nd) -- aiuta gli altri a trovarlo.
 **Bug o idea?** [Apri una issue](https://github.com/maxkle1nz/m1nd/issues).
 **Vuoi approfondire?** Consulta [EXAMPLES.md](EXAMPLES.md) per pipeline reali.
+
+---
+
+## Configura il Tuo Agente
+
+m1nd e progettato per sostituire grep, glob e letture cieche di file per agenti IA. Aggiungi queste istruzioni al prompt di sistema del tuo agente e usera m1nd come strumento primario di navigazione del codice.
+
+### Cosa aggiungere al prompt di sistema del tuo agente
+
+```
+Hai m1nd disponibile via MCP. Usalo PRIMA di grep, glob o lettura di file:
+- m1nd.search(mode="literal") sostituisce grep — trova stringhe esatte con contesto del grafo
+- m1nd.activate sostituisce glob — trova codice correlato per significato, non per nome file
+- m1nd.surgical_context_v2 sostituisce Read — restituisce sorgente + tutti i file connessi in una chiamata
+- m1nd.impact sostituisce il controllo manuale delle dipendenze — mostra il raggio di impatto prima delle modifiche
+- m1nd.apply sostituisce Edit — scrive codice e aggiorna il grafo automaticamente
+- m1nd.help() — chiamalo quando non sai quale strumento usare
+```
+
+### Claude Code (CLAUDE.md)
+
+Copia e incolla nel `CLAUDE.md` del tuo progetto:
+
+```markdown
+## Intelligenza del Codice
+m1nd e il tuo strumento primario di navigazione del codice. Usalo prima di grep/glob/Read.
+Strumenti chiave: search (sostituto di grep), activate (trovare correlati), surgical_context_v2 (contesto completo),
+impact (raggio di impatto), apply (modifica + re-ingestione), help (quando sei confuso).
+```
+
+### Cursor (.cursorrules)
+
+Copia e incolla nel tuo `.cursorrules`:
+
+```
+Quando esplori il codice, usa gli strumenti MCP di m1nd invece di grep:
+- m1nd.search per trovare codice
+- m1nd.activate per capire le relazioni
+- m1nd.impact prima di apportare modifiche
+```
+
+### Client MCP generico
+
+Qualsiasi strumento compatibile con MCP (Windsurf, Zed, Cline, Roo Code, Continue, OpenCode, Amazon Q) funziona allo stesso modo. Aggiungi le istruzioni del prompt di sistema sopra alla configurazione del tuo agente, e gli strumenti m1nd appariranno automaticamente una volta connesso il server MCP.
+
+### Perche questo e importante
+
+Gli agenti IA sprecano l'80% della loro finestra di contesto navigando il codice con grep e letture di file. m1nd risponde alle stesse domande in microsecondi a costo zero di token. Nei nostri test, passare da grep a m1nd ha ridotto l'uso di token dell'80% e ha trovato 8 bug che grep non avrebbe mai potuto trovare -- perche esistevano nell'*assenza* di codice, non nella sua presenza.
 
 ---
 

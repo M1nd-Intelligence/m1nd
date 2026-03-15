@@ -25,6 +25,7 @@
 
 <p align="center">
   <a href="#quick-start">Quick Start</a> &middot;
+  <a href="#configure-your-agent">Configure Your Agent</a> &middot;
   <a href="#proven-results">Results</a> &middot;
   <a href="#why-not-just-use-cursorraggrep">Why m1nd</a> &middot;
   <a href="#the-61-tools">Tools</a> &middot;
@@ -132,6 +133,54 @@ Works with any MCP client: Claude Code, Cursor, Windsurf, Zed, or your own.
 **It worked?** [Star this repo](https://github.com/maxkle1nz/m1nd) -- it helps others find it.
 **Bug or idea?** [Open an issue](https://github.com/maxkle1nz/m1nd/issues).
 **Want to go deeper?** See [EXAMPLES.md](EXAMPLES.md) for real-world pipelines.
+
+---
+
+## Configure Your Agent
+
+m1nd is designed to replace grep, glob, and blind file reads for AI agents. Add these instructions to your agent's system prompt and it will use m1nd as its primary code navigation tool.
+
+### What to add to your agent's system prompt
+
+```
+You have m1nd available via MCP. Use it BEFORE grep, glob, or file reads:
+- m1nd.search(mode="literal") replaces grep — finds exact strings with graph context
+- m1nd.activate replaces glob — finds related code by meaning, not filename
+- m1nd.surgical_context_v2 replaces Read — returns source + all connected files in one call
+- m1nd.impact replaces manual dependency checking — shows blast radius before edits
+- m1nd.apply replaces Edit — writes code and auto-updates the graph
+- m1nd.help() — call when unsure which tool to use
+```
+
+### Claude Code (CLAUDE.md)
+
+Copy-paste into your project's `CLAUDE.md`:
+
+```markdown
+## Code Intelligence
+m1nd is your primary code navigation tool. Use it before grep/glob/Read.
+Key tools: search (grep replacement), activate (find related), surgical_context_v2 (full context),
+impact (blast radius), apply (edit + re-ingest), help (when confused).
+```
+
+### Cursor (.cursorrules)
+
+Copy-paste into your `.cursorrules`:
+
+```
+When exploring code, use m1nd MCP tools instead of grep:
+- m1nd.search for finding code
+- m1nd.activate for understanding relationships
+- m1nd.impact before making changes
+```
+
+### Generic MCP client
+
+Any MCP-compatible tool (Windsurf, Zed, Cline, Roo Code, Continue, OpenCode, Amazon Q) works the same way. Add the system prompt instructions above to your agent's configuration, and m1nd tools appear automatically once the MCP server is connected.
+
+### Why this matters
+
+AI agents waste 80% of their context window navigating code with grep and file reads. m1nd answers the same questions in microseconds at zero token cost. In our testing, switching from grep to m1nd reduced token usage by 80% and found 8 bugs that grep could never find -- because they existed in the *absence* of code, not in its presence.
 
 ---
 

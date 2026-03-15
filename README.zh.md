@@ -25,6 +25,7 @@
 
 <p align="center">
   <a href="#快速开始">快速开始</a> &middot;
+  <a href="#配置你的智能体">配置智能体</a> &middot;
   <a href="#验证结果">结果</a> &middot;
   <a href="#为什么不用-cursorraggrep">为什么选 m1nd</a> &middot;
   <a href="#61-个工具">工具</a> &middot;
@@ -131,6 +132,54 @@ cd m1nd && cargo build --release
 **好用吗？** [给这个仓库加星](https://github.com/maxkle1nz/m1nd)——帮助其他人发现它。
 **发现 bug 或有想法？** [提交 issue](https://github.com/maxkle1nz/m1nd/issues)。
 **想深入了解？** 查看 [EXAMPLES.md](EXAMPLES.md) 获取实际应用管道。
+
+---
+
+## 配置你的智能体
+
+m1nd 专为替代 AI 智能体的 grep、glob 和盲目文件读取而设计。将以下指令添加到你的智能体系统提示中，它将使用 m1nd 作为主要代码导航工具。
+
+### 添加到智能体系统提示的内容
+
+```
+你可以通过 MCP 使用 m1nd。在使用 grep、glob 或读取文件之前先使用它：
+- m1nd.search(mode="literal") 替代 grep — 在图谱上下文中查找精确字符串
+- m1nd.activate 替代 glob — 按语义而非文件名查找相关代码
+- m1nd.surgical_context_v2 替代 Read — 一次调用返回源码 + 所有连接文件
+- m1nd.impact 替代手动依赖检查 — 在编辑前显示影响半径
+- m1nd.apply 替代 Edit — 写入代码并自动更新图谱
+- m1nd.help() — 不确定使用哪个工具时调用
+```
+
+### Claude Code (CLAUDE.md)
+
+复制粘贴到你项目的 `CLAUDE.md`：
+
+```markdown
+## 代码智能
+m1nd 是你的主要代码导航工具。在使用 grep/glob/Read 之前先使用它。
+关键工具：search（grep 替代）、activate（查找相关）、surgical_context_v2（完整上下文）、
+impact（影响半径）、apply（编辑 + 重新摄入）、help（困惑时使用）。
+```
+
+### Cursor (.cursorrules)
+
+复制粘贴到你的 `.cursorrules`：
+
+```
+探索代码时，使用 m1nd MCP 工具代替 grep：
+- m1nd.search 用于查找代码
+- m1nd.activate 用于理解关系
+- m1nd.impact 在修改前使用
+```
+
+### 通用 MCP 客户端
+
+任何兼容 MCP 的工具（Windsurf、Zed、Cline、Roo Code、Continue、OpenCode、Amazon Q）都以相同方式工作。将上述系统提示指令添加到你的智能体配置中，连接 MCP 服务器后 m1nd 工具会自动出现。
+
+### 为什么这很重要
+
+AI 智能体将 80% 的上下文窗口浪费在用 grep 和文件读取导航代码上。m1nd 以微秒级速度回答相同问题，零 token 成本。在我们的测试中，从 grep 切换到 m1nd 将 token 使用量减少了 80%，并发现了 8 个 grep 永远无法发现的 bug——因为它们存在于代码的*缺失*中，而非代码本身。
 
 ---
 
