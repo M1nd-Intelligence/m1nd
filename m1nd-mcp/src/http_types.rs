@@ -2,6 +2,7 @@
 //
 // Shared types for the axum HTTP server. Feature-gated behind "serve".
 
+#![allow(clippy::duplicated_attributes)]
 #![cfg(feature = "serve")]
 
 use serde::{Deserialize, Serialize};

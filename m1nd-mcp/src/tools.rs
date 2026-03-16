@@ -1,11 +1,11 @@
 // === crates/m1nd-mcp/src/tools.rs ===
 
+use crate::protocol::*;
+use crate::session::SessionState;
 use m1nd_core::error::M1ndResult;
+use m1nd_core::query::QueryConfig;
 use m1nd_core::temporal::ImpactDirection;
 use m1nd_core::types::*;
-use m1nd_core::query::QueryConfig;
-use crate::session::SessionState;
-use crate::protocol::*;
 use std::time::Instant;
 
 // ---------------------------------------------------------------------------
@@ -236,12 +236,18 @@ pub fn handle_activate(
             let src_idx = ge.source.as_usize();
             let tgt_idx = ge.target.as_usize();
             let src = if src_idx < graph.num_nodes() as usize {
-                graph.strings.resolve(graph.nodes.label[src_idx]).to_string()
+                graph
+                    .strings
+                    .resolve(graph.nodes.label[src_idx])
+                    .to_string()
             } else {
                 format!("node_{}", src_idx)
             };
             let tgt = if tgt_idx < graph.num_nodes() as usize {
-                graph.strings.resolve(graph.nodes.label[tgt_idx]).to_string()
+                graph
+                    .strings
+                    .resolve(graph.nodes.label[tgt_idx])
+                    .to_string()
             } else {
                 format!("node_{}", tgt_idx)
             };
@@ -303,10 +309,7 @@ pub fn handle_activate(
 
 /// Handle m1nd.impact (03-MCP Section 2.2).
 /// Replaces: ImpactRadiusCalculator.compute() + CausalChainDetector.detect()
-pub fn handle_impact(
-    state: &mut SessionState,
-    input: ImpactInput,
-) -> M1ndResult<ImpactOutput> {
+pub fn handle_impact(state: &mut SessionState, input: ImpactInput) -> M1ndResult<ImpactOutput> {
     let graph = state.graph.read();
 
     let node_id = graph.resolve_id(&input.node_id);
@@ -331,7 +334,10 @@ pub fn handle_impact(
         _ => ImpactDirection::Forward,
     };
 
-    let impact = state.temporal.impact_calculator.compute(&graph, node, direction)?;
+    let impact = state
+        .temporal
+        .impact_calculator
+        .compute(&graph, node, direction)?;
 
     // Causal chains
     let chains = if input.include_causal_chains {
@@ -461,10 +467,7 @@ pub fn handle_missing(
 
 /// Handle m1nd.why (03-MCP Section 2.4).
 /// Replaces: bidirectional BFS + DimensionResult.paths + CommunityDetector
-pub fn handle_why(
-    state: &mut SessionState,
-    input: WhyInput,
-) -> M1ndResult<serde_json::Value> {
+pub fn handle_why(state: &mut SessionState, input: WhyInput) -> M1ndResult<serde_json::Value> {
     let graph = state.graph.read();
 
     let source = graph.resolve_id(&input.source);
@@ -534,7 +537,10 @@ pub fn handle_why(
         let mut current = target_node.as_usize();
         while let Some((prev, edge_j)) = parent[current] {
             path_nodes.push(prev);
-            let rel = graph.strings.resolve(graph.csr.relations[edge_j]).to_string();
+            let rel = graph
+                .strings
+                .resolve(graph.csr.relations[edge_j])
+                .to_string();
             path_relations.push(rel);
             current = prev;
             if current == source_node.as_usize() {
@@ -597,19 +603,14 @@ pub fn handle_warmup(
     let graph = state.graph.read();
 
     // Find seeds related to the task description
-    let seeds = m1nd_core::seed::SeedFinder::find_seeds(
-        &graph,
-        &input.task_description,
-        50,
-    )?;
+    let seeds = m1nd_core::seed::SeedFinder::find_seeds(&graph, &input.task_description, 50)?;
 
     let seed_nodes: Vec<NodeId> = seeds.iter().map(|s| s.0).collect();
 
     // Get priming signal from plasticity memory
-    let priming = state.plasticity.get_priming(
-        &seed_nodes,
-        FiniteF32::new(input.boost_strength),
-    );
+    let priming = state
+        .plasticity
+        .get_priming(&seed_nodes, FiniteF32::new(input.boost_strength));
 
     let seed_output: Vec<serde_json::Value> = seeds
         .iter()
@@ -786,10 +787,8 @@ pub fn handle_predict(
     // If co-change returns fewer than top_k results, supplement with
     // structural predictions: nodes connected via imports/calls/references
     // edges, scored by edge weight.  Co-change results rank higher.
-    let mut seen: std::collections::HashSet<NodeId> = co_change_predictions
-        .iter()
-        .map(|p| p.target)
-        .collect();
+    let mut seen: std::collections::HashSet<NodeId> =
+        co_change_predictions.iter().map(|p| p.target).collect();
 
     let mut structural_predictions: Vec<m1nd_core::temporal::CoChangeEntry> = Vec::new();
 
@@ -1011,10 +1010,7 @@ pub fn handle_fingerprint(
 
 /// Handle m1nd.drift (03-MCP Section 2.9).
 /// Replaces: PlasticityEngine state diff + CommunityDetector + VelocityScorer
-pub fn handle_drift(
-    state: &mut SessionState,
-    input: DriftInput,
-) -> M1ndResult<serde_json::Value> {
+pub fn handle_drift(state: &mut SessionState, input: DriftInput) -> M1ndResult<serde_json::Value> {
     let graph = state.graph.read();
 
     let now = std::time::SystemTime::now()
@@ -1035,7 +1031,11 @@ pub fn handle_drift(
                         let mut map = std::collections::HashMap::new();
                         for s in &states {
                             map.insert(
-                                (s.source_label.clone(), s.target_label.clone(), s.relation.clone()),
+                                (
+                                    s.source_label.clone(),
+                                    s.target_label.clone(),
+                                    s.relation.clone(),
+                                ),
                                 s.current_weight,
                             );
                         }
@@ -1056,8 +1056,8 @@ pub fn handle_drift(
         for i in 0..num_nodes {
             let lo = graph.csr.offsets[i] as usize;
             let hi = graph.csr.offsets[i + 1] as usize;
-            for j in lo..hi {
-                edge_source[j] = i;
+            for item in edge_source.iter_mut().take(hi).skip(lo) {
+                *item = i;
             }
         }
 
@@ -1077,13 +1077,25 @@ pub fn handle_drift(
                 let baseline_weight = if let Some(ref bmap) = baseline_map {
                     let src_idx = edge_source[j];
                     let tgt_idx = graph.csr.targets[j].as_usize();
-                    let src_label = if src_idx < num_nodes { &node_ext_id[src_idx] } else { return None; };
-                    let tgt_label = if tgt_idx < num_nodes { &node_ext_id[tgt_idx] } else { return None; };
-                    let rel = graph.strings.try_resolve(graph.csr.relations[j])
+                    let src_label = if src_idx < num_nodes {
+                        &node_ext_id[src_idx]
+                    } else {
+                        return None;
+                    };
+                    let tgt_label = if tgt_idx < num_nodes {
+                        &node_ext_id[tgt_idx]
+                    } else {
+                        return None;
+                    };
+                    let rel = graph
+                        .strings
+                        .try_resolve(graph.csr.relations[j])
                         .unwrap_or("edge")
                         .to_string();
                     let key = (src_label.clone(), tgt_label.clone(), rel);
-                    *bmap.get(&key).unwrap_or(&graph.edge_plasticity.original_weight[j].get())
+                    *bmap
+                        .get(&key)
+                        .unwrap_or(&graph.edge_plasticity.original_weight[j].get())
                 } else {
                     graph.edge_plasticity.original_weight[j].get()
                 };
@@ -1146,10 +1158,7 @@ pub fn handle_drift(
 
 /// Handle m1nd.learn (03-MCP Section 2.10).
 /// Replaces: targeted edge strengthen/weaken bypass of Hebbian cycle
-pub fn handle_learn(
-    state: &mut SessionState,
-    input: LearnInput,
-) -> M1ndResult<serde_json::Value> {
+pub fn handle_learn(state: &mut SessionState, input: LearnInput) -> M1ndResult<serde_json::Value> {
     let mut graph = state.graph.write();
 
     let nodes: Vec<NodeId> = input
@@ -1194,6 +1203,7 @@ pub fn handle_learn(
     //
     // Uses the expanded set (specified nodes + their children) so that
     // cross-file function/struct edges are included.
+    #[allow(clippy::type_complexity)]
     let (strengthen_set, weaken_set): (Vec<(NodeId, NodeId)>, Vec<(NodeId, NodeId)>) =
         match input.feedback.as_str() {
             "correct" => {
@@ -1217,7 +1227,7 @@ pub fn handle_learn(
                 (Vec::new(), pairs)
             }
             "partial" => {
-                let mid = (expanded.len() + 1) / 2; // first half (rounded up)
+                let mid = expanded.len().div_ceil(2); // first half (rounded up)
                 let first_half = &expanded[..mid];
                 let rest = &expanded[mid..];
                 // Strengthen edges among first half
@@ -1249,27 +1259,26 @@ pub fn handle_learn(
         };
 
     // Helper closure: modify edge weight between src→tgt (if edge exists)
-    let apply_delta = |graph: &mut m1nd_core::graph::Graph, src: NodeId, tgt: NodeId, delta: f32| -> u32 {
-        let mut count = 0u32;
-        let range = graph.csr.out_range(src);
-        for k in range {
-            if graph.csr.targets[k] == tgt {
-                let edge_idx = EdgeIdx::new(k as u32);
-                let current = graph.csr.read_weight(edge_idx).get();
-                let new_weight = (current + delta).clamp(0.05, 3.0);
-                let _ = graph.csr.atomic_write_weight(
-                    edge_idx,
-                    FiniteF32::new(new_weight),
-                    64,
-                );
-                if k < graph.edge_plasticity.current_weight.len() {
-                    graph.edge_plasticity.current_weight[k] = FiniteF32::new(new_weight);
+    let apply_delta =
+        |graph: &mut m1nd_core::graph::Graph, src: NodeId, tgt: NodeId, delta: f32| -> u32 {
+            let mut count = 0u32;
+            let range = graph.csr.out_range(src);
+            for k in range {
+                if graph.csr.targets[k] == tgt {
+                    let edge_idx = EdgeIdx::new(k as u32);
+                    let current = graph.csr.read_weight(edge_idx).get();
+                    let new_weight = (current + delta).clamp(0.05, 3.0);
+                    let _ = graph
+                        .csr
+                        .atomic_write_weight(edge_idx, FiniteF32::new(new_weight), 64);
+                    if k < graph.edge_plasticity.current_weight.len() {
+                        graph.edge_plasticity.current_weight[k] = FiniteF32::new(new_weight);
+                    }
+                    count += 1;
                 }
-                count += 1;
             }
-        }
-        count
-    };
+            count
+        };
 
     // Strengthen pairs
     for &(a, b) in &strengthen_set {
@@ -1293,8 +1302,14 @@ pub fn handle_learn(
         .unwrap_or(0.0);
     for i in 0..nodes.len() {
         for j in (i + 1)..nodes.len() {
-            let _ = state.temporal.co_change.record_co_change(nodes[i], nodes[j], now);
-            let _ = state.temporal.co_change.record_co_change(nodes[j], nodes[i], now);
+            let _ = state
+                .temporal
+                .co_change
+                .record_co_change(nodes[i], nodes[j], now);
+            let _ = state
+                .temporal
+                .co_change
+                .record_co_change(nodes[j], nodes[i], now);
         }
     }
 
@@ -1390,15 +1405,14 @@ pub fn handle_ingest(
             finalize_ingest(state, &input, "json", new_graph, stats)
         }
         "memory" => {
-            let adapter = m1nd_ingest::memory_adapter::MemoryIngestAdapter::new(input.namespace.clone());
+            let adapter =
+                m1nd_ingest::memory_adapter::MemoryIngestAdapter::new(input.namespace.clone());
             let (new_graph, stats) = adapter.ingest(&path)?;
             finalize_ingest(state, &input, "memory", new_graph, stats)
         }
-        other => {
-            Ok(serde_json::json!({
-                "error": format!("Unknown adapter: '{}'. Supported: 'code', 'json', 'memory'", other),
-            }))
-        }
+        other => Ok(serde_json::json!({
+            "error": format!("Unknown adapter: '{}'. Supported: 'code', 'json', 'memory'", other),
+        })),
     }
 }
 
@@ -1412,8 +1426,7 @@ pub fn handle_resonate(
 
     // Resolve seeds: either from query or from a specific node_id
     let seeds: Vec<(NodeId, FiniteF32)> = if let Some(ref query) = input.query {
-        let found = m1nd_core::seed::SeedFinder::find_seeds(&graph, query, 50)?;
-        found
+        m1nd_core::seed::SeedFinder::find_seeds(&graph, query, 50)?
     } else if let Some(ref nid) = input.node_id {
         match graph.resolve_id(nid) {
             Some(node) => vec![(node, FiniteF32::ONE)],
@@ -1522,10 +1535,7 @@ pub fn handle_resonate(
 }
 
 /// Handle m1nd.health (03-MCP Section 2.12).
-pub fn handle_health(
-    state: &mut SessionState,
-    _input: HealthInput,
-) -> M1ndResult<HealthOutput> {
+pub fn handle_health(state: &mut SessionState, _input: HealthInput) -> M1ndResult<HealthOutput> {
     let graph = state.graph.read();
 
     let last_persist = state

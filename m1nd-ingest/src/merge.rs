@@ -119,6 +119,7 @@ pub fn merge_graphs(base: &Graph, overlay: &Graph) -> M1ndResult<Graph> {
             &overlay_ids
         };
 
+        #[allow(clippy::needless_range_loop)]
         for idx in 0..graph.num_nodes() as usize {
             let external_id = &external_ids[idx];
             let label = graph.strings.resolve(graph.nodes.label[idx]).to_string();

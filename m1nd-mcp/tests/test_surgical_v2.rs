@@ -14,9 +14,8 @@
 // Pattern mirrors tests/test_surgical.rs + tests/perspective_golden.rs.
 
 use m1nd_mcp::protocol::surgical::{
-    ApplyBatchInput, ApplyBatchOutput, BatchEditItem, BatchEditResult,
-    ConnectedFileSource, SurgicalContextV2Input, SurgicalContextV2Output,
-    SurgicalSymbol,
+    ApplyBatchInput, ApplyBatchOutput, BatchEditItem, BatchEditResult, ConnectedFileSource,
+    SurgicalContextV2Input, SurgicalContextV2Output, SurgicalSymbol,
 };
 
 // ===========================================================================
@@ -40,7 +39,8 @@ fn build_v2_output(
     line_count: u32,
 ) -> SurgicalContextV2Output {
     let file_contents: String = (1..=line_count).map(|i| format!("line{}\n", i)).collect();
-    let total_lines = line_count as usize + connected.iter().map(|c| c.excerpt_lines).sum::<usize>();
+    let total_lines =
+        line_count as usize + connected.iter().map(|c| c.excerpt_lines).sum::<usize>();
 
     SurgicalContextV2Output {
         file_path: file_path.into(),
@@ -120,10 +120,9 @@ fn test_v2_returns_connected_file_sources() {
     // relation_type, and source_excerpt.
 
     // Verify input deserialization
-    let input: SurgicalContextV2Input = serde_json::from_str(
-        r#"{"file_path": "/project/backend/chat.py", "agent_id": "test"}"#,
-    )
-    .expect("SurgicalContextV2Input must deserialize from minimal JSON");
+    let input: SurgicalContextV2Input =
+        serde_json::from_str(r#"{"file_path": "/project/backend/chat.py", "agent_id": "test"}"#)
+            .expect("SurgicalContextV2Input must deserialize from minimal JSON");
 
     assert_eq!(input.file_path, "/project/backend/chat.py");
     assert_eq!(input.agent_id, "test");
@@ -157,8 +156,14 @@ fn test_v2_returns_connected_file_sources() {
         "connected_files must be non-empty for a file with neighbours"
     );
     for cf in &out.connected_files {
-        assert!(!cf.node_id.is_empty(), "connected.node_id must be non-empty");
-        assert!(!cf.file_path.is_empty(), "connected.file_path must be non-empty");
+        assert!(
+            !cf.node_id.is_empty(),
+            "connected.node_id must be non-empty"
+        );
+        assert!(
+            !cf.file_path.is_empty(),
+            "connected.file_path must be non-empty"
+        );
         assert!(
             !cf.source_excerpt.is_empty(),
             "connected.source_excerpt must be non-empty"
@@ -224,11 +229,13 @@ fn test_v2_respects_max_connected_files() {
     }
 
     // Default cap check
-    let default_input: SurgicalContextV2Input = serde_json::from_str(
-        r#"{"file_path": "/project/x.py", "agent_id": "test"}"#,
-    )
-    .expect("deserialize");
-    assert_eq!(default_input.max_connected_files, 5, "default max_connected_files must be 5");
+    let default_input: SurgicalContextV2Input =
+        serde_json::from_str(r#"{"file_path": "/project/x.py", "agent_id": "test"}"#)
+            .expect("deserialize");
+    assert_eq!(
+        default_input.max_connected_files, 5,
+        "default max_connected_files must be 5"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -278,17 +285,19 @@ fn test_v2_respects_max_lines_per_file() {
         false, // not truncated
         0.7,
     );
-    assert!(!short_cf.truncated, "truncated must be false for short files");
+    assert!(
+        !short_cf.truncated,
+        "truncated must be false for short files"
+    );
     assert!(
         short_cf.excerpt_lines <= input.max_lines_per_file,
         "excerpt_lines must be <= max_lines_per_file even for short files"
     );
 
     // Default max_lines_per_file
-    let default_input: SurgicalContextV2Input = serde_json::from_str(
-        r#"{"file_path": "/project/x.py", "agent_id": "test"}"#,
-    )
-    .expect("deserialize");
+    let default_input: SurgicalContextV2Input =
+        serde_json::from_str(r#"{"file_path": "/project/x.py", "agent_id": "test"}"#)
+            .expect("deserialize");
     assert_eq!(
         default_input.max_lines_per_file, 60,
         "default max_lines_per_file must be 60"
@@ -330,7 +339,11 @@ fn test_v2_includes_relation_type() {
     }
 
     // Verify all three types are represented in the fixture
-    let types: Vec<&str> = out.connected_files.iter().map(|c| c.relation_type.as_str()).collect();
+    let types: Vec<&str> = out
+        .connected_files
+        .iter()
+        .map(|c| c.relation_type.as_str())
+        .collect();
     assert!(types.contains(&"caller"), "must have at least one caller");
     assert!(types.contains(&"callee"), "must have at least one callee");
     assert!(types.contains(&"test"), "must have at least one test");
@@ -369,7 +382,9 @@ fn test_v2_no_circular_expansion() {
     // Verify the target file itself does not appear in connected_files
     let target_node_id = &out.node_id;
     assert!(
-        !out.connected_files.iter().any(|cf| &cf.node_id == target_node_id),
+        !out.connected_files
+            .iter()
+            .any(|cf| &cf.node_id == target_node_id),
         "target file must not appear in its own connected_files"
     );
 }
@@ -409,10 +424,9 @@ fn test_v2_total_lines_accurate() {
     );
 
     // Schema: minimal deserialization
-    let _: SurgicalContextV2Input = serde_json::from_str(
-        r#"{"file_path": "/p/x.py", "agent_id": "a"}"#,
-    )
-    .expect("SurgicalContextV2Input minimal params must deserialize");
+    let _: SurgicalContextV2Input =
+        serde_json::from_str(r#"{"file_path": "/p/x.py", "agent_id": "a"}"#)
+            .expect("SurgicalContextV2Input minimal params must deserialize");
 }
 
 // ===========================================================================
@@ -438,8 +452,8 @@ fn test_batch_writes_multiple_files() {
             {"file_path": path2, "new_content": "# updated_b\ndef fn_b(): return 2\n"}
         ]
     });
-    let input: ApplyBatchInput = serde_json::from_value(batch_json)
-        .expect("ApplyBatchInput must deserialize with 2 edits");
+    let input: ApplyBatchInput =
+        serde_json::from_value(batch_json).expect("ApplyBatchInput must deserialize with 2 edits");
 
     assert_eq!(input.edits.len(), 2, "batch must have 2 edits");
     assert!(input.atomic, "atomic must default to true");
@@ -466,9 +480,18 @@ fn test_batch_writes_multiple_files() {
     ];
     let out = build_batch_output(results, true);
 
-    assert!(out.all_succeeded, "all_succeeded must be true when all edits succeed");
-    assert_eq!(out.files_written, 2, "files_written must equal number of edits");
-    assert_eq!(out.files_total, 2, "files_total must equal number of input edits");
+    assert!(
+        out.all_succeeded,
+        "all_succeeded must be true when all edits succeed"
+    );
+    assert_eq!(
+        out.files_written, 2,
+        "files_written must equal number of edits"
+    );
+    assert_eq!(
+        out.files_total, 2,
+        "files_total must equal number of input edits"
+    );
     assert_eq!(
         out.results.len(),
         input.edits.len(),
@@ -478,7 +501,11 @@ fn test_batch_writes_multiple_files() {
     // Each result must map to the correct file
     for (i, result) in out.results.iter().enumerate() {
         assert!(result.success, "result[{}].success must be true", i);
-        assert!(!result.file_path.is_empty(), "result[{}].file_path must be non-empty", i);
+        assert!(
+            !result.file_path.is_empty(),
+            "result[{}].file_path must be non-empty",
+            i
+        );
     }
 }
 
@@ -524,15 +551,19 @@ fn test_batch_atomic_rollback() {
             diff: "".into(),
             lines_added: 0,
             lines_removed: 0,
-            error: Some(
-                "path '/etc/passwd' is outside allowed workspace roots".into(),
-            ),
+            error: Some("path '/etc/passwd' is outside allowed workspace roots".into()),
         },
     ];
     let out = build_batch_output(results, false);
 
-    assert!(!out.all_succeeded, "all_succeeded must be false when any edit fails");
-    assert_eq!(out.files_written, 0, "files_written must be 0 after full rollback");
+    assert!(
+        !out.all_succeeded,
+        "all_succeeded must be false when any edit fails"
+    );
+    assert_eq!(
+        out.files_written, 0,
+        "files_written must be 0 after full rollback"
+    );
     assert!(!out.reingested, "re-ingest must be skipped on rollback");
 
     // Error messages must reference the failure cause
@@ -541,7 +572,10 @@ fn test_batch_atomic_rollback() {
 
     let path_err = &out.results[1].error;
     assert!(
-        path_err.as_ref().map(|e| e.contains("outside")).unwrap_or(false),
+        path_err
+            .as_ref()
+            .map(|e| e.contains("outside"))
+            .unwrap_or(false),
         "security failure must mention 'outside' in error message"
     );
 }
@@ -571,8 +605,14 @@ fn test_batch_returns_per_file_diff() {
 
     // Verify BatchEditItem serializes correctly
     let serialized = serde_json::to_string(&edits[0]).expect("BatchEditItem must serialize");
-    assert!(serialized.contains("file_path"), "serialized must contain file_path");
-    assert!(serialized.contains("new_content"), "serialized must contain new_content");
+    assert!(
+        serialized.contains("file_path"),
+        "serialized must contain file_path"
+    );
+    assert!(
+        serialized.contains("new_content"),
+        "serialized must contain new_content"
+    );
 
     // Simulate output with diffs
     let results = vec![
@@ -597,14 +637,26 @@ fn test_batch_returns_per_file_diff() {
 
     for (i, result) in out.results.iter().enumerate() {
         assert!(result.success, "result[{}] must succeed", i);
-        assert!(!result.diff.is_empty(), "result[{}].diff must be non-empty", i);
+        assert!(
+            !result.diff.is_empty(),
+            "result[{}].diff must be non-empty",
+            i
+        );
         assert!(
             result.diff.contains("@@"),
             "result[{}].diff must be in unified diff format (@@)",
             i
         );
-        assert!(result.lines_added >= 0, "result[{}].lines_added must be >= 0", i);
-        assert!(result.lines_removed >= 0, "result[{}].lines_removed must be >= 0", i);
+        assert!(
+            result.lines_added >= 0,
+            "result[{}].lines_added must be >= 0",
+            i
+        );
+        assert!(
+            result.lines_removed >= 0,
+            "result[{}].lines_removed must be >= 0",
+            i
+        );
     }
 
     // Results must be in input order
@@ -663,17 +715,17 @@ fn test_batch_reingests_once() {
     );
     // The output has a single `reingested: bool` — there is no per-file ingest count.
     // This verifies the single-pass contract: one bool covers all files.
-    assert_eq!(
-        out.files_written, 3,
-        "all 3 files must be written"
-    );
+    assert_eq!(out.files_written, 3, "all 3 files must be written");
 
     // When reingest=false, reingested must be false
     let no_reingest_input: ApplyBatchInput = serde_json::from_str(
         r#"{"agent_id": "forge", "edits": [{"file_path": "/p/x.py", "new_content": "pass\n"}], "reingest": false}"#,
     )
     .expect("deserialize");
-    assert!(!no_reingest_input.reingest, "reingest=false when explicitly set");
+    assert!(
+        !no_reingest_input.reingest,
+        "reingest=false when explicitly set"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -694,9 +746,11 @@ fn test_batch_path_traversal_blocked() {
         description: None,
     };
     // Verify the type accepts the malicious path at parse time (rejection in handler)
-    let serialized =
-        serde_json::to_string(&traversal_edit).expect("BatchEditItem must serialize");
-    assert!(serialized.contains("shadow"), "serialized must contain the path");
+    let serialized = serde_json::to_string(&traversal_edit).expect("BatchEditItem must serialize");
+    assert!(
+        serialized.contains("shadow"),
+        "serialized must contain the path"
+    );
 
     // Simulate handler rejection output
     let results = vec![BatchEditResult {
@@ -747,10 +801,8 @@ fn test_batch_empty_edits_noop() {
     // all_succeeded=true, files_written=0, files_total=0, reingested=false,
     // and total_bytes_written=0. No disk writes must occur.
 
-    let input: ApplyBatchInput = serde_json::from_str(
-        r#"{"agent_id": "forge", "edits": []}"#,
-    )
-    .expect("ApplyBatchInput must deserialize with empty edits");
+    let input: ApplyBatchInput = serde_json::from_str(r#"{"agent_id": "forge", "edits": []}"#)
+        .expect("ApplyBatchInput must deserialize with empty edits");
 
     assert!(input.edits.is_empty(), "edits must be empty");
 
@@ -766,19 +818,40 @@ fn test_batch_empty_edits_noop() {
         elapsed_ms: 0.1,
     };
 
-    assert!(out.all_succeeded, "empty batch must report all_succeeded=true");
+    assert!(
+        out.all_succeeded,
+        "empty batch must report all_succeeded=true"
+    );
     assert_eq!(out.files_written, 0, "no files written for empty batch");
     assert_eq!(out.files_total, 0, "files_total must be 0 for empty batch");
-    assert!(out.results.is_empty(), "results must be empty for empty batch");
-    assert!(!out.reingested, "reingested must be false for empty batch (nothing changed)");
-    assert_eq!(out.total_bytes_written, 0, "no bytes written for empty batch");
+    assert!(
+        out.results.is_empty(),
+        "results must be empty for empty batch"
+    );
+    assert!(
+        !out.reingested,
+        "reingested must be false for empty batch (nothing changed)"
+    );
+    assert_eq!(
+        out.total_bytes_written, 0,
+        "no bytes written for empty batch"
+    );
     assert!(out.elapsed_ms >= 0.0, "elapsed_ms must be >= 0");
 
     // Verify round-trip serialization
     let json = serde_json::to_string(&out).expect("ApplyBatchOutput must serialize");
-    assert!(json.contains("all_succeeded"), "serialized output must have all_succeeded");
-    assert!(json.contains("files_written"), "serialized output must have files_written");
-    assert!(json.contains("reingested"), "serialized output must have reingested");
+    assert!(
+        json.contains("all_succeeded"),
+        "serialized output must have all_succeeded"
+    );
+    assert!(
+        json.contains("files_written"),
+        "serialized output must have files_written"
+    );
+    assert!(
+        json.contains("reingested"),
+        "serialized output must have reingested"
+    );
 }
 
 // ===========================================================================
@@ -788,10 +861,9 @@ fn test_batch_empty_edits_noop() {
 #[test]
 fn schema_parity_surgical_context_v2_minimal() {
     // Minimal required fields: file_path + agent_id
-    let _: SurgicalContextV2Input = serde_json::from_str(
-        r#"{"file_path": "/p/x.py", "agent_id": "a"}"#,
-    )
-    .expect("SurgicalContextV2Input must deserialize from minimal JSON");
+    let _: SurgicalContextV2Input =
+        serde_json::from_str(r#"{"file_path": "/p/x.py", "agent_id": "a"}"#)
+            .expect("SurgicalContextV2Input must deserialize from minimal JSON");
 }
 
 #[test]
@@ -813,9 +885,15 @@ fn schema_parity_output_types_serialize() {
     );
     let v2_json =
         serde_json::to_string(&v2_out).expect("SurgicalContextV2Output must serialize to JSON");
-    assert!(v2_json.contains("connected_files"), "must contain connected_files");
+    assert!(
+        v2_json.contains("connected_files"),
+        "must contain connected_files"
+    );
     assert!(v2_json.contains("total_lines"), "must contain total_lines");
-    assert!(v2_json.contains("file_contents"), "must contain file_contents");
+    assert!(
+        v2_json.contains("file_contents"),
+        "must contain file_contents"
+    );
 
     let batch_out = build_batch_output(
         vec![BatchEditResult {
@@ -830,7 +908,13 @@ fn schema_parity_output_types_serialize() {
     );
     let batch_json =
         serde_json::to_string(&batch_out).expect("ApplyBatchOutput must serialize to JSON");
-    assert!(batch_json.contains("all_succeeded"), "must contain all_succeeded");
-    assert!(batch_json.contains("files_written"), "must contain files_written");
+    assert!(
+        batch_json.contains("all_succeeded"),
+        "must contain all_succeeded"
+    );
+    assert!(
+        batch_json.contains("files_written"),
+        "must contain files_written"
+    );
     assert!(batch_json.contains("results"), "must contain results");
 }

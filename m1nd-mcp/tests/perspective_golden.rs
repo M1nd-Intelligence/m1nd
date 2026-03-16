@@ -7,12 +7,12 @@
 // They compile NOW (against CONTRACTS types) but call todo!() functions.
 // The BUILD phase fills in implementations until these pass.
 
+use m1nd_mcp::perspective::confidence::*;
+use m1nd_mcp::perspective::keys::*;
 use m1nd_mcp::perspective::state::*;
 use m1nd_mcp::perspective::validation::*;
-use m1nd_mcp::perspective::keys::*;
-use m1nd_mcp::perspective::confidence::*;
-use m1nd_mcp::protocol::perspective::*;
 use m1nd_mcp::protocol::lock::*;
+use m1nd_mcp::protocol::perspective::*;
 
 // ===========================================================================
 // Test Harness (deterministic test graph)
@@ -304,10 +304,7 @@ fn golden_04_multi_agent_isolation() {
         last_accessed_ms: 1710000000000,
         branches: vec![],
     };
-    perspectives.insert(
-        ("agent_A".into(), "persp_agentA_001".into()),
-        state_a,
-    );
+    perspectives.insert(("agent_A".into(), "persp_agentA_001".into()), state_a);
 
     // Agent B creates perspective
     let state_b = PerspectiveState {
@@ -330,21 +327,26 @@ fn golden_04_multi_agent_isolation() {
         last_accessed_ms: 1710000001000,
         branches: vec![],
     };
-    perspectives.insert(
-        ("agent_B".into(), "persp_agentB_001".into()),
-        state_b,
-    );
+    perspectives.insert(("agent_B".into(), "persp_agentB_001".into()), state_b);
 
     // Verify isolation: A cannot see B's perspective
-    assert!(perspectives.get(&("agent_A".into(), "persp_agentB_001".into())).is_none());
-    assert!(perspectives.get(&("agent_B".into(), "persp_agentA_001".into())).is_none());
+    assert!(perspectives
+        .get(&("agent_A".into(), "persp_agentB_001".into()))
+        .is_none());
+    assert!(perspectives
+        .get(&("agent_B".into(), "persp_agentA_001".into()))
+        .is_none());
 
     // Verify each agent sees only their own
-    let a_persp = perspectives.get(&("agent_A".into(), "persp_agentA_001".into())).unwrap();
+    let a_persp = perspectives
+        .get(&("agent_A".into(), "persp_agentA_001".into()))
+        .unwrap();
     assert_eq!(a_persp.agent_id, "agent_A");
     assert_eq!(a_persp.focus_node.as_deref(), Some("session.rs"));
 
-    let b_persp = perspectives.get(&("agent_B".into(), "persp_agentB_001".into())).unwrap();
+    let b_persp = perspectives
+        .get(&("agent_B".into(), "persp_agentB_001".into()))
+        .unwrap();
     assert_eq!(b_persp.agent_id, "agent_B");
     assert_eq!(b_persp.focus_node.as_deref(), Some("config.rs"));
 
@@ -462,92 +464,92 @@ fn golden_05_lock_lifecycle() {
 #[test]
 fn golden_06_schema_parity_perspective_tools() {
     // perspective.start
-    let _: PerspectiveStartInput = serde_json::from_str(
-        r#"{"agent_id": "a", "query": "q"}"#
-    ).expect("perspective.start minimal params");
+    let _: PerspectiveStartInput = serde_json::from_str(r#"{"agent_id": "a", "query": "q"}"#)
+        .expect("perspective.start minimal params");
 
     // perspective.routes
-    let _: PerspectiveRoutesInput = serde_json::from_str(
-        r#"{"agent_id": "a", "perspective_id": "p"}"#
-    ).expect("perspective.routes minimal params");
+    let _: PerspectiveRoutesInput =
+        serde_json::from_str(r#"{"agent_id": "a", "perspective_id": "p"}"#)
+            .expect("perspective.routes minimal params");
 
     // perspective.inspect
     let _: PerspectiveInspectInput = serde_json::from_str(
-        r#"{"agent_id": "a", "perspective_id": "p", "route_id": "R_abc", "route_set_version": 1}"#
-    ).expect("perspective.inspect minimal params");
+        r#"{"agent_id": "a", "perspective_id": "p", "route_id": "R_abc", "route_set_version": 1}"#,
+    )
+    .expect("perspective.inspect minimal params");
 
     // perspective.peek
     let _: PerspectivePeekInput = serde_json::from_str(
-        r#"{"agent_id": "a", "perspective_id": "p", "route_index": 1, "route_set_version": 1}"#
-    ).expect("perspective.peek minimal params");
+        r#"{"agent_id": "a", "perspective_id": "p", "route_index": 1, "route_set_version": 1}"#,
+    )
+    .expect("perspective.peek minimal params");
 
     // perspective.follow
     let _: PerspectiveFollowInput = serde_json::from_str(
-        r#"{"agent_id": "a", "perspective_id": "p", "route_id": "R_x", "route_set_version": 1}"#
-    ).expect("perspective.follow minimal params");
+        r#"{"agent_id": "a", "perspective_id": "p", "route_id": "R_x", "route_set_version": 1}"#,
+    )
+    .expect("perspective.follow minimal params");
 
     // perspective.suggest
-    let _: PerspectiveSuggestInput = serde_json::from_str(
-        r#"{"agent_id": "a", "perspective_id": "p", "route_set_version": 1}"#
-    ).expect("perspective.suggest minimal params");
+    let _: PerspectiveSuggestInput =
+        serde_json::from_str(r#"{"agent_id": "a", "perspective_id": "p", "route_set_version": 1}"#)
+            .expect("perspective.suggest minimal params");
 
     // perspective.affinity
     let _: PerspectiveAffinityInput = serde_json::from_str(
-        r#"{"agent_id": "a", "perspective_id": "p", "route_id": "R_x", "route_set_version": 1}"#
-    ).expect("perspective.affinity minimal params");
+        r#"{"agent_id": "a", "perspective_id": "p", "route_id": "R_x", "route_set_version": 1}"#,
+    )
+    .expect("perspective.affinity minimal params");
 
     // perspective.branch
-    let _: PerspectiveBranchInput = serde_json::from_str(
-        r#"{"agent_id": "a", "perspective_id": "p"}"#
-    ).expect("perspective.branch minimal params");
+    let _: PerspectiveBranchInput =
+        serde_json::from_str(r#"{"agent_id": "a", "perspective_id": "p"}"#)
+            .expect("perspective.branch minimal params");
 
     // perspective.back
-    let _: PerspectiveBackInput = serde_json::from_str(
-        r#"{"agent_id": "a", "perspective_id": "p"}"#
-    ).expect("perspective.back minimal params");
+    let _: PerspectiveBackInput =
+        serde_json::from_str(r#"{"agent_id": "a", "perspective_id": "p"}"#)
+            .expect("perspective.back minimal params");
 
     // perspective.compare
     let _: PerspectiveCompareInput = serde_json::from_str(
-        r#"{"agent_id": "a", "perspective_id_a": "p1", "perspective_id_b": "p2"}"#
-    ).expect("perspective.compare minimal params");
+        r#"{"agent_id": "a", "perspective_id_a": "p1", "perspective_id_b": "p2"}"#,
+    )
+    .expect("perspective.compare minimal params");
 
     // perspective.list
-    let _: PerspectiveListInput = serde_json::from_str(
-        r#"{"agent_id": "a"}"#
-    ).expect("perspective.list minimal params");
+    let _: PerspectiveListInput =
+        serde_json::from_str(r#"{"agent_id": "a"}"#).expect("perspective.list minimal params");
 
     // perspective.close
-    let _: PerspectiveCloseInput = serde_json::from_str(
-        r#"{"agent_id": "a", "perspective_id": "p"}"#
-    ).expect("perspective.close minimal params");
+    let _: PerspectiveCloseInput =
+        serde_json::from_str(r#"{"agent_id": "a", "perspective_id": "p"}"#)
+            .expect("perspective.close minimal params");
 }
 
 #[test]
 fn golden_06_schema_parity_lock_tools() {
     // lock.create
-    let _: LockCreateInput = serde_json::from_str(
-        r#"{"agent_id": "a", "scope": "node", "root_nodes": ["x"]}"#
-    ).expect("lock.create minimal params");
+    let _: LockCreateInput =
+        serde_json::from_str(r#"{"agent_id": "a", "scope": "node", "root_nodes": ["x"]}"#)
+            .expect("lock.create minimal params");
 
     // lock.watch
-    let _: LockWatchInput = serde_json::from_str(
-        r#"{"agent_id": "a", "lock_id": "l", "strategy": "manual"}"#
-    ).expect("lock.watch minimal params");
+    let _: LockWatchInput =
+        serde_json::from_str(r#"{"agent_id": "a", "lock_id": "l", "strategy": "manual"}"#)
+            .expect("lock.watch minimal params");
 
     // lock.diff
-    let _: LockDiffInput = serde_json::from_str(
-        r#"{"agent_id": "a", "lock_id": "l"}"#
-    ).expect("lock.diff minimal params");
+    let _: LockDiffInput = serde_json::from_str(r#"{"agent_id": "a", "lock_id": "l"}"#)
+        .expect("lock.diff minimal params");
 
     // lock.rebase
-    let _: LockRebaseInput = serde_json::from_str(
-        r#"{"agent_id": "a", "lock_id": "l"}"#
-    ).expect("lock.rebase minimal params");
+    let _: LockRebaseInput = serde_json::from_str(r#"{"agent_id": "a", "lock_id": "l"}"#)
+        .expect("lock.rebase minimal params");
 
     // lock.release
-    let _: LockReleaseInput = serde_json::from_str(
-        r#"{"agent_id": "a", "lock_id": "l"}"#
-    ).expect("lock.release minimal params");
+    let _: LockReleaseInput = serde_json::from_str(r#"{"agent_id": "a", "lock_id": "l"}"#)
+        .expect("lock.release minimal params");
 }
 
 // ===========================================================================

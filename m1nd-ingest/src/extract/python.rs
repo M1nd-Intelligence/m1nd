@@ -261,7 +261,7 @@ impl Extractor for PythonExtractor {
                         }
                         // If receiver starts with uppercase, it's likely a type call: Type.method(
                         let ref_target =
-                            if receiver.chars().next().map_or(false, |c| c.is_uppercase()) {
+                            if receiver.chars().next().is_some_and(|c| c.is_uppercase()) {
                                 format!("ref::{}", receiver)
                             } else {
                                 format!("ref::{}", method)

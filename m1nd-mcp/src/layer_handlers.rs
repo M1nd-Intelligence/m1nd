@@ -142,7 +142,7 @@ pub fn handle_seek(
         let sem_results = state
             .orchestrator
             .semantic
-            .query(&*graph, &input.query, input.top_k * 5)
+            .query(&graph, &input.query, input.top_k * 5)
             .unwrap_or_default();
         sem_results
             .into_iter()
@@ -350,6 +350,7 @@ pub fn handle_scan(
     let mut raw_matches: Vec<usize> = Vec::new();
     let mut files_scanned_set = std::collections::HashSet::new();
 
+    #[allow(clippy::needless_range_loop)]
     for i in 0..n {
         if let Some(ref scope) = input.scope {
             let ext = &node_to_ext[i];
@@ -480,7 +481,7 @@ pub fn handle_timeline(
     cmd.arg("--");
     cmd.arg(&file_path);
 
-    let output = cmd.output().map_err(|e| M1ndError::Io(e))?;
+    let output = cmd.output().map_err(M1ndError::Io)?;
 
     if !output.status.success() {
         // Git command failed — likely not a git repo or file not tracked.
@@ -1316,7 +1317,7 @@ fn get_commits_in_range(
             cmd.arg(format!("{}..HEAD", after));
         }
         (None, Some(before)) => {
-            cmd.arg(before.to_string());
+            cmd.arg(before);
         }
         (None, None) => {
             cmd.arg("HEAD");
@@ -1350,7 +1351,7 @@ fn build_coupling_map(
             .files_changed
             .iter()
             .map(|f| f.path.as_str())
-            .filter(|p| scope.map_or(true, |s| p.starts_with(s)))
+            .filter(|p| scope.is_none_or(|s| p.starts_with(s)))
             .collect();
 
         let mut seen = std::collections::HashSet::new();
@@ -1603,12 +1604,12 @@ fn list_all_trails(state: &SessionState) -> M1ndResult<Vec<TrailData>> {
     };
     for entry in entries.flatten() {
         let path = entry.path();
-        if path.extension().map_or(true, |e| e != "json") {
+        if path.extension().is_none_or(|e| e != "json") {
             continue;
         }
         if path
             .file_name()
-            .map_or(false, |n| n.to_string_lossy().starts_with('.'))
+            .is_some_and(|n| n.to_string_lossy().starts_with('.'))
         {
             continue;
         }
@@ -3697,7 +3698,7 @@ fn l6_resolve_frame(
                         if frame.line >= prov.line_start && frame.line <= prov.line_end {
                             let range = prov.line_end - prov.line_start;
                             let score = 10000u32.saturating_sub(range);
-                            if best.map_or(true, |(_, s)| score > s) {
+                            if best.is_none_or(|(_, s)| score > s) {
                                 best = Some((nid, score));
                             }
                         }
@@ -3731,7 +3732,7 @@ fn l6_find_specific_node(
                 {
                     let range = prov.line_end - prov.line_start;
                     let score = 10000u32.saturating_sub(range);
-                    if best.map_or(true, |(_, s)| score > s) {
+                    if best.is_none_or(|(_, s)| score > s) {
                         best = Some((NodeId::new(i as u32), score));
                     }
                 }
@@ -3917,23 +3918,19 @@ fn l6_vp_test_patterns(source_file: &str) -> Vec<String> {
         ""
     };
 
-    if basename.ends_with(".py") {
-        let stem = &basename[..basename.len() - 3];
+    if let Some(stem) = basename.strip_suffix(".py") {
         pats.push(format!("{}tests/test_{}.py", dir, stem));
         pats.push(format!("{}test_{}.py", dir, stem));
         if dir.starts_with("backend/") {
             pats.push(format!("backend/tests/test_{}.py", stem));
         }
-    } else if basename.ends_with(".tsx") {
-        let stem = &basename[..basename.len() - 4];
+    } else if let Some(stem) = basename.strip_suffix(".tsx") {
         pats.push(format!("{}{}.test.tsx", dir, stem));
         pats.push(format!("{}{}.spec.tsx", dir, stem));
-    } else if basename.ends_with(".ts") {
-        let stem = &basename[..basename.len() - 3];
+    } else if let Some(stem) = basename.strip_suffix(".ts") {
         pats.push(format!("{}{}.test.ts", dir, stem));
         pats.push(format!("{}{}.spec.ts", dir, stem));
-    } else if basename.ends_with(".rs") {
-        let stem = &basename[..basename.len() - 3];
+    } else if let Some(stem) = basename.strip_suffix(".rs") {
         pats.push(format!("{}tests/{}.rs", dir, stem));
         pats.push(format!("{}tests/test_{}.rs", dir, stem));
     }
@@ -3948,23 +3945,19 @@ fn l6_vp_suggest_test_path(source_file: &str) -> String {
     } else {
         ""
     };
-    if basename.ends_with(".py") {
-        let stem = &basename[..basename.len() - 3];
+    if let Some(stem) = basename.strip_suffix(".py") {
         if dir.starts_with("backend/") && !dir.contains("tests/") {
             return format!("backend/tests/test_{}.py", stem);
         }
         return format!("{}tests/test_{}.py", dir, stem);
     }
-    if basename.ends_with(".tsx") {
-        let stem = &basename[..basename.len() - 4];
+    if let Some(stem) = basename.strip_suffix(".tsx") {
         return format!("{}{}.test.tsx", dir, stem);
     }
-    if basename.ends_with(".ts") {
-        let stem = &basename[..basename.len() - 3];
+    if let Some(stem) = basename.strip_suffix(".ts") {
         return format!("{}{}.test.ts", dir, stem);
     }
-    if basename.ends_with(".rs") {
-        let stem = &basename[..basename.len() - 3];
+    if let Some(stem) = basename.strip_suffix(".rs") {
         return format!("{}tests/{}.rs", dir, stem);
     }
     format!("{}test_{}", dir, basename)
@@ -4198,6 +4191,7 @@ fn l7_prefix_graph_nodes(
     let source_ext_ids = l7_graph_external_ids(source);
 
     // Add all nodes with prefixed external_ids
+    #[allow(clippy::needless_range_loop)]
     for idx in 0..num_nodes {
         let old_ext_id = &source_ext_ids[idx];
         let new_ext_id = format!("{}::{}", repo_name, old_ext_id);
@@ -4280,7 +4274,7 @@ fn l7_prefix_graph_nodes(
                 let _ = target.add_edge(
                     src,
                     tgt,
-                    &source.strings.resolve(edge.relation),
+                    source.strings.resolve(edge.relation),
                     edge.weight,
                     edge.direction,
                     edge.inhibitory,
@@ -4892,7 +4886,7 @@ fn l2_find_scan_pattern(pattern_id: &str) -> Option<&'static L2ScanPattern> {
 /// Graph validation for a scan finding.
 /// Checks if connected nodes mitigate the issue (negation keywords, test nodes).
 /// Returns (status, context_nodes).
-fn l2_graph_validate<'a>(
+fn l2_graph_validate(
     graph: &m1nd_core::graph::Graph,
     node: NodeId,
     negation_keywords: &[&str],
@@ -5319,9 +5313,9 @@ fn l5_build_node_to_ext_map(graph: &m1nd_core::graph::Graph) -> Vec<String> {
             map[idx] = graph.strings.resolve(interned).to_string();
         }
     }
-    for i in 0..n {
-        if map[i].is_empty() {
-            map[i] = graph.strings.resolve(graph.nodes.label[i]).to_string();
+    for (i, entry) in map.iter_mut().enumerate().take(n) {
+        if entry.is_empty() {
+            *entry = graph.strings.resolve(graph.nodes.label[i]).to_string();
         }
     }
     map
@@ -5529,7 +5523,7 @@ fn l5_bayesian_confidence(
     for ev in contradicting {
         odds *= ev.likelihood_factor;
     }
-    (odds / (1.0 + odds)).max(0.01).min(0.99)
+    (odds / (1.0 + odds)).clamp(0.01, 0.99)
 }
 
 // =========================================================================
@@ -5994,7 +5988,7 @@ pub fn handle_antibody_create(
                 (now.to_bits() >> 16) as u16,
                 ((now.to_bits() >> 8) & 0x0FFF | 0x4000) as u16,
                 ((now.to_bits() & 0x3FFF) | 0x8000) as u16,
-                (now.to_bits() & 0xFFFFFFFFFFFF) as u64
+                now.to_bits() & 0xFFFFFFFFFFFF
             );
 
             let new_antibody = Antibody {

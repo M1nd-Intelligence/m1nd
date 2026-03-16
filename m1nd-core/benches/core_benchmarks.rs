@@ -53,9 +53,7 @@ fn build_1k_graph() -> Graph {
                 NodeType::Class => vec!["model"],
                 _ => vec![],
             };
-            let nid = b
-                .add_node(&id, &label, nt, &tags)
-                .expect("add_node failed");
+            let nid = b.add_node(&id, &label, nt, &tags).expect("add_node failed");
             nodes.push(nid);
         }
     }
@@ -78,8 +76,13 @@ fn build_1k_graph() -> Graph {
             let tgt_idx = ((module + 1) * 100 + link * 5 + 2) as usize;
             if src_idx < nodes.len() && tgt_idx < nodes.len() {
                 let rel = relations[link as usize % relations.len()];
-                b.add_edge(nodes[src_idx], nodes[tgt_idx], rel, 0.3 + (link as f32) * 0.02)
-                    .expect("cross edge failed");
+                b.add_edge(
+                    nodes[src_idx],
+                    nodes[tgt_idx],
+                    rel,
+                    0.3 + (link as f32) * 0.02,
+                )
+                .expect("cross edge failed");
             }
         }
     }
@@ -230,7 +233,7 @@ fn bench_antibody_scan_50_patterns(c: &mut Criterion) {
     c.bench_function("antibody_scan_50_patterns", |b| {
         b.iter(|| {
             // Clone antibodies each iteration since scan mutates them
-                    let mut abs = antibodies.clone();
+            let mut abs = antibodies.clone();
             let result = scan_antibodies(
                 black_box(&graph),
                 black_box(&mut abs),

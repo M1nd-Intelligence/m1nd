@@ -28,20 +28,33 @@ pub const DEFAULT_TURBULENCE_THRESHOLD: f32 = 0.5;
 
 /// Default lock/synchronization patterns for valve detection (substring match).
 pub const DEFAULT_LOCK_PATTERNS: &[&str] = &[
-    r"asyncio\.Lock", r"threading\.Lock", r"Mutex", r"RwLock",
-    r"Semaphore", r"asyncio\.Semaphore", r"Lock\(\)",
-    r"\.acquire\(", r"\.lock\(",
+    r"asyncio\.Lock",
+    r"threading\.Lock",
+    r"Mutex",
+    r"RwLock",
+    r"Semaphore",
+    r"asyncio\.Semaphore",
+    r"Lock\(\)",
+    r"\.acquire\(",
+    r"\.lock\(",
 ];
 
 /// Default read-only access patterns — nodes matching these are exempt from turbulence scoring.
 pub const DEFAULT_READ_ONLY_PATTERNS: &[&str] = &[
-    r"get_", r"read_", r"fetch_", r"list_", r"is_", r"has_",
-    r"check_", r"count_", r"len\(", r"\bGET\b", r"select ", r"SELECT ",
+    r"get_", r"read_", r"fetch_", r"list_", r"is_", r"has_", r"check_", r"count_", r"len\(",
+    r"\bGET\b", r"select ", r"SELECT ",
 ];
 
 /// Entry point auto-discovery patterns (matched case-insensitively against node labels).
 const ENTRY_POINT_PATTERNS: &[&str] = &[
-    "handle_", "route_", "api_", "endpoint_", "on_", "cmd_", "tick_", "daemon_",
+    "handle_",
+    "route_",
+    "api_",
+    "endpoint_",
+    "on_",
+    "cmd_",
+    "tick_",
+    "daemon_",
 ];
 
 // ── Core Types ──
@@ -174,17 +187,20 @@ impl FlowConfig {
     /// Create config with default lock and read-only pattern strings.
     pub fn with_defaults() -> Self {
         Self {
-            lock_patterns: DEFAULT_LOCK_PATTERNS.iter().map(|s| s.to_string()).collect(),
-            read_only_patterns: DEFAULT_READ_ONLY_PATTERNS.iter().map(|s| s.to_string()).collect(),
+            lock_patterns: DEFAULT_LOCK_PATTERNS
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
+            read_only_patterns: DEFAULT_READ_ONLY_PATTERNS
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
             ..Default::default()
         }
     }
 
     /// Create config with user-provided pattern strings.
-    pub fn with_patterns(
-        lock_patterns: &[String],
-        read_only_patterns: &[String],
-    ) -> Self {
+    pub fn with_patterns(lock_patterns: &[String], read_only_patterns: &[String]) -> Self {
         Self {
             lock_patterns: lock_patterns.to_vec(),
             read_only_patterns: read_only_patterns.to_vec(),
@@ -281,7 +297,10 @@ impl ValveTracker {
     }
 
     fn record_serialization(&mut self, node: NodeId, lock_type: &str) {
-        let entry = self.valves.entry(node.0).or_insert_with(|| (lock_type.to_string(), 0));
+        let entry = self
+            .valves
+            .entry(node.0)
+            .or_insert_with(|| (lock_type.to_string(), 0));
         entry.1 += 1;
     }
 }
@@ -357,7 +376,14 @@ fn flow_is_valve(graph: &Graph, node: NodeId, config: &FlowConfig) -> Option<Str
 
     // Heuristic fallback: case-insensitive keyword check
     let text_lower = text.to_lowercase();
-    let heuristic_keywords = ["lock", "mutex", "guard", "semaphore", "synchronize", "serialize"];
+    let heuristic_keywords = [
+        "lock",
+        "mutex",
+        "guard",
+        "semaphore",
+        "synchronize",
+        "serialize",
+    ];
     for kw in &heuristic_keywords {
         if text_lower.contains(kw) {
             return Some(format!("heuristic:{}", kw));
@@ -542,10 +568,12 @@ impl FlowEngine {
         // Pre-compute scope filter: which nodes are in scope
         let scope_allowed: Option<Vec<bool>> = config.scope_filter.as_ref().map(|filter| {
             let filter_lower = filter.to_lowercase();
-            (0..n).map(|i| {
-                let label = graph.strings.resolve(graph.nodes.label[i]);
-                label.to_lowercase().contains(&filter_lower)
-            }).collect()
+            (0..n)
+                .map(|i| {
+                    let label = graph.strings.resolve(graph.nodes.label[i]);
+                    label.to_lowercase().contains(&filter_lower)
+                })
+                .collect()
         });
 
         let mut global_steps: usize = 0;
@@ -578,12 +606,15 @@ impl FlowEngine {
                 };
 
                 // Record arrival at entry
-                accumulator.record(entry, ParticleArrival {
-                    origin: entry,
-                    particle_id: pid,
-                    serialized_by: None,
-                    path: vec![entry],
-                });
+                accumulator.record(
+                    entry,
+                    ParticleArrival {
+                        origin: entry,
+                        particle_id: pid,
+                        serialized_by: None,
+                        path: vec![entry],
+                    },
+                );
 
                 queue.push_back(initial);
 
@@ -647,18 +678,21 @@ impl FlowEngine {
                         // EC-1: cycle detection per particle
                         if particle.visited[tidx] {
                             // Record arrival but don't propagate further
-                            accumulator.record(target, ParticleArrival {
-                                origin: entry,
-                                particle_id: pid,
-                                serialized_by,
-                                path: if config.include_paths {
-                                    let mut p = particle.path.clone();
-                                    p.push(target);
-                                    p
-                                } else {
-                                    Vec::new()
+                            accumulator.record(
+                                target,
+                                ParticleArrival {
+                                    origin: entry,
+                                    particle_id: pid,
+                                    serialized_by,
+                                    path: if config.include_paths {
+                                        let mut p = particle.path.clone();
+                                        p.push(target);
+                                        p
+                                    } else {
+                                        Vec::new()
+                                    },
                                 },
-                            });
+                            );
                             global_visited[tidx] = true;
                             continue;
                         }
@@ -677,12 +711,15 @@ impl FlowEngine {
                         };
 
                         // Record arrival
-                        accumulator.record(target, ParticleArrival {
-                            origin: entry,
-                            particle_id: pid,
-                            serialized_by,
-                            path: new_path.clone(),
-                        });
+                        accumulator.record(
+                            target,
+                            ParticleArrival {
+                                origin: entry,
+                                particle_id: pid,
+                                serialized_by,
+                                path: new_path.clone(),
+                            },
+                        );
 
                         global_visited[tidx] = true;
 
@@ -693,7 +730,11 @@ impl FlowEngine {
                         let child = Particle {
                             id: pid,
                             origin: entry,
-                            path: if config.include_paths { new_path } else { Vec::new() },
+                            path: if config.include_paths {
+                                new_path
+                            } else {
+                                Vec::new()
+                            },
                             position: target,
                             depth: particle.depth + 1,
                             serialized_by,
@@ -752,9 +793,9 @@ impl FlowEngine {
             let base_score = base_score.min(1.0);
 
             // Find nearest upstream lock from any particle's path
-            let nearest_lock = arrivals.iter().find_map(|a| {
-                flow_find_nearest_upstream_lock(graph, &a.path, config)
-            });
+            let nearest_lock = arrivals
+                .iter()
+                .find_map(|a| flow_find_nearest_upstream_lock(graph, &a.path, config));
 
             let lock_factor = if has_lock {
                 0.0
@@ -816,19 +857,13 @@ impl FlowEngine {
                 arrivals
                     .iter()
                     .filter(|a| !a.path.is_empty())
-                    .map(|a| {
-                        a.path
-                            .iter()
-                            .map(|n| flow_node_label(graph, *n))
-                            .collect()
-                    })
+                    .map(|a| a.path.iter().map(|n| flow_node_label(graph, *n)).collect())
                     .collect()
             } else {
                 Vec::new()
             };
 
-            let nearest_upstream_lock_label =
-                nearest_lock.map(|n| flow_node_label(graph, n));
+            let nearest_upstream_lock_label = nearest_lock.map(|n| flow_node_label(graph, n));
 
             turbulence_points.push(TurbulencePoint {
                 node: *node,
@@ -906,11 +941,7 @@ impl FlowEngine {
     /// # Parameters
     /// - `graph`: finalized graph to search
     /// - `max_entries`: maximum number of entry points to return (capped at 100)
-    pub fn discover_entry_points(
-        &self,
-        graph: &Graph,
-        max_entries: usize,
-    ) -> Vec<NodeId> {
+    pub fn discover_entry_points(&self, graph: &Graph, max_entries: usize) -> Vec<NodeId> {
         let n = graph.num_nodes();
         if n == 0 {
             return Vec::new();
@@ -998,16 +1029,20 @@ mod tests {
     /// Build a minimal 2-node finalized graph: A → B
     fn two_node_graph(label_a: &str, label_b: &str, relation: &str) -> Graph {
         let mut g = Graph::new();
-        g.add_node("a", label_a, NodeType::Function, &[], 1.0, 0.5).unwrap();
-        g.add_node("b", label_b, NodeType::Function, &[], 0.8, 0.3).unwrap();
+        g.add_node("a", label_a, NodeType::Function, &[], 1.0, 0.5)
+            .unwrap();
+        g.add_node("b", label_b, NodeType::Function, &[], 0.8, 0.3)
+            .unwrap();
         g.add_edge(
-            NodeId::new(0), NodeId::new(1),
+            NodeId::new(0),
+            NodeId::new(1),
             relation,
             FiniteF32::new(0.9),
             EdgeDirection::Forward,
             false,
             FiniteF32::new(0.5),
-        ).unwrap();
+        )
+        .unwrap();
         g.finalize().unwrap();
         g
     }
@@ -1018,13 +1053,44 @@ mod tests {
     ///   shared → sink
     fn convergent_graph() -> Graph {
         let mut g = Graph::new();
-        g.add_node("entry1", "handle_alpha", NodeType::Function, &[], 1.0, 0.5).unwrap(); // 0
-        g.add_node("entry2", "handle_beta", NodeType::Function, &[], 1.0, 0.5).unwrap();  // 1
-        g.add_node("shared", "shared_state", NodeType::Function, &[], 0.9, 0.4).unwrap(); // 2
-        g.add_node("sink", "output", NodeType::Function, &[], 0.5, 0.2).unwrap();          // 3
-        g.add_edge(NodeId::new(0), NodeId::new(2), "calls", FiniteF32::new(0.9), EdgeDirection::Forward, false, FiniteF32::new(0.5)).unwrap();
-        g.add_edge(NodeId::new(1), NodeId::new(2), "calls", FiniteF32::new(0.9), EdgeDirection::Forward, false, FiniteF32::new(0.5)).unwrap();
-        g.add_edge(NodeId::new(2), NodeId::new(3), "calls", FiniteF32::new(0.8), EdgeDirection::Forward, false, FiniteF32::new(0.3)).unwrap();
+        g.add_node("entry1", "handle_alpha", NodeType::Function, &[], 1.0, 0.5)
+            .unwrap(); // 0
+        g.add_node("entry2", "handle_beta", NodeType::Function, &[], 1.0, 0.5)
+            .unwrap(); // 1
+        g.add_node("shared", "shared_state", NodeType::Function, &[], 0.9, 0.4)
+            .unwrap(); // 2
+        g.add_node("sink", "output", NodeType::Function, &[], 0.5, 0.2)
+            .unwrap(); // 3
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(2),
+            "calls",
+            FiniteF32::new(0.9),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.5),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(1),
+            NodeId::new(2),
+            "calls",
+            FiniteF32::new(0.9),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.5),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(2),
+            NodeId::new(3),
+            "calls",
+            FiniteF32::new(0.8),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.3),
+        )
+        .unwrap();
         g.finalize().unwrap();
         g
     }
@@ -1037,7 +1103,10 @@ mod tests {
         let engine = FlowEngine::new();
         let config = FlowConfig::default();
         let result = engine.simulate(&g, &[], 2, &config);
-        assert!(matches!(result, Err(crate::error::M1ndError::NoEntryPoints)));
+        assert!(matches!(
+            result,
+            Err(crate::error::M1ndError::NoEntryPoints)
+        ));
     }
 
     // ── Test 2: turbulence_detection — two entry points converging produce a turbulence point ──
@@ -1053,19 +1122,42 @@ mod tests {
         let entry_nodes = vec![NodeId::new(0), NodeId::new(1)];
         let result = engine.simulate(&g, &entry_nodes, 1, &config).unwrap();
         // shared_state (node 2) receives particles from two distinct origins
-        assert!(result.summary.turbulence_count > 0,
-            "expected turbulence at convergence node, got 0");
+        assert!(
+            result.summary.turbulence_count > 0,
+            "expected turbulence at convergence node, got 0"
+        );
     }
 
     // ── Test 3: valve_detection — node with lock label becomes a valve ──
     #[test]
     fn valve_detected_on_lock_node() {
         let mut g = Graph::new();
-        g.add_node("ep", "handle_req", NodeType::Function, &[], 1.0, 0.5).unwrap();
-        g.add_node("lk", "mutex_guard", NodeType::Function, &[], 0.9, 0.4).unwrap();
-        g.add_node("wr", "write_state", NodeType::Function, &[], 0.8, 0.3).unwrap();
-        g.add_edge(NodeId::new(0), NodeId::new(1), "calls", FiniteF32::new(0.9), EdgeDirection::Forward, false, FiniteF32::new(0.5)).unwrap();
-        g.add_edge(NodeId::new(1), NodeId::new(2), "calls", FiniteF32::new(0.9), EdgeDirection::Forward, false, FiniteF32::new(0.5)).unwrap();
+        g.add_node("ep", "handle_req", NodeType::Function, &[], 1.0, 0.5)
+            .unwrap();
+        g.add_node("lk", "mutex_guard", NodeType::Function, &[], 0.9, 0.4)
+            .unwrap();
+        g.add_node("wr", "write_state", NodeType::Function, &[], 0.8, 0.3)
+            .unwrap();
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(1),
+            "calls",
+            FiniteF32::new(0.9),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.5),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(1),
+            NodeId::new(2),
+            "calls",
+            FiniteF32::new(0.9),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.5),
+        )
+        .unwrap();
         g.finalize().unwrap();
 
         let engine = FlowEngine::new();
@@ -1076,8 +1168,10 @@ mod tests {
 
         let result = engine.simulate(&g, &[NodeId::new(0)], 1, &config).unwrap();
         // mutex_guard heuristic should register a valve
-        assert!(result.summary.valve_count > 0,
-            "expected a valve at mutex_guard node");
+        assert!(
+            result.summary.valve_count > 0,
+            "expected a valve at mutex_guard node"
+        );
     }
 
     // ── Test 4: max_depth — particles don't travel beyond max_depth ──
@@ -1086,10 +1180,27 @@ mod tests {
         // Chain: 0 → 1 → 2 → 3 → 4 (5 nodes)
         let mut g = Graph::new();
         for i in 0..5u32 {
-            g.add_node(&format!("n{}", i), &format!("node_{}", i), NodeType::Function, &[], 1.0, 0.5).unwrap();
+            g.add_node(
+                &format!("n{}", i),
+                &format!("node_{}", i),
+                NodeType::Function,
+                &[],
+                1.0,
+                0.5,
+            )
+            .unwrap();
         }
         for i in 0..4u32 {
-            g.add_edge(NodeId::new(i), NodeId::new(i+1), "calls", FiniteF32::new(0.9), EdgeDirection::Forward, false, FiniteF32::new(0.5)).unwrap();
+            g.add_edge(
+                NodeId::new(i),
+                NodeId::new(i + 1),
+                "calls",
+                FiniteF32::new(0.9),
+                EdgeDirection::Forward,
+                false,
+                FiniteF32::new(0.5),
+            )
+            .unwrap();
         }
         g.finalize().unwrap();
 
@@ -1101,9 +1212,11 @@ mod tests {
 
         let result = engine.simulate(&g, &[NodeId::new(0)], 1, &config).unwrap();
         // nodes 0, 1, 2 visited (depth 0, 1, 2); nodes 3, 4 NOT visited
-        assert!(result.summary.total_nodes_visited <= 3,
+        assert!(
+            result.summary.total_nodes_visited <= 3,
             "expected at most 3 nodes visited with max_depth=2, got {}",
-            result.summary.total_nodes_visited);
+            result.summary.total_nodes_visited
+        );
     }
 
     // ── Test 5: max_steps budget — simulation stops at budget ──
@@ -1112,12 +1225,28 @@ mod tests {
         // Dense graph: 10 nodes fully connected
         let mut g = Graph::new();
         for i in 0..10u32 {
-            g.add_node(&format!("n{}", i), &format!("fn_{}", i), NodeType::Function, &[], 1.0, 0.5).unwrap();
+            g.add_node(
+                &format!("n{}", i),
+                &format!("fn_{}", i),
+                NodeType::Function,
+                &[],
+                1.0,
+                0.5,
+            )
+            .unwrap();
         }
         for i in 0..10u32 {
             for j in 0..10u32 {
                 if i != j {
-                    let _ = g.add_edge(NodeId::new(i), NodeId::new(j), "calls", FiniteF32::new(0.9), EdgeDirection::Forward, false, FiniteF32::new(0.5));
+                    let _ = g.add_edge(
+                        NodeId::new(i),
+                        NodeId::new(j),
+                        "calls",
+                        FiniteF32::new(0.9),
+                        EdgeDirection::Forward,
+                        false,
+                        FiniteF32::new(0.5),
+                    );
                 }
             }
         }
@@ -1131,7 +1260,10 @@ mod tests {
 
         // Should complete without panic or hang
         let result = engine.simulate(&g, &[NodeId::new(0)], 1, &config);
-        assert!(result.is_ok(), "simulation should succeed even with tiny budget");
+        assert!(
+            result.is_ok(),
+            "simulation should succeed even with tiny budget"
+        );
     }
 
     // ── Test 6: scope_filter — only nodes matching filter are visited ──
@@ -1139,11 +1271,32 @@ mod tests {
     fn scope_filter_restricts_visited_nodes() {
         // 3-node graph: entry → alpha_fn → beta_fn
         let mut g = Graph::new();
-        g.add_node("e", "entry_point", NodeType::Function, &[], 1.0, 0.5).unwrap();
-        g.add_node("a", "alpha_fn", NodeType::Function, &[], 0.9, 0.4).unwrap();
-        g.add_node("b", "beta_fn", NodeType::Function, &[], 0.8, 0.3).unwrap();
-        g.add_edge(NodeId::new(0), NodeId::new(1), "calls", FiniteF32::new(0.9), EdgeDirection::Forward, false, FiniteF32::new(0.5)).unwrap();
-        g.add_edge(NodeId::new(1), NodeId::new(2), "calls", FiniteF32::new(0.9), EdgeDirection::Forward, false, FiniteF32::new(0.5)).unwrap();
+        g.add_node("e", "entry_point", NodeType::Function, &[], 1.0, 0.5)
+            .unwrap();
+        g.add_node("a", "alpha_fn", NodeType::Function, &[], 0.9, 0.4)
+            .unwrap();
+        g.add_node("b", "beta_fn", NodeType::Function, &[], 0.8, 0.3)
+            .unwrap();
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(1),
+            "calls",
+            FiniteF32::new(0.9),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.5),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(1),
+            NodeId::new(2),
+            "calls",
+            FiniteF32::new(0.9),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.5),
+        )
+        .unwrap();
         g.finalize().unwrap();
 
         let engine = FlowEngine::new();
@@ -1155,9 +1308,11 @@ mod tests {
         let result = engine.simulate(&g, &[NodeId::new(0)], 1, &config).unwrap();
         // entry always visited (scope filter only restricts propagation targets),
         // alpha_fn matches scope → visited; beta_fn does NOT match → not visited
-        assert!(result.summary.total_nodes_visited <= 2,
+        assert!(
+            result.summary.total_nodes_visited <= 2,
             "scope filter should restrict to at most entry + alpha, got {}",
-            result.summary.total_nodes_visited);
+            result.summary.total_nodes_visited
+        );
     }
 
     // ── Test 7: read_only — read-only node reduces turbulence score ──
@@ -1165,25 +1320,50 @@ mod tests {
     fn read_only_node_gets_reduced_turbulence() {
         // Two entries both converging on a "get_" prefixed node
         let mut g = Graph::new();
-        g.add_node("e1", "handle_alpha", NodeType::Function, &[], 1.0, 0.5).unwrap(); // 0
-        g.add_node("e2", "handle_beta", NodeType::Function, &[], 1.0, 0.5).unwrap();  // 1
-        g.add_node("ro", "get_state", NodeType::Function, &[], 0.9, 0.4).unwrap();     // 2
-        g.add_edge(NodeId::new(0), NodeId::new(2), "calls", FiniteF32::new(0.9), EdgeDirection::Forward, false, FiniteF32::new(0.5)).unwrap();
-        g.add_edge(NodeId::new(1), NodeId::new(2), "calls", FiniteF32::new(0.9), EdgeDirection::Forward, false, FiniteF32::new(0.5)).unwrap();
+        g.add_node("e1", "handle_alpha", NodeType::Function, &[], 1.0, 0.5)
+            .unwrap(); // 0
+        g.add_node("e2", "handle_beta", NodeType::Function, &[], 1.0, 0.5)
+            .unwrap(); // 1
+        g.add_node("ro", "get_state", NodeType::Function, &[], 0.9, 0.4)
+            .unwrap(); // 2
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(2),
+            "calls",
+            FiniteF32::new(0.9),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.5),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(1),
+            NodeId::new(2),
+            "calls",
+            FiniteF32::new(0.9),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.5),
+        )
+        .unwrap();
         g.finalize().unwrap();
 
         let engine = FlowEngine::new();
         let mut config = FlowConfig::with_defaults();
         config.turbulence_threshold = 0.0;
 
-        let result = engine.simulate(&g, &[NodeId::new(0), NodeId::new(1)], 1, &config).unwrap();
+        let result = engine
+            .simulate(&g, &[NodeId::new(0), NodeId::new(1)], 1, &config)
+            .unwrap();
         // get_state is read-only: score multiplied by 0.2 factor.
         // Either no turbulence points, or turbulence score is low.
         for tp in &result.turbulence_points {
             if tp.node_label.contains("get_state") {
-                assert!(tp.turbulence_score <= 0.3,
+                assert!(
+                    tp.turbulence_score <= 0.3,
                     "read-only node should have low turbulence score, got {}",
-                    tp.turbulence_score);
+                    tp.turbulence_score
+                );
             }
         }
     }
@@ -1192,17 +1372,42 @@ mod tests {
     #[test]
     fn auto_discover_finds_handle_functions() {
         let mut g = Graph::new();
-        g.add_node("h1", "handle_request", NodeType::Function, &[], 1.0, 0.5).unwrap();
-        g.add_node("h2", "handle_event", NodeType::Function, &[], 0.9, 0.4).unwrap();
-        g.add_node("u", "utility_helper", NodeType::Function, &[], 0.5, 0.2).unwrap();
-        g.add_edge(NodeId::new(0), NodeId::new(2), "calls", FiniteF32::new(0.8), EdgeDirection::Forward, false, FiniteF32::new(0.3)).unwrap();
-        g.add_edge(NodeId::new(1), NodeId::new(2), "calls", FiniteF32::new(0.8), EdgeDirection::Forward, false, FiniteF32::new(0.3)).unwrap();
+        g.add_node("h1", "handle_request", NodeType::Function, &[], 1.0, 0.5)
+            .unwrap();
+        g.add_node("h2", "handle_event", NodeType::Function, &[], 0.9, 0.4)
+            .unwrap();
+        g.add_node("u", "utility_helper", NodeType::Function, &[], 0.5, 0.2)
+            .unwrap();
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(2),
+            "calls",
+            FiniteF32::new(0.8),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.3),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(1),
+            NodeId::new(2),
+            "calls",
+            FiniteF32::new(0.8),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.3),
+        )
+        .unwrap();
         g.finalize().unwrap();
 
         let engine = FlowEngine::new();
         let entries = engine.discover_entry_points(&g, 10);
         // Both handle_ functions should be discovered
-        assert_eq!(entries.len(), 2,
-            "expected 2 handle_ entry points, got {}", entries.len());
+        assert_eq!(
+            entries.len(),
+            2,
+            "expected 2 handle_ entry points, got {}",
+            entries.len()
+        );
     }
 }

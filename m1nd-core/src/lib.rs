@@ -1,42 +1,42 @@
 #![allow(unused)]
 
-pub mod types;
-pub mod error;
-pub mod graph;
-pub mod domain;
-pub mod builder;
 pub mod activation;
-pub mod xlr;
+pub mod antibody;
+pub mod builder;
+pub mod counterfactual;
+pub mod domain;
+pub mod epidemic;
+pub mod error;
+pub mod flow;
+pub mod graph;
+pub mod layer;
+pub mod plasticity;
+pub mod query;
+pub mod resonance;
 pub mod seed;
 pub mod semantic;
+pub mod snapshot;
 pub mod temporal;
 pub mod topology;
-pub mod resonance;
-pub mod plasticity;
-pub mod counterfactual;
-pub mod antibody;
-pub mod flow;
-pub mod epidemic;
 pub mod tremor;
 pub mod trust;
-pub mod layer;
-pub mod query;
-pub mod snapshot;
+pub mod types;
+pub mod xlr;
 
 #[cfg(test)]
 mod tests {
-    use crate::types::*;
+    use crate::activation::*;
+    use crate::counterfactual::*;
     use crate::error::*;
     use crate::graph::*;
-    use crate::activation::*;
+    use crate::plasticity::*;
+    use crate::query::*;
+    use crate::resonance::*;
     use crate::seed::*;
-    use crate::xlr::*;
     use crate::temporal::*;
     use crate::topology::*;
-    use crate::resonance::*;
-    use crate::plasticity::*;
-    use crate::counterfactual::*;
-    use crate::query::*;
+    use crate::types::*;
+    use crate::xlr::*;
 
     // ===== STEP-001: types.rs tests =====
 
@@ -123,18 +123,111 @@ mod tests {
 
     fn build_test_graph() -> Graph {
         let mut g = Graph::new();
-        g.add_node("mat_pe", "Polietileno", NodeType::Material, &["plastico", "polimero"], 1000.0, 0.5).unwrap();
-        g.add_node("mat_pp", "Polipropileno", NodeType::Material, &["plastico", "polimero"], 900.0, 0.3).unwrap();
-        g.add_node("mat_abs", "ABS", NodeType::Material, &["plastico"], 800.0, 0.2).unwrap();
-        g.add_node("proc_inj", "Injecao", NodeType::Process, &["processo"], 700.0, 0.4).unwrap();
-        g.add_node("proc_ext", "Extrusao", NodeType::Process, &["processo"], 600.0, 0.1).unwrap();
-        g.add_node("prod_garrafa", "Garrafa", NodeType::Product, &["produto"], 500.0, 0.6).unwrap();
+        g.add_node(
+            "mat_pe",
+            "Polietileno",
+            NodeType::Material,
+            &["plastico", "polimero"],
+            1000.0,
+            0.5,
+        )
+        .unwrap();
+        g.add_node(
+            "mat_pp",
+            "Polipropileno",
+            NodeType::Material,
+            &["plastico", "polimero"],
+            900.0,
+            0.3,
+        )
+        .unwrap();
+        g.add_node(
+            "mat_abs",
+            "ABS",
+            NodeType::Material,
+            &["plastico"],
+            800.0,
+            0.2,
+        )
+        .unwrap();
+        g.add_node(
+            "proc_inj",
+            "Injecao",
+            NodeType::Process,
+            &["processo"],
+            700.0,
+            0.4,
+        )
+        .unwrap();
+        g.add_node(
+            "proc_ext",
+            "Extrusao",
+            NodeType::Process,
+            &["processo"],
+            600.0,
+            0.1,
+        )
+        .unwrap();
+        g.add_node(
+            "prod_garrafa",
+            "Garrafa",
+            NodeType::Product,
+            &["produto"],
+            500.0,
+            0.6,
+        )
+        .unwrap();
 
-        g.add_edge(NodeId::new(0), NodeId::new(3), "feeds_into", FiniteF32::new(0.8), EdgeDirection::Forward, false, FiniteF32::new(0.5)).unwrap();
-        g.add_edge(NodeId::new(1), NodeId::new(3), "feeds_into", FiniteF32::new(0.7), EdgeDirection::Forward, false, FiniteF32::new(0.3)).unwrap();
-        g.add_edge(NodeId::new(2), NodeId::new(4), "feeds_into", FiniteF32::new(0.6), EdgeDirection::Forward, false, FiniteF32::new(0.2)).unwrap();
-        g.add_edge(NodeId::new(3), NodeId::new(5), "produces", FiniteF32::new(0.9), EdgeDirection::Forward, false, FiniteF32::new(0.8)).unwrap();
-        g.add_edge(NodeId::new(0), NodeId::new(1), "similar_to", FiniteF32::new(0.5), EdgeDirection::Bidirectional, false, FiniteF32::ZERO).unwrap();
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(3),
+            "feeds_into",
+            FiniteF32::new(0.8),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.5),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(1),
+            NodeId::new(3),
+            "feeds_into",
+            FiniteF32::new(0.7),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.3),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(2),
+            NodeId::new(4),
+            "feeds_into",
+            FiniteF32::new(0.6),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.2),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(3),
+            NodeId::new(5),
+            "produces",
+            FiniteF32::new(0.9),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.8),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(1),
+            "similar_to",
+            FiniteF32::new(0.5),
+            EdgeDirection::Bidirectional,
+            false,
+            FiniteF32::ZERO,
+        )
+        .unwrap();
 
         g.finalize().unwrap();
         g
@@ -143,7 +236,9 @@ mod tests {
     #[test]
     fn graph_add_node_and_resolve() {
         let mut g = Graph::new();
-        let n1 = g.add_node("ext1", "Label1", NodeType::Module, &[], 0.0, 0.0).unwrap();
+        let n1 = g
+            .add_node("ext1", "Label1", NodeType::Module, &[], 0.0, 0.0)
+            .unwrap();
         assert_eq!(n1, NodeId::new(0));
         assert_eq!(g.num_nodes(), 1);
         assert_eq!(g.resolve_id("ext1"), Some(NodeId::new(0)));
@@ -152,7 +247,8 @@ mod tests {
     #[test]
     fn graph_add_node_duplicate() {
         let mut g = Graph::new();
-        g.add_node("ext1", "label1", NodeType::Module, &[], 0.0, 0.0).unwrap();
+        g.add_node("ext1", "label1", NodeType::Module, &[], 0.0, 0.0)
+            .unwrap();
         let n2 = g.add_node("ext1", "label2", NodeType::Module, &[], 0.0, 0.0);
         assert!(matches!(n2, Err(M1ndError::DuplicateNode(_))));
     }
@@ -160,9 +256,19 @@ mod tests {
     #[test]
     fn graph_add_edge_dangling() {
         let mut g = Graph::new();
-        let n1 = g.add_node("a", "A", NodeType::Module, &[], 0.0, 0.0).unwrap();
+        let n1 = g
+            .add_node("a", "A", NodeType::Module, &[], 0.0, 0.0)
+            .unwrap();
         let bad = NodeId::new(999);
-        let e = g.add_edge(n1, bad, "calls", FiniteF32::ONE, EdgeDirection::Forward, false, FiniteF32::ZERO);
+        let e = g.add_edge(
+            n1,
+            bad,
+            "calls",
+            FiniteF32::ONE,
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::ZERO,
+        );
         assert!(matches!(e, Err(M1ndError::DanglingEdge { .. })));
     }
 
@@ -192,7 +298,11 @@ mod tests {
         let g = build_test_graph();
         let seeds = SeedFinder::find_seeds(&g, "Polietileno", 200).unwrap();
         assert!(!seeds.is_empty(), "Should find at least one seed");
-        assert_eq!(seeds[0].1.get(), 1.0, "Exact match should have relevance 1.0");
+        assert_eq!(
+            seeds[0].1.get(),
+            1.0,
+            "Exact match should have relevance 1.0"
+        );
     }
 
     #[test]
@@ -227,7 +337,10 @@ mod tests {
         let config = PropagationConfig::default();
         let seeds = vec![(NodeId::new(0), FiniteF32::ONE)];
         let result = engine.propagate(&g, &seeds, &config).unwrap();
-        assert!(!result.scores.is_empty(), "Wavefront should activate at least one node");
+        assert!(
+            !result.scores.is_empty(),
+            "Wavefront should activate at least one node"
+        );
         assert!(result.scores[0].1.get() > 0.0);
     }
 
@@ -238,7 +351,10 @@ mod tests {
         let config = PropagationConfig::default();
         let seeds = vec![(NodeId::new(0), FiniteF32::ONE)];
         let result = engine.propagate(&g, &seeds, &config).unwrap();
-        assert!(!result.scores.is_empty(), "Heap should activate at least one node");
+        assert!(
+            !result.scores.is_empty(),
+            "Heap should activate at least one node"
+        );
     }
 
     #[test]
@@ -285,8 +401,11 @@ mod tests {
         // With 4-dim resonance bonus of 1.5x, score should be boosted
         let base = 0.5 * 0.35 + 0.5 * 0.25 + 0.5 * 0.15 + 0.5 * 0.25;
         let expected = base * RESONANCE_BONUS_4DIM;
-        assert!((activated.activation.get() - expected).abs() < 0.01,
-            "Expected ~{expected}, got {}", activated.activation.get());
+        assert!(
+            (activated.activation.get() - expected).abs() < 0.01,
+            "Expected ~{expected}, got {}",
+            activated.activation.get()
+        );
     }
 
     // ===== STEP-006: xlr.rs tests =====
@@ -329,8 +448,11 @@ mod tests {
         let scorer = TemporalDecayScorer::new(PosF32::new(168.0).unwrap());
         let result = scorer.score_one(-10.0, FiniteF32::ZERO, None);
         // FM-TMP-009: negative age clamped to 0 -> raw_decay should be 1.0
-        assert!((result.raw_decay.get() - 1.0).abs() < 0.01,
-            "Negative age should clamp to decay=1.0, got {}", result.raw_decay.get());
+        assert!(
+            (result.raw_decay.get() - 1.0).abs() < 0.01,
+            "Negative age should clamp to decay=1.0, got {}",
+            result.raw_decay.get()
+        );
     }
 
     #[test]
@@ -338,8 +460,11 @@ mod tests {
         let scorer = TemporalDecayScorer::new(PosF32::new(168.0).unwrap());
         let result = scorer.score_one(168.0, FiniteF32::ZERO, None);
         // After one half-life, decay should be ~0.5
-        assert!((result.raw_decay.get() - 0.5).abs() < 0.05,
-            "After one half-life, decay ~0.5, got {}", result.raw_decay.get());
+        assert!(
+            (result.raw_decay.get() - 0.5).abs() < 0.05,
+            "After one half-life, decay ~0.5, got {}",
+            result.raw_decay.get()
+        );
     }
 
     #[test]
@@ -406,7 +531,10 @@ mod tests {
         };
         acc.accumulate(&pulse1);
         let amp = acc.amplitude().get();
-        assert!((amp - 1.0).abs() < 0.01, "Single pulse amplitude should be ~1.0");
+        assert!(
+            (amp - 1.0).abs() < 0.01,
+            "Single pulse amplitude should be ~1.0"
+        );
     }
 
     #[test]
@@ -414,11 +542,14 @@ mod tests {
         let g = build_test_graph();
         let propagator = StandingWavePropagator::new(5, FiniteF32::new(0.01), 10_000);
         let seeds = vec![(NodeId::new(0), FiniteF32::ONE)];
-        let result = propagator.propagate(
-            &g, &seeds,
-            PosF32::new(1.0).unwrap(),
-            PosF32::new(4.0).unwrap(),
-        ).unwrap();
+        let result = propagator
+            .propagate(
+                &g,
+                &seeds,
+                PosF32::new(1.0).unwrap(),
+                PosF32::new(4.0).unwrap(),
+            )
+            .unwrap();
         assert!(result.pulses_processed > 0);
         assert!(!result.antinodes.is_empty());
     }
@@ -501,33 +632,192 @@ mod tests {
     fn make_test_graph() -> Graph {
         let mut g = Graph::new();
         // 10 nodes: mix of types
-        g.add_node("n0", "Alpha",    NodeType::Material,  &["group_a", "core"],   1000.0, 0.9).unwrap();
-        g.add_node("n1", "Beta",     NodeType::Material,  &["group_a", "core"],   900.0,  0.8).unwrap();
-        g.add_node("n2", "Gamma",    NodeType::Process,   &["group_b"],           800.0,  0.7).unwrap();
-        g.add_node("n3", "Delta",    NodeType::Process,   &["group_b"],           700.0,  0.6).unwrap();
-        g.add_node("n4", "Epsilon",  NodeType::Product,   &["group_c"],           600.0,  0.5).unwrap();
-        g.add_node("n5", "Zeta",     NodeType::Product,   &["group_c"],           500.0,  0.4).unwrap();
-        g.add_node("n6", "Eta",      NodeType::Module,    &["group_d"],           400.0,  0.3).unwrap();
-        g.add_node("n7", "Theta",    NodeType::Module,    &["group_d"],           300.0,  0.2).unwrap();
-        g.add_node("n8", "Iota",     NodeType::Concept,   &["group_e"],           200.0,  0.1).unwrap();
-        g.add_node("n9", "Kappa",    NodeType::Concept,   &["group_e"],           100.0,  0.05).unwrap();
+        g.add_node(
+            "n0",
+            "Alpha",
+            NodeType::Material,
+            &["group_a", "core"],
+            1000.0,
+            0.9,
+        )
+        .unwrap();
+        g.add_node(
+            "n1",
+            "Beta",
+            NodeType::Material,
+            &["group_a", "core"],
+            900.0,
+            0.8,
+        )
+        .unwrap();
+        g.add_node("n2", "Gamma", NodeType::Process, &["group_b"], 800.0, 0.7)
+            .unwrap();
+        g.add_node("n3", "Delta", NodeType::Process, &["group_b"], 700.0, 0.6)
+            .unwrap();
+        g.add_node("n4", "Epsilon", NodeType::Product, &["group_c"], 600.0, 0.5)
+            .unwrap();
+        g.add_node("n5", "Zeta", NodeType::Product, &["group_c"], 500.0, 0.4)
+            .unwrap();
+        g.add_node("n6", "Eta", NodeType::Module, &["group_d"], 400.0, 0.3)
+            .unwrap();
+        g.add_node("n7", "Theta", NodeType::Module, &["group_d"], 300.0, 0.2)
+            .unwrap();
+        g.add_node("n8", "Iota", NodeType::Concept, &["group_e"], 200.0, 0.1)
+            .unwrap();
+        g.add_node("n9", "Kappa", NodeType::Concept, &["group_e"], 100.0, 0.05)
+            .unwrap();
 
         // 15 edges: hub at n0, chain n0->n2->n4->n6->n8, cross-links
-        g.add_edge(NodeId::new(0), NodeId::new(1), "similar",   FiniteF32::new(0.9), EdgeDirection::Bidirectional, false, FiniteF32::ZERO).unwrap();
-        g.add_edge(NodeId::new(0), NodeId::new(2), "feeds",     FiniteF32::new(0.8), EdgeDirection::Forward,       false, FiniteF32::new(0.7)).unwrap();
-        g.add_edge(NodeId::new(0), NodeId::new(3), "feeds",     FiniteF32::new(0.7), EdgeDirection::Forward,       false, FiniteF32::new(0.6)).unwrap();
-        g.add_edge(NodeId::new(0), NodeId::new(4), "feeds",     FiniteF32::new(0.6), EdgeDirection::Forward,       false, FiniteF32::new(0.5)).unwrap();
-        g.add_edge(NodeId::new(0), NodeId::new(5), "feeds",     FiniteF32::new(0.5), EdgeDirection::Forward,       false, FiniteF32::new(0.4)).unwrap();
-        g.add_edge(NodeId::new(2), NodeId::new(4), "produces",  FiniteF32::new(0.8), EdgeDirection::Forward,       false, FiniteF32::new(0.8)).unwrap();
-        g.add_edge(NodeId::new(3), NodeId::new(5), "produces",  FiniteF32::new(0.7), EdgeDirection::Forward,       false, FiniteF32::new(0.7)).unwrap();
-        g.add_edge(NodeId::new(4), NodeId::new(6), "uses",      FiniteF32::new(0.6), EdgeDirection::Forward,       false, FiniteF32::new(0.3)).unwrap();
-        g.add_edge(NodeId::new(5), NodeId::new(7), "uses",      FiniteF32::new(0.5), EdgeDirection::Forward,       false, FiniteF32::new(0.2)).unwrap();
-        g.add_edge(NodeId::new(6), NodeId::new(8), "refs",      FiniteF32::new(0.4), EdgeDirection::Forward,       false, FiniteF32::new(0.1)).unwrap();
-        g.add_edge(NodeId::new(7), NodeId::new(9), "refs",      FiniteF32::new(0.3), EdgeDirection::Forward,       false, FiniteF32::ZERO).unwrap();
-        g.add_edge(NodeId::new(1), NodeId::new(3), "feeds",     FiniteF32::new(0.6), EdgeDirection::Forward,       false, FiniteF32::new(0.5)).unwrap();
-        g.add_edge(NodeId::new(8), NodeId::new(9), "related",   FiniteF32::new(0.5), EdgeDirection::Bidirectional, false, FiniteF32::ZERO).unwrap();
-        g.add_edge(NodeId::new(6), NodeId::new(7), "related",   FiniteF32::new(0.4), EdgeDirection::Bidirectional, false, FiniteF32::ZERO).unwrap();
-        g.add_edge(NodeId::new(2), NodeId::new(3), "related",   FiniteF32::new(0.3), EdgeDirection::Bidirectional, false, FiniteF32::ZERO).unwrap();
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(1),
+            "similar",
+            FiniteF32::new(0.9),
+            EdgeDirection::Bidirectional,
+            false,
+            FiniteF32::ZERO,
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(2),
+            "feeds",
+            FiniteF32::new(0.8),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.7),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(3),
+            "feeds",
+            FiniteF32::new(0.7),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.6),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(4),
+            "feeds",
+            FiniteF32::new(0.6),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.5),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(5),
+            "feeds",
+            FiniteF32::new(0.5),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.4),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(2),
+            NodeId::new(4),
+            "produces",
+            FiniteF32::new(0.8),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.8),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(3),
+            NodeId::new(5),
+            "produces",
+            FiniteF32::new(0.7),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.7),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(4),
+            NodeId::new(6),
+            "uses",
+            FiniteF32::new(0.6),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.3),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(5),
+            NodeId::new(7),
+            "uses",
+            FiniteF32::new(0.5),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.2),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(6),
+            NodeId::new(8),
+            "refs",
+            FiniteF32::new(0.4),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.1),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(7),
+            NodeId::new(9),
+            "refs",
+            FiniteF32::new(0.3),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::ZERO,
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(1),
+            NodeId::new(3),
+            "feeds",
+            FiniteF32::new(0.6),
+            EdgeDirection::Forward,
+            false,
+            FiniteF32::new(0.5),
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(8),
+            NodeId::new(9),
+            "related",
+            FiniteF32::new(0.5),
+            EdgeDirection::Bidirectional,
+            false,
+            FiniteF32::ZERO,
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(6),
+            NodeId::new(7),
+            "related",
+            FiniteF32::new(0.4),
+            EdgeDirection::Bidirectional,
+            false,
+            FiniteF32::ZERO,
+        )
+        .unwrap();
+        g.add_edge(
+            NodeId::new(2),
+            NodeId::new(3),
+            "related",
+            FiniteF32::new(0.3),
+            EdgeDirection::Bidirectional,
+            false,
+            FiniteF32::ZERO,
+        )
+        .unwrap();
 
         g.finalize().unwrap();
         g
@@ -553,7 +843,11 @@ mod tests {
         let results = idx.query_top_k(NodeId::new(0), 5);
         // All returned PPMI similarity scores must be positive
         for &(_, score) in &results {
-            assert!(score.get() >= 0.0, "PPMI score must be non-negative, got {}", score.get());
+            assert!(
+                score.get() >= 0.0,
+                "PPMI score must be non-negative, got {}",
+                score.get()
+            );
         }
     }
 
@@ -564,7 +858,10 @@ mod tests {
         let engine = SemanticEngine::build(&g, SemanticWeights::default()).unwrap();
         let results = engine.query(&g, "Alpha", 5).unwrap();
         // Searching for "Alpha" should return at least the node with that label
-        assert!(!results.is_empty(), "Semantic query for exact label should return results");
+        assert!(
+            !results.is_empty(),
+            "Semantic query for exact label should return results"
+        );
     }
 
     #[test]
@@ -574,9 +871,16 @@ mod tests {
         let idx = CharNgramIndex::build(&g, 3).unwrap();
         let results = idx.query_top_k("Alpha", 10);
         // The node labeled "Alpha" should appear in results
-        assert!(!results.is_empty(), "N-gram search for exact label should find matches");
+        assert!(
+            !results.is_empty(),
+            "N-gram search for exact label should find matches"
+        );
         // Top result should be node 0 (Alpha)
-        assert_eq!(results[0].0, NodeId::new(0), "Top result should be node 0 (Alpha)");
+        assert_eq!(
+            results[0].0,
+            NodeId::new(0),
+            "Top result should be node 0 (Alpha)"
+        );
     }
 
     #[test]
@@ -596,7 +900,11 @@ mod tests {
         let idx = CharNgramIndex::build(&g, 3).unwrap();
         let qvec = idx.query_vector("Alpha");
         let sim = CharNgramIndex::cosine_similarity(&qvec, &qvec);
-        assert!((sim.get() - 1.0).abs() < 0.01, "Self-similarity should be ~1.0, got {}", sim.get());
+        assert!(
+            (sim.get() - 1.0).abs() < 0.01,
+            "Self-similarity should be ~1.0, got {}",
+            sim.get()
+        );
     }
 
     #[test]
@@ -604,7 +912,11 @@ mod tests {
         use crate::semantic::{CharNgramIndex, NgramVector};
         let empty: NgramVector = std::collections::HashMap::new();
         let sim = CharNgramIndex::cosine_similarity(&empty, &empty);
-        assert_eq!(sim.get(), 0.0, "Cosine similarity of empty vectors should be 0");
+        assert_eq!(
+            sim.get(),
+            0.0,
+            "Cosine similarity of empty vectors should be 0"
+        );
     }
 
     #[test]
@@ -630,12 +942,16 @@ mod tests {
 
     #[test]
     fn test_snapshot_roundtrip_graph() {
-        use crate::snapshot::{save_graph, load_graph};
+        use crate::snapshot::{load_graph, save_graph};
         let g = make_test_graph();
         let path = std::path::PathBuf::from("/tmp/m1nd_test_snapshot_graph.json");
         save_graph(&g, &path).unwrap();
         let loaded = load_graph(&path).unwrap();
-        assert_eq!(loaded.num_nodes(), g.num_nodes(), "Node count mismatch after roundtrip");
+        assert_eq!(
+            loaded.num_nodes(),
+            g.num_nodes(),
+            "Node count mismatch after roundtrip"
+        );
         // Edges may differ slightly due to bidirectional expansion, but should be non-zero
         assert!(loaded.num_edges() > 0, "Loaded graph should have edges");
         assert!(loaded.finalized, "Loaded graph should be finalized");
@@ -645,21 +961,27 @@ mod tests {
 
     #[test]
     fn test_snapshot_roundtrip_preserves_labels() {
-        use crate::snapshot::{save_graph, load_graph};
+        use crate::snapshot::{load_graph, save_graph};
         let g = make_test_graph();
         let path = std::path::PathBuf::from("/tmp/m1nd_test_snapshot_labels.json");
         save_graph(&g, &path).unwrap();
         let loaded = load_graph(&path).unwrap();
         // Check that node n0 ("Alpha") can be resolved
-        assert!(loaded.resolve_id("n0").is_some(), "Should resolve 'n0' after roundtrip");
-        assert!(loaded.resolve_id("n9").is_some(), "Should resolve 'n9' after roundtrip");
+        assert!(
+            loaded.resolve_id("n0").is_some(),
+            "Should resolve 'n0' after roundtrip"
+        );
+        assert!(
+            loaded.resolve_id("n9").is_some(),
+            "Should resolve 'n9' after roundtrip"
+        );
         let _ = std::fs::remove_file(&path);
     }
 
     #[test]
     fn test_snapshot_roundtrip_preserves_provenance() {
         use crate::graph::NodeProvenanceInput;
-        use crate::snapshot::{save_graph, load_graph};
+        use crate::snapshot::{load_graph, save_graph};
 
         let mut g = make_test_graph();
         let node = g.resolve_id("n0").unwrap();
@@ -680,7 +1002,10 @@ mod tests {
         let loaded = load_graph(&path).unwrap();
         let provenance = loaded.resolve_node_provenance(loaded.resolve_id("n0").unwrap());
 
-        assert_eq!(provenance.source_path.as_deref(), Some("memory/2026-03-13.md"));
+        assert_eq!(
+            provenance.source_path.as_deref(),
+            Some("memory/2026-03-13.md")
+        );
         assert_eq!(provenance.line_start, Some(12));
         assert_eq!(provenance.line_end, Some(14));
         assert_eq!(
@@ -695,8 +1020,8 @@ mod tests {
 
     #[test]
     fn test_snapshot_roundtrip_plasticity_state() {
-        use crate::snapshot::{save_plasticity_state, load_plasticity_state};
         use crate::plasticity::SynapticState;
+        use crate::snapshot::{load_plasticity_state, save_plasticity_state};
         let states = vec![
             SynapticState {
                 source_label: "n0".to_string(),
@@ -736,7 +1061,10 @@ mod tests {
         use crate::snapshot::load_graph;
         let path = std::path::Path::new("/tmp/m1nd_test_nonexistent_42.json");
         let result = load_graph(path);
-        assert!(result.is_err(), "Loading nonexistent file should return error");
+        assert!(
+            result.is_err(),
+            "Loading nonexistent file should return error"
+        );
     }
 
     #[test]
@@ -758,9 +1086,18 @@ mod tests {
         let data = std::fs::read_to_string(&path).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&data).unwrap();
         assert!(parsed.is_object(), "Saved snapshot should be a JSON object");
-        assert!(parsed.get("version").is_some(), "Snapshot should have version field");
-        assert!(parsed.get("nodes").is_some(), "Snapshot should have nodes field");
-        assert!(parsed.get("edges").is_some(), "Snapshot should have edges field");
+        assert!(
+            parsed.get("version").is_some(),
+            "Snapshot should have version field"
+        );
+        assert!(
+            parsed.get("nodes").is_some(),
+            "Snapshot should have nodes field"
+        );
+        assert!(
+            parsed.get("edges").is_some(),
+            "Snapshot should have edges field"
+        );
         let _ = std::fs::remove_file(&path);
     }
 
@@ -770,7 +1107,10 @@ mod tests {
     fn test_query_orchestrator_builds_from_finalized_graph() {
         let g = make_test_graph();
         let orch = QueryOrchestrator::build(&g);
-        assert!(orch.is_ok(), "Orchestrator should build from finalized graph");
+        assert!(
+            orch.is_ok(),
+            "Orchestrator should build from finalized graph"
+        );
     }
 
     #[test]
@@ -842,8 +1182,13 @@ mod tests {
         let config = PropagationConfig::default();
         let cf = CounterfactualEngine::with_defaults();
         // Node 9 (Kappa) is a leaf — removing it should have low/zero impact
-        let result = cf.simulate_removal(&g, &engine, &config, &[NodeId::new(9)]).unwrap();
-        assert!(result.total_impact.get() >= 0.0, "Impact should be non-negative");
+        let result = cf
+            .simulate_removal(&g, &engine, &config, &[NodeId::new(9)])
+            .unwrap();
+        assert!(
+            result.total_impact.get() >= 0.0,
+            "Impact should be non-negative"
+        );
         // Leaf removal typically has very low impact
     }
 
@@ -854,8 +1199,13 @@ mod tests {
         let config = PropagationConfig::default();
         let cf = CounterfactualEngine::with_defaults();
         // Node 0 (Alpha) is the hub — removing it should have significant impact
-        let result = cf.simulate_removal(&g, &engine, &config, &[NodeId::new(0)]).unwrap();
-        assert!(result.total_impact.get() >= 0.0, "Hub removal should have non-negative impact");
+        let result = cf
+            .simulate_removal(&g, &engine, &config, &[NodeId::new(0)])
+            .unwrap();
+        assert!(
+            result.total_impact.get() >= 0.0,
+            "Hub removal should have non-negative impact"
+        );
     }
 
     #[test]
@@ -865,8 +1215,11 @@ mod tests {
         let config = PropagationConfig::default();
         let cf = CounterfactualEngine::with_defaults();
         let result = cf.simulate_removal(&g, &engine, &config, &[]).unwrap();
-        assert!((result.total_impact.get() - 0.0).abs() < 0.01,
-            "Empty removal should have ~0% impact, got {}", result.total_impact.get());
+        assert!(
+            (result.total_impact.get() - 0.0).abs() < 0.01,
+            "Empty removal should have ~0% impact, got {}",
+            result.total_impact.get()
+        );
     }
 
     #[test]
@@ -875,17 +1228,21 @@ mod tests {
         let engine = HybridEngine::new();
         let config = PropagationConfig::default();
         let cf = CounterfactualEngine::with_defaults();
-        let synergy = cf.synergy_analysis(
-            &g, &engine, &config,
-            &[NodeId::new(0), NodeId::new(2)],
-        ).unwrap();
+        let synergy = cf
+            .synergy_analysis(&g, &engine, &config, &[NodeId::new(0), NodeId::new(2)])
+            .unwrap();
         // Combined impact should be >= max individual (synergy or at least additive)
-        let max_individual = synergy.individual_impacts.iter()
+        let max_individual = synergy
+            .individual_impacts
+            .iter()
             .map(|(_, s)| s.get())
             .fold(0.0f32, f32::max);
-        assert!(synergy.combined_impact.get() >= max_individual * 0.5,
+        assert!(
+            synergy.combined_impact.get() >= max_individual * 0.5,
             "Combined impact ({}) should be significant relative to individual ({})",
-            synergy.combined_impact.get(), max_individual);
+            synergy.combined_impact.get(),
+            max_individual
+        );
     }
 
     #[test]
@@ -894,10 +1251,18 @@ mod tests {
         let engine = HybridEngine::new();
         let config = PropagationConfig::default();
         let cf = CounterfactualEngine::with_defaults();
-        let cascade = cf.cascade_analysis(&g, &engine, &config, NodeId::new(0)).unwrap();
+        let cascade = cf
+            .cascade_analysis(&g, &engine, &config, NodeId::new(0))
+            .unwrap();
         // Hub node should have downstream cascade
-        assert!(cascade.total_affected > 0, "Hub removal should have downstream cascade");
-        assert!(cascade.cascade_depth > 0, "Cascade depth from hub should be > 0");
+        assert!(
+            cascade.total_affected > 0,
+            "Hub removal should have downstream cascade"
+        );
+        assert!(
+            cascade.cascade_depth > 0,
+            "Cascade depth from hub should be > 0"
+        );
     }
 
     #[test]
@@ -908,8 +1273,11 @@ mod tests {
         mask.remove_node(&g, NodeId::new(0));
         let out_range = g.csr.out_range(NodeId::new(0));
         for j in out_range {
-            assert!(mask.is_edge_removed(EdgeIdx::new(j as u32)),
-                "Edge {} from removed node should be marked removed", j);
+            assert!(
+                mask.is_edge_removed(EdgeIdx::new(j as u32)),
+                "Edge {} from removed node should be marked removed",
+                j
+            );
         }
     }
 
@@ -938,8 +1306,13 @@ mod tests {
             (NodeId::new(4), FiniteF32::ONE),
         ];
         let seeds = vec![(NodeId::new(0), FiniteF32::ONE)];
-        let result = engine.update(&mut g, &activated, &seeds, "test query").unwrap();
-        assert!(result.edges_strengthened > 0, "At least one edge should be strengthened");
+        let result = engine
+            .update(&mut g, &activated, &seeds, "test query")
+            .unwrap();
+        assert!(
+            result.edges_strengthened > 0,
+            "At least one edge should be strengthened"
+        );
     }
 
     #[test]
@@ -950,9 +1323,18 @@ mod tests {
         assert!(!states.is_empty(), "Export should produce states");
         // Verify labels are real node IDs, not placeholders
         for state in &states {
-            assert!(!state.source_label.is_empty(), "Source label should not be empty");
-            assert!(!state.target_label.is_empty(), "Target label should not be empty");
-            assert!(!state.source_label.starts_with("node_"), "Source should use real label, not placeholder");
+            assert!(
+                !state.source_label.is_empty(),
+                "Source label should not be empty"
+            );
+            assert!(
+                !state.target_label.is_empty(),
+                "Target label should not be empty"
+            );
+            assert!(
+                !state.source_label.starts_with("node_"),
+                "Source should use real label, not placeholder"
+            );
         }
     }
 
@@ -973,17 +1355,25 @@ mod tests {
         let mut engine = PlasticityEngine::new(&g, PlasticityConfig::default());
         // Read a weight before decay — use an edge from an unactivated node
         let edge_idx = EdgeIdx::new(
-            g.csr.offsets[8] as u32  // first edge from node 8
+            g.csr.offsets[8] as u32, // first edge from node 8
         );
         let before = g.csr.read_weight(edge_idx).get();
         // Run update with NO activated nodes except node 0 — node 8's edges should decay
         let activated = vec![(NodeId::new(0), FiniteF32::ONE)];
         let seeds = vec![(NodeId::new(0), FiniteF32::ONE)];
-        let result = engine.update(&mut g, &activated, &seeds, "decay test").unwrap();
+        let result = engine
+            .update(&mut g, &activated, &seeds, "decay test")
+            .unwrap();
         let after = g.csr.read_weight(edge_idx).get();
         // Decay should reduce weight (or hit floor)
-        assert!(after <= before, "Weight should decrease after decay: before={before}, after={after}");
-        assert!(result.edges_decayed > 0, "At least one edge should be decayed");
+        assert!(
+            after <= before,
+            "Weight should decrease after decay: before={before}, after={after}"
+        );
+        assert!(
+            result.edges_decayed > 0,
+            "At least one edge should be decayed"
+        );
     }
 
     #[test]
@@ -1005,10 +1395,15 @@ mod tests {
         // Run multiple updates to accumulate strengthen_count past threshold
         let mut total_ltp = 0u32;
         for i in 0..6 {
-            let result = engine.update(&mut g, &activated, &seeds, &format!("ltp_test_{i}")).unwrap();
+            let result = engine
+                .update(&mut g, &activated, &seeds, &format!("ltp_test_{i}"))
+                .unwrap();
             total_ltp += result.ltp_events;
         }
-        assert!(total_ltp > 0, "LTP should trigger after repeated strengthening");
+        assert!(
+            total_ltp > 0,
+            "LTP should trigger after repeated strengthening"
+        );
     }
 
     #[test]
@@ -1019,14 +1414,22 @@ mod tests {
             mem.record(QueryRecord {
                 query_text: format!("query_{i}"),
                 seeds: vec![NodeId::new(0), NodeId::new(1)],
-                activated_nodes: vec![NodeId::new(0), NodeId::new(1), NodeId::new(2), NodeId::new(3)],
+                activated_nodes: vec![
+                    NodeId::new(0),
+                    NodeId::new(1),
+                    NodeId::new(2),
+                    NodeId::new(3),
+                ],
                 timestamp: i as f64,
             });
         }
         // Get priming for seed [0] — should find nodes that co-occur
         let priming = mem.get_priming_signal(&[NodeId::new(0)], FiniteF32::new(0.5));
         // Nodes 2 and 3 should appear (frequently activated alongside seed 0)
-        assert!(!priming.is_empty(), "Priming signal should be non-empty after recording queries");
+        assert!(
+            !priming.is_empty(),
+            "Priming signal should be non-empty after recording queries"
+        );
     }
 
     #[test]
@@ -1034,12 +1437,17 @@ mod tests {
         let mut g = make_test_graph();
         // Artificially inflate a weight to exceed homeostatic ceiling
         let edge_idx = EdgeIdx::new(0);
-        let _ = g.csr.atomic_write_weight(edge_idx, FiniteF32::new(10.0), 64);
+        let _ = g
+            .csr
+            .atomic_write_weight(edge_idx, FiniteF32::new(10.0), 64);
         let engine = PlasticityEngine::new(&g, PlasticityConfig::default());
         // Calling export_state should still produce finite weights
         let states = engine.export_state(&g).unwrap();
         for state in &states {
-            assert!(state.current_weight.is_finite(), "Exported weight should be finite");
+            assert!(
+                state.current_weight.is_finite(),
+                "Exported weight should be finite"
+            );
         }
     }
 
@@ -1050,14 +1458,23 @@ mod tests {
         let g = make_test_graph();
         let propagator = StandingWavePropagator::new(10, FiniteF32::new(0.001), 50_000);
         let seeds = vec![(NodeId::new(0), FiniteF32::ONE)];
-        let result = propagator.propagate(
-            &g, &seeds,
-            PosF32::new(1.0).unwrap(),
-            PosF32::new(4.0).unwrap(),
-        ).unwrap();
-        assert!(result.pulses_processed > 0, "Should process at least one pulse");
+        let result = propagator
+            .propagate(
+                &g,
+                &seeds,
+                PosF32::new(1.0).unwrap(),
+                PosF32::new(4.0).unwrap(),
+            )
+            .unwrap();
+        assert!(
+            result.pulses_processed > 0,
+            "Should process at least one pulse"
+        );
         assert!(!result.antinodes.is_empty(), "Should produce antinodes");
-        assert!(result.total_energy.get() > 0.0, "Total energy should be positive");
+        assert!(
+            result.total_energy.get() > 0.0,
+            "Total energy should be positive"
+        );
     }
 
     #[test]
@@ -1066,15 +1483,27 @@ mod tests {
         let propagator = StandingWavePropagator::new(5, FiniteF32::new(0.01), 10_000);
         let analyzer = HarmonicAnalyzer::new(propagator, 3);
         let seeds = vec![(NodeId::new(0), FiniteF32::ONE)];
-        let result = analyzer.analyze(
-            &g, &seeds,
-            PosF32::new(1.0).unwrap(),
-            PosF32::new(4.0).unwrap(),
-        ).unwrap();
-        assert!(!result.harmonics.is_empty(), "Should detect at least one harmonic");
+        let result = analyzer
+            .analyze(
+                &g,
+                &seeds,
+                PosF32::new(1.0).unwrap(),
+                PosF32::new(4.0).unwrap(),
+            )
+            .unwrap();
+        assert!(
+            !result.harmonics.is_empty(),
+            "Should detect at least one harmonic"
+        );
         // Harmonic 1 is the fundamental
-        assert_eq!(result.harmonics[0].harmonic, 1, "First harmonic should be the fundamental");
-        assert!(result.harmonics[0].total_energy.get() > 0.0, "Fundamental should have energy");
+        assert_eq!(
+            result.harmonics[0].harmonic, 1,
+            "First harmonic should be the fundamental"
+        );
+        assert!(
+            result.harmonics[0].total_energy.get() > 0.0,
+            "Fundamental should have energy"
+        );
     }
 
     #[test]
@@ -1083,12 +1512,18 @@ mod tests {
         let propagator = StandingWavePropagator::new(10, FiniteF32::new(0.001), 50_000);
         let detector = SympatheticResonanceDetector::new(propagator, FiniteF32::new(0.01));
         let seeds = vec![(NodeId::new(0), FiniteF32::ONE)];
-        let result = detector.detect(
-            &g, &seeds,
-            PosF32::new(1.0).unwrap(),
-            PosF32::new(4.0).unwrap(),
-        ).unwrap();
-        assert!(result.checked_disconnected, "Should check disconnected components");
+        let result = detector
+            .detect(
+                &g,
+                &seeds,
+                PosF32::new(1.0).unwrap(),
+                PosF32::new(4.0).unwrap(),
+            )
+            .unwrap();
+        assert!(
+            result.checked_disconnected,
+            "Should check disconnected components"
+        );
         // Sympathetic nodes may or may not exist depending on graph topology
         let _ = result.sympathetic_nodes;
     }
@@ -1128,7 +1563,10 @@ mod tests {
         acc.accumulate(&pulse1);
         acc.accumulate(&pulse2);
         let amp = acc.amplitude().get();
-        assert!(amp < 0.1, "Opposite-phase pulses should destructively interfere, got amp={amp}");
+        assert!(
+            amp < 0.1,
+            "Opposite-phase pulses should destructively interfere, got amp={amp}"
+        );
     }
 
     // ===== Graph edge case tests =====
@@ -1150,16 +1588,24 @@ mod tests {
             .max_by(|&a, &b| g.nodes.pagerank[a].cmp(&g.nodes.pagerank[b]))
             .unwrap();
         let max_pr = g.nodes.pagerank[max_idx].get();
-        assert!((max_pr - 1.0).abs() < 0.01, "Highest PageRank should be normalized to ~1.0, got {max_pr}");
+        assert!(
+            (max_pr - 1.0).abs() < 0.01,
+            "Highest PageRank should be normalized to ~1.0, got {max_pr}"
+        );
     }
 
     #[test]
     fn test_graph_csr_offsets_monotonically_increasing() {
         let g = make_test_graph();
         for i in 1..g.csr.offsets.len() {
-            assert!(g.csr.offsets[i] >= g.csr.offsets[i - 1],
+            assert!(
+                g.csr.offsets[i] >= g.csr.offsets[i - 1],
                 "CSR offsets must be monotonically increasing: offsets[{}]={} < offsets[{}]={}",
-                i, g.csr.offsets[i], i - 1, g.csr.offsets[i - 1]);
+                i,
+                g.csr.offsets[i],
+                i - 1,
+                g.csr.offsets[i - 1]
+            );
         }
     }
 
@@ -1167,33 +1613,67 @@ mod tests {
     fn test_graph_bidirectional_edge_creates_two_csr_entries() {
         // Build a minimal graph with one bidirectional edge
         let mut g = Graph::new();
-        g.add_node("a", "A", NodeType::Module, &[], 0.0, 0.0).unwrap();
-        g.add_node("b", "B", NodeType::Module, &[], 0.0, 0.0).unwrap();
-        g.add_edge(NodeId::new(0), NodeId::new(1), "bidir", FiniteF32::ONE,
-                   EdgeDirection::Bidirectional, false, FiniteF32::ZERO).unwrap();
+        g.add_node("a", "A", NodeType::Module, &[], 0.0, 0.0)
+            .unwrap();
+        g.add_node("b", "B", NodeType::Module, &[], 0.0, 0.0)
+            .unwrap();
+        g.add_edge(
+            NodeId::new(0),
+            NodeId::new(1),
+            "bidir",
+            FiniteF32::ONE,
+            EdgeDirection::Bidirectional,
+            false,
+            FiniteF32::ZERO,
+        )
+        .unwrap();
         g.finalize().unwrap();
         // Bidirectional edge should create 2 CSR entries (one in each direction)
-        assert_eq!(g.num_edges(), 2, "Bidirectional edge should produce 2 CSR entries");
+        assert_eq!(
+            g.num_edges(),
+            2,
+            "Bidirectional edge should produce 2 CSR entries"
+        );
         // Node 0 should have outgoing edge to 1
         let out_0 = g.csr.out_range(NodeId::new(0));
-        assert_eq!(out_0.end - out_0.start, 1, "Node 0 should have 1 outgoing edge");
+        assert_eq!(
+            out_0.end - out_0.start,
+            1,
+            "Node 0 should have 1 outgoing edge"
+        );
         // Node 1 should have outgoing edge to 0
         let out_1 = g.csr.out_range(NodeId::new(1));
-        assert_eq!(out_1.end - out_1.start, 1, "Node 1 should have 1 outgoing edge");
+        assert_eq!(
+            out_1.end - out_1.start,
+            1,
+            "Node 1 should have 1 outgoing edge"
+        );
     }
 
     #[test]
     fn test_graph_edge_plasticity_matches_csr_count() {
         let g = make_test_graph();
         let num_csr = g.num_edges();
-        assert_eq!(g.edge_plasticity.original_weight.len(), num_csr,
-            "Plasticity original_weight length should match CSR edge count");
-        assert_eq!(g.edge_plasticity.current_weight.len(), num_csr,
-            "Plasticity current_weight length should match CSR edge count");
-        assert_eq!(g.edge_plasticity.strengthen_count.len(), num_csr,
-            "Plasticity strengthen_count length should match CSR edge count");
-        assert_eq!(g.edge_plasticity.ltp_applied.len(), num_csr,
-            "Plasticity ltp_applied length should match CSR edge count");
+        assert_eq!(
+            g.edge_plasticity.original_weight.len(),
+            num_csr,
+            "Plasticity original_weight length should match CSR edge count"
+        );
+        assert_eq!(
+            g.edge_plasticity.current_weight.len(),
+            num_csr,
+            "Plasticity current_weight length should match CSR edge count"
+        );
+        assert_eq!(
+            g.edge_plasticity.strengthen_count.len(),
+            num_csr,
+            "Plasticity strengthen_count length should match CSR edge count"
+        );
+        assert_eq!(
+            g.edge_plasticity.ltp_applied.len(),
+            num_csr,
+            "Plasticity ltp_applied length should match CSR edge count"
+        );
     }
 
     #[test]
@@ -1205,13 +1685,20 @@ mod tests {
     #[test]
     fn test_graph_avg_degree_positive_for_nonempty_graph() {
         let g = make_test_graph();
-        assert!(g.avg_degree() > 0.0, "Average degree should be positive for non-empty graph");
+        assert!(
+            g.avg_degree() > 0.0,
+            "Average degree should be positive for non-empty graph"
+        );
     }
 
     #[test]
     fn test_graph_avg_degree_zero_for_empty_graph() {
         let g = Graph::new();
-        assert_eq!(g.avg_degree(), 0.0, "Average degree of empty graph should be 0");
+        assert_eq!(
+            g.avg_degree(),
+            0.0,
+            "Average degree of empty graph should be 0"
+        );
     }
 
     // ===== Additional counterfactual tests =====
@@ -1223,11 +1710,16 @@ mod tests {
         let config = PropagationConfig::default();
         let cf = CounterfactualEngine::new(4, 5);
         let result = cf.find_keystones(&g, &engine, &config).unwrap();
-        assert!(!result.keystones.is_empty(), "Should identify at least one keystone");
+        assert!(
+            !result.keystones.is_empty(),
+            "Should identify at least one keystone"
+        );
         // Keystones should be sorted by impact descending
         for i in 1..result.keystones.len() {
-            assert!(result.keystones[i - 1].avg_impact.get() >= result.keystones[i].avg_impact.get(),
-                "Keystones should be sorted by impact descending");
+            assert!(
+                result.keystones[i - 1].avg_impact.get() >= result.keystones[i].avg_impact.get(),
+                "Keystones should be sorted by impact descending"
+            );
         }
     }
 
@@ -1237,10 +1729,15 @@ mod tests {
         let engine = HybridEngine::new();
         let config = PropagationConfig::default();
         let cf = CounterfactualEngine::with_defaults();
-        let result = cf.check_redundancy(&g, &engine, &config, NodeId::new(9)).unwrap();
+        let result = cf
+            .check_redundancy(&g, &engine, &config, NodeId::new(9))
+            .unwrap();
         // Leaf node should be fairly redundant (high score)
-        assert!(result.redundancy_score.get() >= 0.0 && result.redundancy_score.get() <= 1.0,
-            "Redundancy score should be in [0,1], got {}", result.redundancy_score.get());
+        assert!(
+            result.redundancy_score.get() >= 0.0 && result.redundancy_score.get() <= 1.0,
+            "Redundancy score should be in [0,1], got {}",
+            result.redundancy_score.get()
+        );
     }
 
     #[test]
@@ -1249,11 +1746,18 @@ mod tests {
         let engine = HybridEngine::new();
         let config = PropagationConfig::default();
         let cf = CounterfactualEngine::with_defaults();
-        let result = cf.simulate_removal(&g, &engine, &config, &[NodeId::new(0)]).unwrap();
-        assert!(result.reachability_before > 0, "Reachability before should be > 0");
+        let result = cf
+            .simulate_removal(&g, &engine, &config, &[NodeId::new(0)])
+            .unwrap();
+        assert!(
+            result.reachability_before > 0,
+            "Reachability before should be > 0"
+        );
         // After removing hub, reachability should decrease
-        assert!(result.reachability_after <= result.reachability_before,
-            "Reachability should not increase after removal");
+        assert!(
+            result.reachability_after <= result.reachability_before,
+            "Reachability should not increase after removal"
+        );
     }
 
     // ===== Additional query / orchestration tests =====
@@ -1309,8 +1813,11 @@ mod tests {
         let w_sum = 0.35 + 0.25 + 0.15; // adaptive weights redistribute
         let base = 0.5 * (0.35 / w_sum) + 0.5 * (0.25 / w_sum) + 0.5 * (0.15 / w_sum);
         let expected = base * RESONANCE_BONUS_3DIM;
-        assert!((activated.activation.get() - expected).abs() < 0.02,
-            "Expected ~{expected}, got {}", activated.activation.get());
+        assert!(
+            (activated.activation.get() - expected).abs() < 0.02,
+            "Expected ~{expected}, got {}",
+            activated.activation.get()
+        );
     }
 
     #[test]
@@ -1335,8 +1842,11 @@ mod tests {
         // No resonance bonus for single dimension
         // Adaptive weight: 0.35 redistributed to 1.0 (only active dim)
         let expected = 0.5 * 1.0; // weight normalized to 1.0 since only one dim active
-        assert!((activated.activation.get() - expected).abs() < 0.02,
-            "Expected ~{expected} (no bonus), got {}", activated.activation.get());
+        assert!(
+            (activated.activation.get() - expected).abs() < 0.02,
+            "Expected ~{expected} (no bonus), got {}",
+            activated.activation.get()
+        );
     }
 
     // ===== Bloom filter edge cases =====
@@ -1381,7 +1891,10 @@ mod tests {
         let result = activate_temporal(&g, &seeds, &weights).unwrap();
         assert_eq!(result.dimension, Dimension::Temporal);
         // Should produce at least one score for the seed node
-        assert!(!result.scores.is_empty(), "Temporal activation should produce scores for seeds");
+        assert!(
+            !result.scores.is_empty(),
+            "Temporal activation should produce scores for seeds"
+        );
     }
 
     #[test]
@@ -1444,8 +1957,11 @@ mod tests {
             (NodeId::new(1), FiniteF32::new(0.3)),
         ];
         let sim = CoOccurrenceIndex::cosine_similarity(&a, &a);
-        assert!((sim.get() - 1.0).abs() < 0.01,
-            "Cosine similarity of identical vectors should be ~1.0, got {}", sim.get());
+        assert!(
+            (sim.get() - 1.0).abs() < 0.01,
+            "Cosine similarity of identical vectors should be ~1.0, got {}",
+            sim.get()
+        );
     }
 
     // =================================================================
@@ -1545,8 +2061,10 @@ mod tests {
     fn test_co_change_empty_matrix_returns_empty() {
         // Build a graph with no edges -> bootstrap produces an empty matrix
         let mut g = Graph::new();
-        g.add_node("iso_a", "IsoA", NodeType::File, &[], 0.0, 0.1).unwrap();
-        g.add_node("iso_b", "IsoB", NodeType::File, &[], 0.0, 0.1).unwrap();
+        g.add_node("iso_a", "IsoA", NodeType::File, &[], 0.0, 0.1)
+            .unwrap();
+        g.add_node("iso_b", "IsoB", NodeType::File, &[], 0.0, 0.1)
+            .unwrap();
         g.finalize().unwrap();
 
         let matrix = CoChangeMatrix::bootstrap(&g, 500_000).unwrap();
@@ -1585,9 +2103,12 @@ mod tests {
     fn test_velocity_zscore_zero_for_average() {
         // Build a graph where all nodes have the same frequency
         let mut g = Graph::new();
-        g.add_node("v0", "V0", NodeType::File, &[], 1000.0, 0.5).unwrap();
-        g.add_node("v1", "V1", NodeType::File, &[], 1000.0, 0.5).unwrap();
-        g.add_node("v2", "V2", NodeType::File, &[], 1000.0, 0.5).unwrap();
+        g.add_node("v0", "V0", NodeType::File, &[], 1000.0, 0.5)
+            .unwrap();
+        g.add_node("v1", "V1", NodeType::File, &[], 1000.0, 0.5)
+            .unwrap();
+        g.add_node("v2", "V2", NodeType::File, &[], 1000.0, 0.5)
+            .unwrap();
         g.finalize().unwrap();
 
         let score = VelocityScorer::score_one(&g, NodeId::new(0), 2000.0).unwrap();
@@ -1603,10 +2124,14 @@ mod tests {
     fn test_velocity_high_frequency_positive_zscore() {
         // Build a graph with one high-frequency node and several low ones
         let mut g = Graph::new();
-        g.add_node("high", "High", NodeType::File, &[], 1000.0, 1.0).unwrap();
-        g.add_node("low1", "Low1", NodeType::File, &[], 1000.0, 0.1).unwrap();
-        g.add_node("low2", "Low2", NodeType::File, &[], 1000.0, 0.1).unwrap();
-        g.add_node("low3", "Low3", NodeType::File, &[], 1000.0, 0.1).unwrap();
+        g.add_node("high", "High", NodeType::File, &[], 1000.0, 1.0)
+            .unwrap();
+        g.add_node("low1", "Low1", NodeType::File, &[], 1000.0, 0.1)
+            .unwrap();
+        g.add_node("low2", "Low2", NodeType::File, &[], 1000.0, 0.1)
+            .unwrap();
+        g.add_node("low3", "Low3", NodeType::File, &[], 1000.0, 0.1)
+            .unwrap();
         g.finalize().unwrap();
 
         let score = VelocityScorer::score_one(&g, NodeId::new(0), 2000.0).unwrap();
@@ -1621,10 +2146,14 @@ mod tests {
     fn test_velocity_low_frequency_negative_zscore() {
         // Build a graph with one low-frequency node and several high ones
         let mut g = Graph::new();
-        g.add_node("low", "Low", NodeType::File, &[], 1000.0, 0.05).unwrap();
-        g.add_node("high1", "High1", NodeType::File, &[], 1000.0, 0.9).unwrap();
-        g.add_node("high2", "High2", NodeType::File, &[], 1000.0, 0.9).unwrap();
-        g.add_node("high3", "High3", NodeType::File, &[], 1000.0, 0.9).unwrap();
+        g.add_node("low", "Low", NodeType::File, &[], 1000.0, 0.05)
+            .unwrap();
+        g.add_node("high1", "High1", NodeType::File, &[], 1000.0, 0.9)
+            .unwrap();
+        g.add_node("high2", "High2", NodeType::File, &[], 1000.0, 0.9)
+            .unwrap();
+        g.add_node("high3", "High3", NodeType::File, &[], 1000.0, 0.9)
+            .unwrap();
         g.finalize().unwrap();
 
         let score = VelocityScorer::score_one(&g, NodeId::new(0), 2000.0).unwrap();
@@ -1682,18 +2211,10 @@ mod tests {
         let age_hours = 336.0; // 14 days
 
         // Function has half-life 336h (14d), Module has half-life 720h (30d)
-        let func_decay = scorer.score_one_typed(
-            age_hours,
-            FiniteF32::ZERO,
-            None,
-            Some(NodeType::Function),
-        );
-        let mod_decay = scorer.score_one_typed(
-            age_hours,
-            FiniteF32::ZERO,
-            None,
-            Some(NodeType::Module),
-        );
+        let func_decay =
+            scorer.score_one_typed(age_hours, FiniteF32::ZERO, None, Some(NodeType::Function));
+        let mod_decay =
+            scorer.score_one_typed(age_hours, FiniteF32::ZERO, None, Some(NodeType::Module));
 
         assert!(
             func_decay.raw_decay.get() < mod_decay.raw_decay.get(),
@@ -1734,8 +2255,10 @@ mod tests {
     fn test_impact_isolated_node_limited_to_self() {
         // Build a graph with an isolated node
         let mut g = Graph::new();
-        g.add_node("iso", "Isolated", NodeType::File, &[], 1000.0, 0.5).unwrap();
-        g.add_node("other", "Other", NodeType::File, &[], 1000.0, 0.5).unwrap();
+        g.add_node("iso", "Isolated", NodeType::File, &[], 1000.0, 0.5)
+            .unwrap();
+        g.add_node("other", "Other", NodeType::File, &[], 1000.0, 0.5)
+            .unwrap();
         // No edges between them
         g.finalize().unwrap();
 
@@ -1795,11 +2318,18 @@ mod tests {
             .compute(&g, NodeId::new(0), ImpactDirection::Forward)
             .unwrap();
 
-        let node5_entry = result.blast_radius.iter().find(|e| e.node == NodeId::new(5));
+        let node5_entry = result
+            .blast_radius
+            .iter()
+            .find(|e| e.node == NodeId::new(5));
         assert!(
             node5_entry.is_some(),
             "Impact should propagate to 2-hop neighbor (node 5). Blast radius: {:?}",
-            result.blast_radius.iter().map(|e| e.node).collect::<Vec<_>>()
+            result
+                .blast_radius
+                .iter()
+                .map(|e| e.node)
+                .collect::<Vec<_>>()
         );
 
         if let Some(entry) = node5_entry {
@@ -1816,9 +2346,12 @@ mod tests {
     #[test]
     fn test_velocity_scorer_cache_works() {
         let mut g = Graph::new();
-        g.add_node("c0", "C0", NodeType::File, &[], 1000.0, 0.9).unwrap();
-        g.add_node("c1", "C1", NodeType::File, &[], 1000.0, 0.1).unwrap();
-        g.add_node("c2", "C2", NodeType::File, &[], 1000.0, 0.5).unwrap();
+        g.add_node("c0", "C0", NodeType::File, &[], 1000.0, 0.9)
+            .unwrap();
+        g.add_node("c1", "C1", NodeType::File, &[], 1000.0, 0.1)
+            .unwrap();
+        g.add_node("c2", "C2", NodeType::File, &[], 1000.0, 0.5)
+            .unwrap();
         g.finalize().unwrap();
 
         let mut scorer = VelocityScorer::new();
@@ -1840,7 +2373,11 @@ mod tests {
         // After invalidation, recompute
         scorer.invalidate_cache();
         let scores3 = scorer.score_all_cached(&g, 2000.0).unwrap();
-        assert_eq!(scores1.len(), scores3.len(), "After invalidation, results should still match");
+        assert_eq!(
+            scores1.len(),
+            scores3.len(),
+            "After invalidation, results should still match"
+        );
     }
 
     // ===== CoChangeMatrix.populate_from_commit_groups test =====
@@ -1849,9 +2386,26 @@ mod tests {
     fn test_co_change_populate_from_commit_groups() {
         // Build a graph with file nodes that can be resolved
         let mut g = Graph::new();
-        g.add_node("file::alpha.rs", "alpha.rs", NodeType::File, &[], 1000.0, 0.5).unwrap();
-        g.add_node("file::beta.rs", "beta.rs", NodeType::File, &[], 1000.0, 0.3).unwrap();
-        g.add_node("file::gamma.rs", "gamma.rs", NodeType::File, &[], 1000.0, 0.2).unwrap();
+        g.add_node(
+            "file::alpha.rs",
+            "alpha.rs",
+            NodeType::File,
+            &[],
+            1000.0,
+            0.5,
+        )
+        .unwrap();
+        g.add_node("file::beta.rs", "beta.rs", NodeType::File, &[], 1000.0, 0.3)
+            .unwrap();
+        g.add_node(
+            "file::gamma.rs",
+            "gamma.rs",
+            NodeType::File,
+            &[],
+            1000.0,
+            0.2,
+        )
+        .unwrap();
         g.finalize().unwrap();
 
         let mut matrix = CoChangeMatrix::bootstrap(&g, 500_000).unwrap();
@@ -1873,7 +2427,13 @@ mod tests {
         let has_beta = predictions.iter().any(|e| e.target == beta_id);
         let has_gamma = predictions.iter().any(|e| e.target == gamma_id);
 
-        assert!(has_beta, "After commit group [alpha, beta], alpha should predict beta");
-        assert!(has_gamma, "After commit group [alpha, gamma], alpha should predict gamma");
+        assert!(
+            has_beta,
+            "After commit group [alpha, beta], alpha should predict beta"
+        );
+        assert!(
+            has_gamma,
+            "After commit group [alpha, gamma], alpha should predict gamma"
+        );
     }
 }

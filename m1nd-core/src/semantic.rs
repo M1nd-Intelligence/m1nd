@@ -1,7 +1,7 @@
 // === crates/m1nd-core/src/semantic.rs ===
 
-use std::collections::HashMap;
 use smallvec::SmallVec;
+use std::collections::HashMap;
 
 use crate::error::M1ndResult;
 use crate::graph::Graph;
@@ -93,7 +93,11 @@ impl CharNgramIndex {
             }
 
             // L2 normalize for cosine similarity
-            let norm: f32 = tfidf_vec.values().map(|v| v.get() * v.get()).sum::<f32>().sqrt();
+            let norm: f32 = tfidf_vec
+                .values()
+                .map(|v| v.get() * v.get())
+                .sum::<f32>()
+                .sqrt();
             if norm > 0.0 {
                 for (&hash, &weight) in &tfidf_vec {
                     let normalized_w = FiniteF32::new(weight.get() / norm);
@@ -167,11 +171,7 @@ impl CharNgramIndex {
     /// Score all nodes against a query vector. Returns top_k by cosine similarity.
     /// Uses inverted index for candidate generation (FM-SEM-003 fix).
     /// Replaces: semantic_v2.py CharNgramEmbedder.query()
-    pub fn query_top_k(
-        &self,
-        query: &str,
-        top_k: usize,
-    ) -> Vec<(NodeId, FiniteF32)> {
+    pub fn query_top_k(&self, query: &str, top_k: usize) -> Vec<(NodeId, FiniteF32)> {
         let qvec = self.query_vector(query);
         if qvec.is_empty() {
             return Vec::new();
@@ -278,11 +278,14 @@ impl CoOccurrenceIndex {
         // Simple PRNG (deterministic with seed 42)
         let mut rng_state = 42u64;
         let mut next_rng = || -> u64 {
-            rng_state = rng_state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+            rng_state = rng_state
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
             rng_state >> 33
         };
 
         // For each node, perform random walks and accumulate co-occurrence
+        #[allow(clippy::needless_range_loop)]
         for start in 0..n {
             let mut co_counts: HashMap<u32, f32> = HashMap::new();
             let start_node = NodeId::new(start as u32);
@@ -305,11 +308,11 @@ impl CoOccurrenceIndex {
 
                 // Extract co-occurrence pairs within window
                 for i in 0..walk.len() {
-                    let lo = if i >= window_size { i - window_size } else { 0 };
+                    let lo = i.saturating_sub(window_size);
                     let hi = (i + window_size + 1).min(walk.len());
-                    for j in lo..hi {
-                        if i != j && walk[j].0 != start as u32 {
-                            *co_counts.entry(walk[j].0).or_insert(0.0) += 1.0;
+                    for w_node in &walk[lo..hi] {
+                        if *w_node != walk[i] && w_node.0 != start as u32 {
+                            *co_counts.entry(w_node.0).or_insert(0.0) += 1.0;
                         }
                     }
                 }
@@ -369,10 +372,7 @@ impl CoOccurrenceIndex {
 
     /// Cosine similarity between two sorted co-occurrence vectors.
     /// Uses merge-intersection on sorted vectors for O(D) instead of O(D^2).
-    pub fn cosine_similarity(
-        a: &CoOccurrenceVector,
-        b: &CoOccurrenceVector,
-    ) -> FiniteF32 {
+    pub fn cosine_similarity(a: &CoOccurrenceVector, b: &CoOccurrenceVector) -> FiniteF32 {
         if a.is_empty() || b.is_empty() {
             return FiniteF32::ZERO;
         }
@@ -415,18 +415,15 @@ impl CoOccurrenceIndex {
 
     /// Score a query node against all nodes. Returns top_k.
     /// Replaces: semantic_v2.py CoOccurrenceEmbedder.query()
-    pub fn query_top_k(
-        &self,
-        query_node: NodeId,
-        top_k: usize,
-    ) -> Vec<(NodeId, FiniteF32)> {
+    pub fn query_top_k(&self, query_node: NodeId, top_k: usize) -> Vec<(NodeId, FiniteF32)> {
         let idx = query_node.as_usize();
         if idx >= self.vectors.len() || self.vectors[idx].is_empty() {
             return Vec::new();
         }
 
         let query_vec = &self.vectors[idx];
-        let mut results: Vec<(NodeId, FiniteF32)> = self.vectors
+        let mut results: Vec<(NodeId, FiniteF32)> = self
+            .vectors
             .iter()
             .enumerate()
             .filter(|(i, v)| *i != idx && !v.is_empty())
@@ -482,10 +479,7 @@ impl SynonymExpander {
     /// Validates no term appears in multiple groups (FM-SEM-002).
     /// Replaces: semantic_v2.py SynonymExpander.__init__()
     pub fn build_default() -> M1ndResult<Self> {
-        let groups: Vec<Vec<&str>> = DEFAULT_SYNONYM_GROUPS
-            .iter()
-            .map(|g| g.to_vec())
-            .collect();
+        let groups: Vec<Vec<&str>> = DEFAULT_SYNONYM_GROUPS.iter().map(|g| g.to_vec()).collect();
         Self::build(groups)
     }
 
@@ -574,7 +568,8 @@ impl SemanticEngine {
     /// Replaces: semantic_v2.py SemanticEngine.__init__()
     pub fn build(graph: &Graph, weights: SemanticWeights) -> M1ndResult<Self> {
         let ngram = CharNgramIndex::build(graph, NGRAM_SIZE)?;
-        let cooccurrence = CoOccurrenceIndex::build(graph, WALK_LENGTH, WALKS_PER_NODE, WINDOW_SIZE)?;
+        let cooccurrence =
+            CoOccurrenceIndex::build(graph, WALK_LENGTH, WALKS_PER_NODE, WINDOW_SIZE)?;
         let synonym = SynonymExpander::build_default()?;
 
         Ok(Self {
@@ -608,13 +603,16 @@ impl SemanticEngine {
         if let Some(&(first_node, _)) = ngram_scores.first() {
             let cooc_scores = self.cooccurrence.query_top_k(first_node, top_k * 3);
             for (node, score) in cooc_scores {
-                *scores.entry(node.0).or_insert(0.0) += score.get() * self.weights.cooccurrence.get();
+                *scores.entry(node.0).or_insert(0.0) +=
+                    score.get() * self.weights.cooccurrence.get();
             }
         }
 
         // Synonym boost: expand query tokens via synonym groups,
         // then boost nodes whose labels match expanded synonyms.
-        let tokens: Vec<String> = query.to_lowercase().split_whitespace()
+        let tokens: Vec<String> = query
+            .to_lowercase()
+            .split_whitespace()
             .filter(|t| t.len() > 2)
             .map(|t| t.to_string())
             .collect();
@@ -685,8 +683,16 @@ impl SemanticEngine {
 
         // Re-rank using configured weights (normalized to sum to 1.0)
         let total_w = self.weights.ngram.get() + self.weights.cooccurrence.get();
-        let ngram_w = if total_w > 0.0 { self.weights.ngram.get() / total_w } else { 0.6 };
-        let cooc_w = if total_w > 0.0 { self.weights.cooccurrence.get() / total_w } else { 0.4 };
+        let ngram_w = if total_w > 0.0 {
+            self.weights.ngram.get() / total_w
+        } else {
+            0.6
+        };
+        let cooc_w = if total_w > 0.0 {
+            self.weights.cooccurrence.get() / total_w
+        } else {
+            0.4
+        };
 
         let mut results: Vec<(NodeId, FiniteF32)> = candidates
             .iter()

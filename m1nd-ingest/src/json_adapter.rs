@@ -240,17 +240,19 @@ impl IngestAdapter for JsonIngestAdapter {
                 } else {
                     EdgeDirection::Forward
                 };
-                match graph.add_edge(
-                    src,
-                    tgt,
-                    &edge.relation,
-                    FiniteF32::new(edge.weight),
-                    direction,
-                    false,
-                    FiniteF32::new(causal_strength),
-                ) {
-                    Ok(_) => stats.edges_created += 1,
-                    Err(_) => {}
+                if graph
+                    .add_edge(
+                        src,
+                        tgt,
+                        &edge.relation,
+                        FiniteF32::new(edge.weight),
+                        direction,
+                        false,
+                        FiniteF32::new(causal_strength),
+                    )
+                    .is_ok()
+                {
+                    stats.edges_created += 1;
                 }
             }
         }

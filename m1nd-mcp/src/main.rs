@@ -70,8 +70,12 @@ fn load_config_from_cli(cli: &Cli) -> McpConfig {
 
 async fn run_stdio_server(config: McpConfig, event_log: Option<String>, no_gui: bool, port: u16) {
     if event_log.is_some() {
-        eprintln!("[m1nd-mcp] NOTE: --event-log in stdio-only mode writes events for external consumers.");
-        eprintln!("[m1nd-mcp]       For cross-process SSE, use --serve --stdio --event-log <path>.");
+        eprintln!(
+            "[m1nd-mcp] NOTE: --event-log in stdio-only mode writes events for external consumers."
+        );
+        eprintln!(
+            "[m1nd-mcp]       For cross-process SSE, use --serve --stdio --event-log <path>."
+        );
     }
 
     // Spawn background HTTP GUI server (unless --no-gui or serve feature disabled)
@@ -85,7 +89,10 @@ async fn run_stdio_server(config: McpConfig, event_log: Option<String>, no_gui: 
                 Some(m1nd_mcp::http_server::spawn_background(session, port))
             }
             Err(e) => {
-                eprintln!("[m1nd-mcp] GUI server init failed (continuing without GUI): {}", e);
+                eprintln!(
+                    "[m1nd-mcp] GUI server init failed (continuing without GUI): {}",
+                    e
+                );
                 None
             }
         }

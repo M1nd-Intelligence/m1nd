@@ -2,12 +2,12 @@
 // Handlers for the 5 lock MCP tools.
 // Split from server.rs dispatch (Theme 8).
 
+use crate::perspective::keys::{edge_content_key, normalize_bidi_endpoints};
+use crate::perspective::state::*;
+use crate::protocol::lock::*;
+use crate::session::SessionState;
 use m1nd_core::error::{M1ndError, M1ndResult};
 use m1nd_core::types::EdgeIdx;
-use crate::session::SessionState;
-use crate::perspective::state::*;
-use crate::perspective::keys::{edge_content_key, normalize_bidi_endpoints};
-use crate::protocol::lock::*;
 use std::collections::{HashMap, HashSet};
 
 // ---------------------------------------------------------------------------
@@ -27,9 +27,12 @@ fn require_lock<'a>(
     agent_id: &str,
     lock_id: &str,
 ) -> M1ndResult<&'a LockState> {
-    let lock = state.locks.get(lock_id).ok_or_else(|| M1ndError::LockNotFound {
-        lock_id: lock_id.into(),
-    })?;
+    let lock = state
+        .locks
+        .get(lock_id)
+        .ok_or_else(|| M1ndError::LockNotFound {
+            lock_id: lock_id.into(),
+        })?;
     if lock.agent_id != agent_id {
         return Err(M1ndError::LockOwnership {
             lock_id: lock_id.into(),
@@ -51,30 +54,47 @@ fn capture_baseline(
     let mut edges = HashMap::new();
 
     // Collect root nodes: (usize_index, label) with 3-tier lookup
-    let root_nids: Vec<(usize, String)> = scope.root_nodes.iter().filter_map(|root| {
-        // Tier 1: exact external_id match
-        graph.id_to_node.iter().find_map(|(interned, &nid)| {
-            let ext_id = graph.strings.resolve(*interned);
-            if ext_id == root.as_str() { Some((nid.as_usize(), ext_id.to_string())) } else { None }
-        }).or_else(|| {
-            // Tier 2: match by node label
-            for idx in 0..graph.num_nodes() as usize {
-                if idx < graph.nodes.label.len() {
-                    let lbl = graph.strings.resolve(graph.nodes.label[idx]);
-                    if lbl == root.as_str() {
-                        return Some((idx, lbl.to_string()));
+    let root_nids: Vec<(usize, String)> = scope
+        .root_nodes
+        .iter()
+        .filter_map(|root| {
+            // Tier 1: exact external_id match
+            graph
+                .id_to_node
+                .iter()
+                .find_map(|(interned, &nid)| {
+                    let ext_id = graph.strings.resolve(*interned);
+                    if ext_id == root.as_str() {
+                        Some((nid.as_usize(), ext_id.to_string()))
+                    } else {
+                        None
                     }
-                }
-            }
-            None
-        }).or_else(|| {
-            // Tier 3: substring match on external_id
-            graph.id_to_node.iter().find_map(|(interned, &nid)| {
-                let ext_id = graph.strings.resolve(*interned);
-                if ext_id.contains(root.as_str()) { Some((nid.as_usize(), ext_id.to_string())) } else { None }
-            })
+                })
+                .or_else(|| {
+                    // Tier 2: match by node label
+                    for idx in 0..graph.num_nodes() as usize {
+                        if idx < graph.nodes.label.len() {
+                            let lbl = graph.strings.resolve(graph.nodes.label[idx]);
+                            if lbl == root.as_str() {
+                                return Some((idx, lbl.to_string()));
+                            }
+                        }
+                    }
+                    None
+                })
+                .or_else(|| {
+                    // Tier 3: substring match on external_id
+                    graph.id_to_node.iter().find_map(|(interned, &nid)| {
+                        let ext_id = graph.strings.resolve(*interned);
+                        if ext_id.contains(root.as_str()) {
+                            Some((nid.as_usize(), ext_id.to_string()))
+                        } else {
+                            None
+                        }
+                    })
+                })
         })
-    }).collect();
+        .collect();
 
     match scope.scope_type {
         LockScope::Node => {
@@ -84,7 +104,8 @@ fn capture_baseline(
         }
         LockScope::Subgraph => {
             let radius = scope.radius.unwrap_or(2);
-            let mut frontier: Vec<(usize, u32)> = root_nids.iter().map(|(idx, _)| (*idx, 0u32)).collect();
+            let mut frontier: Vec<(usize, u32)> =
+                root_nids.iter().map(|(idx, _)| (*idx, 0u32)).collect();
             let mut visited: HashSet<usize> = root_nids.iter().map(|(idx, _)| *idx).collect();
 
             for (_, label) in &root_nids {
@@ -98,7 +119,11 @@ fn capture_baseline(
                 if idx >= graph.num_nodes() as usize {
                     continue;
                 }
-                let start = if idx == 0 { 0 } else { graph.csr.offsets[idx] as usize };
+                let start = if idx == 0 {
+                    0
+                } else {
+                    graph.csr.offsets[idx] as usize
+                };
                 let end = graph.csr.offsets[idx + 1] as usize;
 
                 for edge_pos in start..end {
@@ -111,7 +136,10 @@ fn capture_baseline(
                         continue;
                     }
 
-                    let target_label = graph.strings.resolve(graph.nodes.label[target_idx]).to_string();
+                    let target_label = graph
+                        .strings
+                        .resolve(graph.nodes.label[target_idx])
+                        .to_string();
                     nodes.insert(target_label.clone());
 
                     if !visited.contains(&target_idx) {
@@ -143,7 +171,11 @@ fn capture_baseline(
         for node_label in &nodes {
             let node_nid = graph.id_to_node.iter().find_map(|(interned, &nid)| {
                 let label = graph.strings.resolve(*interned);
-                if label == node_label.as_str() { Some(nid) } else { None }
+                if label == node_label.as_str() {
+                    Some(nid)
+                } else {
+                    None
+                }
             });
 
             if let Some(nid) = node_nid {
@@ -151,7 +183,11 @@ fn capture_baseline(
                 if idx >= graph.num_nodes() as usize {
                     continue;
                 }
-                let start = if idx == 0 { 0 } else { graph.csr.offsets[idx] as usize };
+                let start = if idx == 0 {
+                    0
+                } else {
+                    graph.csr.offsets[idx] as usize
+                };
                 let end = graph.csr.offsets[idx + 1] as usize;
 
                 for edge_pos in start..end {
@@ -164,12 +200,18 @@ fn capture_baseline(
                         continue;
                     }
 
-                    let target_label = graph.strings.resolve(graph.nodes.label[target_idx]).to_string();
+                    let target_label = graph
+                        .strings
+                        .resolve(graph.nodes.label[target_idx])
+                        .to_string();
 
                     // Only include edges where both endpoints are in scope
                     if nodes.contains(&target_label) {
                         let relation = if edge_pos < graph.csr.relations.len() {
-                            graph.strings.resolve(graph.csr.relations[edge_pos]).to_string()
+                            graph
+                                .strings
+                                .resolve(graph.csr.relations[edge_pos])
+                                .to_string()
                         } else {
                             "unknown".to_string()
                         };
@@ -300,9 +342,12 @@ pub fn handle_lock_watch(
 
     let _ = require_lock(state, &input.agent_id, &input.lock_id)?;
 
-    let lock = state.locks.get_mut(&input.lock_id).ok_or_else(|| M1ndError::LockNotFound {
-        lock_id: input.lock_id.clone(),
-    })?;
+    let lock = state
+        .locks
+        .get_mut(&input.lock_id)
+        .ok_or_else(|| M1ndError::LockNotFound {
+            lock_id: input.lock_id.clone(),
+        })?;
 
     let previous_strategy = lock.watcher.as_ref().map(|w| w.strategy.clone());
 
@@ -329,9 +374,12 @@ pub fn handle_lock_diff(
 ) -> M1ndResult<serde_json::Value> {
     let _ = require_lock(state, &input.agent_id, &input.lock_id)?;
 
-    let lock = state.locks.get(&input.lock_id).ok_or_else(|| M1ndError::LockNotFound {
-        lock_id: input.lock_id.clone(),
-    })?;
+    let lock = state
+        .locks
+        .get(&input.lock_id)
+        .ok_or_else(|| M1ndError::LockNotFound {
+            lock_id: input.lock_id.clone(),
+        })?;
 
     let start = std::time::Instant::now();
     let baseline = &lock.baseline;
@@ -380,10 +428,7 @@ pub fn handle_lock_diff(
         .cloned()
         .collect();
 
-    let removed_nodes: Vec<String> = baseline.nodes
-        .difference(&current_nodes)
-        .cloned()
-        .collect();
+    let removed_nodes: Vec<String> = baseline.nodes.difference(&current_nodes).cloned().collect();
 
     let current_edge_keys: HashSet<&String> = current_edges.keys().collect();
     let baseline_edge_keys: HashSet<&String> = baseline.edges.keys().collect();
@@ -459,7 +504,9 @@ pub fn handle_lock_diff(
 /// Drain pending watcher events for a specific lock.
 fn drain_watcher_events(state: &mut SessionState, lock_id: &str) -> usize {
     let before = state.pending_watcher_events.len();
-    state.pending_watcher_events.retain(|e| e.lock_id != lock_id);
+    state
+        .pending_watcher_events
+        .retain(|e| e.lock_id != lock_id);
     before - state.pending_watcher_events.len()
 }
 
@@ -473,9 +520,12 @@ pub fn handle_lock_rebase(
 ) -> M1ndResult<serde_json::Value> {
     let _ = require_lock(state, &input.agent_id, &input.lock_id)?;
 
-    let lock = state.locks.get(&input.lock_id).ok_or_else(|| M1ndError::LockNotFound {
-        lock_id: input.lock_id.clone(),
-    })?;
+    let lock = state
+        .locks
+        .get(&input.lock_id)
+        .ok_or_else(|| M1ndError::LockNotFound {
+            lock_id: input.lock_id.clone(),
+        })?;
 
     let previous_generation = lock.baseline.graph_generation;
     let scope = lock.scope.clone();
@@ -495,9 +545,12 @@ pub fn handle_lock_rebase(
         });
     }
 
-    let lock = state.locks.get_mut(&input.lock_id).ok_or_else(|| M1ndError::LockNotFound {
-        lock_id: input.lock_id.clone(),
-    })?;
+    let lock = state
+        .locks
+        .get_mut(&input.lock_id)
+        .ok_or_else(|| M1ndError::LockNotFound {
+            lock_id: input.lock_id.clone(),
+        })?;
 
     lock.baseline = LockSnapshot {
         nodes,
@@ -535,7 +588,9 @@ pub fn handle_lock_release(
     state.locks.remove(&input.lock_id);
 
     // Clean up pending watcher events
-    state.pending_watcher_events.retain(|e| e.lock_id != input.lock_id);
+    state
+        .pending_watcher_events
+        .retain(|e| e.lock_id != input.lock_id);
 
     let output = LockReleaseOutput {
         lock_id: input.lock_id,

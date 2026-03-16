@@ -82,10 +82,7 @@ pub fn validate_lens(lens: &PerspectiveLens, graph_node_count: usize) -> M1ndRes
             if !VALID_DIMENSIONS.contains(&lower.as_str()) {
                 return Err(M1ndError::InvalidParams {
                     tool: "perspective".into(),
-                    detail: format!(
-                        "unknown dimension '{}'. Valid: {:?}",
-                        d, VALID_DIMENSIONS
-                    ),
+                    detail: format!("unknown dimension '{}'. Valid: {:?}", d, VALID_DIMENSIONS),
                 });
             }
             normalized.push(lower);
@@ -115,7 +112,11 @@ pub fn validate_lens(lens: &PerspectiveLens, graph_node_count: usize) -> M1ndRes
 /// Rules (Theme 9):
 /// - page: >= 1. Reject 0 with INVALID_PAGE.
 /// - page_size: clamped to [1, 10]. Default 6.
-pub fn validate_pagination(page: u32, page_size: u32, total_items: usize) -> M1ndResult<ValidatedPagination> {
+pub fn validate_pagination(
+    page: u32,
+    page_size: u32,
+    total_items: usize,
+) -> M1ndResult<ValidatedPagination> {
     if page == 0 {
         return Err(M1ndError::InvalidParams {
             tool: "perspective".into(),
@@ -123,13 +124,13 @@ pub fn validate_pagination(page: u32, page_size: u32, total_items: usize) -> M1n
         });
     }
 
-    let clamped_size = page_size.max(1).min(10);
+    let clamped_size = page_size.clamp(1, 10);
     let page_size_clamped = clamped_size != page_size;
 
     let total_pages = if total_items == 0 {
         1
     } else {
-        ((total_items as u32) + clamped_size - 1) / clamped_size
+        (total_items as u32).div_ceil(clamped_size)
     };
 
     let safe_page = page.min(total_pages);
@@ -181,7 +182,7 @@ pub fn validate_lock_scope(
     let radius = match scope.scope_type {
         LockScope::Subgraph => {
             let r = scope.radius.unwrap_or(2);
-            if r < 1 || r > 4 {
+            if !(1..=4).contains(&r) {
                 return Err(M1ndError::InvalidParams {
                     tool: "lock.create".into(),
                     detail: format!("subgraph radius must be 1-4, got {}", r),
@@ -200,7 +201,7 @@ pub fn validate_lock_scope(
             None
         }
         LockScope::Path => {
-            if scope.path_nodes.as_ref().map_or(true, |p| p.is_empty()) {
+            if scope.path_nodes.as_ref().is_none_or(|p| p.is_empty()) {
                 return Err(M1ndError::InvalidParams {
                     tool: "lock.create".into(),
                     detail: "path scope requires non-empty path_nodes".into(),
@@ -342,11 +343,7 @@ mod tests {
 
     #[test]
     fn validate_route_ref_rejects_both() {
-        let result = validate_route_ref(
-            &Some("R_abc".into()),
-            &Some(1),
-            "test",
-        );
+        let result = validate_route_ref(&Some("R_abc".into()), &Some(1), "test");
         assert!(result.is_err());
     }
 

@@ -221,7 +221,7 @@ impl Ingestor {
         use rayon::prelude::*;
 
         // Use config.parallelism — ThreadPoolBuilder ensures we don't oversubscribe.
-        let num_threads = self.config.parallelism.max(1).min(64);
+        let num_threads = self.config.parallelism.clamp(1, 64);
         let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(num_threads)
             .build()
@@ -313,7 +313,7 @@ impl Ingestor {
             file_timestamps.insert(file_id.clone(), file.last_modified);
             // Change frequency from git commit count (normalized: 1 commit = 0.1, 50+ = 1.0)
             let freq = if file.commit_count > 0 {
-                ((file.commit_count as f32) / 50.0).min(1.0).max(0.1)
+                ((file.commit_count as f32) / 50.0).clamp(0.1, 1.0)
             } else {
                 0.3 // default for non-git repos
             };
@@ -387,17 +387,19 @@ impl Ingestor {
                 } else {
                     EdgeDirection::Forward
                 };
-                match graph.add_edge(
-                    src,
-                    tgt,
-                    &edge.relation,
-                    FiniteF32::new(edge.weight),
-                    direction,
-                    false,
-                    FiniteF32::new(causal_strength),
-                ) {
-                    Ok(_) => stats.edges_created += 1,
-                    Err(_) => {}
+                if graph
+                    .add_edge(
+                        src,
+                        tgt,
+                        &edge.relation,
+                        FiniteF32::new(edge.weight),
+                        direction,
+                        false,
+                        FiniteF32::new(causal_strength),
+                    )
+                    .is_ok()
+                {
+                    stats.edges_created += 1;
                 }
             }
         }
@@ -475,13 +477,10 @@ impl Ingestor {
                 .unwrap_or_default();
             let file_id = format!("file::{}", relative);
 
-            match extractor.extract(&content, &file_id) {
-                Ok(result) => {
-                    stats.files_parsed += 1;
-                    new_nodes.extend(result.nodes);
-                    new_edges.extend(result.edges);
-                }
-                Err(_) => {}
+            if let Ok(result) = extractor.extract(&content, &file_id) {
+                stats.files_parsed += 1;
+                new_nodes.extend(result.nodes);
+                new_edges.extend(result.edges);
             }
         }
 

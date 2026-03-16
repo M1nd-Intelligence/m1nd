@@ -1,26 +1,25 @@
 // === crates/m1nd-mcp/src/session.rs ===
 
 use m1nd_core::antibody::Antibody;
+use m1nd_core::counterfactual::CounterfactualEngine;
 use m1nd_core::domain::DomainConfig;
 use m1nd_core::error::M1ndResult;
 use m1nd_core::graph::{Graph, SharedGraph};
-use m1nd_core::query::QueryOrchestrator;
-use m1nd_core::temporal::TemporalEngine;
-use m1nd_core::counterfactual::CounterfactualEngine;
-use m1nd_core::topology::TopologyAnalyzer;
-use m1nd_core::resonance::ResonanceEngine;
 use m1nd_core::plasticity::PlasticityEngine;
+use m1nd_core::query::QueryOrchestrator;
+use m1nd_core::resonance::ResonanceEngine;
+use m1nd_core::temporal::TemporalEngine;
+use m1nd_core::topology::TopologyAnalyzer;
 use m1nd_core::tremor::TremorRegistry;
 use m1nd_core::trust::TrustLedger;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
-use serde::{Deserialize, Serialize};
 
 use crate::perspective::state::{
-    LockState, PerspectiveLimits, PerspectiveState, WatchTrigger, WatcherEvent,
-    PeekSecurityConfig,
+    LockState, PeekSecurityConfig, PerspectiveLimits, PerspectiveState, WatchTrigger, WatcherEvent,
 };
 
 // ---------------------------------------------------------------------------
@@ -45,6 +44,12 @@ pub struct SavingsTracker {
     pub tokens_saved: u64,
     pub file_reads_avoided: u64,
     pub lines_avoided: u64,
+}
+
+impl Default for SavingsTracker {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SavingsTracker {
@@ -140,7 +145,6 @@ pub struct SessionState {
     pub sessions: HashMap<String, AgentSession>,
 
     // --- Perspective MCP state (12-PERSPECTIVE-SYNTHESIS) ---
-
     /// Generation counter: bumped on ingest, rebuild_engines (Theme 1).
     pub graph_generation: u64,
     /// Generation counter: bumped on learn (Theme 1).
@@ -172,7 +176,6 @@ pub struct SessionState {
     pub workspace_root: Option<String>,
 
     // --- Superpowers: Antibody state ---
-
     /// All stored antibodies.
     pub antibodies: Vec<Antibody>,
     /// Path to antibodies persistence file.
@@ -181,7 +184,6 @@ pub struct SessionState {
     pub last_antibody_scan_generation: u64,
 
     // --- Superpowers: Tremor + Trust state ---
-
     /// Tremor registry: per-node time series of weight-change observations.
     pub tremor_registry: TremorRegistry,
     /// Path to tremor_state.json persistence file.
@@ -192,7 +194,6 @@ pub struct SessionState {
     pub trust_path: PathBuf,
 
     // --- v0.4.0: Savings + Query Log ---
-
     /// Savings tracker (token economy).
     pub savings_tracker: SavingsTracker,
     /// Query log ring buffer (capped at 1000 entries).
@@ -210,17 +211,19 @@ pub struct SessionState {
 impl SessionState {
     /// Initialize from a loaded graph. Builds all engines.
     /// Replaces: 03-MCP Section 1.2 startup sequence steps 3-6.
-    pub fn initialize(graph: Graph, config: &crate::server::McpConfig, domain: DomainConfig) -> M1ndResult<Self> {
+    pub fn initialize(
+        graph: Graph,
+        config: &crate::server::McpConfig,
+        domain: DomainConfig,
+    ) -> M1ndResult<Self> {
         // Build all engines from graph
         let orchestrator = QueryOrchestrator::build(&graph)?;
         let temporal = TemporalEngine::build(&graph)?;
         let counterfactual = CounterfactualEngine::with_defaults();
         let topology = TopologyAnalyzer::with_defaults();
         let resonance = ResonanceEngine::with_defaults();
-        let plasticity = PlasticityEngine::new(
-            &graph,
-            m1nd_core::plasticity::PlasticityConfig::default(),
-        );
+        let plasticity =
+            PlasticityEngine::new(&graph, m1nd_core::plasticity::PlasticityConfig::default());
 
         let shared = Arc::new(parking_lot::RwLock::new(graph));
 
@@ -254,50 +257,70 @@ impl SessionState {
             perspective_limits: PerspectiveLimits::default(),
             peek_security: PeekSecurityConfig::default(),
             ingest_roots,
-            workspace_root: config.graph_source.parent()
+            workspace_root: config
+                .graph_source
+                .parent()
                 .map(|p| p.to_string_lossy().to_string()),
             // Superpowers: Antibody state
             antibodies: {
-                let ab_path = config.graph_source.parent()
+                let ab_path = config
+                    .graph_source
+                    .parent()
                     .unwrap_or(std::path::Path::new("."))
                     .join("antibodies.json");
                 m1nd_core::antibody::load_antibodies(&ab_path).unwrap_or_default()
             },
-            antibodies_path: config.graph_source.parent()
+            antibodies_path: config
+                .graph_source
+                .parent()
                 .unwrap_or(std::path::Path::new("."))
                 .join("antibodies.json"),
             last_antibody_scan_generation: 0,
             // Superpowers: Tremor + Trust state
             tremor_registry: {
-                let tr_path = config.graph_source.parent()
+                let tr_path = config
+                    .graph_source
+                    .parent()
                     .unwrap_or(std::path::Path::new("."))
                     .join("tremor_state.json");
-                m1nd_core::tremor::load_tremor_state(&tr_path).unwrap_or_else(|_| TremorRegistry::with_defaults())
+                m1nd_core::tremor::load_tremor_state(&tr_path)
+                    .unwrap_or_else(|_| TremorRegistry::with_defaults())
             },
-            tremor_path: config.graph_source.parent()
+            tremor_path: config
+                .graph_source
+                .parent()
                 .unwrap_or(std::path::Path::new("."))
                 .join("tremor_state.json"),
             trust_ledger: {
-                let tl_path = config.graph_source.parent()
+                let tl_path = config
+                    .graph_source
+                    .parent()
                     .unwrap_or(std::path::Path::new("."))
                     .join("trust_state.json");
                 m1nd_core::trust::load_trust_state(&tl_path).unwrap_or_else(|_| TrustLedger::new())
             },
-            trust_path: config.graph_source.parent()
+            trust_path: config
+                .graph_source
+                .parent()
                 .unwrap_or(std::path::Path::new("."))
                 .join("trust_state.json"),
             // v0.4.0: Savings + Query Log
             savings_tracker: SavingsTracker::new(),
             query_log: Vec::new(),
             global_savings: {
-                let sv_path = config.graph_source.parent()
+                let sv_path = config
+                    .graph_source
+                    .parent()
                     .unwrap_or(std::path::Path::new("."))
                     .join("savings_state.json");
-                std::fs::read_to_string(&sv_path).ok()
+                std::fs::read_to_string(&sv_path)
+                    .ok()
                     .and_then(|s| serde_json::from_str(&s).ok())
                     .unwrap_or_default()
             },
-            savings_path: config.graph_source.parent()
+            savings_path: config
+                .graph_source
+                .parent()
                 .unwrap_or(std::path::Path::new("."))
                 .join("savings_state.json"),
             session_start_node_count: 0,
@@ -308,7 +331,9 @@ impl SessionState {
     /// Check if auto-persist should trigger. Returns true every N queries.
     pub fn should_persist(&self) -> bool {
         self.queries_processed > 0
-            && self.queries_processed % self.auto_persist_interval as u64 == 0
+            && self
+                .queries_processed
+                .is_multiple_of(self.auto_persist_interval as u64)
     }
 
     /// Persist all state to disk.
@@ -326,18 +351,28 @@ impl SessionState {
         // Graph succeeded. Now try plasticity — failure here is non-fatal.
         match self.plasticity.export_state(&graph) {
             Ok(states) => {
-                if let Err(e) = m1nd_core::snapshot::save_plasticity_state(&states, &self.plasticity_path) {
-                    eprintln!("[m1nd] WARNING: graph saved but plasticity persist failed: {}", e);
+                if let Err(e) =
+                    m1nd_core::snapshot::save_plasticity_state(&states, &self.plasticity_path)
+                {
+                    eprintln!(
+                        "[m1nd] WARNING: graph saved but plasticity persist failed: {}",
+                        e
+                    );
                 }
             }
             Err(e) => {
-                eprintln!("[m1nd] WARNING: graph saved but plasticity export failed: {}", e);
+                eprintln!(
+                    "[m1nd] WARNING: graph saved but plasticity export failed: {}",
+                    e
+                );
             }
         }
 
         // Antibodies — failure here is non-fatal.
         if !self.antibodies.is_empty() {
-            if let Err(e) = m1nd_core::antibody::save_antibodies(&self.antibodies, &self.antibodies_path) {
+            if let Err(e) =
+                m1nd_core::antibody::save_antibodies(&self.antibodies, &self.antibodies_path)
+            {
                 eprintln!("[m1nd] WARNING: antibody persist failed: {}", e);
             }
         }
@@ -347,10 +382,11 @@ impl SessionState {
     }
 
     fn persist_ingest_roots(&mut self) {
-        let workspace_root = self
-            .workspace_root
-            .clone()
-            .or_else(|| self.graph_path.parent().map(|p| p.to_string_lossy().to_string()));
+        let workspace_root = self.workspace_root.clone().or_else(|| {
+            self.graph_path
+                .parent()
+                .map(|p| p.to_string_lossy().to_string())
+        });
         let Some(root) = workspace_root else {
             return;
         };
@@ -385,10 +421,8 @@ impl SessionState {
             let graph = self.graph.read();
             self.orchestrator = QueryOrchestrator::build(&graph)?;
             self.temporal = TemporalEngine::build(&graph)?;
-            self.plasticity = PlasticityEngine::new(
-                &graph,
-                m1nd_core::plasticity::PlasticityConfig::default(),
-            );
+            self.plasticity =
+                PlasticityEngine::new(&graph, m1nd_core::plasticity::PlasticityConfig::default());
         }
 
         // Theme 16: invalidate all perspective and lock state after rebuild
@@ -439,18 +473,31 @@ impl SessionState {
     }
 
     /// Get a perspective for an agent (Theme 2).
-    pub fn get_perspective(&self, agent_id: &str, perspective_id: &str) -> Option<&PerspectiveState> {
-        self.perspectives.get(&(agent_id.to_string(), perspective_id.to_string()))
+    pub fn get_perspective(
+        &self,
+        agent_id: &str,
+        perspective_id: &str,
+    ) -> Option<&PerspectiveState> {
+        self.perspectives
+            .get(&(agent_id.to_string(), perspective_id.to_string()))
     }
 
     /// Get a mutable perspective for an agent (Theme 2).
-    pub fn get_perspective_mut(&mut self, agent_id: &str, perspective_id: &str) -> Option<&mut PerspectiveState> {
-        self.perspectives.get_mut(&(agent_id.to_string(), perspective_id.to_string()))
+    pub fn get_perspective_mut(
+        &mut self,
+        agent_id: &str,
+        perspective_id: &str,
+    ) -> Option<&mut PerspectiveState> {
+        self.perspectives
+            .get_mut(&(agent_id.to_string(), perspective_id.to_string()))
     }
 
     /// Generate a new perspective ID for an agent (Theme 2).
     pub fn next_perspective_id(&mut self, agent_id: &str) -> String {
-        let counter = self.perspective_counter.entry(agent_id.to_string()).or_insert(0);
+        let counter = self
+            .perspective_counter
+            .entry(agent_id.to_string())
+            .or_insert(0);
         *counter += 1;
         let short_id = &agent_id[..agent_id.len().min(8)];
         format!("persp_{}_{:03}", short_id, counter)
@@ -466,12 +513,18 @@ impl SessionState {
 
     /// Count perspectives for an agent (for limit enforcement, Theme 5).
     pub fn agent_perspective_count(&self, agent_id: &str) -> usize {
-        self.perspectives.keys().filter(|(a, _)| a == agent_id).count()
+        self.perspectives
+            .keys()
+            .filter(|(a, _)| a == agent_id)
+            .count()
     }
 
     /// Count locks for an agent (for limit enforcement, Theme 5).
     pub fn agent_lock_count(&self, agent_id: &str) -> usize {
-        self.locks.values().filter(|l| l.agent_id == agent_id).count()
+        self.locks
+            .values()
+            .filter(|l| l.agent_id == agent_id)
+            .count()
     }
 
     /// Notify watchers after ingest/learn (Theme 10).
@@ -483,12 +536,21 @@ impl SessionState {
             .map(|d| d.as_millis() as u64)
             .unwrap_or(0);
 
-        let matching_locks: Vec<String> = self.locks.values()
+        let matching_locks: Vec<String> = self
+            .locks
+            .values()
             .filter(|l| {
-                l.watcher.as_ref().map_or(false, |w| match (&trigger, &w.strategy) {
-                    (WatchTrigger::Ingest, crate::perspective::state::WatchStrategy::OnIngest) => true,
-                    (WatchTrigger::Learn, crate::perspective::state::WatchStrategy::OnLearn) => true,
-                    _ => false,
+                l.watcher.as_ref().is_some_and(|w| {
+                    matches!(
+                        (&trigger, &w.strategy),
+                        (
+                            WatchTrigger::Ingest,
+                            crate::perspective::state::WatchStrategy::OnIngest,
+                        ) | (
+                            WatchTrigger::Learn,
+                            crate::perspective::state::WatchStrategy::OnLearn,
+                        )
+                    )
                 })
             })
             .map(|l| l.lock_id.clone())
@@ -508,7 +570,9 @@ impl SessionState {
         // Remove perspectives
         self.perspectives.retain(|(a, _), _| a != agent_id);
         // Remove locks owned by this agent
-        let agent_locks: Vec<String> = self.locks.values()
+        let agent_locks: Vec<String> = self
+            .locks
+            .values()
             .filter(|l| l.agent_id == agent_id)
             .map(|l| l.lock_id.clone())
             .collect();
@@ -516,7 +580,8 @@ impl SessionState {
             self.locks.remove(lock_id);
         }
         // Clean pending watcher events for removed locks
-        self.pending_watcher_events.retain(|e| !agent_locks.contains(&e.lock_id));
+        self.pending_watcher_events
+            .retain(|e| !agent_locks.contains(&e.lock_id));
         // Clean counters
         self.perspective_counter.remove(agent_id);
         self.lock_counter.remove(agent_id);
@@ -526,11 +591,23 @@ impl SessionState {
     /// Used for 50MB budget enforcement.
     pub fn perspective_and_lock_memory_bytes(&self) -> usize {
         // Rough estimate: serialize to JSON and measure
-        let persp_size: usize = self.perspectives.values()
-            .map(|p| std::mem::size_of_val(p) + p.navigation_history.len() * 100 + p.visited_nodes.len() * 40)
+        let persp_size: usize = self
+            .perspectives
+            .values()
+            .map(|p| {
+                std::mem::size_of_val(p)
+                    + p.navigation_history.len() * 100
+                    + p.visited_nodes.len() * 40
+            })
             .sum();
-        let lock_size: usize = self.locks.values()
-            .map(|l| std::mem::size_of_val(l) + l.baseline.nodes.len() * 40 + l.baseline.edges.len() * 120)
+        let lock_size: usize = self
+            .locks
+            .values()
+            .map(|l| {
+                std::mem::size_of_val(l)
+                    + l.baseline.nodes.len() * 40
+                    + l.baseline.edges.len() * 120
+            })
             .sum();
         persp_size + lock_size
     }
@@ -544,20 +621,28 @@ impl SessionState {
     /// otherwise updates last_seen and increments query_count.
     pub fn track_agent(&mut self, agent_id: &str) {
         let now = Instant::now();
-        let session = self.sessions.entry(agent_id.to_string()).or_insert_with(|| {
-            AgentSession {
+        let session = self
+            .sessions
+            .entry(agent_id.to_string())
+            .or_insert_with(|| AgentSession {
                 agent_id: agent_id.to_string(),
                 first_seen: now,
                 last_seen: now,
                 query_count: 0,
-            }
-        });
+            });
         session.last_seen = now;
         session.query_count += 1;
     }
 
     /// Log a tool call to the query log ring buffer (max 1000 entries).
-    pub fn log_query(&mut self, tool: &str, agent_id: &str, elapsed_ms: f64, result_count: usize, query_preview: &str) {
+    pub fn log_query(
+        &mut self,
+        tool: &str,
+        agent_id: &str,
+        elapsed_ms: f64,
+        result_count: usize,
+        query_preview: &str,
+    ) {
         let entry = QueryLogEntry {
             tool: tool.to_string(),
             agent_id: agent_id.to_string(),

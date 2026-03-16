@@ -167,12 +167,15 @@ pub struct TrustLedger {
 impl TrustLedger {
     /// Create an empty ledger.
     pub fn new() -> Self {
-        Self { entries: HashMap::new() }
+        Self {
+            entries: HashMap::new(),
+        }
     }
 
     /// Record a defect (from learn("correct")).
     pub fn record_defect(&mut self, external_id: &str, timestamp: f64) {
-        let entry = self.entries
+        let entry = self
+            .entries
             .entry(external_id.to_string())
             .or_insert_with(|| TrustEntry {
                 defect_count: 0,
@@ -192,7 +195,8 @@ impl TrustLedger {
 
     /// Record a false alarm (from learn("wrong")).
     pub fn record_false_alarm(&mut self, external_id: &str, timestamp: f64) {
-        let entry = self.entries
+        let entry = self
+            .entries
             .entry(external_id.to_string())
             .or_insert_with(|| TrustEntry {
                 defect_count: 0,
@@ -209,7 +213,8 @@ impl TrustLedger {
 
     /// Record a partial match (from learn("partial")).
     pub fn record_partial(&mut self, external_id: &str, timestamp: f64) {
-        let entry = self.entries
+        let entry = self
+            .entries
             .entry(external_id.to_string())
             .or_insert_with(|| TrustEntry {
                 defect_count: 0,
@@ -226,11 +231,22 @@ impl TrustLedger {
 
     /// Compute trust score for a single node at the given time (default params).
     pub fn compute_trust(&self, external_id: &str, now: f64) -> TrustScore {
-        self.compute_trust_with_params(external_id, now, RECENCY_HALF_LIFE_HOURS, RISK_MULTIPLIER_CAP)
+        self.compute_trust_with_params(
+            external_id,
+            now,
+            RECENCY_HALF_LIFE_HOURS,
+            RISK_MULTIPLIER_CAP,
+        )
     }
 
     /// Compute trust score with configurable half-life and risk cap.
-    pub fn compute_trust_with_params(&self, external_id: &str, now: f64, half_life_hours: f32, risk_cap: f32) -> TrustScore {
+    pub fn compute_trust_with_params(
+        &self,
+        external_id: &str,
+        now: f64,
+        half_life_hours: f32,
+        risk_cap: f32,
+    ) -> TrustScore {
         let entry = match self.entries.get(external_id) {
             Some(e) => e,
             None => {
@@ -320,8 +336,12 @@ impl TrustLedger {
             if scope != "all" {
                 let matches_scope = match scope {
                     "file" => external_id.starts_with("file::"),
-                    "module" => external_id.starts_with("module::") || external_id.starts_with("dir::"),
-                    "function" => external_id.starts_with("func::") || external_id.starts_with("function::"),
+                    "module" => {
+                        external_id.starts_with("module::") || external_id.starts_with("dir::")
+                    }
+                    "function" => {
+                        external_id.starts_with("func::") || external_id.starts_with("function::")
+                    }
                     _ => true,
                 };
                 if !matches_scope {
@@ -360,11 +380,12 @@ impl TrustLedger {
                 .unwrap_or(external_id)
                 .to_string();
 
-            let last_defect_age_hours = if entry.defect_count > 0 && entry.last_defect_timestamp > 0.0 {
-                ((now - entry.last_defect_timestamp) / 3600.0).max(0.0)
-            } else {
-                -1.0 // no defects
-            };
+            let last_defect_age_hours =
+                if entry.defect_count > 0 && entry.last_defect_timestamp > 0.0 {
+                    ((now - entry.last_defect_timestamp) / 3600.0).max(0.0)
+                } else {
+                    -1.0 // no defects
+                };
 
             outputs.push(TrustNodeOutput {
                 node_id: external_id.clone(),
@@ -385,16 +406,28 @@ impl TrustLedger {
         // Sort
         match sort_by {
             TrustSortBy::TrustAsc => {
-                outputs.sort_by(|a, b| a.trust_score.partial_cmp(&b.trust_score).unwrap_or(std::cmp::Ordering::Equal));
+                outputs.sort_by(|a, b| {
+                    a.trust_score
+                        .partial_cmp(&b.trust_score)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
             }
             TrustSortBy::TrustDesc => {
-                outputs.sort_by(|a, b| b.trust_score.partial_cmp(&a.trust_score).unwrap_or(std::cmp::Ordering::Equal));
+                outputs.sort_by(|a, b| {
+                    b.trust_score
+                        .partial_cmp(&a.trust_score)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
             }
             TrustSortBy::DefectsDesc => {
                 outputs.sort_by(|a, b| b.defect_count.cmp(&a.defect_count));
             }
             TrustSortBy::Recency => {
-                outputs.sort_by(|a, b| a.last_defect_age_hours.partial_cmp(&b.last_defect_age_hours).unwrap_or(std::cmp::Ordering::Equal));
+                outputs.sort_by(|a, b| {
+                    a.last_defect_age_hours
+                        .partial_cmp(&b.last_defect_age_hours)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                });
             }
         }
 
@@ -503,8 +536,7 @@ pub fn save_trust_state(ledger: &TrustLedger, path: &Path) -> M1ndResult<()> {
         entries: ledger.entries.clone(),
     };
 
-    let json = serde_json::to_string_pretty(&format)
-        .map_err(crate::error::M1ndError::Serde)?;
+    let json = serde_json::to_string_pretty(&format).map_err(crate::error::M1ndError::Serde)?;
 
     // Atomic write: temp file + rename
     let temp_path = path.with_extension("tmp");
@@ -554,8 +586,12 @@ mod tests {
             ledger.record_defect("file::buggy.py", NOW - i as f64);
         }
         let buggy = ledger.compute_trust("file::buggy.py", NOW);
-        assert!(buggy.trust_score < TRUST_COLD_START_DEFAULT,
-            "trust_score {} should be below cold start {}", buggy.trust_score, TRUST_COLD_START_DEFAULT);
+        assert!(
+            buggy.trust_score < TRUST_COLD_START_DEFAULT,
+            "trust_score {} should be below cold start {}",
+            buggy.trust_score,
+            TRUST_COLD_START_DEFAULT
+        );
     }
 
     // 3. recency_decay: defects from long ago contribute less than recent ones
@@ -575,8 +611,12 @@ mod tests {
         let new_score = new_ledger.compute_trust("file::module.py", NOW);
 
         // Old defect → recency near floor → higher trust than very recent defect
-        assert!(old_score.trust_score > new_score.trust_score,
-            "Old defect should decay: old={} new={}", old_score.trust_score, new_score.trust_score);
+        assert!(
+            old_score.trust_score > new_score.trust_score,
+            "Old defect should decay: old={} new={}",
+            old_score.trust_score,
+            new_score.trust_score
+        );
     }
 
     // 4. risk_cap: risk_multiplier is bounded by RISK_MULTIPLIER_CAP
@@ -588,8 +628,12 @@ mod tests {
             ledger.record_defect("file::broken.py", NOW - i as f64 * 0.1);
         }
         let score = ledger.compute_trust("file::broken.py", NOW);
-        assert!(score.risk_multiplier <= RISK_MULTIPLIER_CAP,
-            "risk_multiplier {} exceeds cap {}", score.risk_multiplier, RISK_MULTIPLIER_CAP);
+        assert!(
+            score.risk_multiplier <= RISK_MULTIPLIER_CAP,
+            "risk_multiplier {} exceeds cap {}",
+            score.risk_multiplier,
+            RISK_MULTIPLIER_CAP
+        );
     }
 
     // 5. report_scope: scope="file" only returns file:: nodes
@@ -600,15 +644,27 @@ mod tests {
         ledger.record_defect("module::services", NOW);
 
         let result = ledger.report(
-            "file", 1, 100, None, TrustSortBy::TrustAsc, NOW,
-            RECENCY_HALF_LIFE_HOURS, RISK_MULTIPLIER_CAP,
+            "file",
+            1,
+            100,
+            None,
+            TrustSortBy::TrustAsc,
+            NOW,
+            RECENCY_HALF_LIFE_HOURS,
+            RISK_MULTIPLIER_CAP,
         );
 
         for out in &result.trust_scores {
-            assert!(out.node_id.starts_with("file::"),
-                "Expected file:: prefix, got {}", out.node_id);
+            assert!(
+                out.node_id.starts_with("file::"),
+                "Expected file:: prefix, got {}",
+                out.node_id
+            );
         }
-        assert!(!result.trust_scores.is_empty(), "Should have at least one file:: result");
+        assert!(
+            !result.trust_scores.is_empty(),
+            "Should have at least one file:: result"
+        );
     }
 
     // 6. sort_trust_asc: results are in ascending trust order
@@ -623,8 +679,14 @@ mod tests {
         }
 
         let result = ledger.report(
-            "all", 1, 100, None, TrustSortBy::TrustAsc, NOW,
-            RECENCY_HALF_LIFE_HOURS, RISK_MULTIPLIER_CAP,
+            "all",
+            1,
+            100,
+            None,
+            TrustSortBy::TrustAsc,
+            NOW,
+            RECENCY_HALF_LIFE_HOURS,
+            RISK_MULTIPLIER_CAP,
         );
 
         let scores: Vec<f32> = result.trust_scores.iter().map(|o| o.trust_score).collect();
@@ -649,11 +711,19 @@ mod tests {
         let adj_negative = ledger.adjust_prior(base, &ids, false, NOW);
 
         // Positive claim: adjusted ≤ base (trust < 1.0 scales down)
-        assert!(adj_positive <= base,
-            "Positive claim prior {} should be ≤ base {}", adj_positive, base);
+        assert!(
+            adj_positive <= base,
+            "Positive claim prior {} should be ≤ base {}",
+            adj_positive,
+            base
+        );
         // Negative claim: adjusted may be > or ≈ base (risk_multiplier ≥ 1.0)
-        assert!(adj_negative >= adj_positive,
-            "Negative claim {} should be ≥ positive {}", adj_negative, adj_positive);
+        assert!(
+            adj_negative >= adj_positive,
+            "Negative claim {} should be ≥ positive {}",
+            adj_negative,
+            adj_positive
+        );
         // Both clamped to [0, PRIOR_CAP]
         assert!(adj_positive <= PRIOR_CAP);
         assert!(adj_negative <= PRIOR_CAP);
@@ -709,20 +779,23 @@ pub fn load_trust_state(path: &Path) -> M1ndResult<TrustLedger> {
     }
 
     let data = std::fs::read_to_string(path)?;
-    let format: TrustPersistenceFormat = serde_json::from_str(&data)
-        .map_err(crate::error::M1ndError::Serde)?;
+    let format: TrustPersistenceFormat =
+        serde_json::from_str(&data).map_err(crate::error::M1ndError::Serde)?;
 
     // Validate entries: reject corrupt (NaN/Inf) entries
     let mut valid_entries = HashMap::new();
     for (key, entry) in format.entries {
-        if !entry.last_defect_timestamp.is_finite()
-            || !entry.first_defect_timestamp.is_finite()
-        {
-            eprintln!("m1nd trust: rejecting corrupt entry for {}: non-finite timestamps", key);
+        if !entry.last_defect_timestamp.is_finite() || !entry.first_defect_timestamp.is_finite() {
+            eprintln!(
+                "m1nd trust: rejecting corrupt entry for {}: non-finite timestamps",
+                key
+            );
             continue;
         }
         valid_entries.insert(key, entry);
     }
 
-    Ok(TrustLedger { entries: valid_entries })
+    Ok(TrustLedger {
+        entries: valid_entries,
+    })
 }

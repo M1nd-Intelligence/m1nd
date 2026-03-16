@@ -327,7 +327,7 @@ impl Extractor for RustExtractor {
                     if let Some(type_match) = caps.get(1) {
                         let type_name = type_match.as_str();
                         // Only UpperCamelCase (likely a type, not a variable)
-                        if type_name.chars().next().map_or(false, |c| c.is_uppercase())
+                        if type_name.chars().next().is_some_and(|c| c.is_uppercase())
                             && type_name.len() > 1
                         {
                             let ref_id = format!("ref::{}", type_name);

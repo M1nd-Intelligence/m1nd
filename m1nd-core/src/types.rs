@@ -318,11 +318,11 @@ pub const RESONANCE_BONUS_4DIM: f32 = 1.5;
 /// Replaces: engine_v2.py D1_Structural.__init__ parameters
 #[derive(Clone, Debug)]
 pub struct PropagationConfig {
-    pub decay: DecayFactor,              // default 0.55
-    pub threshold: PosF32,               // default 0.04
-    pub max_depth: u8,                   // default 5, max 20 (FM-ACT-012)
-    pub saturation_cap: FiniteF32,       // default 1.0
-    pub inhibitory_factor: FiniteF32,    // default 0.5
+    pub decay: DecayFactor,           // default 0.55
+    pub threshold: PosF32,            // default 0.04
+    pub max_depth: u8,                // default 5, max 20 (FM-ACT-012)
+    pub saturation_cap: FiniteF32,    // default 1.0
+    pub inhibitory_factor: FiniteF32, // default 0.5
 }
 
 impl Default for PropagationConfig {
@@ -339,9 +339,9 @@ impl Default for PropagationConfig {
 
 /// Semantic matching weights from semantic_v2.py query_fast.
 pub struct SemanticWeights {
-    pub ngram: FiniteF32,       // default 0.4
+    pub ngram: FiniteF32,        // default 0.4
     pub cooccurrence: FiniteF32, // default 0.4
-    pub synonym: FiniteF32,     // default 0.2
+    pub synonym: FiniteF32,      // default 0.2
 }
 
 impl Default for SemanticWeights {
@@ -356,8 +356,8 @@ impl Default for SemanticWeights {
 
 /// Temporal scoring weights from engine_v2.py D3_Temporal.
 pub struct TemporalWeights {
-    pub recency: FiniteF32,     // default 0.6
-    pub frequency: FiniteF32,   // default 0.4
+    pub recency: FiniteF32,   // default 0.6
+    pub frequency: FiniteF32, // default 0.4
 }
 
 impl Default for TemporalWeights {

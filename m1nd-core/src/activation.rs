@@ -1,7 +1,7 @@
 // === crates/m1nd-core/src/activation.rs ===
 
-use std::collections::{BinaryHeap, HashMap};
 use std::cmp::Ordering;
+use std::collections::{BinaryHeap, HashMap};
 use std::time::Instant;
 
 use crate::error::M1ndResult;
@@ -28,10 +28,10 @@ impl BloomFilter {
         // m = -(n * ln(p)) / (ln(2)^2)
         let m = (-(expected as f64) * fpr.ln() / (2.0f64.ln().powi(2))) as usize;
         let num_bits = m.max(64);
-        let num_words = (num_bits + 63) / 64;
+        let num_words = num_bits.div_ceil(64);
         // k = (m/n) * ln(2)
         let k = ((num_bits as f64 / expected as f64) * 2.0f64.ln()).ceil() as u32;
-        let num_hashes = k.max(1).min(16);
+        let num_hashes = k.clamp(1, 16);
         Self {
             bits: vec![0u64; num_words],
             num_bits,
@@ -45,8 +45,8 @@ impl BloomFilter {
         let h2 = item.wrapping_mul(2246822519).wrapping_add(1) as usize;
         let m = self.num_bits;
         let k = self.num_hashes.min(16);
-        for i in 0..k as usize {
-            out[i] = h1.wrapping_add(i.wrapping_mul(h2)) % m;
+        for (i, slot) in out.iter_mut().enumerate().take(k as usize) {
+            *slot = h1.wrapping_add(i.wrapping_mul(h2)) % m;
         }
         k
     }
@@ -54,8 +54,7 @@ impl BloomFilter {
     pub fn insert(&mut self, item: NodeId) {
         let mut hashes = [0usize; 16];
         let k = self.compute_hashes(item.0, &mut hashes);
-        for i in 0..k as usize {
-            let h = hashes[i];
+        for &h in hashes.iter().take(k as usize) {
             self.bits[h >> 6] |= 1u64 << (h & 63);
         }
     }
@@ -63,8 +62,7 @@ impl BloomFilter {
     pub fn probably_contains(&self, item: NodeId) -> bool {
         let mut hashes = [0usize; 16];
         let k = self.compute_hashes(item.0, &mut hashes);
-        for i in 0..k as usize {
-            let h = hashes[i];
+        for &h in hashes.iter().take(k as usize) {
             if self.bits[h >> 6] & (1u64 << (h & 63)) == 0 {
                 return false;
             }
@@ -146,6 +144,12 @@ pub trait ActivationEngine: Send + Sync {
 /// All active nodes at current depth fire simultaneously.
 /// Signal accumulated via scatter-max into next depth's buffer.
 pub struct WavefrontEngine;
+
+impl Default for WavefrontEngine {
+    fn default() -> Self {
+        Self
+    }
+}
 
 impl WavefrontEngine {
     pub fn new() -> Self {
@@ -294,6 +298,12 @@ impl Ord for HeapEntry {
 /// Uses BloomFilter for fast visited checks.
 pub struct HeapEngine;
 
+impl Default for HeapEngine {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl HeapEngine {
     pub fn new() -> Self {
         Self
@@ -330,13 +340,18 @@ impl ActivationEngine for HeapEngine {
             if idx < n {
                 let s = score.get().min(config.saturation_cap.get());
                 activation[idx] = s;
-                heap.push(HeapEntry { node, activation: s });
+                heap.push(HeapEntry {
+                    node,
+                    activation: s,
+                });
                 bloom.insert(node);
             }
         }
 
         let mut depth_counter = 0u32;
-        let max_ops = (n as u32).saturating_mul(config.max_depth as u32).max(10000);
+        let max_ops = (n as u32)
+            .saturating_mul(config.max_depth as u32)
+            .max(10000);
 
         while let Some(entry) = heap.pop() {
             if entry.activation < threshold {
@@ -370,7 +385,10 @@ impl ActivationEngine for HeapEngine {
                     activation[tgt_idx] = signal;
                     if !bloom.probably_contains(tgt) {
                         bloom.insert(tgt);
-                        heap.push(HeapEntry { node: tgt, activation: signal });
+                        heap.push(HeapEntry {
+                            node: tgt,
+                            activation: signal,
+                        });
                     }
                 } else if is_inhib {
                     activation[tgt_idx] = (activation[tgt_idx] + signal).max(0.0);
@@ -405,6 +423,12 @@ impl ActivationEngine for HeapEngine {
 pub struct HybridEngine {
     wavefront: WavefrontEngine,
     heap: HeapEngine,
+}
+
+impl Default for HybridEngine {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl HybridEngine {
@@ -599,7 +623,8 @@ pub fn activate_causal(
         }
         let mut next = Vec::new();
         for &src in &back_frontier {
-            let src_act = activation[src.as_usize()].max(seeds.iter().find(|s| s.0 == src).map_or(0.0, |s| s.1.get()));
+            let src_act = activation[src.as_usize()]
+                .max(seeds.iter().find(|s| s.0 == src).map_or(0.0, |s| s.1.get()));
             if src_act < threshold {
                 continue;
             }

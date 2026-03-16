@@ -173,7 +173,10 @@ impl LayerDetector {
     /// - `max_layers`: upper bound on the number of output layers.
     /// - `min_nodes_per_layer`: layers smaller than this are merged into an adjacent layer.
     pub fn new(max_layers: u8, min_nodes_per_layer: u32) -> Self {
-        Self { max_layers, min_nodes_per_layer }
+        Self {
+            max_layers,
+            min_nodes_per_layer,
+        }
     }
 
     /// Create a detector using [`DEFAULT_MAX_LAYERS`] and [`DEFAULT_MIN_NODES_PER_LAYER`].
@@ -215,7 +218,9 @@ impl LayerDetector {
         if exclude_tests {
             candidates.retain(|&nid| {
                 let idx = nid.as_usize();
-                if idx >= graph.nodes.count as usize { return false; }
+                if idx >= graph.nodes.count as usize {
+                    return false;
+                }
                 let label = graph.strings.resolve(graph.nodes.label[idx]).to_lowercase();
                 !label.contains("test")
             });
@@ -262,7 +267,9 @@ impl LayerDetector {
             let range = graph.csr.out_range(node);
             for j in range {
                 let target = graph.csr.targets[j];
-                if !candidate_set.contains(&target) { continue; }
+                if !candidate_set.contains(&target) {
+                    continue;
+                }
                 let effective_tgt = scc_map.get(&target).copied().unwrap_or(target);
                 if effective_src != effective_tgt {
                     *in_degree.entry(effective_tgt).or_insert(0) += 1;
@@ -282,7 +289,8 @@ impl LayerDetector {
 
         // If no roots found (all nodes in cycles), pick nodes with min in-degree
         if queue.is_empty() {
-            let min_in = dag_nodes.iter()
+            let min_in = dag_nodes
+                .iter()
                 .map(|n| *in_degree.get(n).unwrap_or(&0))
                 .min()
                 .unwrap_or(0);
@@ -301,10 +309,15 @@ impl LayerDetector {
             let range = graph.csr.out_range(node);
             for j in range {
                 let target = graph.csr.targets[j];
-                if !candidate_set.contains(&target) { continue; }
+                if !candidate_set.contains(&target) {
+                    continue;
+                }
                 let effective_tgt = scc_map.get(&target).copied().unwrap_or(target);
                 if effective_src != effective_tgt {
-                    dag_adj.entry(effective_src).or_default().insert(effective_tgt);
+                    dag_adj
+                        .entry(effective_src)
+                        .or_default()
+                        .insert(effective_tgt);
                 }
             }
         }
@@ -313,7 +326,9 @@ impl LayerDetector {
         // We use iterative relaxation (Kahn-like) for this
         let mut visited: HashSet<NodeId> = HashSet::new();
         while let Some(node) = queue.pop_front() {
-            if !visited.insert(node) { continue; }
+            if !visited.insert(node) {
+                continue;
+            }
             let current_depth = *depth.get(&node).unwrap_or(&0);
             if let Some(neighbors) = dag_adj.get(&node) {
                 for &next in neighbors {
@@ -324,7 +339,9 @@ impl LayerDetector {
                     }
                     // Decrement in-degree; if zero, enqueue
                     let deg = in_degree.entry(next).or_insert(0);
-                    if *deg > 0 { *deg -= 1; }
+                    if *deg > 0 {
+                        *deg -= 1;
+                    }
                     if *deg == 0 {
                         queue.push_back(next);
                     }
@@ -408,7 +425,9 @@ impl LayerDetector {
             let mut referencing_layers: HashSet<u8> = HashSet::new();
             for j in range {
                 let source = graph.csr.rev_sources[j];
-                if candidate_set.contains(&source) && !scc_map.contains_key(&source) || scc_map.get(&source).copied() != scc_map.get(&node).copied() {
+                if candidate_set.contains(&source) && !scc_map.contains_key(&source)
+                    || scc_map.get(&source).copied() != scc_map.get(&node).copied()
+                {
                     if let Some(&layer) = node_layer.get(&source) {
                         if layer != *node_layer.get(&node).unwrap_or(&255) {
                             referencing_layers.insert(layer);
@@ -440,7 +459,9 @@ impl LayerDetector {
                             break;
                         }
                     }
-                    if is_bridge { break; }
+                    if is_bridge {
+                        break;
+                    }
                 }
                 if is_bridge {
                     utility_nodes.push(UtilityNode {
@@ -455,7 +476,9 @@ impl LayerDetector {
 
         // Also detect orphan nodes (no incoming references at all)
         for &node in &candidates {
-            if utility_set.contains(&node) { continue; }
+            if utility_set.contains(&node) {
+                continue;
+            }
             let in_range = graph.csr.in_range(node);
             let has_incoming = in_range.clone().any(|j| {
                 let source = graph.csr.rev_sources[j];
@@ -484,13 +507,16 @@ impl LayerDetector {
         // Phase 5: Build ArchLayer structs with naming
         let mut layers: Vec<ArchLayer> = Vec::new();
         for (level, group) in depth_groups.iter().enumerate() {
-            if group.is_empty() { continue; }
+            if group.is_empty() {
+                continue;
+            }
 
             let avg_pr = layer_avg_pagerank(graph, group);
             let avg_out = layer_avg_out_degree(graph, group);
-            let confidences: Vec<f32> = group.iter().map(|&node| {
-                layer_node_confidence(graph, node, &node_layer, &candidate_set)
-            }).collect();
+            let confidences: Vec<f32> = group
+                .iter()
+                .map(|&node| layer_node_confidence(graph, node, &node_layer, &candidate_set))
+                .collect();
 
             let (name, description) = match naming_strategy {
                 "path_prefix" => layer_name_path_prefix(graph, group, level),
@@ -530,7 +556,9 @@ impl LayerDetector {
             for &node in scc {
                 let source_layer = node_layer_final.get(&node).copied().unwrap_or(0);
                 for &other in scc {
-                    if node == other { continue; }
+                    if node == other {
+                        continue;
+                    }
                     // Check if there's an actual edge
                     let range = graph.csr.out_range(node);
                     for j in range {
@@ -538,8 +566,14 @@ impl LayerDetector {
                         if target == other {
                             let rel = graph.strings.resolve(graph.csr.relations[j]).to_string();
                             let w = graph.csr.read_weight(EdgeIdx::new(j as u32)).get();
-                            let src_label = graph.strings.resolve(graph.nodes.label[node.as_usize()]).to_string();
-                            let tgt_label = graph.strings.resolve(graph.nodes.label[other.as_usize()]).to_string();
+                            let src_label = graph
+                                .strings
+                                .resolve(graph.nodes.label[node.as_usize()])
+                                .to_string();
+                            let tgt_label = graph
+                                .strings
+                                .resolve(graph.nodes.label[other.as_usize()])
+                                .to_string();
                             violations.push(LayerViolation {
                                 source: node,
                                 source_layer,
@@ -566,7 +600,9 @@ impl LayerDetector {
         let mut violation_edges: f32 = 0.0;
 
         for &node in &candidates {
-            if utility_set.contains(&node) { continue; }
+            if utility_set.contains(&node) {
+                continue;
+            }
             let src_layer = match node_layer_final.get(&node) {
                 Some(&l) => l,
                 None => continue,
@@ -575,8 +611,12 @@ impl LayerDetector {
             let range = graph.csr.out_range(node);
             for j in range {
                 let target = graph.csr.targets[j];
-                if utility_set.contains(&target) { continue; }
-                if !candidate_set.contains(&target) { continue; }
+                if utility_set.contains(&target) {
+                    continue;
+                }
+                if !candidate_set.contains(&target) {
+                    continue;
+                }
 
                 let tgt_layer = match node_layer_final.get(&target) {
                     Some(&l) => l,
@@ -594,11 +634,15 @@ impl LayerDetector {
                     let gap = src_layer - tgt_layer;
 
                     let (vtype, severity) = if gap > 1 {
-                        (ViolationType::SkipLayerDependency,
-                         layer_violation_severity(&rel, gap, w))
+                        (
+                            ViolationType::SkipLayerDependency,
+                            layer_violation_severity(&rel, gap, w),
+                        )
                     } else {
-                        (ViolationType::UpwardDependency,
-                         layer_violation_severity(&rel, gap, w))
+                        (
+                            ViolationType::UpwardDependency,
+                            layer_violation_severity(&rel, gap, w),
+                        )
                     };
 
                     // Weighted penalty: skip-layer violations penalized more
@@ -606,8 +650,14 @@ impl LayerDetector {
 
                     let src_name = layer_name_for_level(src_layer, &layers);
                     let tgt_name = layer_name_for_level(tgt_layer, &layers);
-                    let src_label = graph.strings.resolve(graph.nodes.label[node.as_usize()]).to_string();
-                    let tgt_label = graph.strings.resolve(graph.nodes.label[target.as_usize()]).to_string();
+                    let src_label = graph
+                        .strings
+                        .resolve(graph.nodes.label[node.as_usize()])
+                        .to_string();
+                    let tgt_label = graph
+                        .strings
+                        .resolve(graph.nodes.label[target.as_usize()])
+                        .to_string();
 
                     violations.push(LayerViolation {
                         source: node,
@@ -620,8 +670,7 @@ impl LayerDetector {
                         violation_type: vtype,
                         explanation: format!(
                             "{} (layer {}: {}) depends on {} (layer {}: {})",
-                            src_label, src_layer, src_name,
-                            tgt_label, tgt_layer, tgt_name,
+                            src_label, src_layer, src_name, tgt_label, tgt_layer, tgt_name,
                         ),
                     });
                 }
@@ -630,9 +679,8 @@ impl LayerDetector {
 
         // Compute layer separation score
         // Penalize cycles proportionally
-        let cycle_penalty: f32 = sccs.iter()
-            .map(|scc| scc.len() as f32)
-            .sum::<f32>() / candidates.len().max(1) as f32;
+        let cycle_penalty: f32 =
+            sccs.iter().map(|scc| scc.len() as f32).sum::<f32>() / candidates.len().max(1) as f32;
 
         let layer_separation_score = if total_cross_layer_edges == 0 && !has_cycles {
             1.0 // Perfect: no cross-layer edges, no violations possible
@@ -670,15 +718,17 @@ impl LayerDetector {
         result: &LayerDetectionResult,
         level: u8,
     ) -> M1ndResult<LayerHealth> {
-        let layer = result.layers.iter()
+        let layer = result
+            .layers
+            .iter()
             .find(|l| l.level == level)
             .ok_or(M1ndError::LayerNotFound { level })?;
 
         let node_set: HashSet<NodeId> = layer.nodes.iter().copied().collect();
-        let utility_set: HashSet<NodeId> = result.utility_nodes.iter()
-            .map(|u| u.node)
-            .collect();
-        let all_layer_nodes: HashMap<NodeId, u8> = result.layers.iter()
+        let utility_set: HashSet<NodeId> = result.utility_nodes.iter().map(|u| u.node).collect();
+        let all_layer_nodes: HashMap<NodeId, u8> = result
+            .layers
+            .iter()
             .flat_map(|l| l.nodes.iter().map(move |&n| (n, l.level)))
             .collect();
 
@@ -701,7 +751,9 @@ impl LayerDetector {
             let range = graph.csr.out_range(node);
             for j in range {
                 let target = graph.csr.targets[j];
-                if utility_set.contains(&target) { continue; }
+                if utility_set.contains(&target) {
+                    continue;
+                }
 
                 if node_set.contains(&target) {
                     intra_edges += 1;
@@ -726,7 +778,9 @@ impl LayerDetector {
         let coupling_down = edges_down as f32 / total_external as f32;
 
         // Violation density: violations per node
-        let violations_in_layer = result.violations.iter()
+        let violations_in_layer = result
+            .violations
+            .iter()
             .filter(|v| v.source_layer == level || v.target_layer == level)
             .count();
         let violation_density = violations_in_layer as f32 / n as f32;
@@ -796,14 +850,16 @@ fn tarjan_scc(graph: &Graph, nodes: &[NodeId]) -> Vec<Vec<NodeId>> {
                 TarjanFrame::Resume(v, pos) => {
                     let node = idx_to_node[v];
                     let range = graph.csr.out_range(node);
-                    let neighbors: Vec<usize> = range.filter_map(|j| {
-                        let target = graph.csr.targets[j];
-                        if node_set.contains(&target) {
-                            node_to_idx.get(&target).copied()
-                        } else {
-                            None
-                        }
-                    }).collect();
+                    let neighbors: Vec<usize> = range
+                        .filter_map(|j| {
+                            let target = graph.csr.targets[j];
+                            if node_set.contains(&target) {
+                                node_to_idx.get(&target).copied()
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
 
                     let mut next_pos = pos;
                     let mut found_unvisited = false;
@@ -837,7 +893,9 @@ fn tarjan_scc(graph: &Graph, nodes: &[NodeId]) -> Vec<Vec<NodeId>> {
                             let w = stack.pop().unwrap();
                             on_stack[w] = false;
                             scc.push(idx_to_node[w]);
-                            if w == v { break; }
+                            if w == v {
+                                break;
+                            }
                         }
                         if scc.len() > 1 {
                             result.push(scc);
@@ -871,9 +929,7 @@ fn layer_collect_candidates(
         let nid = NodeId::new(i as u32);
 
         // Type filter
-        if !node_type_filter.is_empty()
-            && !node_type_filter.contains(&graph.nodes.node_type[i])
-        {
+        if !node_type_filter.is_empty() && !node_type_filter.contains(&graph.nodes.node_type[i]) {
             continue;
         }
 
@@ -889,7 +945,9 @@ fn layer_collect_candidates(
                     break;
                 }
             }
-            if !matched { continue; }
+            if !matched {
+                continue;
+            }
         }
 
         candidates.push(nid);
@@ -900,8 +958,11 @@ fn layer_collect_candidates(
 
 /// Average PageRank for a set of nodes.
 fn layer_avg_pagerank(graph: &Graph, nodes: &[NodeId]) -> f32 {
-    if nodes.is_empty() { return 0.0; }
-    let sum: f32 = nodes.iter()
+    if nodes.is_empty() {
+        return 0.0;
+    }
+    let sum: f32 = nodes
+        .iter()
         .map(|&n| graph.nodes.pagerank[n.as_usize()].get())
         .sum();
     sum / nodes.len() as f32
@@ -909,8 +970,11 @@ fn layer_avg_pagerank(graph: &Graph, nodes: &[NodeId]) -> f32 {
 
 /// Average out-degree for a set of nodes.
 fn layer_avg_out_degree(graph: &Graph, nodes: &[NodeId]) -> f32 {
-    if nodes.is_empty() { return 0.0; }
-    let sum: f32 = nodes.iter()
+    if nodes.is_empty() {
+        return 0.0;
+    }
+    let sum: f32 = nodes
+        .iter()
         .map(|&n| {
             let range = graph.csr.out_range(n);
             range.len() as f32
@@ -938,7 +1002,9 @@ fn layer_node_confidence(
 
     for j in range {
         let target = graph.csr.targets[j];
-        if !candidate_set.contains(&target) { continue; }
+        if !candidate_set.contains(&target) {
+            continue;
+        }
         if let Some(&tgt_layer) = node_layer.get(&target) {
             total_edges += 1;
             if tgt_layer >= my_layer {
@@ -952,7 +1018,9 @@ fn layer_node_confidence(
     let in_range = graph.csr.in_range(node);
     for j in in_range {
         let source = graph.csr.rev_sources[j];
-        if !candidate_set.contains(&source) { continue; }
+        if !candidate_set.contains(&source) {
+            continue;
+        }
         if let Some(&src_layer) = node_layer.get(&source) {
             total_edges += 1;
             if src_layer <= my_layer {
@@ -970,15 +1038,14 @@ fn layer_node_confidence(
 }
 
 /// Name layer by most common path prefix component.
-fn layer_name_path_prefix(
-    graph: &Graph,
-    nodes: &[NodeId],
-    level: usize,
-) -> (String, String) {
+fn layer_name_path_prefix(graph: &Graph, nodes: &[NodeId], level: usize) -> (String, String) {
     let mut prefix_counts: HashMap<String, u32> = HashMap::new();
 
     for &node in nodes {
-        let label = graph.strings.resolve(graph.nodes.label[node.as_usize()]).to_lowercase();
+        let label = graph
+            .strings
+            .resolve(graph.nodes.label[node.as_usize()])
+            .to_lowercase();
         // Extract first path component or identifier prefix
         let prefix = if let Some(slash_pos) = label.find('/') {
             &label[..slash_pos]
@@ -993,34 +1060,47 @@ fn layer_name_path_prefix(
     }
 
     if let Some((prefix, _)) = prefix_counts.iter().max_by_key(|&(_, count)| count) {
-        (prefix.clone(), format!("Layer {} grouped by path prefix '{}'", level, prefix))
+        (
+            prefix.clone(),
+            format!("Layer {} grouped by path prefix '{}'", level, prefix),
+        )
     } else {
-        (format!("layer_{}", level), format!("Layer at depth {}", level))
+        (
+            format!("layer_{}", level),
+            format!("Layer at depth {}", level),
+        )
     }
 }
 
 /// Name layer by highest PageRank node.
-fn layer_name_by_pagerank(
-    graph: &Graph,
-    nodes: &[NodeId],
-    level: usize,
-) -> (String, String) {
+fn layer_name_by_pagerank(graph: &Graph, nodes: &[NodeId], level: usize) -> (String, String) {
     if nodes.is_empty() {
-        return (format!("layer_{}", level), format!("Layer at depth {}", level));
+        return (
+            format!("layer_{}", level),
+            format!("Layer at depth {}", level),
+        );
     }
 
-    let top_node = nodes.iter()
+    let top_node = nodes
+        .iter()
         .max_by(|&&a, &&b| {
-            graph.nodes.pagerank[a.as_usize()].get()
+            graph.nodes.pagerank[a.as_usize()]
+                .get()
                 .partial_cmp(&graph.nodes.pagerank[b.as_usize()].get())
                 .unwrap_or(std::cmp::Ordering::Equal)
         })
         .unwrap();
 
-    let label = graph.strings.resolve(graph.nodes.label[top_node.as_usize()]).to_string();
+    let label = graph
+        .strings
+        .resolve(graph.nodes.label[top_node.as_usize()])
+        .to_string();
     (
         label.clone(),
-        format!("Layer {} named after highest-PageRank node: {}", level, label),
+        format!(
+            "Layer {} named after highest-PageRank node: {}",
+            level, label
+        ),
     )
 }
 
@@ -1042,7 +1122,10 @@ fn layer_name_heuristic(
     let mut test_count = 0u32;
 
     for &node in nodes {
-        let label = graph.strings.resolve(graph.nodes.label[node.as_usize()]).to_lowercase();
+        let label = graph
+            .strings
+            .resolve(graph.nodes.label[node.as_usize()])
+            .to_lowercase();
 
         if label.contains("route") || label.contains("router") || label.contains("endpoint") {
             route_count += 1;
@@ -1050,16 +1133,30 @@ fn layer_name_heuristic(
         if label.contains("handler") || label.contains("middleware") || label.contains("dispatch") {
             handler_count += 1;
         }
-        if label.contains("manager") || label.contains("orchestr") || label.contains("engine")
-            || label.contains("service") || label.contains("daemon") || label.contains("processor") {
+        if label.contains("manager")
+            || label.contains("orchestr")
+            || label.contains("engine")
+            || label.contains("service")
+            || label.contains("daemon")
+            || label.contains("processor")
+        {
             service_count += 1;
         }
-        if label.contains("store") || label.contains("pool") || label.contains("client")
-            || label.contains("db") || label.contains("cache") || label.contains("repository") {
+        if label.contains("store")
+            || label.contains("pool")
+            || label.contains("client")
+            || label.contains("db")
+            || label.contains("cache")
+            || label.contains("repository")
+        {
             store_count += 1;
         }
-        if label.contains("model") || label.contains("types") || label.contains("schema")
-            || label.contains("struct") || label.contains("enum") {
+        if label.contains("model")
+            || label.contains("types")
+            || label.contains("schema")
+            || label.contains("struct")
+            || label.contains("enum")
+        {
             model_count += 1;
         }
         if label.contains("config") || label.contains("settings") || label.contains("constants") {
@@ -1075,17 +1172,39 @@ fn layer_name_heuristic(
 
     // Pick dominant pattern
     let counts = [
-        (main_count + route_count, "entry_points", "Surface layer: HTTP routes, CLI entry points, main modules"),
-        (handler_count, "handlers", "Request processing: route handlers, middleware, dispatchers"),
-        (service_count, "services", "Business logic: orchestrators, managers, processors"),
-        (store_count, "data_access", "Persistence and I/O: stores, pools, clients"),
-        (model_count + config_count, "foundation", "Core definitions: models, types, configuration"),
-        (test_count, "tests", "Test infrastructure: unit tests, integration tests"),
+        (
+            main_count + route_count,
+            "entry_points",
+            "Surface layer: HTTP routes, CLI entry points, main modules",
+        ),
+        (
+            handler_count,
+            "handlers",
+            "Request processing: route handlers, middleware, dispatchers",
+        ),
+        (
+            service_count,
+            "services",
+            "Business logic: orchestrators, managers, processors",
+        ),
+        (
+            store_count,
+            "data_access",
+            "Persistence and I/O: stores, pools, clients",
+        ),
+        (
+            model_count + config_count,
+            "foundation",
+            "Core definitions: models, types, configuration",
+        ),
+        (
+            test_count,
+            "tests",
+            "Test infrastructure: unit tests, integration tests",
+        ),
     ];
 
-    let dominant = counts.iter()
-        .max_by_key(|(c, _, _)| *c)
-        .unwrap();
+    let dominant = counts.iter().max_by_key(|(c, _, _)| *c).unwrap();
 
     if dominant.0 > 0 {
         return (dominant.1.to_string(), dominant.2.to_string());
@@ -1093,9 +1212,15 @@ fn layer_name_heuristic(
 
     // Fallback: use positional naming
     if level == 0 {
-        ("entry_points".to_string(), "Surface layer: entry points and top-level modules".to_string())
+        (
+            "entry_points".to_string(),
+            "Surface layer: entry points and top-level modules".to_string(),
+        )
     } else if level == total_levels - 1 {
-        ("foundation".to_string(), "Deepest layer: foundational modules and definitions".to_string())
+        (
+            "foundation".to_string(),
+            "Deepest layer: foundational modules and definitions".to_string(),
+        )
     } else {
         let name = format!("layer_{}", level);
         let desc = format!("Intermediate layer at depth {}", level);
@@ -1130,7 +1255,8 @@ fn layer_violation_severity(relation: &str, gap: u8, weight: f32) -> ViolationSe
 
 /// Get layer name for a given level from the layers vec.
 fn layer_name_for_level(level: u8, layers: &[ArchLayer]) -> String {
-    layers.iter()
+    layers
+        .iter()
         .find(|l| l.level == level)
         .map(|l| l.name.clone())
         .unwrap_or_else(|| format!("layer_{}", level))
@@ -1191,9 +1317,14 @@ mod tests {
         let graph = cyclic_graph();
         let detector = LayerDetector::new(8, 1);
         let result = detector.detect(&graph, None, &[], false, "auto").unwrap();
-        assert!(result.has_cycles, "Cyclic graph should set has_cycles = true");
+        assert!(
+            result.has_cycles,
+            "Cyclic graph should set has_cycles = true"
+        );
         // Circular dependency violations should be present
-        let circular = result.violations.iter()
+        let circular = result
+            .violations
+            .iter()
             .filter(|v| v.violation_type == ViolationType::CircularDependency)
             .count();
         assert!(circular > 0, "Expected CircularDependency violations");
@@ -1203,19 +1334,30 @@ mod tests {
     #[test]
     fn orphan_node_is_utility() {
         let mut b = GraphBuilder::new();
-        let _a = b.add_node("file::lone", "lone", NodeType::File, &[]).unwrap();
-        let _bb = b.add_node("file::connected_a", "connected_a", NodeType::File, &[]).unwrap();
-        let _c = b.add_node("file::connected_b", "connected_b", NodeType::File, &[]).unwrap();
+        let _a = b
+            .add_node("file::lone", "lone", NodeType::File, &[])
+            .unwrap();
+        let _bb = b
+            .add_node("file::connected_a", "connected_a", NodeType::File, &[])
+            .unwrap();
+        let _c = b
+            .add_node("file::connected_b", "connected_b", NodeType::File, &[])
+            .unwrap();
         b.add_edge(_bb, _c, "imports", 0.5).unwrap();
         let graph = b.finalize().unwrap();
 
         let detector = LayerDetector::new(8, 1);
         let result = detector.detect(&graph, None, &[], false, "auto").unwrap();
 
-        let orphans: Vec<_> = result.utility_nodes.iter()
+        let orphans: Vec<_> = result
+            .utility_nodes
+            .iter()
             .filter(|u| u.classification == UtilityClassification::Orphan)
             .collect();
-        assert!(!orphans.is_empty(), "Expected at least one Orphan utility node");
+        assert!(
+            !orphans.is_empty(),
+            "Expected at least one Orphan utility node"
+        );
     }
 
     // 5. violations_upward: an edge from deeper layer back to shallower yields UpwardDependency
@@ -1223,9 +1365,15 @@ mod tests {
     fn violations_upward_detected() {
         // Build: entry → service → entry (upward edge from service back to entry)
         let mut b = GraphBuilder::new();
-        let entry = b.add_node("file::main_entry", "main_entry", NodeType::File, &[]).unwrap();
-        let svc = b.add_node("file::service_layer", "service_layer", NodeType::File, &[]).unwrap();
-        let deepest = b.add_node("file::deep_store", "deep_store", NodeType::File, &[]).unwrap();
+        let entry = b
+            .add_node("file::main_entry", "main_entry", NodeType::File, &[])
+            .unwrap();
+        let svc = b
+            .add_node("file::service_layer", "service_layer", NodeType::File, &[])
+            .unwrap();
+        let deepest = b
+            .add_node("file::deep_store", "deep_store", NodeType::File, &[])
+            .unwrap();
         b.add_edge(entry, svc, "imports", 0.8).unwrap();
         b.add_edge(svc, deepest, "imports", 0.8).unwrap();
         // Upward violation: deep → entry
@@ -1241,15 +1389,27 @@ mod tests {
                 v.violation_type == ViolationType::UpwardDependency
                     || v.violation_type == ViolationType::CircularDependency
             });
-        assert!(has_violation, "Expected violation or cycle for cross-layer back-edge");
+        assert!(
+            has_violation,
+            "Expected violation or cycle for cross-layer back-edge"
+        );
     }
 
     // 6. naming_heuristic: node labelled "main_routes" → layer named "entry_points"
     #[test]
     fn naming_heuristic_routes_become_entry_points() {
         let mut b = GraphBuilder::new();
-        let r = b.add_node("file::main_routes", "main_routes", NodeType::File, &[]).unwrap();
-        let s = b.add_node("file::service_manager", "service_manager", NodeType::File, &[]).unwrap();
+        let r = b
+            .add_node("file::main_routes", "main_routes", NodeType::File, &[])
+            .unwrap();
+        let s = b
+            .add_node(
+                "file::service_manager",
+                "service_manager",
+                NodeType::File,
+                &[],
+            )
+            .unwrap();
         b.add_edge(r, s, "imports", 0.8).unwrap();
         let graph = b.finalize().unwrap();
 
@@ -1257,17 +1417,29 @@ mod tests {
         let result = detector.detect(&graph, None, &[], false, "auto").unwrap();
 
         let names: Vec<&str> = result.layers.iter().map(|l| l.name.as_str()).collect();
-        let has_entry = names.iter().any(|&n| n == "entry_points" || n == "services" || n.starts_with("layer_"));
-        assert!(has_entry, "Naming should produce recognizable layer names, got: {:?}", names);
+        let has_entry = names
+            .iter()
+            .any(|&n| n == "entry_points" || n == "services" || n.starts_with("layer_"));
+        assert!(
+            has_entry,
+            "Naming should produce recognizable layer names, got: {:?}",
+            names
+        );
     }
 
     // 7. exclude_tests: nodes with "test" in label are filtered out when exclude_tests=true
     #[test]
     fn exclude_tests_removes_test_nodes() {
         let mut b = GraphBuilder::new();
-        let prod = b.add_node("file::main_app", "main_app", NodeType::File, &[]).unwrap();
-        let _test = b.add_node("file::test_routes", "test_routes", NodeType::File, &[]).unwrap();
-        let svc = b.add_node("file::service_core", "service_core", NodeType::File, &[]).unwrap();
+        let prod = b
+            .add_node("file::main_app", "main_app", NodeType::File, &[])
+            .unwrap();
+        let _test = b
+            .add_node("file::test_routes", "test_routes", NodeType::File, &[])
+            .unwrap();
+        let svc = b
+            .add_node("file::service_core", "service_core", NodeType::File, &[])
+            .unwrap();
         b.add_edge(prod, svc, "imports", 0.8).unwrap();
         let graph = b.finalize().unwrap();
 
@@ -1277,12 +1449,20 @@ mod tests {
         // With exclude_tests=false
         let result_all = detector.detect(&graph, None, &[], false, "auto").unwrap();
 
-        let test_in_excl = result_excl.layers.iter()
+        let test_in_excl = result_excl
+            .layers
+            .iter()
             .flat_map(|l| l.nodes.iter())
             .any(|&nid| {
-                graph.strings.resolve(graph.nodes.label[nid.as_usize()]).contains("test")
+                graph
+                    .strings
+                    .resolve(graph.nodes.label[nid.as_usize()])
+                    .contains("test")
             });
-        assert!(!test_in_excl, "Test nodes should be excluded when exclude_tests=true");
+        assert!(
+            !test_in_excl,
+            "Test nodes should be excluded when exclude_tests=true"
+        );
 
         // excluded result should classify fewer nodes than all
         assert!(result_excl.total_nodes_classified <= result_all.total_nodes_classified);
@@ -1300,14 +1480,26 @@ mod tests {
         let health = detector.layer_health(&graph, &result, level).unwrap();
 
         // cohesion and coupling values are in [0, 1] or small multiples
-        assert!(health.cohesion >= 0.0 && health.cohesion <= 1.0,
-            "cohesion out of range: {}", health.cohesion);
-        assert!(health.coupling_up >= 0.0 && health.coupling_up <= 1.0,
-            "coupling_up out of range: {}", health.coupling_up);
-        assert!(health.coupling_down >= 0.0 && health.coupling_down <= 1.0,
-            "coupling_down out of range: {}", health.coupling_down);
-        assert!(health.violation_density >= 0.0,
-            "violation_density should be non-negative: {}", health.violation_density);
+        assert!(
+            health.cohesion >= 0.0 && health.cohesion <= 1.0,
+            "cohesion out of range: {}",
+            health.cohesion
+        );
+        assert!(
+            health.coupling_up >= 0.0 && health.coupling_up <= 1.0,
+            "coupling_up out of range: {}",
+            health.coupling_up
+        );
+        assert!(
+            health.coupling_down >= 0.0 && health.coupling_down <= 1.0,
+            "coupling_down out of range: {}",
+            health.coupling_down
+        );
+        assert!(
+            health.violation_density >= 0.0,
+            "violation_density should be non-negative: {}",
+            health.violation_density
+        );
     }
 
     // Existing violation severity tests (kept)
@@ -1351,6 +1543,9 @@ mod tests {
         let graph = Graph::new();
         let detector = LayerDetector::with_defaults();
         let health = detector.layer_health(&graph, &result, 99);
-        assert!(matches!(health, Err(M1ndError::LayerNotFound { level: 99 })));
+        assert!(matches!(
+            health,
+            Err(M1ndError::LayerNotFound { level: 99 })
+        ));
     }
 }

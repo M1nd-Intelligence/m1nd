@@ -84,6 +84,7 @@ impl SeedFinder {
         // Per-node best relevance
         let mut relevance = vec![0.0f32; n];
 
+        #[allow(clippy::needless_range_loop)]
         for i in 0..n {
             let node_id = NodeId::new(i as u32);
             let label = graph.strings.resolve(graph.nodes.label[i]);
@@ -99,7 +100,9 @@ impl SeedFinder {
                 }
 
                 // 2. Prefix match
-                if label_lower.starts_with(token.as_str()) || token.starts_with(label_lower.as_str()) {
+                if label_lower.starts_with(token.as_str())
+                    || token.starts_with(label_lower.as_str())
+                {
                     best = best.max(PREFIX_MATCH_RELEVANCE);
                     continue;
                 }

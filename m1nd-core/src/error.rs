@@ -1,20 +1,22 @@
 // === crates/m1nd-core/src/error.rs ===
 
-use crate::types::{NodeId, EdgeIdx, Generation};
+use crate::types::{EdgeIdx, Generation, NodeId};
 
 /// Central error type covering all failure modes from 05-HARDENING-SYNTHESIS.
 /// Each variant references its FM-ID for traceability.
 #[derive(Debug, thiserror::Error)]
 pub enum M1ndError {
     // --- Graph integrity ---
-
     /// FM-ACT-011: Edge references a node index that does not exist.
     #[error("dangling edge: edge {edge:?} references non-existent node {node:?}")]
     DanglingEdge { edge: EdgeIdx, node: NodeId },
 
     /// FM-PL-006: Graph structure changed since engine was initialised.
     #[error("graph generation mismatch: expected {expected:?}, actual {actual:?}")]
-    GraphGenerationMismatch { expected: Generation, actual: Generation },
+    GraphGenerationMismatch {
+        expected: Generation,
+        actual: Generation,
+    },
 
     /// FM-ACT-016: Attempted to add a node whose interned ID already exists.
     #[error("duplicate node: interned ID {0:?}")]
@@ -29,7 +31,6 @@ pub enum M1ndError {
     EmptyGraph,
 
     // --- Numerical safety ---
-
     /// FM-PL-001: Non-finite value detected at a NaN firewall boundary.
     #[error("non-finite value at firewall: node={node:?}, value={value}")]
     NonFiniteActivation { node: NodeId, value: f32 },
@@ -47,7 +48,6 @@ pub enum M1ndError {
     NonPositiveResonanceParam { name: &'static str, value: f32 },
 
     // --- Resource exhaustion ---
-
     /// FM-RES-004: Pulse propagation exceeded budget.
     #[error("pulse budget exhausted: {budget} pulses processed")]
     PulseBudgetExhausted { budget: u64 },
@@ -73,7 +73,6 @@ pub enum M1ndError {
     FingerprintPairBudget { budget: u64 },
 
     // --- Analysis quality ---
-
     /// FM-XLR-010: XLR cancelled all signal — fallback to hot-only.
     #[error("XLR over-cancellation: all signal cancelled")]
     XlrOverCancellation,
@@ -95,7 +94,6 @@ pub enum M1ndError {
     CasRetryExhausted { edge: EdgeIdx, limit: u32 },
 
     // --- Ingestion ---
-
     /// FM-ING-003: File encoding could not be determined.
     #[error("encoding detection failed for {path} (confidence={confidence:.2})")]
     EncodingDetectionFailed { path: String, confidence: f32 },
@@ -109,7 +107,6 @@ pub enum M1ndError {
     LabelCollision { label: String, count: usize },
 
     // --- Persistence ---
-
     /// FM-PL-007: Corrupt state file on load.
     #[error("corrupt persistence state: {reason}")]
     CorruptState { reason: String },
@@ -119,13 +116,11 @@ pub enum M1ndError {
     SchemaDrift { reason: String },
 
     // --- Counterfactual ---
-
     /// FM-CF-001: Seed node was in the removal set.
     #[error("counterfactual seed overlap: seed {node:?} is in the removal set")]
     CounterfactualSeedOverlap { node: NodeId },
 
     // --- Perspective / Lock / Navigation (12-PERSPECTIVE-SYNTHESIS Theme 3) ---
-
     /// Theme 3: Unknown tool name in dispatch.
     #[error("unknown tool: {name}")]
     UnknownTool { name: String },
@@ -136,23 +131,42 @@ pub enum M1ndError {
 
     /// Theme 3: Perspective does not exist for agent.
     #[error("perspective not found: {perspective_id} for agent {agent_id}")]
-    PerspectiveNotFound { perspective_id: String, agent_id: String },
+    PerspectiveNotFound {
+        perspective_id: String,
+        agent_id: String,
+    },
 
     /// Theme 3: Perspective route set is stale (generation mismatch).
-    #[error("perspective stale: {perspective_id} expected gen {expected_gen}, actual {actual_gen}")]
-    PerspectiveStale { perspective_id: String, expected_gen: u64, actual_gen: u64 },
+    #[error(
+        "perspective stale: {perspective_id} expected gen {expected_gen}, actual {actual_gen}"
+    )]
+    PerspectiveStale {
+        perspective_id: String,
+        expected_gen: u64,
+        actual_gen: u64,
+    },
 
     /// Theme 3: Agent exceeded max perspective count.
     #[error("perspective limit exceeded for agent {agent_id}: {current}/{limit}")]
-    PerspectiveLimitExceeded { agent_id: String, current: usize, limit: usize },
+    PerspectiveLimitExceeded {
+        agent_id: String,
+        current: usize,
+        limit: usize,
+    },
 
     /// Theme 3: Route set version mismatch (stale cached routes).
     #[error("route set stale: version {route_set_version}, current {current_version}")]
-    RouteSetStale { route_set_version: u64, current_version: u64 },
+    RouteSetStale {
+        route_set_version: u64,
+        current_version: u64,
+    },
 
     /// Theme 3: Route not found in perspective.
     #[error("route not found: {route_id} in perspective {perspective_id}")]
-    RouteNotFound { route_id: String, perspective_id: String },
+    RouteNotFound {
+        route_id: String,
+        perspective_id: String,
+    },
 
     /// Theme 3: Cannot navigate back — already at root.
     #[error("navigation at root: perspective {perspective_id}")]
@@ -160,7 +174,11 @@ pub enum M1ndError {
 
     /// Theme 3: Branch depth limit exceeded.
     #[error("branch depth exceeded in {perspective_id}: depth {depth}/{limit}")]
-    BranchDepthExceeded { perspective_id: String, depth: usize, limit: usize },
+    BranchDepthExceeded {
+        perspective_id: String,
+        depth: usize,
+        limit: usize,
+    },
 
     /// Theme 3: Lock not found.
     #[error("lock not found: {lock_id}")]
@@ -168,7 +186,11 @@ pub enum M1ndError {
 
     /// Theme 3: Lock ownership violation.
     #[error("lock ownership violation: {lock_id} owned by {owner}, called by {caller}")]
-    LockOwnership { lock_id: String, owner: String, caller: String },
+    LockOwnership {
+        lock_id: String,
+        owner: String,
+        caller: String,
+    },
 
     /// Theme 3: Lock scope too large (BFS budget exceeded).
     #[error("lock scope too large: {node_count} nodes exceeds cap of {cap}")]
@@ -176,7 +198,11 @@ pub enum M1ndError {
 
     /// Theme 3: Agent exceeded max lock count.
     #[error("lock limit exceeded for agent {agent_id}: {current}/{limit}")]
-    LockLimitExceeded { agent_id: String, current: usize, limit: usize },
+    LockLimitExceeded {
+        agent_id: String,
+        current: usize,
+        limit: usize,
+    },
 
     /// Theme 3: Watcher strategy not supported (e.g. Periodic in V1).
     #[error("watch strategy not supported: {strategy}")]
@@ -187,7 +213,6 @@ pub enum M1ndError {
     AffinityTimeout { elapsed_ms: f64, budget_ms: f64 },
 
     // --- Antibody ---
-
     /// FM-AB-001: Antibody pattern specificity below minimum threshold.
     #[error("pattern too broad: specificity {specificity:.2} below minimum {minimum:.2}")]
     PatternTooBroad { specificity: f32, minimum: f32 },
@@ -201,7 +226,6 @@ pub enum M1ndError {
     AntibodyLimitExceeded { current: usize, limit: usize },
 
     // --- Epidemic ---
-
     /// Epidemic burnout: too many nodes infected too fast.
     #[error("epidemic burnout: {infected_pct:.1}% infected in {iteration} iterations")]
     EpidemicBurnout { infected_pct: f32, iteration: u32 },
@@ -211,25 +235,21 @@ pub enum M1ndError {
     NoValidInfectedNodes,
 
     // --- Flow ---
-
     /// No entry points found for flow simulation.
     #[error("no entry points found for flow simulation")]
     NoEntryPoints,
 
     // --- Layers ---
-
     /// Layer level not found in detection result.
     #[error("layer not found: level {level}")]
     LayerNotFound { level: u8 },
 
     // --- Ingestion (runtime) ---
-
     /// Tree-sitter or extractor runtime error.
     #[error("ingest error: {0}")]
     IngestError(String),
 
     // --- I/O ---
-
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
 

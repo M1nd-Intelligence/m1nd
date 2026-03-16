@@ -16,19 +16,14 @@
 //
 // Pattern mirrors tests/perspective_golden.rs and tests/test_surgical.rs.
 
+use m1nd_mcp::perspective::state::{PerspectiveMode, Route, RouteFamily};
 use m1nd_mcp::protocol::layers::{
-    HelpInput, HelpOutput,
-    PanoramicAlert, PanoramicInput, PanoramicModule, PanoramicOutput,
-    ReportInput, ReportOutput, ReportQueryEntry,
-    SavingsInput, SavingsOutput, SavingsSessionRecord,
+    HelpInput, HelpOutput, PanoramicAlert, PanoramicInput, PanoramicModule, PanoramicOutput,
+    ReportInput, ReportOutput, ReportQueryEntry, SavingsInput, SavingsOutput, SavingsSessionRecord,
     SearchInput, SearchMode, SearchOutput, SearchResultEntry,
 };
 use m1nd_mcp::protocol::perspective::{
-    PerspectiveRoutesInput, PerspectiveRoutesOutput,
-    PerspectiveStartInput, PerspectiveStartOutput,
-};
-use m1nd_mcp::perspective::state::{
-    PerspectiveMode, Route, RouteFamily,
+    PerspectiveRoutesInput, PerspectiveRoutesOutput, PerspectiveStartInput, PerspectiveStartOutput,
 };
 
 // ===========================================================================
@@ -166,7 +161,10 @@ fn test_search_literal_exact_match() {
 
     let out = build_search_output("ROOMANIZER_BACKEND_URL", "literal", 2);
     // Every result must reference the queried string somewhere
-    assert!(!out.results.is_empty(), "literal search must return results when token exists");
+    assert!(
+        !out.results.is_empty(),
+        "literal search must return results when token exists"
+    );
     for r in &out.results {
         assert!(!r.matched_line.is_empty(), "matched_line must not be empty");
         assert!(r.line_number >= 1, "line_number must be 1-indexed");
@@ -203,10 +201,9 @@ fn test_search_regex_pattern() {
     // Contract: regex mode applies the query as a regex pattern.
     // A valid regex like r"\bos\.getenv\b" must match lines containing os.getenv.
 
-    let input: SearchInput = serde_json::from_str(
-        r#"{"agent_id":"a","query":"\\bos\\.getenv\\b","mode":"regex"}"#,
-    )
-    .expect("deserialize");
+    let input: SearchInput =
+        serde_json::from_str(r#"{"agent_id":"a","query":"\\bos\\.getenv\\b","mode":"regex"}"#)
+            .expect("deserialize");
 
     assert_eq!(input.mode, SearchMode::Regex);
 
@@ -230,10 +227,9 @@ fn test_search_regex_invalid() {
     // with detail containing "invalid regex" — NOT panic.
     // Input deserialization must succeed (validation happens at handler time).
 
-    let input: SearchInput = serde_json::from_str(
-        r#"{"agent_id":"a","query":"[unclosed","mode":"regex"}"#,
-    )
-    .expect("SearchInput must accept any query string (regex validated at handler time)");
+    let input: SearchInput =
+        serde_json::from_str(r#"{"agent_id":"a","query":"[unclosed","mode":"regex"}"#)
+            .expect("SearchInput must accept any query string (regex validated at handler time)");
 
     assert_eq!(input.query, "[unclosed");
     assert_eq!(input.mode, SearchMode::Regex);
@@ -268,7 +264,10 @@ fn test_search_respects_scope() {
     let mut out = build_search_output("handle_chat", "literal", 4);
     out.scope_applied = true;
 
-    assert!(out.scope_applied, "scope_applied must be true when scope was provided");
+    assert!(
+        out.scope_applied,
+        "scope_applied must be true when scope was provided"
+    );
     for r in &out.results {
         // In a real handler, all results would be under backend/
         // Here we verify the contract shape
@@ -284,10 +283,9 @@ fn test_search_respects_scope() {
 fn test_search_respects_top_k() {
     // Contract: results.len() must be <= top_k, even when total_matches > top_k.
 
-    let input: SearchInput = serde_json::from_str(
-        r#"{"agent_id":"a","query":"import","mode":"literal","top_k":5}"#,
-    )
-    .expect("deserialize");
+    let input: SearchInput =
+        serde_json::from_str(r#"{"agent_id":"a","query":"import","mode":"literal","top_k":5}"#)
+            .expect("deserialize");
 
     assert_eq!(input.top_k, 5);
 
@@ -343,16 +341,24 @@ fn test_search_returns_node_id() {
     let out = build_search_output("session_manager", "literal", 3);
     for r in &out.results {
         if r.graph_linked {
-            assert!(!r.node_id.is_empty(),
-                "graph_linked=true requires non-empty node_id");
+            assert!(
+                !r.node_id.is_empty(),
+                "graph_linked=true requires non-empty node_id"
+            );
         }
         // graph_linked=false is valid (file not yet ingested)
     }
 
     // Verify schema deserialization of SearchOutput
     let json = serde_json::to_string(&out).expect("SearchOutput must serialize");
-    assert!(json.contains("total_matches"), "serialized output must contain total_matches");
-    assert!(json.contains("graph_linked"), "serialized output must contain graph_linked");
+    assert!(
+        json.contains("total_matches"),
+        "serialized output must contain total_matches"
+    );
+    assert!(
+        json.contains("graph_linked"),
+        "serialized output must contain graph_linked"
+    );
 }
 
 // ===========================================================================
@@ -368,22 +374,32 @@ fn test_help_known_tool() {
     // Contract: m1nd.help("activate") must return found=true and a formatted
     // string that includes "PARAMS", "RETURNS", and "NEXT" sections.
 
-    let input: HelpInput = serde_json::from_str(
-        r#"{"agent_id":"a","tool_name":"activate"}"#,
-    )
-    .expect("HelpInput must deserialize");
+    let input: HelpInput = serde_json::from_str(r#"{"agent_id":"a","tool_name":"activate"}"#)
+        .expect("HelpInput must deserialize");
 
     assert_eq!(input.tool_name.as_deref(), Some("activate"));
 
     let out = build_help_output_known("activate");
     assert!(out.found, "known tool must return found=true");
-    assert!(out.tool.as_deref() == Some("activate"), "tool field must echo the query");
-    assert!(!out.formatted.is_empty(), "formatted must be non-empty for known tool");
-    assert!(out.suggestions.is_empty(), "suggestions must be empty when tool is found");
+    assert!(
+        out.tool.as_deref() == Some("activate"),
+        "tool field must echo the query"
+    );
+    assert!(
+        !out.formatted.is_empty(),
+        "formatted must be non-empty for known tool"
+    );
+    assert!(
+        out.suggestions.is_empty(),
+        "suggestions must be empty when tool is found"
+    );
 
     // Verify JSON serialization
     let json = serde_json::to_string(&out).expect("HelpOutput must serialize");
-    assert!(json.contains("found"), "serialized HelpOutput must contain found field");
+    assert!(
+        json.contains("found"),
+        "serialized HelpOutput must contain found field"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -395,10 +411,8 @@ fn test_help_unknown_tool() {
     // Contract: m1nd.help("xyz_nonexistent") must return found=false
     // and suggestions containing similar tool names.
 
-    let input: HelpInput = serde_json::from_str(
-        r#"{"agent_id":"a","tool_name":"activ8"}"#,
-    )
-    .expect("deserialize");
+    let input: HelpInput =
+        serde_json::from_str(r#"{"agent_id":"a","tool_name":"activ8"}"#).expect("deserialize");
 
     assert_eq!(input.tool_name.as_deref(), Some("activ8"));
 
@@ -411,10 +425,14 @@ fn test_help_unknown_tool() {
     };
 
     assert!(!out.found, "unknown tool must return found=false");
-    assert!(!out.suggestions.is_empty(),
-        "unknown tool response must include suggestions");
-    assert!(out.formatted.contains("activ8") || !out.formatted.is_empty(),
-        "formatted must be non-empty even for unknown tool");
+    assert!(
+        !out.suggestions.is_empty(),
+        "unknown tool response must include suggestions"
+    );
+    assert!(
+        out.formatted.contains("activ8") || !out.formatted.is_empty(),
+        "formatted must be non-empty even for unknown tool"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -426,12 +444,13 @@ fn test_help_no_arg() {
     // Contract: m1nd.help() with no tool_name (or tool_name=null) must
     // return a compact index of all tools. found=true, tool=None.
 
-    let input: HelpInput = serde_json::from_str(
-        r#"{"agent_id":"a"}"#,
-    )
-    .expect("HelpInput must deserialize from minimal JSON");
+    let input: HelpInput = serde_json::from_str(r#"{"agent_id":"a"}"#)
+        .expect("HelpInput must deserialize from minimal JSON");
 
-    assert!(input.tool_name.is_none(), "tool_name must be None when omitted");
+    assert!(
+        input.tool_name.is_none(),
+        "tool_name must be None when omitted"
+    );
 
     let out = HelpOutput {
         formatted: "╔══════════════════════════════╗\n║  m1nd — 46 tools             ║\n╚══════════════════════════════╝".into(),
@@ -442,7 +461,10 @@ fn test_help_no_arg() {
 
     assert!(out.found, "index response must have found=true");
     assert!(out.tool.is_none(), "tool must be None for full index");
-    assert!(!out.formatted.is_empty(), "formatted index must be non-empty");
+    assert!(
+        !out.formatted.is_empty(),
+        "formatted index must be non-empty"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -481,10 +503,8 @@ fn test_report_empty_session() {
     // Contract: calling m1nd.report at the very start of a session (0 queries)
     // must return a valid ReportOutput with all numeric fields = 0.
 
-    let input: ReportInput = serde_json::from_str(
-        r#"{"agent_id":"new_agent"}"#,
-    )
-    .expect("ReportInput must deserialize");
+    let input: ReportInput =
+        serde_json::from_str(r#"{"agent_id":"new_agent"}"#).expect("ReportInput must deserialize");
 
     assert_eq!(input.agent_id, "new_agent");
 
@@ -501,9 +521,18 @@ fn test_report_empty_session() {
     };
 
     assert_eq!(out.session_queries, 0, "empty session must have 0 queries");
-    assert_eq!(out.tokens_saved_session, 0, "empty session must have 0 tokens saved");
-    assert!(out.recent_queries.is_empty(), "recent_queries must be empty at session start");
-    assert!(!out.markdown_summary.is_empty(), "markdown_summary must be non-empty even at start");
+    assert_eq!(
+        out.tokens_saved_session, 0,
+        "empty session must have 0 tokens saved"
+    );
+    assert!(
+        out.recent_queries.is_empty(),
+        "recent_queries must be empty at session start"
+    );
+    assert!(
+        !out.markdown_summary.is_empty(),
+        "markdown_summary must be non-empty even at start"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -519,15 +548,23 @@ fn test_report_after_queries() {
     let out = build_report_output("agent_x", 5);
 
     assert_eq!(out.session_queries, 5);
-    assert!(!out.recent_queries.is_empty(),
-        "recent_queries must be non-empty after queries");
+    assert!(
+        !out.recent_queries.is_empty(),
+        "recent_queries must be non-empty after queries"
+    );
     assert!(
         out.recent_queries.len() <= 10,
         "recent_queries must be capped at 10 entries"
     );
     for q in &out.recent_queries {
-        assert!(!q.tool.is_empty(), "each query entry must have a non-empty tool name");
-        assert!(q.elapsed_ms > 0.0, "elapsed_ms must be > 0 for executed queries");
+        assert!(
+            !q.tool.is_empty(),
+            "each query entry must have a non-empty tool name"
+        );
+        assert!(
+            q.elapsed_ms > 0.0,
+            "elapsed_ms must be > 0 for executed queries"
+        );
     }
 }
 
@@ -579,8 +616,14 @@ fn test_report_markdown_format() {
 
     // Verify JSON serialization of the full output
     let json = serde_json::to_string(&out).expect("ReportOutput must serialize");
-    assert!(json.contains("session_queries"), "serialized output must contain session_queries");
-    assert!(json.contains("co2_saved_grams"), "serialized output must contain co2_saved_grams");
+    assert!(
+        json.contains("session_queries"),
+        "serialized output must contain session_queries"
+    );
+    assert!(
+        json.contains("co2_saved_grams"),
+        "serialized output must contain co2_saved_grams"
+    );
 }
 
 // ===========================================================================
@@ -596,22 +639,31 @@ fn test_panoramic_returns_modules() {
     // Contract: panoramic must return a non-empty modules list when the graph
     // has ingested nodes. Each module must have a non-empty node_id and label.
 
-    let input: PanoramicInput = serde_json::from_str(
-        r#"{"agent_id":"a"}"#,
-    )
-    .expect("PanoramicInput must deserialize from minimal JSON");
+    let input: PanoramicInput = serde_json::from_str(r#"{"agent_id":"a"}"#)
+        .expect("PanoramicInput must deserialize from minimal JSON");
 
     assert!(input.scope.is_none(), "scope must default to None");
     assert_eq!(input.top_n, 50, "top_n must default to 50");
 
     let out = build_panoramic_output(10);
     assert_eq!(out.total_modules, 10);
-    assert!(!out.modules.is_empty(), "modules must be non-empty for populated graph");
+    assert!(
+        !out.modules.is_empty(),
+        "modules must be non-empty for populated graph"
+    );
     for m in &out.modules {
-        assert!(!m.node_id.is_empty(), "each module must have a non-empty node_id");
-        assert!(!m.label.is_empty(), "each module must have a non-empty label");
-        assert!(m.combined_risk >= 0.0 && m.combined_risk <= 1.0,
-            "combined_risk must be in [0.0, 1.0]");
+        assert!(
+            !m.node_id.is_empty(),
+            "each module must have a non-empty node_id"
+        );
+        assert!(
+            !m.label.is_empty(),
+            "each module must have a non-empty label"
+        );
+        assert!(
+            m.combined_risk >= 0.0 && m.combined_risk <= 1.0,
+            "combined_risk must be in [0.0, 1.0]"
+        );
     }
 }
 
@@ -652,8 +704,14 @@ fn test_panoramic_combined_risk() {
         high_risk.combined_risk > low_risk.combined_risk,
         "high blast + high centrality must produce higher combined_risk than low blast + low centrality"
     );
-    assert!(high_risk.is_critical, "combined_risk >= 0.7 must set is_critical=true");
-    assert!(!low_risk.is_critical, "combined_risk < 0.7 must leave is_critical=false");
+    assert!(
+        high_risk.is_critical,
+        "combined_risk >= 0.7 must set is_critical=true"
+    );
+    assert!(
+        !low_risk.is_critical,
+        "combined_risk < 0.7 must leave is_critical=false"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -667,8 +725,11 @@ fn test_panoramic_critical_alerts() {
 
     let out = build_panoramic_output(9); // 3 critical (indices 0, 3, 6)
 
-    let critical_ids: std::collections::HashSet<&str> =
-        out.critical_alerts.iter().map(|a| a.node_id.as_str()).collect();
+    let critical_ids: std::collections::HashSet<&str> = out
+        .critical_alerts
+        .iter()
+        .map(|a| a.node_id.as_str())
+        .collect();
 
     // All critical modules must be in alerts
     for m in &out.modules {
@@ -683,8 +744,14 @@ fn test_panoramic_critical_alerts() {
 
     // Each alert must have a non-empty reason
     for alert in &out.critical_alerts {
-        assert!(!alert.reason.is_empty(), "each alert must have a non-empty reason");
-        assert!(alert.combined_risk >= 0.7, "alerted modules must have combined_risk >= 0.7");
+        assert!(
+            !alert.reason.is_empty(),
+            "each alert must have a non-empty reason"
+        );
+        assert!(
+            alert.combined_risk >= 0.7,
+            "alerted modules must have combined_risk >= 0.7"
+        );
     }
 }
 
@@ -697,10 +764,8 @@ fn test_panoramic_respects_scope() {
     // Contract: when scope is provided, only modules with file_path matching
     // the scope prefix are included. scope_applied must be true.
 
-    let input: PanoramicInput = serde_json::from_str(
-        r#"{"agent_id":"a","scope":"backend/"}"#,
-    )
-    .expect("deserialize");
+    let input: PanoramicInput =
+        serde_json::from_str(r#"{"agent_id":"a","scope":"backend/"}"#).expect("deserialize");
 
     assert_eq!(input.scope.as_deref(), Some("backend/"));
 
@@ -713,7 +778,10 @@ fn test_panoramic_respects_scope() {
     }
     out.scope_applied = true;
 
-    assert!(out.scope_applied, "scope_applied must be true when scope was provided");
+    assert!(
+        out.scope_applied,
+        "scope_applied must be true when scope was provided"
+    );
     for m in &out.modules {
         assert!(
             m.file_path.contains("backend"),
@@ -736,10 +804,8 @@ fn test_savings_zero_on_start() {
     // Contract: at the very start of a session (no queries yet),
     // session_tokens_saved must be 0.
 
-    let input: SavingsInput = serde_json::from_str(
-        r#"{"agent_id":"fresh_agent"}"#,
-    )
-    .expect("SavingsInput must deserialize");
+    let input: SavingsInput = serde_json::from_str(r#"{"agent_id":"fresh_agent"}"#)
+        .expect("SavingsInput must deserialize");
 
     assert_eq!(input.agent_id, "fresh_agent");
 
@@ -752,10 +818,14 @@ fn test_savings_zero_on_start() {
         formatted_summary: "m1nd Savings: 0 tokens this session, 1,000,000 total".into(),
     };
 
-    assert_eq!(out.session_tokens_saved, 0,
-        "session_tokens_saved must be 0 at session start");
-    assert!(!out.formatted_summary.is_empty(),
-        "formatted_summary must be non-empty even at start");
+    assert_eq!(
+        out.session_tokens_saved, 0,
+        "session_tokens_saved must be 0 at session start"
+    );
+    assert!(
+        !out.formatted_summary.is_empty(),
+        "formatted_summary must be non-empty even at start"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -814,21 +884,21 @@ fn test_savings_persists_format() {
         global_tokens_saved: 50_000,
         global_co2_grams: 10.0,
         cost_saved_usd: 0.15, // 50_000 / 1000 * $0.003
-        recent_sessions: vec![
-            SavingsSessionRecord {
-                agent_id: "a".into(),
-                session_start_ms: 1710000000000,
-                queries: 3,
-                tokens_saved: 3600,
-                co2_grams: 0.72,
-            },
-        ],
+        recent_sessions: vec![SavingsSessionRecord {
+            agent_id: "a".into(),
+            session_start_ms: 1710000000000,
+            queries: 3,
+            tokens_saved: 3600,
+            co2_grams: 0.72,
+        }],
         formatted_summary: "Global: 50,000 tokens saved | $0.15 | 10.0g CO2".into(),
     };
 
     // Structural invariants
-    assert!(out.global_tokens_saved >= out.session_tokens_saved,
-        "global must accumulate across sessions");
+    assert!(
+        out.global_tokens_saved >= out.session_tokens_saved,
+        "global must accumulate across sessions"
+    );
     assert!(out.cost_saved_usd >= 0.0, "cost must be non-negative");
     assert!(out.global_co2_grams >= 0.0, "CO2 must be non-negative");
     assert!(
@@ -838,9 +908,18 @@ fn test_savings_persists_format() {
 
     // JSON roundtrip
     let json = serde_json::to_string(&out).expect("SavingsOutput must serialize");
-    assert!(json.contains("session_tokens_saved"), "serialized must contain session_tokens_saved");
-    assert!(json.contains("global_tokens_saved"), "serialized must contain global_tokens_saved");
-    assert!(json.contains("global_co2_grams"), "serialized must contain global_co2_grams");
+    assert!(
+        json.contains("session_tokens_saved"),
+        "serialized must contain session_tokens_saved"
+    );
+    assert!(
+        json.contains("global_tokens_saved"),
+        "serialized must contain global_tokens_saved"
+    );
+    assert!(
+        json.contains("global_co2_grams"),
+        "serialized must contain global_co2_grams"
+    );
 }
 
 // ===========================================================================
@@ -874,8 +953,8 @@ fn test_perspective_routes_populated() {
         mode: PerspectiveMode::Anchored,
         anchor_node: Some("session.rs".into()),
         focus_node: Some("session.rs".into()),
-        routes: vec![],        // routes are in the PerspectiveState route_cache
-        total_routes: 4,       // NON-ZERO: fix populates this on start
+        routes: vec![],  // routes are in the PerspectiveState route_cache
+        total_routes: 4, // NON-ZERO: fix populates this on start
         page: 1,
         total_pages: 1,
         route_set_version: 1710000000000,
@@ -924,19 +1003,17 @@ fn test_perspective_follow_works() {
         total_routes: 4,
         route_set_version: 1710000000000,
         cache_generation: 1,
-        routes: vec![
-            Route {
-                route_id: "R_abc123".into(),
-                route_index: 1,
-                family: RouteFamily::Structural,
-                target_node: "lib.rs".into(),
-                target_label: "lib.rs".into(),
-                reason: "Main library entry point".into(),
-                score: 0.85,
-                peek_available: true,
-                provenance: None,
-            },
-        ],
+        routes: vec![Route {
+            route_id: "R_abc123".into(),
+            route_index: 1,
+            family: RouteFamily::Structural,
+            target_node: "lib.rs".into(),
+            target_label: "lib.rs".into(),
+            reason: "Main library entry point".into(),
+            score: 0.85,
+            peek_available: true,
+            provenance: None,
+        }],
         suggested: None,
         diagnostic: None,
         family_diversity_warning: None,
@@ -944,10 +1021,14 @@ fn test_perspective_follow_works() {
         page_size_clamped: false,
     };
 
-    assert!(!routes_output.routes.is_empty(),
-        "routes must be non-empty after perspective.start fix");
-    assert_eq!(routes_output.total_routes, 4,
-        "total_routes must match what was advertised in start output");
+    assert!(
+        !routes_output.routes.is_empty(),
+        "routes must be non-empty after perspective.start fix"
+    );
+    assert_eq!(
+        routes_output.total_routes, 4,
+        "total_routes must match what was advertised in start output"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -975,20 +1056,36 @@ fn test_perspective_routes_have_types() {
     };
 
     assert!(!route.route_id.is_empty(), "route_id must be non-empty");
-    assert!(route.route_id.starts_with("R_"), "route_id must start with 'R_'");
-    assert!(!route.target_node.is_empty(), "target_node must be non-empty");
+    assert!(
+        route.route_id.starts_with("R_"),
+        "route_id must start with 'R_'"
+    );
+    assert!(
+        !route.target_node.is_empty(),
+        "target_node must be non-empty"
+    );
     assert!(!route.reason.is_empty(), "reason must be non-empty");
 
     // Verify RouteFamily serializes to a valid string
-    let family_json = serde_json::to_string(&route.family)
-        .expect("RouteFamily must serialize");
-    assert!(!family_json.is_empty(), "route.family must serialize to non-empty string");
+    let family_json = serde_json::to_string(&route.family).expect("RouteFamily must serialize");
+    assert!(
+        !family_json.is_empty(),
+        "route.family must serialize to non-empty string"
+    );
     // RouteFamily::Temporal serializes to "temporal" (serde rename_all = "lowercase")
-    assert!(family_json.contains("temporal"), "RouteFamily::Temporal must serialize as 'temporal'");
+    assert!(
+        family_json.contains("temporal"),
+        "RouteFamily::Temporal must serialize as 'temporal'"
+    );
 
     // Verify full Route serializes correctly
-    let route_json = serde_json::to_string(&route)
-        .expect("Route must serialize to JSON");
-    assert!(route_json.contains("route_id"), "serialized route must contain route_id");
-    assert!(route_json.contains("family"), "serialized route must contain family field");
+    let route_json = serde_json::to_string(&route).expect("Route must serialize to JSON");
+    assert!(
+        route_json.contains("route_id"),
+        "serialized route must contain route_id"
+    );
+    assert!(
+        route_json.contains("family"),
+        "serialized route must contain family field"
+    );
 }

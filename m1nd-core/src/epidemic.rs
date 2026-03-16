@@ -186,7 +186,13 @@ fn sir_coupling_factor(relation: &str) -> f32 {
 /// Clamp a value to [lo, hi].
 #[inline]
 fn sir_clamp(v: f32, lo: f32, hi: f32) -> f32 {
-    if v < lo { lo } else if v > hi { hi } else { v }
+    if v < lo {
+        lo
+    } else if v > hi {
+        hi
+    } else {
+        v
+    }
 }
 
 /// Map NodeType enum to a lowercase string.
@@ -228,11 +234,7 @@ fn sir_build_node_to_ext(graph: &Graph) -> Vec<String> {
 
 /// Reconstruct shortest path from `parent` array.
 /// Returns external IDs of the path from the nearest infected node to `target`.
-fn sir_reconstruct_path(
-    target: usize,
-    parent: &[u32],
-    node_to_ext: &[String],
-) -> Vec<String> {
+fn sir_reconstruct_path(target: usize, parent: &[u32], node_to_ext: &[String]) -> Vec<String> {
     let mut path = Vec::new();
     let mut cur = target;
     // Safety: limit iterations to prevent infinite loops in case of bugs
@@ -368,10 +370,8 @@ impl EpidemicEngine {
         }
 
         // Count initial states
-        let initial_infected_count = infected_ids
-            .iter()
-            .filter(|nid| nid.as_usize() < n)
-            .count() as u32;
+        let initial_infected_count =
+            infected_ids.iter().filter(|nid| nid.as_usize() < n).count() as u32;
 
         // Track epidemic statistics
         let mut peak_infected: u32 = initial_infected_count;
@@ -419,7 +419,11 @@ impl EpidemicEngine {
                             }
 
                             let p_transmit = self.sir_compute_edge_transmission(
-                                graph, edge_pos, uniform_rate, src, &compartment,
+                                graph,
+                                edge_pos,
+                                uniform_rate,
+                                src,
+                                &compartment,
                             );
 
                             // Union probability: P = 1 - (1-P_old)(1-P_new)
@@ -461,7 +465,11 @@ impl EpidemicEngine {
                             // Use the forward edge index for weight/relation lookup
                             let fwd_edge_idx = graph.csr.rev_edge_idx[rev_pos].as_usize();
                             let p_transmit = self.sir_compute_edge_transmission(
-                                graph, fwd_edge_idx, uniform_rate, src, &compartment,
+                                graph,
+                                fwd_edge_idx,
+                                uniform_rate,
+                                src,
+                                &compartment,
                             );
 
                             let p_new = p_transmit * src_prob;
@@ -523,8 +531,7 @@ impl EpidemicEngine {
 
             // Burnout check: >80% infected in <10 iterations
             if t < BURNOUT_MIN_ITERATIONS {
-                let infected_pct =
-                    current_infected_count as f32 / n.max(1) as f32;
+                let infected_pct = current_infected_count as f32 / n.max(1) as f32;
                 if infected_pct > config.burnout_threshold {
                     return Err(M1ndError::EpidemicBurnout {
                         infected_pct: infected_pct * 100.0,
@@ -615,7 +622,9 @@ impl EpidemicEngine {
         };
 
         // Find unreachable components
-        let reachable: Vec<bool> = (0..n).map(|i| probability[i] > 0.0 || compartment[i] != Compartment::Susceptible).collect();
+        let reachable: Vec<bool> = (0..n)
+            .map(|i| probability[i] > 0.0 || compartment[i] != Compartment::Susceptible)
+            .collect();
         let unreachable_components = self.find_unreachable_components(graph, &reachable);
 
         let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
@@ -792,7 +801,7 @@ mod tests {
 
     fn default_config() -> EpidemicConfig {
         EpidemicConfig {
-            infection_rate: Some(0.2),  // low rate to avoid burnout on small test graphs
+            infection_rate: Some(0.2), // low rate to avoid burnout on small test graphs
             recovery_rate: DEFAULT_RECOVERY_RATE,
             iterations: DEFAULT_ITERATIONS,
             direction: EpidemicDirection::Forward,
@@ -808,17 +817,27 @@ mod tests {
     fn chain_graph() -> Graph {
         let mut g = Graph::new();
         for i in 0..4u32 {
-            g.add_node(&format!("n{}", i), &format!("module_{}", i), NodeType::Module, &[], 1.0, 0.5).unwrap();
+            g.add_node(
+                &format!("n{}", i),
+                &format!("module_{}", i),
+                NodeType::Module,
+                &[],
+                1.0,
+                0.5,
+            )
+            .unwrap();
         }
         for i in 0..3u32 {
             g.add_edge(
-                NodeId::new(i), NodeId::new(i+1),
-                "related_to",  // coupling=0.2, keeps spread gradual
+                NodeId::new(i),
+                NodeId::new(i + 1),
+                "related_to", // coupling=0.2, keeps spread gradual
                 FiniteF32::new(1.0),
                 EdgeDirection::Forward,
                 false,
                 FiniteF32::new(0.8),
-            ).unwrap();
+            )
+            .unwrap();
         }
         g.finalize().unwrap();
         g
@@ -835,10 +854,15 @@ mod tests {
         let result = engine.simulate(&g, &infected, &[], &config).unwrap();
 
         // With infection_rate=0.5, nodes 1..3 should all have non-zero probability
-        assert!(!result.predictions.is_empty(),
-            "expect predictions for downstream nodes");
+        assert!(
+            !result.predictions.is_empty(),
+            "expect predictions for downstream nodes"
+        );
         // Node right next to seed (module_1) should appear in predictions
-        let has_module1 = result.predictions.iter().any(|p| p.label.contains("module_1"));
+        let has_module1 = result
+            .predictions
+            .iter()
+            .any(|p| p.label.contains("module_1"));
         assert!(has_module1, "module_1 should be predicted as at-risk");
     }
 
@@ -856,7 +880,10 @@ mod tests {
 
         // node 1 is recovered, so it's excluded from predictions
         let has_module1 = result.predictions.iter().any(|p| p.label == "module_1");
-        assert!(!has_module1, "recovered node should not appear in predictions");
+        assert!(
+            !has_module1,
+            "recovered node should not appear in predictions"
+        );
     }
 
     // ── Test 3: burnout — rapid infection of >80% triggers EpidemicBurnout ──
@@ -865,12 +892,28 @@ mod tests {
         // 5-node fully connected graph, all edges with high weights → rapid burnout
         let mut g = Graph::new();
         for i in 0..5u32 {
-            g.add_node(&format!("n{}", i), &format!("mod_{}", i), NodeType::Module, &[], 1.0, 0.5).unwrap();
+            g.add_node(
+                &format!("n{}", i),
+                &format!("mod_{}", i),
+                NodeType::Module,
+                &[],
+                1.0,
+                0.5,
+            )
+            .unwrap();
         }
         for i in 0..5u32 {
             for j in 0..5u32 {
                 if i != j {
-                    let _ = g.add_edge(NodeId::new(i), NodeId::new(j), "imports", FiniteF32::new(1.0), EdgeDirection::Forward, false, FiniteF32::new(1.0));
+                    let _ = g.add_edge(
+                        NodeId::new(i),
+                        NodeId::new(j),
+                        "imports",
+                        FiniteF32::new(1.0),
+                        EdgeDirection::Forward,
+                        false,
+                        FiniteF32::new(1.0),
+                    );
                 }
             }
         }
@@ -879,7 +922,7 @@ mod tests {
         let engine = EpidemicEngine::new();
         let mut config = default_config();
         config.infection_rate = Some(0.95); // max rate
-        config.burnout_threshold = 0.5;      // trigger at 50% (lower than default 80%)
+        config.burnout_threshold = 0.5; // trigger at 50% (lower than default 80%)
         config.promotion_threshold = 0.0;
 
         // With 5 nodes, infecting 2 is 40%. One initial + 1 neighbor in iter 1 = 2 = 40%.
@@ -917,8 +960,10 @@ mod tests {
         let result_high = engine.simulate(&g, &infected, &[], &config_high).unwrap();
 
         // With high threshold, fewer or equal spreaders → fewer or equal predictions
-        assert!(result_high.predictions.len() <= result_low.predictions.len(),
-            "high promotion_threshold should yield <= predictions than low threshold");
+        assert!(
+            result_high.predictions.len() <= result_low.predictions.len(),
+            "high promotion_threshold should yield <= predictions than low threshold"
+        );
     }
 
     // ── Test 5: scope_files — empty infected returns Err(NoValidInfectedNodes) ──
@@ -929,7 +974,10 @@ mod tests {
         let config = default_config();
 
         let result = engine.simulate(&g, &[], &[], &config);
-        assert!(matches!(result, Err(crate::error::M1ndError::NoValidInfectedNodes)));
+        assert!(matches!(
+            result,
+            Err(crate::error::M1ndError::NoValidInfectedNodes)
+        ));
     }
 
     // ── Test 6: min_probability — predictions have infection_probability > 0 ──
@@ -943,8 +991,11 @@ mod tests {
         let result = engine.simulate(&g, &infected, &[], &config).unwrap();
 
         for pred in &result.predictions {
-            assert!(pred.infection_probability > 0.0,
-                "prediction {} has zero probability", pred.label);
+            assert!(
+                pred.infection_probability > 0.0,
+                "prediction {} has zero probability",
+                pred.label
+            );
         }
     }
 
@@ -967,7 +1018,10 @@ mod tests {
         let has_upstream = result.predictions.iter().any(|p| p.label == "module_1");
 
         assert!(has_downstream, "module_3 (downstream) should be at risk");
-        assert!(has_upstream, "module_1 (upstream) should be at risk in bidirectional mode");
+        assert!(
+            has_upstream,
+            "module_1 (upstream) should be at risk in bidirectional mode"
+        );
     }
 
     // ── Test 8: empty_infected with valid graph returns ok on empty infected nodes error ──

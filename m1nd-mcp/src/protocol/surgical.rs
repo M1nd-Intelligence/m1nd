@@ -36,8 +36,12 @@ pub struct SurgicalContextInput {
     pub include_tests: bool,
 }
 
-fn default_radius() -> u32 { 1 }
-fn default_true() -> bool { true }
+fn default_radius() -> u32 {
+    1
+}
+fn default_true() -> bool {
+    true
+}
 
 /// Output for m1nd.surgical_context.
 #[derive(Clone, Debug, Serialize)]
@@ -163,8 +167,12 @@ pub struct SurgicalContextV2Input {
     pub max_lines_per_file: usize,
 }
 
-fn default_max_connected_files() -> usize { 5 }
-fn default_max_lines_per_file() -> usize { 60 }
+fn default_max_connected_files() -> usize {
+    5
+}
+fn default_max_lines_per_file() -> usize {
+    60
+}
 
 /// Source excerpt for a connected file in v2 context.
 #[derive(Clone, Debug, Serialize, Deserialize)]

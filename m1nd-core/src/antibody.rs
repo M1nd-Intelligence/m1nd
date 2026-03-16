@@ -242,11 +242,7 @@ fn ab_node_constraint_count(node: &PatternNode) -> u32 {
 }
 
 /// Check if a graph node matches a pattern node's constraints.
-fn ab_matches_node_constraints(
-    graph: &Graph,
-    node_id: NodeId,
-    pattern_node: &PatternNode,
-) -> bool {
+fn ab_matches_node_constraints(graph: &Graph, node_id: NodeId, pattern_node: &PatternNode) -> bool {
     let idx = node_id.as_usize();
     if idx >= graph.nodes.count as usize {
         return false;
@@ -274,9 +270,9 @@ fn ab_matches_node_constraints(
     if !pattern_node.required_tags.is_empty() {
         let node_tags = &graph.nodes.tags[idx];
         for required_tag in &pattern_node.required_tags {
-            let tag_found = node_tags.iter().any(|&t| {
-                graph.strings.resolve(t).eq_ignore_ascii_case(required_tag)
-            });
+            let tag_found = node_tags
+                .iter()
+                .any(|&t| graph.strings.resolve(t).eq_ignore_ascii_case(required_tag));
             if !tag_found {
                 return false;
             }
@@ -314,11 +310,7 @@ fn ab_edge_exists(
 }
 
 /// Check if ANY edge exists between two bound nodes (for negative edge with no relation).
-fn ab_any_edge_exists(
-    graph: &Graph,
-    source: NodeId,
-    target: NodeId,
-) -> bool {
+fn ab_any_edge_exists(graph: &Graph, source: NodeId, target: NodeId) -> bool {
     if !graph.finalized {
         return false;
     }
@@ -421,11 +413,7 @@ fn ab_connected_candidates(
 }
 
 /// Verify all positive edges in the pattern are satisfied by the binding.
-fn ab_verify_edges(
-    graph: &Graph,
-    edges: &[PatternEdge],
-    binding: &[Option<NodeId>],
-) -> bool {
+fn ab_verify_edges(graph: &Graph, edges: &[PatternEdge], binding: &[Option<NodeId>]) -> bool {
     for edge in edges {
         let src = match binding[edge.source_idx] {
             Some(n) => n,
@@ -484,7 +472,16 @@ fn ab_dfs_match(
     used_nodes: &mut HashSet<NodeId>,
     deadline: &Instant,
 ) -> bool {
-    ab_dfs_match_mode(graph, pattern, binding, order, depth, used_nodes, deadline, "substring")
+    ab_dfs_match_mode(
+        graph,
+        pattern,
+        binding,
+        order,
+        depth,
+        used_nodes,
+        deadline,
+        "substring",
+    )
 }
 
 /// DFS pattern matching with configurable match mode.
@@ -514,7 +511,16 @@ fn ab_dfs_match_mode(
 
     // Already bound (anchor) — skip to next
     if binding[pat_idx].is_some() {
-        return ab_dfs_match_mode(graph, pattern, binding, order, depth + 1, used_nodes, deadline, match_mode);
+        return ab_dfs_match_mode(
+            graph,
+            pattern,
+            binding,
+            order,
+            depth + 1,
+            used_nodes,
+            deadline,
+            match_mode,
+        );
     }
 
     let candidates = ab_connected_candidates(graph, pattern, binding, pat_idx);
@@ -523,7 +529,8 @@ fn ab_dfs_match_mode(
         if used_nodes.contains(&candidate) {
             continue; // Each graph node can only bind to one pattern node
         }
-        if !ab_matches_node_constraints_mode(graph, candidate, &pattern.nodes[pat_idx], match_mode) {
+        if !ab_matches_node_constraints_mode(graph, candidate, &pattern.nodes[pat_idx], match_mode)
+        {
             continue;
         }
 
@@ -531,7 +538,16 @@ fn ab_dfs_match_mode(
         binding[pat_idx] = Some(candidate);
         used_nodes.insert(candidate);
 
-        if ab_dfs_match_mode(graph, pattern, binding, order, depth + 1, used_nodes, deadline, match_mode) {
+        if ab_dfs_match_mode(
+            graph,
+            pattern,
+            binding,
+            order,
+            depth + 1,
+            used_nodes,
+            deadline,
+            match_mode,
+        ) {
             return true;
         }
 
@@ -599,9 +615,7 @@ fn ab_compute_confidence(
             // Boost rare node types
             if pat_node.node_type.is_some() {
                 let nt = graph.nodes.node_type[idx];
-                let type_count = (0..n)
-                    .filter(|&j| graph.nodes.node_type[j] == nt)
-                    .count();
+                let type_count = (0..n).filter(|&j| graph.nodes.node_type[j] == nt).count();
                 let ratio = type_count as f32 / n.max(1) as f32;
                 if ratio < 0.01 {
                     confidence += 0.1;
@@ -672,11 +686,7 @@ pub fn compute_specificity(pattern: &AntibodyPattern) -> f32 {
 /// - `graph`: finalized graph to scan
 /// - `antibody`: pattern to match
 /// - `timeout_ms`: per-antibody wall-clock budget in milliseconds
-pub fn match_antibody(
-    graph: &Graph,
-    antibody: &Antibody,
-    timeout_ms: u64,
-) -> Vec<AntibodyMatch> {
+pub fn match_antibody(graph: &Graph, antibody: &Antibody, timeout_ms: u64) -> Vec<AntibodyMatch> {
     if !graph.finalized || graph.nodes.count == 0 || antibody.pattern.nodes.is_empty() {
         return Vec::new();
     }
@@ -718,7 +728,15 @@ pub fn match_antibody(
         let mut used_nodes = HashSet::new();
         used_nodes.insert(candidate);
 
-        if ab_dfs_match(graph, pattern, &mut binding, &order, 0, &mut used_nodes, &deadline) {
+        if ab_dfs_match(
+            graph,
+            pattern,
+            &mut binding,
+            &order,
+            0,
+            &mut used_nodes,
+            &deadline,
+        ) {
             // Deduplicate: same set of bound nodes shouldn't produce duplicate matches
             let mut key: Vec<u32> = binding.iter().filter_map(|b| b.map(|n| n.0)).collect();
             key.sort();
@@ -800,7 +818,12 @@ pub fn match_antibody_with_options(
         }
 
         let candidate = NodeId::new(node_idx);
-        if !ab_matches_node_constraints_mode(graph, candidate, &pattern.nodes[anchor_idx], match_mode) {
+        if !ab_matches_node_constraints_mode(
+            graph,
+            candidate,
+            &pattern.nodes[anchor_idx],
+            match_mode,
+        ) {
             continue;
         }
 
@@ -809,7 +832,16 @@ pub fn match_antibody_with_options(
         let mut used_nodes = HashSet::new();
         used_nodes.insert(candidate);
 
-        if ab_dfs_match_mode(graph, pattern, &mut binding, &order, 0, &mut used_nodes, &deadline, match_mode) {
+        if ab_dfs_match_mode(
+            graph,
+            pattern,
+            &mut binding,
+            &order,
+            0,
+            &mut used_nodes,
+            &deadline,
+            match_mode,
+        ) {
             let mut key: Vec<u32> = binding.iter().filter_map(|b| b.map(|n| n.0)).collect();
             key.sort();
             if !seen_bindings.insert(key) {
@@ -896,9 +928,9 @@ fn ab_matches_node_constraints_mode(
     if !pattern_node.required_tags.is_empty() {
         let node_tags = &graph.nodes.tags[idx];
         for required_tag in &pattern_node.required_tags {
-            let tag_found = node_tags.iter().any(|&t| {
-                graph.strings.resolve(t).eq_ignore_ascii_case(required_tag)
-            });
+            let tag_found = node_tags
+                .iter()
+                .any(|&t| graph.strings.resolve(t).eq_ignore_ascii_case(required_tag));
             if !tag_found {
                 return false;
             }
@@ -990,10 +1022,18 @@ pub fn scan_antibodies(
         antibodies_checked += 1;
 
         let before = Instant::now();
-        let effective_max = if max_matches_per_antibody > 0 { max_matches_per_antibody } else { MAX_MATCHES_PER_ANTIBODY };
+        let effective_max = if max_matches_per_antibody > 0 {
+            max_matches_per_antibody
+        } else {
+            MAX_MATCHES_PER_ANTIBODY
+        };
         let mut matches = match_antibody_with_options(
-            graph, antibody, PATTERN_MATCH_TIMEOUT_MS,
-            effective_max, match_mode, similarity_threshold,
+            graph,
+            antibody,
+            PATTERN_MATCH_TIMEOUT_MS,
+            effective_max,
+            match_mode,
+            similarity_threshold,
         );
         let elapsed = before.elapsed().as_millis() as u64;
 
@@ -1062,7 +1102,8 @@ pub fn extract_antibody_from_learn(
     let mut source_nodes: Vec<String> = Vec::new();
 
     // Map from NodeId -> pattern index
-    let mut node_to_pat: std::collections::HashMap<NodeId, usize> = std::collections::HashMap::new();
+    let mut node_to_pat: std::collections::HashMap<NodeId, usize> =
+        std::collections::HashMap::new();
 
     for &nid in node_ids {
         let idx = nid.as_usize();
@@ -1118,9 +1159,9 @@ pub fn extract_antibody_from_learn(
                 if let Some(&tgt_pat) = node_to_pat.get(&target) {
                     let relation = graph.strings.resolve(graph.csr.relations[i]).to_string();
                     // Avoid duplicate edges
-                    let edge_exists = pattern_edges.iter().any(|e| {
-                        e.source_idx == src_pat && e.target_idx == tgt_pat
-                    });
+                    let edge_exists = pattern_edges
+                        .iter()
+                        .any(|e| e.source_idx == src_pat && e.target_idx == tgt_pat);
                     if !edge_exists {
                         pattern_edges.push(PatternEdge {
                             source_idx: src_pat,
@@ -1174,7 +1215,7 @@ pub fn extract_antibody_from_learn(
 /// Extract the most discriminating substring from a label.
 /// Splits by delimiters and picks the least common segment in the graph.
 fn ab_extract_discriminating_substring(graph: &Graph, label: &str) -> Option<String> {
-    let delimiters = &[':' , '_', '.', '/', '\\'];
+    let delimiters = &[':', '_', '.', '/', '\\'];
     let segments: Vec<&str> = label
         .split(|c: char| delimiters.contains(&c))
         .filter(|s| s.len() >= 2)
@@ -1300,9 +1341,8 @@ pub fn save_antibodies(antibodies: &[Antibody], path: &Path) -> M1ndResult<()> {
         antibodies: antibodies.to_vec(),
     };
 
-    let json = serde_json::to_string_pretty(&data).map_err(|e| {
-        M1ndError::PersistenceFailed(format!("antibody serialization: {}", e))
-    })?;
+    let json = serde_json::to_string_pretty(&data)
+        .map_err(|e| M1ndError::PersistenceFailed(format!("antibody serialization: {}", e)))?;
 
     // Atomic write: write to temp, then rename (FM-PL-008)
     let tmp_path = path.with_extension("json.tmp");
@@ -1313,21 +1353,19 @@ pub fn save_antibodies(antibodies: &[Antibody], path: &Path) -> M1ndResult<()> {
         let _ = std::fs::copy(path, &bak_path);
     }
 
-    let file = std::fs::File::create(&tmp_path).map_err(|e| {
-        M1ndError::PersistenceFailed(format!("antibody temp file create: {}", e))
-    })?;
+    let file = std::fs::File::create(&tmp_path)
+        .map_err(|e| M1ndError::PersistenceFailed(format!("antibody temp file create: {}", e)))?;
     let mut writer = std::io::BufWriter::new(file);
-    writer.write_all(json.as_bytes()).map_err(|e| {
-        M1ndError::PersistenceFailed(format!("antibody write: {}", e))
-    })?;
-    writer.flush().map_err(|e| {
-        M1ndError::PersistenceFailed(format!("antibody flush: {}", e))
-    })?;
+    writer
+        .write_all(json.as_bytes())
+        .map_err(|e| M1ndError::PersistenceFailed(format!("antibody write: {}", e)))?;
+    writer
+        .flush()
+        .map_err(|e| M1ndError::PersistenceFailed(format!("antibody flush: {}", e)))?;
     drop(writer);
 
-    std::fs::rename(&tmp_path, path).map_err(|e| {
-        M1ndError::PersistenceFailed(format!("antibody rename: {}", e))
-    })?;
+    std::fs::rename(&tmp_path, path)
+        .map_err(|e| M1ndError::PersistenceFailed(format!("antibody rename: {}", e)))?;
 
     Ok(())
 }
@@ -1344,14 +1382,16 @@ pub fn load_antibodies(path: &Path) -> M1ndResult<Vec<Antibody>> {
         return Ok(Vec::new());
     }
 
-    let content = std::fs::read_to_string(path).map_err(|e| {
-        M1ndError::PersistenceFailed(format!("antibody read: {}", e))
-    })?;
+    let content = std::fs::read_to_string(path)
+        .map_err(|e| M1ndError::PersistenceFailed(format!("antibody read: {}", e)))?;
 
     match serde_json::from_str::<AntibodyPersistence>(&content) {
         Ok(data) => Ok(data.antibodies),
         Err(e) => {
-            eprintln!("[m1nd] WARNING: antibodies.json parse failed: {}. Trying backup.", e);
+            eprintln!(
+                "[m1nd] WARNING: antibodies.json parse failed: {}. Trying backup.",
+                e
+            );
             // Try backup
             let bak_path = path.with_extension("json.bak");
             if bak_path.exists() {
@@ -1401,16 +1441,20 @@ mod tests {
 
     fn build_two_node_graph(label_a: &str, label_b: &str, relation: &str) -> Graph {
         let mut g = Graph::new();
-        g.add_node("node_a", label_a, NodeType::Function, &[], 1.0, 0.5).unwrap();
-        g.add_node("node_b", label_b, NodeType::Module, &[], 0.8, 0.3).unwrap();
+        g.add_node("node_a", label_a, NodeType::Function, &[], 1.0, 0.5)
+            .unwrap();
+        g.add_node("node_b", label_b, NodeType::Module, &[], 0.8, 0.3)
+            .unwrap();
         g.add_edge(
-            NodeId::new(0), NodeId::new(1),
+            NodeId::new(0),
+            NodeId::new(1),
             relation,
             FiniteF32::new(0.9),
             EdgeDirection::Forward,
             false,
             FiniteF32::new(0.5),
-        ).unwrap();
+        )
+        .unwrap();
         g.finalize().unwrap();
         g
     }
@@ -1471,7 +1515,10 @@ mod tests {
         };
         let ab = make_antibody(pat);
         let matches = match_antibody(&g, &ab, 500);
-        assert!(!matches.is_empty(), "should match handle_request via substring");
+        assert!(
+            !matches.is_empty(),
+            "should match handle_request via substring"
+        );
         assert_eq!(matches[0].bound_nodes[0].label, "handle_request");
     }
 
@@ -1497,8 +1544,10 @@ mod tests {
         // None of the matches should be for "handle_request_extra"
         for m in &matches {
             for bn in &m.bound_nodes {
-                assert_ne!(bn.label, "handle_request_extra",
-                    "exact mode should not match handle_request_extra");
+                assert_ne!(
+                    bn.label, "handle_request_extra",
+                    "exact mode should not match handle_request_extra"
+                );
             }
         }
     }
@@ -1593,11 +1642,21 @@ mod tests {
 
         let mut antibodies = vec![ab];
         let result = scan_antibodies(
-            &g, &mut antibodies, "all", 0,
-            100, AntibodySeverity::Info,
-            None, 10, "substring", 0.5,
+            &g,
+            &mut antibodies,
+            "all",
+            0,
+            100,
+            AntibodySeverity::Info,
+            None,
+            10,
+            "substring",
+            0.5,
         );
-        assert_eq!(result.antibodies_checked, 0, "disabled antibody should be skipped");
+        assert_eq!(
+            result.antibodies_checked, 0,
+            "disabled antibody should be skipped"
+        );
         assert!(result.matches.is_empty());
     }
 
@@ -1635,8 +1694,10 @@ mod tests {
         let ab = make_antibody(pat);
         let matches = match_antibody(&g, &ab, 500);
         // The negative edge fires → binding rejected → no match
-        assert!(matches.is_empty(),
-            "negative edge should block match when edge exists");
+        assert!(
+            matches.is_empty(),
+            "negative edge should block match when edge exists"
+        );
     }
 
     // ── Bonus: pattern_similarity between identical patterns ──
@@ -1654,7 +1715,11 @@ mod tests {
         };
         let sim = pattern_similarity(&pat, &pat);
         // Identical patterns → similarity should be 1.0 (type_sim=1, rel_sim=1, size_sim=1, neg_sim=1)
-        assert!((sim - 1.0).abs() < 0.01, "identical patterns should have similarity ~1.0, got {}", sim);
+        assert!(
+            (sim - 1.0).abs() < 0.01,
+            "identical patterns should have similarity ~1.0, got {}",
+            sim
+        );
     }
 
     // ── Bonus: pattern_similarity between disjoint patterns ──
@@ -1685,7 +1750,11 @@ mod tests {
         // Both 1-node → size_sim = 1.0
         // No edges → rel_sim = 1.0
         // Expected: 0.4*0 + 0.3*1.0 + 0.2*1.0 + 0.1*1.0 = 0.6
-        assert!(sim < 1.0, "disjoint node types should reduce similarity; got {}", sim);
+        assert!(
+            sim < 1.0,
+            "disjoint node types should reduce similarity; got {}",
+            sim
+        );
         assert!(sim >= 0.0);
     }
 }

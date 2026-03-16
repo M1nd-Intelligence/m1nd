@@ -345,8 +345,8 @@ fn collect_import_edges_from_files(
                 }
 
                 let key = (ext_id.clone(), target_file_id.to_string());
-                if !seen.contains_key(&key) {
-                    seen.insert(key, true);
+                if let std::collections::hash_map::Entry::Vacant(e) = seen.entry(key) {
+                    e.insert(true);
                     edges.push((
                         ext_id.clone(),
                         target_file_id.to_string(),
@@ -467,8 +467,8 @@ fn detect_route_registrations(
                 if let Some(target_file_id) = module_index.resolve(module_name) {
                     if target_file_id != ext_id {
                         let key = (ext_id.clone(), target_file_id.to_string());
-                        if !seen.contains_key(&key) {
-                            seen.insert(key, true);
+                        if let std::collections::hash_map::Entry::Vacant(e) = seen.entry(key) {
+                            e.insert(true);
                             edges.push((ext_id.clone(), target_file_id.to_string()));
                         }
                     }

@@ -191,7 +191,8 @@ impl TremorRegistry {
         edge_events: u16,
         timestamp: f64,
     ) {
-        let queue = self.observations
+        let queue = self
+            .observations
             .entry(external_id.to_string())
             .or_default();
 
@@ -256,10 +257,15 @@ impl TremorRegistry {
             total_nodes_analyzed += 1;
 
             // Filter observations within window, sort by timestamp, deduplicate
-            let mut obs: Vec<&TremorObservation> = queue.iter()
+            let mut obs: Vec<&TremorObservation> = queue
+                .iter()
                 .filter(|o| o.timestamp >= window_start)
                 .collect();
-            obs.sort_by(|a, b| a.timestamp.partial_cmp(&b.timestamp).unwrap_or(std::cmp::Ordering::Equal));
+            obs.sort_by(|a, b| {
+                a.timestamp
+                    .partial_cmp(&b.timestamp)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
 
             // Remove observations with gaps < MIN_OBSERVATION_GAP_SECS
             let mut filtered: Vec<&TremorObservation> = Vec::new();
@@ -272,7 +278,11 @@ impl TremorRegistry {
                 filtered.push(o);
             }
 
-            let effective_min_obs = if min_observations > 0 { min_observations } else { MIN_OBSERVATIONS_FOR_ACCELERATION };
+            let effective_min_obs = if min_observations > 0 {
+                min_observations
+            } else {
+                MIN_OBSERVATIONS_FOR_ACCELERATION
+            };
             if filtered.len() < effective_min_obs {
                 continue;
             }
@@ -283,7 +293,8 @@ impl TremorRegistry {
             let mut velocities: Vec<f32> = Vec::with_capacity(filtered.len() - 1);
             let mut vel_times: Vec<f64> = Vec::with_capacity(filtered.len() - 1);
             for i in 1..filtered.len() {
-                let dt = (filtered[i].timestamp - filtered[i - 1].timestamp).max(MIN_OBSERVATION_GAP_SECS);
+                let dt = (filtered[i].timestamp - filtered[i - 1].timestamp)
+                    .max(MIN_OBSERVATION_GAP_SECS);
                 let v = filtered[i].weight_delta / dt as f32;
                 velocities.push(v);
                 vel_times.push(filtered[i].timestamp);
@@ -321,8 +332,7 @@ impl TremorRegistry {
             let total_edge_events: u32 = filtered.iter().map(|o| o.edge_events as u32).sum();
 
             // Magnitude = |mean_a| * sqrt(edge_events)
-            let magnitude = (mean_a.abs() * (total_edge_events as f32).sqrt())
-                .min(MAGNITUDE_CAP);
+            let magnitude = (mean_a.abs() * (total_edge_events as f32).sqrt()).min(MAGNITUDE_CAP);
 
             if magnitude < threshold {
                 continue;
@@ -381,7 +391,11 @@ impl TremorRegistry {
         }
 
         // Sort by magnitude descending, take top_k
-        alerts.sort_by(|a, b| b.magnitude.partial_cmp(&a.magnitude).unwrap_or(std::cmp::Ordering::Equal));
+        alerts.sort_by(|a, b| {
+            b.magnitude
+                .partial_cmp(&a.magnitude)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         alerts.truncate(top_k);
 
         let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
@@ -417,13 +431,14 @@ struct TremorPersistenceFormat {
 pub fn save_tremor_state(registry: &TremorRegistry, path: &Path) -> M1ndResult<()> {
     let format = TremorPersistenceFormat {
         version: 1,
-        nodes: registry.observations.iter()
+        nodes: registry
+            .observations
+            .iter()
             .map(|(k, v)| (k.clone(), v.iter().cloned().collect()))
             .collect(),
     };
 
-    let json = serde_json::to_string_pretty(&format)
-        .map_err(crate::error::M1ndError::Serde)?;
+    let json = serde_json::to_string_pretty(&format).map_err(crate::error::M1ndError::Serde)?;
 
     // Atomic write: temp file + rename
     let temp_path = path.with_extension("tmp");
@@ -451,8 +466,8 @@ pub fn load_tremor_state(path: &Path) -> M1ndResult<TremorRegistry> {
     }
 
     let data = std::fs::read_to_string(path)?;
-    let format: TremorPersistenceFormat = serde_json::from_str(&data)
-        .map_err(crate::error::M1ndError::Serde)?;
+    let format: TremorPersistenceFormat =
+        serde_json::from_str(&data).map_err(crate::error::M1ndError::Serde)?;
 
     let mut registry = TremorRegistry::new(DEFAULT_MAX_OBSERVATIONS);
 
@@ -519,10 +534,19 @@ mod tests {
     fn no_tremors_for_stable_node() {
         let mut reg = make_registry();
         // Flat deltas → acceleration ≈ 0 → magnitude near 0
-        push_obs(&mut reg, "node::stable", &[0.01, 0.01, 0.01, 0.01, 0.01], 1000.0);
+        push_obs(
+            &mut reg,
+            "node::stable",
+            &[0.01, 0.01, 0.01, 0.01, 0.01],
+            1000.0,
+        );
         let result = reg.analyze(TremorWindow::All, DEFAULT_THRESHOLD, 20, None, 2000.0, 0);
         // magnitude should be below threshold — no tremors
-        assert!(result.tremors.is_empty(), "Expected no tremors for stable node, got {:?}", result.tremors);
+        assert!(
+            result.tremors.is_empty(),
+            "Expected no tremors for stable node, got {:?}",
+            result.tremors
+        );
     }
 
     // 4. acceleration_detected: rapidly growing deltas produce an alert
@@ -532,7 +556,10 @@ mod tests {
         // Monotonically growing deltas → positive second derivative
         push_obs(&mut reg, "node::hot", &[0.1, 1.0, 5.0, 20.0, 80.0], 1000.0);
         let result = reg.analyze(TremorWindow::All, 0.0, 20, None, 2000.0, 0);
-        assert!(!result.tremors.is_empty(), "Expected tremor alert for accelerating node");
+        assert!(
+            !result.tremors.is_empty(),
+            "Expected tremor alert for accelerating node"
+        );
         let alert = &result.tremors[0];
         assert_eq!(alert.node_id, "node::hot");
         assert_eq!(alert.direction, TremorDirection::Accelerating);
@@ -543,7 +570,12 @@ mod tests {
     fn deceleration_produces_decelerating_direction() {
         let mut reg = make_registry();
         // Decreasing deltas → negative second derivative
-        push_obs(&mut reg, "node::cooling", &[80.0, 20.0, 5.0, 1.0, 0.1], 1000.0);
+        push_obs(
+            &mut reg,
+            "node::cooling",
+            &[80.0, 20.0, 5.0, 1.0, 0.1],
+            1000.0,
+        );
         let result = reg.analyze(TremorWindow::All, 0.0, 20, None, 2000.0, 0);
         let found = result.tremors.iter().find(|a| a.node_id == "node::cooling");
         assert!(found.is_some(), "Expected tremor for decelerating node");
@@ -580,7 +612,12 @@ mod tests {
     #[test]
     fn save_load_round_trip() {
         let mut reg = make_registry();
-        push_obs(&mut reg, "node::persist", &[1.0, 2.0, 3.0, 4.0, 5.0], 1000.0);
+        push_obs(
+            &mut reg,
+            "node::persist",
+            &[1.0, 2.0, 3.0, 4.0, 5.0],
+            1000.0,
+        );
         let count_before = reg.observation_count("node::persist");
 
         let dir = std::env::temp_dir();
@@ -602,10 +639,17 @@ mod tests {
         let now = 1_000_000.0f64;
         // Push 5 observations 100 days ago (outside 30d window)
         let old_base = now - 100.0 * 86400.0;
-        push_obs(&mut reg, "node::old", &[1.0, 5.0, 10.0, 20.0, 40.0], old_base);
+        push_obs(
+            &mut reg,
+            "node::old",
+            &[1.0, 5.0, 10.0, 20.0, 40.0],
+            old_base,
+        );
         let result = reg.analyze(TremorWindow::Days30, 0.0, 20, None, now, 0);
-        assert!(result.tremors.iter().all(|a| a.node_id != "node::old"),
-            "Old observations should be excluded by 30d window");
+        assert!(
+            result.tremors.iter().all(|a| a.node_id != "node::old"),
+            "Old observations should be excluded by 30d window"
+        );
     }
 }
 
@@ -620,7 +664,11 @@ fn linear_regression_slope(x: &[f64], y: &[f32]) -> f32 {
     let n_f = n as f64;
     let sum_x: f64 = x.iter().sum();
     let sum_y: f64 = y.iter().map(|v| *v as f64).sum();
-    let sum_xy: f64 = x.iter().zip(y.iter()).map(|(xi, yi)| *xi * (*yi as f64)).sum();
+    let sum_xy: f64 = x
+        .iter()
+        .zip(y.iter())
+        .map(|(xi, yi)| *xi * (*yi as f64))
+        .sum();
     let sum_x2: f64 = x.iter().map(|xi| xi * xi).sum();
 
     let denom = n_f * sum_x2 - sum_x * sum_x;

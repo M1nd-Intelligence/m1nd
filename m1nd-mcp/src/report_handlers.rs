@@ -2,28 +2,26 @@
 //
 // v0.4.0: Handlers for m1nd.report, m1nd.panoramic, m1nd.savings.
 
-use m1nd_core::error::{M1ndError, M1ndResult};
-use crate::session::SessionState;
-use crate::protocol::layers::{
-    ReportInput, ReportOutput, ReportQueryEntry,
-    PanoramicInput, PanoramicOutput, PanoramicModule, PanoramicAlert,
-    SavingsInput, SavingsOutput, SavingsSessionRecord,
-};
 use crate::personality;
+use crate::protocol::layers::{
+    PanoramicAlert, PanoramicInput, PanoramicModule, PanoramicOutput, ReportInput, ReportOutput,
+    ReportQueryEntry, SavingsInput, SavingsOutput, SavingsSessionRecord,
+};
+use crate::session::SessionState;
+use m1nd_core::error::{M1ndError, M1ndResult};
 use std::time::Instant;
 
 // ---------------------------------------------------------------------------
 // m1nd.report
 // ---------------------------------------------------------------------------
 
-pub fn handle_report(
-    state: &mut SessionState,
-    input: ReportInput,
-) -> M1ndResult<ReportOutput> {
+pub fn handle_report(state: &mut SessionState, input: ReportInput) -> M1ndResult<ReportOutput> {
     let start = Instant::now();
 
     // Filter query log by agent_id (ADVERSARY R3: cross-agent privacy)
-    let agent_queries: Vec<_> = state.query_log.iter()
+    let agent_queries: Vec<_> = state
+        .query_log
+        .iter()
         .filter(|q| q.agent_id == input.agent_id)
         .collect();
 
@@ -37,7 +35,8 @@ pub fn handle_report(
     let co2_saved_grams = (tokens_saved_global as f64) * 0.0002;
 
     // Recent queries (last 10)
-    let recent_queries: Vec<ReportQueryEntry> = agent_queries.iter()
+    let recent_queries: Vec<ReportQueryEntry> = agent_queries
+        .iter()
         .rev()
         .take(10)
         .map(|q| ReportQueryEntry {
@@ -75,7 +74,10 @@ pub fn handle_report(
         co2_saved_grams,
         node_count,
         edge_count,
-        recent_queries.iter().map(|q| format!("- **{}** `{}` ({:.0}ms)\n", q.tool, q.query, q.elapsed_ms)).collect::<String>(),
+        recent_queries
+            .iter()
+            .map(|q| format!("- **{}** `{}` ({:.0}ms)\n", q.tool, q.query, q.elapsed_ms))
+            .collect::<String>(),
     );
 
     let elapsed = start.elapsed().as_secs_f64() * 1000.0;
@@ -145,14 +147,19 @@ pub fn handle_panoramic(
 
         // Calculate centrality (normalized degree)
         let total_edges = (blast_forward + blast_backward) as f32;
-        let max_possible = if num_nodes > 1 { (num_nodes - 1) as f32 * 2.0 } else { 1.0 };
+        let max_possible = if num_nodes > 1 {
+            (num_nodes - 1) as f32 * 2.0
+        } else {
+            1.0
+        };
         let centrality = (total_edges / max_possible).min(1.0);
 
         // Estimate churn from tremor data
         let churn = 0.0f32; // Default; tremor gives volatility, not churn directly
 
         // Combined risk: blast*0.5 + centrality*0.3 + churn*0.2
-        let blast_normalized = ((blast_forward + blast_backward) as f32 / (num_nodes as f32).max(1.0)).min(1.0);
+        let blast_normalized =
+            ((blast_forward + blast_backward) as f32 / (num_nodes as f32).max(1.0)).min(1.0);
         let combined_risk = blast_normalized * 0.5 + centrality * 0.3 + churn * 0.2;
         let is_critical = combined_risk >= 0.7;
 
@@ -173,12 +180,17 @@ pub fn handle_panoramic(
     drop(graph);
 
     // Sort by combined_risk descending
-    modules.sort_by(|a, b| b.combined_risk.partial_cmp(&a.combined_risk).unwrap_or(std::cmp::Ordering::Equal));
+    modules.sort_by(|a, b| {
+        b.combined_risk
+            .partial_cmp(&a.combined_risk)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     let total_modules = modules.len();
 
     // Build critical alerts
-    let critical_alerts: Vec<PanoramicAlert> = modules.iter()
+    let critical_alerts: Vec<PanoramicAlert> = modules
+        .iter()
         .filter(|m| m.is_critical)
         .map(|m| PanoramicAlert {
             node_id: m.node_id.clone(),
@@ -209,10 +221,7 @@ pub fn handle_panoramic(
 // m1nd.savings
 // ---------------------------------------------------------------------------
 
-pub fn handle_savings(
-    state: &mut SessionState,
-    input: SavingsInput,
-) -> M1ndResult<SavingsOutput> {
+pub fn handle_savings(state: &mut SessionState, input: SavingsInput) -> M1ndResult<SavingsOutput> {
     let start = Instant::now();
 
     let session_tokens_saved = state.savings_tracker.tokens_saved;
@@ -228,15 +237,13 @@ pub fn handle_savings(
         .unwrap_or(0)
         - (state.uptime_seconds() * 1000.0) as u64;
 
-    let recent_sessions = vec![
-        SavingsSessionRecord {
-            agent_id: input.agent_id.clone(),
-            session_start_ms,
-            queries: session_queries,
-            tokens_saved: session_tokens_saved,
-            co2_grams: (session_tokens_saved as f64) * 0.0002,
-        },
-    ];
+    let recent_sessions = vec![SavingsSessionRecord {
+        agent_id: input.agent_id.clone(),
+        session_start_ms,
+        queries: session_queries,
+        tokens_saved: session_tokens_saved,
+        co2_grams: (session_tokens_saved as f64) * 0.0002,
+    }];
 
     // Formatted summary with visual identity
     let formatted_summary = format!(
@@ -244,10 +251,20 @@ pub fn handle_savings(
          {}session:{} {} queries, {} tokens saved\n\
          {}global:{}  {} tokens saved, ${:.4} USD, {:.2}g CO2\n\n\
          {}every query that didn't burn tokens is a gift to the planet.{}\n",
-        personality::ANSI_BOLD, personality::ANSI_GREEN, personality::ANSI_RESET,
-        personality::ANSI_CYAN, personality::ANSI_RESET, session_queries, session_tokens_saved,
-        personality::ANSI_GOLD, personality::ANSI_RESET, global_tokens_saved, cost_saved_usd, global_co2_grams,
-        personality::ANSI_DIM, personality::ANSI_RESET,
+        personality::ANSI_BOLD,
+        personality::ANSI_GREEN,
+        personality::ANSI_RESET,
+        personality::ANSI_CYAN,
+        personality::ANSI_RESET,
+        session_queries,
+        session_tokens_saved,
+        personality::ANSI_GOLD,
+        personality::ANSI_RESET,
+        global_tokens_saved,
+        cost_saved_usd,
+        global_co2_grams,
+        personality::ANSI_DIM,
+        personality::ANSI_RESET,
     );
 
     Ok(SavingsOutput {

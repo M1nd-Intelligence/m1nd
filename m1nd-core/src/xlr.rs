@@ -180,11 +180,10 @@ impl AdaptiveXlrEngine {
 
         // Step 4: Propagate cold pulses from anti-seeds
         let cold_freq = PosF32::new(F_COLD).unwrap();
-        let anti_seed_pairs: Vec<(NodeId, FiniteF32)> = anti_seeds
-            .iter()
-            .map(|&n| (n, FiniteF32::ONE))
-            .collect();
-        let cold_pulses = self.propagate_spectral(graph, &anti_seed_pairs, cold_freq, config, half_budget)?;
+        let anti_seed_pairs: Vec<(NodeId, FiniteF32)> =
+            anti_seeds.iter().map(|&n| (n, FiniteF32::ONE)).collect();
+        let cold_pulses =
+            self.propagate_spectral(graph, &anti_seed_pairs, cold_freq, config, half_budget)?;
 
         let total_pulses = hot_pulses.len() as u64 + cold_pulses.len() as u64;
 
@@ -212,14 +211,17 @@ impl AdaptiveXlrEngine {
         // Compute average degree for density modulation
         let avg_deg = graph.avg_degree();
 
-        for i in 0..n {
-            let hot = hot_amp[i];
+        for (i, &hot) in hot_amp.iter().enumerate().take(n) {
             if hot <= 0.0 {
                 continue;
             }
 
             // Immunity factor: immune nodes get full hot signal, no cold cancellation
-            let immune = if i < immunity.len() { immunity[i] } else { false };
+            let immune = if i < immunity.len() {
+                immunity[i]
+            } else {
+                false
+            };
 
             let effective_cold = if immune { 0.0 } else { cold_amp[i] };
 
@@ -229,11 +231,15 @@ impl AdaptiveXlrEngine {
             // Density modulation: nodes with degree near avg get density=1.0
             let out_deg = {
                 let lo = graph.csr.offsets[i] as usize;
-                let hi = if i + 1 < graph.csr.offsets.len() { graph.csr.offsets[i + 1] as usize } else { lo };
+                let hi = if i + 1 < graph.csr.offsets.len() {
+                    graph.csr.offsets[i + 1] as usize
+                } else {
+                    lo
+                };
                 (hi - lo) as f32
             };
             let density = if avg_deg > 0.0 {
-                (out_deg / avg_deg).max(DENSITY_FLOOR).min(DENSITY_CAP)
+                (out_deg / avg_deg).clamp(DENSITY_FLOOR, DENSITY_CAP)
             } else {
                 1.0
             };
@@ -253,9 +259,9 @@ impl AdaptiveXlrEngine {
         if fallback {
             // Return hot-only
             activations.clear();
-            for i in 0..n {
-                if hot_amp[i] > 0.01 {
-                    activations.push((NodeId::new(i as u32), FiniteF32::new(hot_amp[i])));
+            for (i, &amp) in hot_amp.iter().enumerate().take(n) {
+                if amp > 0.01 {
+                    activations.push((NodeId::new(i as u32), FiniteF32::new(amp)));
                 }
             }
         }
@@ -273,11 +279,7 @@ impl AdaptiveXlrEngine {
     /// Pick anti-seeds: structurally similar (degree), semantically different (Jaccard).
     /// Replaces: xlr_v2.py pick_anti_seeds()
     /// FM-XLR-008 fix: immunity computed from BFS reach, not seed count.
-    pub fn pick_anti_seeds(
-        &self,
-        graph: &Graph,
-        seeds: &[NodeId],
-    ) -> M1ndResult<Vec<NodeId>> {
+    pub fn pick_anti_seeds(&self, graph: &Graph, seeds: &[NodeId]) -> M1ndResult<Vec<NodeId>> {
         let n = graph.num_nodes() as usize;
         if n == 0 || seeds.is_empty() {
             return Ok(Vec::new());
@@ -305,10 +307,13 @@ impl AdaptiveXlrEngine {
         let avg_seed_degree: f32 = if seeds.is_empty() {
             0.0
         } else {
-            let sum: usize = seeds.iter().map(|s| {
-                let r = graph.csr.out_range(*s);
-                r.end - r.start
-            }).sum();
+            let sum: usize = seeds
+                .iter()
+                .map(|s| {
+                    let r = graph.csr.out_range(*s);
+                    r.end - r.start
+                })
+                .sum();
             sum as f32 / seeds.len() as f32
         };
 
@@ -371,11 +376,7 @@ impl AdaptiveXlrEngine {
     /// Returns bitset of immune nodes (within immunity_hops of any seed).
     /// Replaces: xlr_v2.py compute_seed_neighborhood()
     /// FM-XLR-008 fix: BFS-based distance, not seed count threshold.
-    pub fn compute_immunity(
-        &self,
-        graph: &Graph,
-        seeds: &[NodeId],
-    ) -> M1ndResult<Vec<bool>> {
+    pub fn compute_immunity(&self, graph: &Graph, seeds: &[NodeId]) -> M1ndResult<Vec<bool>> {
         let n = graph.num_nodes() as usize;
         let mut immune = vec![false; n];
 
@@ -518,10 +519,7 @@ impl AdaptiveXlrEngine {
     /// Compute spectral overlap between hot and cold signals at each node.
     /// DEC-003: bucket-based overlap for O(B) per node.
     /// Replaces: xlr_v2.py adaptive_differential() spectral overlap section
-    pub fn spectral_overlap(
-        hot_freqs: &[FiniteF32],
-        cold_freqs: &[FiniteF32],
-    ) -> FiniteF32 {
+    pub fn spectral_overlap(hot_freqs: &[FiniteF32], cold_freqs: &[FiniteF32]) -> FiniteF32 {
         if hot_freqs.is_empty() || cold_freqs.is_empty() {
             return FiniteF32::ZERO;
         }
@@ -562,7 +560,7 @@ impl AdaptiveXlrEngine {
     pub fn sigmoid_gate(net_signal: FiniteF32) -> FiniteF32 {
         let x = net_signal.get() * SIGMOID_STEEPNESS;
         // Clamp to avoid overflow in exp
-        let clamped = x.max(-20.0).min(20.0);
+        let clamped = x.clamp(-20.0, 20.0);
         let result = 1.0 / (1.0 + (-clamped).exp());
         FiniteF32::new(result)
     }

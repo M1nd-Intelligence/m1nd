@@ -1,11 +1,11 @@
 // === crates/m1nd-core/src/snapshot.rs ===
 
-use std::path::Path;
-use std::io::{Write, BufWriter};
 use crate::error::{M1ndError, M1ndResult};
 use crate::graph::{Graph, NodeProvenanceInput, ResolvedNodeProvenance};
 use crate::plasticity::SynapticState;
 use crate::types::*;
+use std::io::{BufWriter, Write};
+use std::path::Path;
 
 // ---------------------------------------------------------------------------
 // Snapshot — JSON graph persistence
@@ -154,6 +154,7 @@ pub fn save_graph(graph: &Graph, path: &Path) -> M1ndResult<()> {
 
     // Serialize nodes
     let mut nodes = Vec::with_capacity(n);
+    #[allow(clippy::needless_range_loop)]
     for i in 0..n {
         let label = graph.strings.resolve(graph.nodes.label[i]).to_string();
         let tags: Vec<String> = graph.nodes.tags[i]
@@ -191,7 +192,11 @@ pub fn save_graph(graph: &Graph, path: &Path) -> M1ndResult<()> {
                 target_id: node_to_ext_id[tgt].clone(),
                 relation,
                 weight,
-                direction: if dir == EdgeDirection::Bidirectional { 1 } else { 0 },
+                direction: if dir == EdgeDirection::Bidirectional {
+                    1
+                } else {
+                    0
+                },
                 inhibitory: graph.csr.inhibitory[j],
                 causal_strength: graph.csr.causal_strengths[j].get(),
             });
@@ -223,8 +228,7 @@ pub fn save_graph(graph: &Graph, path: &Path) -> M1ndResult<()> {
 /// with all nodes, edges, CSR, and PageRank.
 pub fn load_graph(path: &Path) -> M1ndResult<Graph> {
     let data = std::fs::read_to_string(path)?;
-    let snapshot: GraphSnapshot = serde_json::from_str(&data)
-        .map_err(M1ndError::Serde)?;
+    let snapshot: GraphSnapshot = serde_json::from_str(&data).map_err(M1ndError::Serde)?;
 
     if snapshot.nodes.is_empty() {
         return Ok(Graph::new());
@@ -294,21 +298,20 @@ pub fn load_graph(path: &Path) -> M1ndResult<Graph> {
 
 /// Save plasticity state to JSON. Atomic write (FM-PL-008).
 /// FM-PL-001 NaN firewall: non-finite weights replaced with originals at export.
-pub fn save_plasticity_state(
-    states: &[SynapticState],
-    path: &Path,
-) -> M1ndResult<()> {
+pub fn save_plasticity_state(states: &[SynapticState], path: &Path) -> M1ndResult<()> {
     // FM-PL-001: NaN firewall at export boundary
-    let safe_states: Vec<SynapticState> = states.iter().map(|s| {
-        let mut safe = s.clone();
-        if !safe.current_weight.is_finite() {
-            safe.current_weight = safe.original_weight;
-        }
-        safe
-    }).collect();
+    let safe_states: Vec<SynapticState> = states
+        .iter()
+        .map(|s| {
+            let mut safe = s.clone();
+            if !safe.current_weight.is_finite() {
+                safe.current_weight = safe.original_weight;
+            }
+            safe
+        })
+        .collect();
 
-    let json = serde_json::to_string_pretty(&safe_states)
-        .map_err(M1ndError::Serde)?;
+    let json = serde_json::to_string_pretty(&safe_states).map_err(M1ndError::Serde)?;
 
     // FM-PL-008: atomic write
     let temp_path = path.with_extension("tmp");
@@ -327,8 +330,7 @@ pub fn save_plasticity_state(
 /// FM-PL-007 fix: schema validation + error recovery.
 pub fn load_plasticity_state(path: &Path) -> M1ndResult<Vec<SynapticState>> {
     let data = std::fs::read_to_string(path)?;
-    let states: Vec<SynapticState> = serde_json::from_str(&data)
-        .map_err(M1ndError::Serde)?;
+    let states: Vec<SynapticState> = serde_json::from_str(&data).map_err(M1ndError::Serde)?;
 
     // FM-PL-007: validate each entry
     for state in &states {
@@ -358,8 +360,7 @@ pub fn save_co_change_matrix(
         version: 1,
         num_entries: _matrix.num_entries(),
     };
-    let json = serde_json::to_string_pretty(&meta)
-        .map_err(M1ndError::Serde)?;
+    let json = serde_json::to_string_pretty(&meta).map_err(M1ndError::Serde)?;
 
     let temp_path = path.with_extension("tmp");
     {
@@ -376,8 +377,7 @@ pub fn save_co_change_matrix(
 /// Load co-change matrix.
 pub fn load_co_change_matrix(path: &Path) -> M1ndResult<crate::temporal::CoChangeMatrix> {
     let data = std::fs::read_to_string(path)?;
-    let _meta: CoChangeMetadata = serde_json::from_str(&data)
-        .map_err(M1ndError::Serde)?;
+    let _meta: CoChangeMetadata = serde_json::from_str(&data).map_err(M1ndError::Serde)?;
 
     // Return empty matrix; full deserialization needs graph context
     let graph = Graph::new();

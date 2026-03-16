@@ -53,10 +53,7 @@ const DENIED_FILENAMES: &[&str] = &[
 /// allowing any path. At least one ingest must happen before any apply.
 ///
 /// BUG FIX (E3): Deny-list prevents overwriting m1nd's own state files.
-fn validate_path_safety(
-    resolved: &Path,
-    ingest_roots: &[String],
-) -> M1ndResult<PathBuf> {
+fn validate_path_safety(resolved: &Path, ingest_roots: &[String]) -> M1ndResult<PathBuf> {
     // BUG FIX (E4): Block all writes when no ingest roots configured
     if ingest_roots.is_empty() {
         return Err(M1ndError::InvalidParams {
@@ -71,18 +68,26 @@ fn validate_path_safety(
     // Canonicalize the resolved path (follows symlinks, resolves ..)
     // For new files that don't exist yet, canonicalize the parent directory
     let canonical = if resolved.exists() {
-        resolved.canonicalize().map_err(|e| M1ndError::InvalidParams {
-            tool: "m1nd_apply".into(),
-            detail: format!("cannot resolve path {}: {}", resolved.display(), e),
-        })?
+        resolved
+            .canonicalize()
+            .map_err(|e| M1ndError::InvalidParams {
+                tool: "m1nd_apply".into(),
+                detail: format!("cannot resolve path {}: {}", resolved.display(), e),
+            })?
     } else {
         // File doesn't exist yet: canonicalize parent + append filename
         let parent = resolved.parent().unwrap_or(Path::new("."));
         let filename = resolved.file_name().unwrap_or_default();
-        let parent_canonical = parent.canonicalize().map_err(|e| M1ndError::InvalidParams {
-            tool: "m1nd_apply".into(),
-            detail: format!("cannot resolve parent directory {}: {}", parent.display(), e),
-        })?;
+        let parent_canonical = parent
+            .canonicalize()
+            .map_err(|e| M1ndError::InvalidParams {
+                tool: "m1nd_apply".into(),
+                detail: format!(
+                    "cannot resolve parent directory {}: {}",
+                    parent.display(),
+                    e
+                ),
+            })?;
         parent_canonical.join(filename)
     };
 
@@ -158,30 +163,37 @@ fn extract_rust_symbols(lines: &[&str], symbols: &mut Vec<surgical::SurgicalSymb
         let line_num = (i + 1) as u32;
 
         // Match: pub fn, fn, pub struct, struct, pub enum, enum, pub trait, trait, impl
-        let (name, sym_type) = if let Some(rest) = trimmed.strip_prefix("pub fn ")
+        let (name, sym_type) = if let Some(rest) = trimmed
+            .strip_prefix("pub fn ")
             .or_else(|| trimmed.strip_prefix("pub(crate) fn "))
             .or_else(|| trimmed.strip_prefix("pub(super) fn "))
         {
             (extract_identifier(rest), "function")
         } else if let Some(rest) = trimmed.strip_prefix("fn ") {
-            if !trimmed.starts_with("fn ") || trimmed.contains("//") && trimmed.find("//").unwrap() < trimmed.find("fn").unwrap_or(0) {
+            if !trimmed.starts_with("fn ")
+                || trimmed.contains("//")
+                    && trimmed.find("//").unwrap() < trimmed.find("fn").unwrap_or(0)
+            {
                 i += 1;
                 continue;
             }
             (extract_identifier(rest), "function")
-        } else if let Some(rest) = trimmed.strip_prefix("pub struct ")
+        } else if let Some(rest) = trimmed
+            .strip_prefix("pub struct ")
             .or_else(|| trimmed.strip_prefix("pub(crate) struct "))
         {
             (extract_identifier(rest), "struct")
         } else if let Some(rest) = trimmed.strip_prefix("struct ") {
             (extract_identifier(rest), "struct")
-        } else if let Some(rest) = trimmed.strip_prefix("pub enum ")
+        } else if let Some(rest) = trimmed
+            .strip_prefix("pub enum ")
             .or_else(|| trimmed.strip_prefix("pub(crate) enum "))
         {
             (extract_identifier(rest), "enum")
         } else if let Some(rest) = trimmed.strip_prefix("enum ") {
             (extract_identifier(rest), "enum")
-        } else if let Some(rest) = trimmed.strip_prefix("pub trait ")
+        } else if let Some(rest) = trimmed
+            .strip_prefix("pub trait ")
             .or_else(|| trimmed.strip_prefix("pub(crate) trait "))
         {
             (extract_identifier(rest), "trait")
@@ -235,6 +247,7 @@ fn extract_python_symbols(lines: &[&str], symbols: &mut Vec<surgical::SurgicalSy
         // Find end by indentation: next line at same or lower indent level
         let base_indent = line.len() - line.trim_start().len();
         let mut end = i;
+        #[allow(clippy::needless_range_loop)]
         for j in (i + 1)..lines.len() {
             let next = lines[j];
             if next.trim().is_empty() {
@@ -357,6 +370,7 @@ fn find_brace_end(lines: &[&str], start: usize) -> usize {
     let mut depth: i32 = 0;
     let mut found_open = false;
 
+    #[allow(clippy::needless_range_loop)]
     for i in start..lines.len() {
         for ch in lines[i].chars() {
             if ch == '{' {
@@ -441,8 +455,14 @@ fn collect_neighbours(
                 }
 
                 let label = graph.strings.resolve(graph.nodes.label[ti]).to_string();
-                let relation = graph.strings.resolve(graph.csr.relations[edge_pos]).to_string();
-                let weight = graph.csr.read_weight(m1nd_core::types::EdgeIdx::new(edge_pos as u32)).get();
+                let relation = graph
+                    .strings
+                    .resolve(graph.csr.relations[edge_pos])
+                    .to_string();
+                let weight = graph
+                    .csr
+                    .read_weight(m1nd_core::types::EdgeIdx::new(edge_pos as u32))
+                    .get();
 
                 let prov = graph.resolve_node_provenance(target);
                 let file_path = prov.source_path.clone().unwrap_or_default();
@@ -456,12 +476,11 @@ fn collect_neighbours(
                 };
 
                 // Classify: test file or callee
-                let is_test = include_tests && (
-                    relation.contains("test") ||
-                    label.contains("test") ||
-                    file_path.contains("test") ||
-                    file_path.contains("spec")
-                );
+                let is_test = include_tests
+                    && (relation.contains("test")
+                        || label.contains("test")
+                        || file_path.contains("test")
+                        || file_path.contains("spec"));
 
                 if is_test {
                     tests.push(neighbour);
@@ -487,7 +506,10 @@ fn collect_neighbours(
 
                 let label = graph.strings.resolve(graph.nodes.label[si]).to_string();
                 let fwd_idx = graph.csr.rev_edge_idx[rev_pos];
-                let relation = graph.strings.resolve(graph.csr.relations[fwd_idx.as_usize()]).to_string();
+                let relation = graph
+                    .strings
+                    .resolve(graph.csr.relations[fwd_idx.as_usize()])
+                    .to_string();
                 let weight = graph.csr.read_weight(fwd_idx).get();
 
                 let prov = graph.resolve_node_provenance(source);
@@ -501,12 +523,11 @@ fn collect_neighbours(
                     edge_weight: weight,
                 };
 
-                let is_test = include_tests && (
-                    relation.contains("test") ||
-                    label.contains("test") ||
-                    file_path.contains("test") ||
-                    file_path.contains("spec")
-                );
+                let is_test = include_tests
+                    && (relation.contains("test")
+                        || label.contains("test")
+                        || file_path.contains("test")
+                        || file_path.contains("spec"));
 
                 if is_test {
                     tests.push(neighbour);
@@ -520,9 +541,21 @@ fn collect_neighbours(
     }
 
     // Sort by edge weight descending for relevance
-    callers.sort_by(|a, b| b.edge_weight.partial_cmp(&a.edge_weight).unwrap_or(std::cmp::Ordering::Equal));
-    callees.sort_by(|a, b| b.edge_weight.partial_cmp(&a.edge_weight).unwrap_or(std::cmp::Ordering::Equal));
-    tests.sort_by(|a, b| b.edge_weight.partial_cmp(&a.edge_weight).unwrap_or(std::cmp::Ordering::Equal));
+    callers.sort_by(|a, b| {
+        b.edge_weight
+            .partial_cmp(&a.edge_weight)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    callees.sort_by(|a, b| {
+        b.edge_weight
+            .partial_cmp(&a.edge_weight)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    tests.sort_by(|a, b| {
+        b.edge_weight
+            .partial_cmp(&a.edge_weight)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     (callers, callees, tests)
 }
@@ -538,10 +571,7 @@ fn resolve_external_id(graph: &m1nd_core::graph::Graph, node: NodeId) -> String 
 }
 
 /// Find graph nodes whose provenance source_path matches the given file path.
-fn find_nodes_for_file(
-    graph: &m1nd_core::graph::Graph,
-    file_path: &str,
-) -> Vec<(NodeId, String)> {
+fn find_nodes_for_file(graph: &m1nd_core::graph::Graph, file_path: &str) -> Vec<(NodeId, String)> {
     let n = graph.num_nodes() as usize;
     let mut results = Vec::new();
 
@@ -621,10 +651,7 @@ fn bfs_reachable(
 
 /// Compute Layer C blast radius for a single file: BFS 2-hop from file's nodes,
 /// then filter to only OTHER file-level nodes. Returns (reachable_count, top_affected_ids).
-fn compute_blast_radius(
-    graph: &m1nd_core::graph::Graph,
-    file_path: &str,
-) -> (usize, Vec<String>) {
+fn compute_blast_radius(graph: &m1nd_core::graph::Graph, file_path: &str) -> (usize, Vec<String>) {
     let file_nodes = find_nodes_for_file(graph, file_path);
     if file_nodes.is_empty() {
         return (0, Vec::new());
@@ -764,7 +791,12 @@ fn run_affected_tests(
     }
 
     if any_tests_found {
-        (Some(total_run), Some(total_passed), Some(total_failed), failure_output)
+        (
+            Some(total_run),
+            Some(total_passed),
+            Some(total_failed),
+            failure_output,
+        )
     } else {
         (None, None, None, None)
     }
@@ -810,7 +842,12 @@ fn run_rust_tests(path: &Path) -> Option<(u32, u32, u32, Option<String>)> {
         }
         Err(_) => {
             // Timeout or spawn failure — report as 1 failed test
-            Some((1, 0, 1, Some("cargo test timed out (30s limit)".to_string())))
+            Some((
+                1,
+                0,
+                1,
+                Some("cargo test timed out (30s limit)".to_string()),
+            ))
         }
     }
 }
@@ -917,7 +954,8 @@ fn run_go_tests(path: &Path) -> Option<(u32, u32, u32, Option<String>)> {
     if !test_file.exists() {
         // Also check for any *_test.go in same dir
         let has_any_test = std::fs::read_dir(parent).ok()?.any(|entry| {
-            entry.ok()
+            entry
+                .ok()
                 .and_then(|e| e.file_name().to_str().map(|s| s.ends_with("_test.go")))
                 .unwrap_or(false)
         });
@@ -944,9 +982,7 @@ fn run_go_tests(path: &Path) -> Option<(u32, u32, u32, Option<String>)> {
             };
             Some((run, passed, failed, fail_output))
         }
-        Err(_) => {
-            Some((1, 0, 1, Some("go test timed out (30s limit)".to_string())))
-        }
+        Err(_) => Some((1, 0, 1, Some("go test timed out (30s limit)".to_string()))),
     }
 }
 
@@ -1005,9 +1041,7 @@ fn run_python_tests(path: &Path) -> Option<(u32, u32, u32, Option<String>)> {
             };
             Some((run, passed, failed, fail_output))
         }
-        Err(_) => {
-            Some((1, 0, 1, Some("pytest timed out (30s limit)".to_string())))
-        }
+        Err(_) => Some((1, 0, 1, Some("pytest timed out (30s limit)".to_string()))),
     }
 }
 
@@ -1060,16 +1094,11 @@ pub fn handle_surgical_context(
 
     // Step 1: Resolve and read the file
     let resolved_path = resolve_file_path(&input.file_path, &state.ingest_roots);
-    let file_contents = std::fs::read_to_string(&resolved_path).map_err(|e| {
-        M1ndError::InvalidParams {
+    let file_contents =
+        std::fs::read_to_string(&resolved_path).map_err(|e| M1ndError::InvalidParams {
             tool: "m1nd_surgical_context".into(),
-            detail: format!(
-                "cannot read file {}: {}",
-                resolved_path.display(),
-                e
-            ),
-        }
-    })?;
+            detail: format!("cannot read file {}: {}", resolved_path.display(), e),
+        })?;
 
     let line_count = file_contents.lines().count() as u32;
 
@@ -1090,9 +1119,7 @@ pub fn handle_surgical_context(
             idx < graph.num_nodes() as usize
                 && graph.nodes.node_type[idx] == m1nd_core::types::NodeType::File
         });
-        file_type_node
-            .or(file_nodes.first())
-            .cloned()
+        file_type_node.or(file_nodes.first()).cloned()
     };
 
     let node_id_str = primary_node
@@ -1119,10 +1146,10 @@ pub fn handle_surgical_context(
 
     // Step 5: Focused symbol (if requested)
     let focused_symbol = input.symbol.as_ref().and_then(|sym_name| {
-        symbols.iter().find(|s| {
-            s.name.eq_ignore_ascii_case(sym_name)
-                || s.name == *sym_name
-        }).cloned()
+        symbols
+            .iter()
+            .find(|s| s.name.eq_ignore_ascii_case(sym_name) || s.name == *sym_name)
+            .cloned()
     });
 
     let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
@@ -1176,10 +1203,7 @@ pub fn handle_apply(
 
     // Step 3: Atomic write -- write to temp file, then rename
     let parent = validated_path.parent().unwrap_or(Path::new("."));
-    let temp_path = parent.join(format!(
-        ".m1nd_apply_{}.tmp",
-        std::process::id()
-    ));
+    let temp_path = parent.join(format!(".m1nd_apply_{}.tmp", std::process::id()));
 
     // Ensure parent directory exists
     if !parent.exists() {
@@ -1190,11 +1214,9 @@ pub fn handle_apply(
     }
 
     // Write to temp file
-    std::fs::write(&temp_path, &input.new_content).map_err(|e| {
-        M1ndError::InvalidParams {
-            tool: "m1nd_apply".into(),
-            detail: format!("cannot write temp file {}: {}", temp_path.display(), e),
-        }
+    std::fs::write(&temp_path, &input.new_content).map_err(|e| M1ndError::InvalidParams {
+        tool: "m1nd_apply".into(),
+        detail: format!("cannot write temp file {}: {}", temp_path.display(), e),
     })?;
 
     // Rename (atomic on same filesystem)
@@ -1242,10 +1264,8 @@ pub fn handle_apply(
                     if let Some(nodes) = obj.get("nodes_created") {
                         if let Some(n) = nodes.as_u64() {
                             if n > 0 && updated_node_ids.is_empty() {
-                                updated_node_ids.push(format!(
-                                    "file::{}",
-                                    validated_path.to_string_lossy()
-                                ));
+                                updated_node_ids
+                                    .push(format!("file::{}", validated_path.to_string_lossy()));
                             }
                         }
                     }
@@ -1400,7 +1420,11 @@ pub fn handle_surgical_context_v2(
                 let all_lines: Vec<&str> = content.lines().collect();
                 let file_line_count = all_lines.len();
                 let truncated = file_line_count > max_lines;
-                let excerpt_lines = if truncated { max_lines } else { file_line_count };
+                let excerpt_lines = if truncated {
+                    max_lines
+                } else {
+                    file_line_count
+                };
                 let source_excerpt: String = all_lines
                     .iter()
                     .take(excerpt_lines)
@@ -1500,7 +1524,8 @@ pub fn handle_apply_batch(
     // Pre-write snapshot: capture graph nodes BEFORE writing (for verify graph-diff)
     let pre_nodes: std::collections::HashMap<String, HashSet<String>> = if input.verify {
         let graph = state.graph.read();
-        resolved_edits.iter()
+        resolved_edits
+            .iter()
             .map(|(path, _, _)| {
                 let path_str = path.to_string_lossy().to_string();
                 let nodes: HashSet<String> = find_nodes_for_file(&graph, &path_str)
@@ -1537,20 +1562,13 @@ pub fn handle_apply_batch(
                     }
                     return Err(M1ndError::InvalidParams {
                         tool: "m1nd_apply_batch".into(),
-                        detail: format!(
-                            "cannot create directory {}: {}",
-                            parent.display(),
-                            e
-                        ),
+                        detail: format!("cannot create directory {}: {}", parent.display(), e),
                     });
                 }
             }
 
             // BUG FIX (B2): unique temp file per edit (pid + batch_id + index)
-            let tmp_path = parent.join(format!(
-                ".m1nd_batch_{}_{}_{}_.tmp",
-                pid, batch_id, i
-            ));
+            let tmp_path = parent.join(format!(".m1nd_batch_{}_{}_{}_.tmp", pid, batch_id, i));
 
             match std::fs::write(&tmp_path, &edit.new_content) {
                 Ok(_) => {
@@ -1615,8 +1633,16 @@ pub fn handle_apply_batch(
                 old_content.lines().count(),
                 1,
                 edit.new_content.lines().count(),
-                old_content.lines().take(3).map(|l| format!("-{}\n", l)).collect::<String>(),
-                edit.new_content.lines().take(3).map(|l| format!("+{}\n", l)).collect::<String>(),
+                old_content
+                    .lines()
+                    .take(3)
+                    .map(|l| format!("-{}\n", l))
+                    .collect::<String>(),
+                edit.new_content
+                    .lines()
+                    .take(3)
+                    .map(|l| format!("+{}\n", l))
+                    .collect::<String>(),
             );
 
             results.push(surgical::BatchEditResult {
@@ -1642,10 +1668,7 @@ pub fn handle_apply_batch(
             }
 
             // Unique temp file per edit (same fix as atomic)
-            let tmp_path = parent.join(format!(
-                ".m1nd_batch_{}_{}_{}_.tmp",
-                pid, batch_id, i
-            ));
+            let tmp_path = parent.join(format!(".m1nd_batch_{}_{}_{}_.tmp", pid, batch_id, i));
 
             match std::fs::write(&tmp_path, &edit.new_content)
                 .and_then(|_| std::fs::rename(&tmp_path, validated))
@@ -1661,8 +1684,16 @@ pub fn handle_apply_batch(
                         old_content.lines().count(),
                         1,
                         edit.new_content.lines().count(),
-                        old_content.lines().take(3).map(|l| format!("-{}\n", l)).collect::<String>(),
-                        edit.new_content.lines().take(3).map(|l| format!("+{}\n", l)).collect::<String>(),
+                        old_content
+                            .lines()
+                            .take(3)
+                            .map(|l| format!("-{}\n", l))
+                            .collect::<String>(),
+                        edit.new_content
+                            .lines()
+                            .take(3)
+                            .map(|l| format!("+{}\n", l))
+                            .collect::<String>(),
                     );
 
                     results.push(surgical::BatchEditResult {
@@ -1742,11 +1773,15 @@ pub fn handle_apply_batch(
         {
             let graph = state.graph.read();
             for result in &results {
-                if !result.success { continue; }
+                if !result.success {
+                    continue;
+                }
 
                 // Post-write nodes (after re-ingest)
                 let post_nodes: HashSet<String> = find_nodes_for_file(&graph, &result.file_path)
-                    .into_iter().map(|(_, ext_id)| ext_id).collect();
+                    .into_iter()
+                    .map(|(_, ext_id)| ext_id)
+                    .collect();
 
                 // Pre-write nodes (captured before writing)
                 let empty_set = HashSet::new();
@@ -1759,10 +1794,8 @@ pub fn handle_apply_batch(
                 total_affected += changed_count;
 
                 // Risk based on structural change, not file size
-                let risk = if !removed.is_empty() {
-                    "high" // removing symbols = potentially breaking
-                } else if changed_count > 5 {
-                    "high"
+                let risk = if !removed.is_empty() || changed_count > 5 {
+                    "high" // removing symbols or many changes = potentially breaking
                 } else if changed_count > 0 {
                     "medium"
                 } else {
@@ -1770,8 +1803,12 @@ pub fn handle_apply_batch(
                 };
 
                 let mut top_affected: Vec<String> = Vec::new();
-                for n in added.iter().take(3) { top_affected.push(format!("+{}", n)); }
-                for n in removed.iter().take(3) { top_affected.push(format!("-{}", n)); }
+                for n in added.iter().take(3) {
+                    top_affected.push(format!("+{}", n));
+                }
+                for n in removed.iter().take(3) {
+                    top_affected.push(format!("-{}", n));
+                }
 
                 let node_id = post_nodes.iter().next().cloned().unwrap_or_default();
 
@@ -1807,7 +1844,7 @@ pub fn handle_apply_batch(
                 "true",
             ];
             const TRIVIAL_NUMERIC: &[&str] = &[
-                "0,", "0;", "0)", "0\n",       // plain 0
+                "0,", "0;", "0)", "0\n", // plain 0
                 "0.0", "0u8", "0i32", "0usize",
             ];
             let mut total = 0usize;
@@ -1895,13 +1932,16 @@ pub fn handle_apply_batch(
             if new_unwrap_count > old_unwrap_count {
                 layer_violations.push(format!(
                     "NEW UNWRAP: {} — {} new .unwrap() calls added (potential panic points)",
-                    path_str, new_unwrap_count - old_unwrap_count
+                    path_str,
+                    new_unwrap_count - old_unwrap_count
                 ));
             }
 
             // --- Error handling removed ---
-            let old_question_count = old_content.matches("?;").count() + old_content.matches("?)").count();
-            let new_question_count = new_content.matches("?;").count() + new_content.matches("?)").count();
+            let old_question_count =
+                old_content.matches("?;").count() + old_content.matches("?)").count();
+            let new_question_count =
+                new_content.matches("?;").count() + new_content.matches("?)").count();
             if old_question_count > new_question_count + 2 {
                 layer_violations.push(format!(
                     "ERROR HANDLING REMOVED: {} — {} fewer error propagation points (?; or ?) detected",
@@ -1912,11 +1952,14 @@ pub fn handle_apply_batch(
 
         // Antibody name/description match in diffs
         for ab in &state.antibodies {
-            if !ab.enabled { continue; }
+            if !ab.enabled {
+                continue;
+            }
             for result in &results {
                 if result.diff.contains(&ab.name) || result.diff.contains(&ab.description) {
                     antibodies_triggered.push(format!(
-                        "MATCH {}: {} (in {})", ab.id, ab.description, result.file_path
+                        "MATCH {}: {} (in {})",
+                        ab.id, ab.description, result.file_path
                     ));
                 }
             }
@@ -1929,14 +1972,19 @@ pub fn handle_apply_batch(
         {
             let graph = state.graph.read();
             for result in &results {
-                if !result.success { continue; }
+                if !result.success {
+                    continue;
+                }
                 let (reachable_count, top_affected_ids) =
                     compute_blast_radius(&graph, &result.file_path);
                 let risk = blast_radius_risk(reachable_count);
 
                 // Update the high_impact_files entry with real BFS data:
                 // replace the top_affected with real reachable file node IDs
-                if let Some(impact) = high_impact_files.iter_mut().find(|f| f.file_path == result.file_path) {
+                if let Some(impact) = high_impact_files
+                    .iter_mut()
+                    .find(|f| f.file_path == result.file_path)
+                {
                     impact.top_affected = top_affected_ids.clone();
                     impact.affected_count = impact.affected_count.max(reachable_count);
                     // Upgrade risk if BFS says higher
@@ -1975,15 +2023,19 @@ pub fn handle_apply_batch(
         // Layer B (compile): Post-write compilation check
         // -----------------------------------------------------------------
         let compile_check: Option<String> = {
-            let extensions: HashSet<&str> = resolved_edits.iter()
+            let extensions: HashSet<&str> = resolved_edits
+                .iter()
                 .filter_map(|(path, _, _)| path.extension().and_then(|e| e.to_str()))
                 .collect();
-            let ws_root = state.workspace_root.clone()
+            let ws_root = state
+                .workspace_root
+                .clone()
                 .or_else(|| state.ingest_roots.first().cloned());
 
             if extensions.contains("rs") {
                 let cargo_dir = ws_root.clone().or_else(|| {
-                    resolved_edits.iter()
+                    resolved_edits
+                        .iter()
                         .filter(|(p, _, _)| p.extension().and_then(|e| e.to_str()) == Some("rs"))
                         .find_map(|(p, _, _)| {
                             let mut dir = p.parent()?;
@@ -1997,7 +2049,8 @@ pub fn handle_apply_batch(
                 });
                 if let Some(dir) = cargo_dir {
                     match std::process::Command::new("cargo")
-                        .arg("check").arg("--message-format=short")
+                        .arg("check")
+                        .arg("--message-format=short")
                         .current_dir(&dir)
                         .stdout(std::process::Stdio::piped())
                         .stderr(std::process::Stdio::piped())
@@ -2008,7 +2061,8 @@ pub fn handle_apply_batch(
                             Ok(out) => {
                                 let stderr = String::from_utf8_lossy(&out.stderr);
                                 let t: String = stderr.chars().take(200).collect();
-                                layer_violations.push(format!("COMPILE ERROR (cargo check): {}", t));
+                                layer_violations
+                                    .push(format!("COMPILE ERROR (cargo check): {}", t));
                                 Some(format!("error: {}", t))
                             }
                             Err(e) => {
@@ -2023,7 +2077,9 @@ pub fn handle_apply_batch(
                             Some(format!("error: {}", m))
                         }
                     }
-                } else { None }
+                } else {
+                    None
+                }
             } else if extensions.contains("go") {
                 if let Some(dir) = ws_root.clone() {
                     match std::process::Command::new("go")
@@ -2046,12 +2102,16 @@ pub fn handle_apply_batch(
                             Some(format!("error: {}", m))
                         }
                     }
-                } else { None }
+                } else {
+                    None
+                }
             } else if extensions.contains("py") {
                 let mut py_ok = true;
                 let mut py_err = String::new();
                 for (path, _, _) in &resolved_edits {
-                    if path.extension().and_then(|e| e.to_str()) != Some("py") { continue; }
+                    if path.extension().and_then(|e| e.to_str()) != Some("py") {
+                        continue;
+                    }
                     let path_str = path.to_string_lossy();
                     let script = format!("import ast; ast.parse(open('{}').read())", path_str);
                     match std::process::Command::new("python3")
@@ -2063,28 +2123,43 @@ pub fn handle_apply_batch(
                         Ok(out) if !out.status.success() => {
                             let stderr = String::from_utf8_lossy(&out.stderr);
                             let t: String = stderr.chars().take(200).collect();
-                            if py_err.is_empty() { py_err = t.to_string(); }
-                            layer_violations.push(format!("PARSE ERROR (python3 ast): {} — {}", path_str, t));
+                            if py_err.is_empty() {
+                                py_err = t.to_string();
+                            }
+                            layer_violations
+                                .push(format!("PARSE ERROR (python3 ast): {} — {}", path_str, t));
                             py_ok = false;
                         }
                         Ok(_) => {}
-                        Err(e) => { py_err = format!("failed to spawn python3: {}", e); py_ok = false; }
+                        Err(e) => {
+                            py_err = format!("failed to spawn python3: {}", e);
+                            py_ok = false;
+                        }
                     }
                 }
-                if py_ok { Some("ok".to_string()) } else { Some(format!("error: {}", py_err)) }
+                if py_ok {
+                    Some("ok".to_string())
+                } else {
+                    Some(format!("error: {}", py_err))
+                }
             } else if extensions.contains("ts") || extensions.contains("tsx") {
                 if let Some(dir) = ws_root.clone() {
                     let tsconfig = Path::new(&dir).join("tsconfig.json");
                     if tsconfig.exists() {
                         match std::process::Command::new("tsc")
-                            .arg("--noEmit").current_dir(&dir)
+                            .arg("--noEmit")
+                            .current_dir(&dir)
                             .stdout(std::process::Stdio::piped())
                             .stderr(std::process::Stdio::piped())
                             .output()
                         {
                             Ok(out) if out.status.success() => Some("ok".to_string()),
                             Ok(out) => {
-                                let combined = format!("{}{}", String::from_utf8_lossy(&out.stdout), String::from_utf8_lossy(&out.stderr));
+                                let combined = format!(
+                                    "{}{}",
+                                    String::from_utf8_lossy(&out.stdout),
+                                    String::from_utf8_lossy(&out.stderr)
+                                );
                                 let t: String = combined.chars().take(200).collect();
                                 layer_violations.push(format!("TYPE ERROR (tsc --noEmit): {}", t));
                                 Some(format!("error: {}", t))
@@ -2095,13 +2170,20 @@ pub fn handle_apply_batch(
                                 Some(format!("error: {}", m))
                             }
                         }
-                    } else { None }
-                } else { None }
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
             } else {
                 None
             }
         };
-        let compile_broken = compile_check.as_deref().map(|s| s.starts_with("error")).unwrap_or(false);
+        let compile_broken = compile_check
+            .as_deref()
+            .map(|s| s.starts_with("error"))
+            .unwrap_or(false);
 
         // -----------------------------------------------------------------
         // Verdict (incorporates all layers: A+B+C+D + compile)
@@ -2111,10 +2193,8 @@ pub fn handle_apply_batch(
         let has_high_risk = high_impact_files.iter().any(|f| f.risk == "high");
         let has_bfs_high = blast_radius_entries.iter().any(|b| b.risk == "high");
 
-        let verdict = if tests_broken || compile_broken {
-            "BROKEN".to_string()  // compile or test failure = BROKEN
-        } else if has_violations || has_antibodies {
-            "BROKEN".to_string()
+        let verdict = if tests_broken || compile_broken || has_violations || has_antibodies {
+            "BROKEN".to_string() // compile/test failure or violations = BROKEN
         } else if has_high_risk || has_bfs_high {
             "RISKY".to_string()
         } else {
@@ -2198,7 +2278,13 @@ mod tests {
 
     #[test]
     fn test_find_brace_end_nested() {
-        let lines = vec!["fn foo() {", "    if true {", "        bar();", "    }", "}"];
+        let lines = vec![
+            "fn foo() {",
+            "    if true {",
+            "        bar();",
+            "    }",
+            "}",
+        ];
         assert_eq!(find_brace_end(&lines, 0), 4);
     }
 

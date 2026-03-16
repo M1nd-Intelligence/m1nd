@@ -1,8 +1,8 @@
 // === crates/m1nd-core/src/graph.rs ===
 
+use smallvec::SmallVec;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, Ordering};
-use smallvec::SmallVec;
 
 use crate::error::{M1ndError, M1ndResult};
 use crate::types::*;
@@ -17,6 +17,12 @@ use crate::types::*;
 pub struct StringInterner {
     strings: Vec<String>,
     index: HashMap<String, InternedStr>,
+}
+
+impl Default for StringInterner {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StringInterner {
@@ -317,6 +323,12 @@ pub struct NodeStorage {
     pub provenance: Vec<NodeProvenance>,
 }
 
+impl Default for NodeStorage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl NodeStorage {
     pub fn new() -> Self {
         Self {
@@ -372,6 +384,12 @@ pub struct EdgePlasticity {
     pub last_used_query: Vec<u32>,
 }
 
+impl Default for EdgePlasticity {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EdgePlasticity {
     pub fn new() -> Self {
         Self {
@@ -416,6 +434,12 @@ pub struct Graph {
     pub generation: Generation,
     pub pagerank_computed: bool,
     pub finalized: bool,
+}
+
+impl Default for Graph {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Graph {
@@ -466,16 +490,16 @@ impl Graph {
         self.nodes.count += 1;
 
         let label_interned = self.strings.get_or_intern(label);
-        let tag_interned: SmallVec<[InternedStr; 6]> = tags
-            .iter()
-            .map(|t| self.strings.get_or_intern(t))
-            .collect();
+        let tag_interned: SmallVec<[InternedStr; 6]> =
+            tags.iter().map(|t| self.strings.get_or_intern(t)).collect();
 
         self.nodes.label.push(label_interned);
         self.nodes.node_type.push(node_type);
         self.nodes.tags.push(tag_interned);
         self.nodes.last_modified.push(last_modified);
-        self.nodes.change_frequency.push(FiniteF32::new(change_frequency));
+        self.nodes
+            .change_frequency
+            .push(FiniteF32::new(change_frequency));
         self.nodes.activation.push([FiniteF32::ZERO; 4]);
         self.nodes.pagerank.push(FiniteF32::ZERO);
         self.nodes.plasticity.push(PlasticityNode::default());
@@ -489,6 +513,7 @@ impl Graph {
 
     /// Add an edge. Validates source/target existence (FM-ACT-011). Increments generation.
     /// Replaces: engine_v2.py PropertyGraph.add_edge()
+    #[allow(clippy::too_many_arguments)]
     pub fn add_edge(
         &mut self,
         source: NodeId,
@@ -554,10 +579,7 @@ impl Graph {
         // Sort edges by source for CSR layout, preserving original insertion index
         let edges = std::mem::take(&mut self.csr.pending_edges);
         // Pair each edge with its original insertion index (into edge_plasticity)
-        let mut indexed_edges: Vec<(usize, PendingEdge)> = edges
-            .into_iter()
-            .enumerate()
-            .collect();
+        let mut indexed_edges: Vec<(usize, PendingEdge)> = edges.into_iter().enumerate().collect();
         indexed_edges.sort_by_key(|(_, e)| e.source.0);
 
         let total_edges = indexed_edges.len();
@@ -595,10 +617,7 @@ impl Graph {
         // Each entry: (original_insertion_idx, csr_position)
         let mut plasticity_mapping: Vec<(usize, usize)> = Vec::with_capacity(total_csr_edges);
 
-        let mut cursors = vec![0u64; n];
-        for i in 0..n {
-            cursors[i] = offsets[i];
-        }
+        let mut cursors = offsets[..n].to_vec();
 
         for &(orig_idx, ref e) in &indexed_edges {
             let src = e.source.as_usize();
@@ -630,8 +649,12 @@ impl Graph {
         // Rebuild edge_plasticity arrays to match CSR order and count
         let old_plasticity = &self.edge_plasticity;
         let mut new_plasticity = EdgePlasticity::with_capacity(total_csr_edges);
-        new_plasticity.original_weight.resize(total_csr_edges, FiniteF32::ZERO);
-        new_plasticity.current_weight.resize(total_csr_edges, FiniteF32::ZERO);
+        new_plasticity
+            .original_weight
+            .resize(total_csr_edges, FiniteF32::ZERO);
+        new_plasticity
+            .current_weight
+            .resize(total_csr_edges, FiniteF32::ZERO);
         new_plasticity.strengthen_count.resize(total_csr_edges, 0);
         new_plasticity.weaken_count.resize(total_csr_edges, 0);
         new_plasticity.ltp_applied.resize(total_csr_edges, false);
@@ -656,8 +679,8 @@ impl Graph {
         for i in 0..n {
             let lo = offsets[i] as usize;
             let hi = offsets[i + 1] as usize;
-            for j in lo..hi {
-                let tgt = targets[j].as_usize();
+            for tgt_node in &targets[lo..hi] {
+                let tgt = tgt_node.as_usize();
                 rev_offsets[tgt + 1] += 1;
             }
         }
@@ -669,10 +692,8 @@ impl Graph {
         let mut rev_sources = vec![NodeId::default(); total_rev];
         let mut rev_edge_idx = vec![EdgeIdx::default(); total_rev];
 
-        let mut rev_cursors = vec![0u64; n];
-        for i in 0..n {
-            rev_cursors[i] = rev_offsets[i];
-        }
+        let mut rev_cursors = rev_offsets[..n].to_vec();
+        #[allow(clippy::needless_range_loop)]
         for src in 0..n {
             let lo = offsets[src] as usize;
             let hi = offsets[src + 1] as usize;
@@ -722,11 +743,7 @@ impl Graph {
         self.id_to_node.get(&interned).copied()
     }
 
-    pub fn set_node_provenance(
-        &mut self,
-        node: NodeId,
-        provenance: NodeProvenanceInput<'_>,
-    ) {
+    pub fn set_node_provenance(&mut self, node: NodeId, provenance: NodeProvenanceInput<'_>) {
         let idx = node.as_usize();
         if idx >= self.nodes.count as usize {
             return;
@@ -738,10 +755,7 @@ impl Graph {
                 .filter(|value| !value.is_empty())
                 .map(|value| self.strings.get_or_intern(value)),
             line_start: provenance.line_start.unwrap_or(0),
-            line_end: provenance
-                .line_end
-                .or(provenance.line_start)
-                .unwrap_or(0),
+            line_end: provenance.line_end.or(provenance.line_start).unwrap_or(0),
             excerpt: provenance
                 .excerpt
                 .filter(|value| !value.is_empty())
@@ -754,11 +768,7 @@ impl Graph {
         };
     }
 
-    pub fn merge_node_provenance(
-        &mut self,
-        node: NodeId,
-        incoming: NodeProvenanceInput<'_>,
-    ) {
+    pub fn merge_node_provenance(&mut self, node: NodeId, incoming: NodeProvenanceInput<'_>) {
         let idx = node.as_usize();
         if idx >= self.nodes.count as usize {
             return;
@@ -776,10 +786,7 @@ impl Graph {
         self.set_node_provenance(
             node,
             NodeProvenanceInput {
-                source_path: current
-                    .source_path
-                    .as_deref()
-                    .or(incoming.source_path),
+                source_path: current.source_path.as_deref().or(incoming.source_path),
                 line_start,
                 line_end,
                 excerpt: current.excerpt.as_deref().or(incoming.excerpt),
@@ -838,17 +845,17 @@ impl Graph {
 
         // Precompute out-degree from forward CSR
         let mut out_degree = vec![0u32; n];
-        for i in 0..n {
+        for (i, deg) in out_degree.iter_mut().enumerate().take(n) {
             let lo = self.csr.offsets[i] as usize;
             let hi = self.csr.offsets[i + 1] as usize;
-            out_degree[i] = (hi - lo) as u32;
+            *deg = (hi - lo) as u32;
         }
 
         for _iter in 0..max_iterations {
             new_pr.fill(base);
 
             // For each node i, accumulate contribution from in-neighbors
-            for i in 0..n {
+            for (i, new_rank) in new_pr.iter_mut().enumerate().take(n) {
                 let lo = self.csr.rev_offsets[i] as usize;
                 let hi = self.csr.rev_offsets[i + 1] as usize;
                 let mut rank_sum = 0.0f32;
@@ -859,7 +866,7 @@ impl Graph {
                         rank_sum += pr[src] / deg as f32;
                     }
                 }
-                new_pr[i] += damping * rank_sum;
+                *new_rank += damping * rank_sum;
             }
 
             // Check convergence (L1 norm)
@@ -876,8 +883,8 @@ impl Graph {
         // Normalize to [0, 1] by max value
         let max_pr = pr.iter().cloned().fold(0.0f32, f32::max);
         if max_pr > 0.0 {
-            for i in 0..n {
-                self.nodes.pagerank[i] = FiniteF32::new(pr[i] / max_pr);
+            for (i, &rank) in pr.iter().enumerate().take(n) {
+                self.nodes.pagerank[i] = FiniteF32::new(rank / max_pr);
             }
         }
         self.pagerank_computed = true;

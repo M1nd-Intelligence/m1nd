@@ -50,7 +50,7 @@ pub fn secure_peek(
     let provenance_stale = check_staleness(&canonical, last_ingest_ms);
 
     // Step 5: File size
-    let metadata = fs::metadata(&canonical).map_err(|e| M1ndError::Io(e))?;
+    let metadata = fs::metadata(&canonical).map_err(M1ndError::Io)?;
     if metadata.len() > config.max_file_size {
         return Err(M1ndError::InvalidParams {
             tool: "perspective.peek".into(),
@@ -115,10 +115,7 @@ fn validate_allow_list(canonical: &Path, allow_roots: &[String]) -> M1ndResult<(
 
     Err(M1ndError::InvalidParams {
         tool: "perspective.peek".into(),
-        detail: format!(
-            "path '{}' is outside allowed roots",
-            canonical.display()
-        ),
+        detail: format!("path '{}' is outside allowed roots", canonical.display()),
     })
 }
 
