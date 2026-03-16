@@ -30,6 +30,7 @@ use m1nd_mcp::protocol::perspective::*;
 ///   test_main.rs → test_session.rs → test_state.rs
 ///   README.md (isolated, no code edges)
 ///   Cargo.toml (imports → main.rs, lib.rs)
+#[allow(dead_code)]
 fn build_test_graph_nodes() -> Vec<(&'static str, &'static str)> {
     vec![
         ("main.rs", "module"),
@@ -55,6 +56,7 @@ fn build_test_graph_nodes() -> Vec<(&'static str, &'static str)> {
     ]
 }
 
+#[allow(dead_code)]
 fn build_test_graph_edges() -> Vec<(&'static str, &'static str, &'static str, f32)> {
     vec![
         ("main.rs", "lib.rs", "imports", 0.9),
