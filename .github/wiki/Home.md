@@ -96,6 +96,7 @@ Antibody system (bug immune memory), Epidemic engine (SIR propagation prediction
 | [Superpowers Extended](API-Reference#superpowers-extended-9-tools) | antibody_scan, antibody_list, antibody_create, flow_simulate, epidemic, tremor, trust, layers, layer_inspect | 9 |
 | [Surgical](API-Reference#surgical-4-tools) | surgical_context, apply, surgical_context_v2, apply_batch | 4 |
 | [v0.4.0 — Search & Efficiency](API-Reference#v040-search--efficiency-5-tools) | search, help, panoramic, savings, report | 5 |
+| [v0.5.0 — Verified Writes & File Tools](API-Reference#v050-verified-writes--file-tools) | apply_batch verify, view, glob | 3 |
 
 ---
 
@@ -160,7 +161,7 @@ Claude Code · Cursor · Windsurf · GitHub Copilot · Zed · Cline · Roo Code 
 
 ## On crates.io
 
-m1nd v0.4.0 is published on [crates.io](https://crates.io/crates/m1nd-core). Add as a library dependency or build the binary from source — both paths are fully supported.
+m1nd v0.5.0 is published on [crates.io](https://crates.io/crates/m1nd-core). Add as a library dependency or build the binary from source — both paths are fully supported.
 
 ---
 

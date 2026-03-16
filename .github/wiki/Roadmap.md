@@ -82,6 +82,18 @@ The 5-layer verification pipeline runs automatically on every `apply` call:
 
 ---
 
+## Shipped — v0.5.0
+
+**Added in v0.5 — Verified writes, file tools, enhanced search (DONE):**
+- `apply_batch` **5-layer post-write verification** (`verify=true`) — trivial-return detection, compilation check, structural diff, semantic coherence, and regression guard
+- `m1nd.view` — lightweight file reader with auto-ingest. Zero-token alternative to Read for graph-tracked files
+- `m1nd.glob` — file pattern matching with auto-ingest. Graph-aware alternative to Glob
+- `m1nd.search` **enhanced** — invert matching, count mode, multiline, auto-ingest on miss, glob filtering
+
+**Total in v0.5: 63 MCP tools**
+
+---
+
 ## Shipped — v0.4.0
 
 **Added in v0.4 — Search, efficiency, and panoramic analysis (DONE):**
