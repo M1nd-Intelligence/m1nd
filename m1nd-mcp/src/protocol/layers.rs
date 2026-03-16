@@ -1537,6 +1537,7 @@ pub enum SearchMode {
 }
 
 /// Input for m1nd.search — unified literal/regex/semantic search.
+/// v0.5.0: adds invert, count_only, multiline, auto_ingest, filename_pattern.
 #[derive(Clone, Debug, Deserialize)]
 pub struct SearchInput {
     pub agent_id: String,
@@ -1557,6 +1558,30 @@ pub struct SearchInput {
     /// Include N lines of context around each match. Default: 2.
     #[serde(default = "default_context_lines")]
     pub context_lines: u32,
+
+    // --- v0.5.0 additions ---
+    /// Return lines that DON'T match the query (grep -v). Default: false.
+    /// Only applies to literal and regex modes in Phase 2 (file content search).
+    #[serde(default)]
+    pub invert: bool,
+    /// Return just the match count, not the results themselves (grep -c). Default: false.
+    /// When true, `results` will be empty and `match_count` holds the count.
+    #[serde(default)]
+    pub count_only: bool,
+    /// Enable multiline regex matching (rg -U). Default: false.
+    /// Only applies to regex mode. When true, '.' matches newlines
+    /// and patterns can span multiple lines.
+    #[serde(default)]
+    pub multiline: bool,
+    /// If a file in scope is not yet in the graph, ingest it first then search.
+    /// Default: false. (Reserved for future implementation.)
+    #[serde(default)]
+    pub auto_ingest: bool,
+    /// Glob pattern to filter filenames (e.g. "*.rs", "test_*.py").
+    /// Only files whose name matches this pattern will be searched.
+    /// None = search all files in scope.
+    #[serde(default)]
+    pub filename_pattern: Option<String>,
 }
 
 fn default_search_top_k() -> u32 {
@@ -1567,6 +1592,7 @@ fn default_context_lines() -> u32 {
 }
 
 /// Output for m1nd.search.
+/// v0.5.0: adds auto_ingested, match_count, auto_ingested_paths.
 #[derive(Clone, Debug, Serialize)]
 pub struct SearchOutput {
     pub query: String,
@@ -1575,6 +1601,17 @@ pub struct SearchOutput {
     pub total_matches: usize,
     pub scope_applied: bool,
     pub elapsed_ms: f64,
+
+    // --- v0.5.0 additions ---
+    /// True if auto_ingest was triggered during this search.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub auto_ingested: bool,
+    /// When count_only=true, this mirrors total_matches for clarity.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub match_count: Option<usize>,
+    /// Paths that were auto-ingested (empty if auto_ingest was not triggered).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub auto_ingested_paths: Vec<String>,
 }
 
 /// A single search result entry.
@@ -1623,6 +1660,80 @@ pub struct HelpOutput {
     /// Suggested tools when tool was not found.
     #[serde(default)]
     pub suggestions: Vec<String>,
+}
+
+// =========================================================================
+// v0.5.0: m1nd.glob — Graph-Aware File Glob
+// =========================================================================
+
+/// Input for m1nd.glob — find files in the graph by glob pattern.
+/// Returns file paths matching the pattern from the ingested graph,
+/// without touching the filesystem (zero I/O, pure graph query).
+///
+/// Examples:
+///   glob("**/*.rs")                        -> all Rust files in graph
+///   glob("src/**/test_*.py")               -> Python test files under src/
+///   glob("backend/**/*.py", scope="api/")  -> Python files under backend/api/
+#[derive(Clone, Debug, Deserialize)]
+pub struct GlobInput {
+    pub agent_id: String,
+    /// Glob pattern to match against file paths in the graph.
+    /// Supports: *, **, ?, [abc], {a,b}.
+    pub pattern: String,
+    /// Root directory prefix to narrow the glob scope.
+    /// None = search entire graph.
+    #[serde(default)]
+    pub scope: Option<String>,
+    /// Maximum results to return. Default: 200.
+    #[serde(default = "default_glob_top_k")]
+    pub top_k: u32,
+    /// Sort order for results. Default: "path" (alphabetical).
+    #[serde(default)]
+    pub sort: GlobSort,
+}
+
+/// Sort order for glob results.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum GlobSort {
+    /// Alphabetical by file path (default).
+    #[default]
+    Path,
+    /// Highest graph activation score first.
+    Activation,
+}
+
+fn default_glob_top_k() -> u32 {
+    200
+}
+
+/// Output for m1nd.glob.
+#[derive(Clone, Debug, Serialize)]
+pub struct GlobOutput {
+    /// The glob pattern that was matched.
+    pub pattern: String,
+    /// Matching file entries from the graph.
+    pub files: Vec<GlobFileEntry>,
+    /// Total files that matched (may exceed top_k).
+    pub total_matches: usize,
+    /// Whether scope prefix was applied.
+    pub scope_applied: bool,
+    pub elapsed_ms: f64,
+}
+
+/// A single file entry from a glob match.
+#[derive(Clone, Debug, Serialize)]
+pub struct GlobFileEntry {
+    /// Graph node ID (e.g. "file::src/main.rs").
+    pub node_id: String,
+    /// Relative file path as stored in the graph.
+    pub file_path: String,
+    /// File extension (e.g. "rs", "py"). Empty for extensionless files.
+    pub extension: String,
+    /// Line count from graph metadata (0 if unknown).
+    pub line_count: u32,
+    /// Whether this file has outgoing edges to other files.
+    pub has_connections: bool,
 }
 
 // =========================================================================

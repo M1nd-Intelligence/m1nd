@@ -1149,7 +1149,7 @@ pub fn tool_schemas() -> serde_json::Value {
             // =================================================================
             {
                 "name": "m1nd_search",
-                "description": "Low-level code search: literal, regex, or semantic. Returns file matches with context lines and graph node cross-references.",
+                "description": "Unified code search: literal, regex (with multiline), or semantic. Searches graph node labels AND file contents on disk. Supports invert (grep -v), count-only (grep -c), multiline regex (rg -U), and filename pattern filtering (grep --include). v0.5.0: regex mode now searches file contents (not just node IDs).",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -1164,9 +1164,34 @@ pub fn tool_schemas() -> serde_json::Value {
                         "scope": { "type": "string", "description": "File path prefix filter" },
                         "top_k": { "type": "integer", "default": 50, "description": "Max results (1-500)" },
                         "context_lines": { "type": "integer", "default": 2, "description": "Lines of context before/after match (0-10)" },
-                        "case_sensitive": { "type": "boolean", "default": false, "description": "Case-sensitive matching" }
+                        "case_sensitive": { "type": "boolean", "default": false, "description": "Case-sensitive matching" },
+                        "invert": { "type": "boolean", "default": false, "description": "Return lines that DON'T match (grep -v)" },
+                        "count_only": { "type": "boolean", "default": false, "description": "Return just the count, no results (grep -c)" },
+                        "multiline": { "type": "boolean", "default": false, "description": "Enable multiline regex: dot matches newline (rg -U). Only for regex mode." },
+                        "auto_ingest": { "type": "boolean", "default": false, "description": "Auto-ingest scope directory if not in graph (reserved)" },
+                        "filename_pattern": { "type": "string", "description": "Glob pattern to filter filenames (e.g. '*.rs', 'test_*.py')" }
                     },
                     "required": ["agent_id", "query"]
+                }
+            },
+            {
+                "name": "m1nd_glob",
+                "description": "Graph-aware file glob: find files in the ingested graph by glob pattern. Zero I/O — pure graph query. Replaces find/glob for indexed codebases.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "pattern": { "type": "string", "description": "Glob pattern (e.g. '**/*.rs', 'src/**/mod.rs', '*.toml')" },
+                        "scope": { "type": "string", "description": "Root directory prefix to narrow scope" },
+                        "top_k": { "type": "integer", "default": 200, "description": "Max results (1-10000)" },
+                        "sort": {
+                            "type": "string",
+                            "enum": ["path", "activation"],
+                            "default": "path",
+                            "description": "Sort order: path (alphabetical) or activation (most connected first)"
+                        }
+                    },
+                    "required": ["agent_id", "pattern"]
                 }
             },
             {
@@ -1498,6 +1523,12 @@ fn dispatch_core_tool(
             let input: layers::SearchInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = search_handlers::handle_search(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "m1nd_glob" => {
+            let input: layers::GlobInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
+            let output = search_handlers::handle_glob(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         "m1nd_help" => {
