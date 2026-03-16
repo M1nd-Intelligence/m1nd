@@ -53,6 +53,9 @@ fn build_search_output(query: &str, mode: &str, count: usize) -> SearchOutput {
         total_matches: count,
         scope_applied: false,
         elapsed_ms: 3.5,
+        auto_ingested: false,
+        match_count: None,
+        auto_ingested_paths: vec![],
     }
 }
 
