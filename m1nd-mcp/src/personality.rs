@@ -1265,7 +1265,11 @@ pub fn tool_docs() -> Vec<ToolDoc> {
                 ("file_path", "Absolute or workspace-relative path", true),
                 ("offset", "Start line (0-based, default: 0)", false),
                 ("limit", "Max lines to return (default: all)", false),
-                ("auto_ingest", "Auto-ingest if file not in graph (default: true)", false),
+                (
+                    "auto_ingest",
+                    "Auto-ingest if file not in graph (default: true)",
+                    false,
+                ),
             ],
             returns: "File content with line numbers, total_lines, lines_returned",
             example: r#"{"file_path": "src/main.rs", "offset": 50, "limit": 20, "agent_id": "jimi"}"#,
@@ -1278,10 +1282,18 @@ pub fn tool_docs() -> Vec<ToolDoc> {
             one_liner: "Graph-aware file glob — find files by pattern in the ingested graph",
             params: &[
                 ("agent_id", "Calling agent identifier", true),
-                ("pattern", "Glob pattern (e.g. **/*.rs, src/**/test_*.go)", true),
+                (
+                    "pattern",
+                    "Glob pattern (e.g. **/*.rs, src/**/test_*.go)",
+                    true,
+                ),
                 ("scope", "Root directory filter", false),
                 ("top_k", "Max results (default: 100)", false),
-                ("sort", "Sort order: path, modified, activation (default: path)", false),
+                (
+                    "sort",
+                    "Sort order: path, modified, activation (default: path)",
+                    false,
+                ),
             ],
             returns: "List of matching files with path, extension, line_count, graph connections",
             example: r#"{"pattern": "**/*.rs", "scope": "src/", "agent_id": "jimi"}"#,
