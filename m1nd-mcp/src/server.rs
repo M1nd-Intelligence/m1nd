@@ -1099,6 +1099,24 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             // =================================================================
+            // View: lightweight file reader
+            // =================================================================
+            {
+                "name": "m1nd_view",
+                "description": "Fast file reader with line numbers. Replaces View/cat/head/tail. No graph traversal — just reads the file. Auto-ingests if not in graph. Use for quick file inspection before surgical_context.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "file_path": { "type": "string", "description": "Absolute or workspace-relative path to the file" },
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "offset": { "type": "integer", "default": 0, "description": "Start line (0-based)" },
+                        "limit": { "type": "integer", "description": "Max lines to return (default: all)" },
+                        "auto_ingest": { "type": "boolean", "default": true, "description": "Auto-ingest file into graph if not present" }
+                    },
+                    "required": ["file_path", "agent_id"]
+                }
+            },
+            // =================================================================
             // Surgical V2: context_v2 + apply_batch
             // =================================================================
             {
@@ -1595,6 +1613,18 @@ fn dispatch_core_tool(
                     detail: e.to_string(),
                 })?;
             let output = surgical_handlers::handle_apply_batch(state, input)?;
+            serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        // -----------------------------------------------------------------
+        // View: lightweight file reader
+        // -----------------------------------------------------------------
+        "m1nd_view" => {
+            let input: crate::protocol::surgical::ViewInput =
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
+                    tool: "m1nd_view".into(),
+                    detail: e.to_string(),
+                })?;
+            let output = surgical_handlers::handle_view(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         _ => Err(M1ndError::UnknownTool {
