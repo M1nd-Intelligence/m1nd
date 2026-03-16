@@ -2235,6 +2235,87 @@ pub fn handle_apply_batch(
 }
 
 // ---------------------------------------------------------------------------
+// m1nd.view — lightweight file reader
+// ---------------------------------------------------------------------------
+
+/// Handle m1nd.view: fast file reading with line numbers.
+/// No graph traversal — just read, format, return.
+/// Auto-ingests the file if not in the graph.
+pub fn handle_view(
+    state: &mut SessionState,
+    input: surgical::ViewInput,
+) -> M1ndResult<surgical::ViewOutput> {
+    let start = Instant::now();
+
+    // Step 1: Resolve path
+    let resolved_path = resolve_file_path(&input.file_path, &state.ingest_roots);
+
+    // Step 2: Read file
+    let raw_content =
+        std::fs::read_to_string(&resolved_path).map_err(|e| M1ndError::InvalidParams {
+            tool: "m1nd_view".into(),
+            detail: format!("cannot read file {}: {}", resolved_path.display(), e),
+        })?;
+
+    let all_lines: Vec<&str> = raw_content.lines().collect();
+    let total_lines = all_lines.len();
+
+    // Step 3: Apply offset and limit
+    let offset = input.offset.unwrap_or(0).min(total_lines);
+    let remaining = total_lines.saturating_sub(offset);
+    let limit = input.limit.unwrap_or(remaining).min(remaining);
+    let slice = &all_lines[offset..offset + limit];
+
+    // Step 4: Format with line numbers (1-based, like cat -n)
+    let width = if total_lines > 0 {
+        ((offset + limit) as f64).log10().floor() as usize + 1
+    } else {
+        1
+    };
+    let content = slice
+        .iter()
+        .enumerate()
+        .map(|(i, line)| format!("{:>w$}  {}", offset + i + 1, line, w = width))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    // Step 5: Auto-ingest if requested and file not in graph
+    let mut auto_ingested = false;
+    if input.auto_ingest {
+        let path_str = resolved_path.to_string_lossy().to_string();
+        let graph = state.graph.read();
+        let existing = find_nodes_for_file(&graph, &path_str);
+        drop(graph);
+
+        if existing.is_empty() {
+            let ingest_input = crate::protocol::IngestInput {
+                path: path_str,
+                agent_id: input.agent_id.clone(),
+                mode: "merge".to_string(),
+                incremental: true,
+                adapter: "code".to_string(),
+                namespace: None,
+            };
+            if crate::tools::handle_ingest(state, ingest_input).is_ok() {
+                auto_ingested = true;
+            }
+        }
+    }
+
+    let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
+
+    Ok(surgical::ViewOutput {
+        file_path: resolved_path.to_string_lossy().to_string(),
+        content,
+        total_lines,
+        offset,
+        lines_returned: limit,
+        auto_ingested,
+        elapsed_ms,
+    })
+}
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 

@@ -357,6 +357,51 @@ pub struct BlastRadiusEntry {
     pub top_affected: Vec<String>,
 }
 
+// ---------------------------------------------------------------------------
+// m1nd.view — lightweight file reader
+// ---------------------------------------------------------------------------
+
+/// Input for m1nd.view.
+///
+/// Simple, fast file reading — replaces View/cat/head/tail.
+/// No graph traversal, just reads the file and returns content with line numbers.
+/// Auto-ingests the file into the graph if not already present.
+#[derive(Clone, Debug, Deserialize)]
+pub struct ViewInput {
+    /// Absolute or workspace-relative path to the file.
+    pub file_path: String,
+    /// Calling agent identifier.
+    pub agent_id: String,
+    /// Start line (0-based). Default: 0 (beginning of file).
+    #[serde(default)]
+    pub offset: Option<usize>,
+    /// Maximum number of lines to return. Default: all lines.
+    #[serde(default)]
+    pub limit: Option<usize>,
+    /// Auto-ingest the file if not already in the graph. Default: true.
+    #[serde(default = "default_true")]
+    pub auto_ingest: bool,
+}
+
+/// Output for m1nd.view.
+#[derive(Clone, Debug, Serialize)]
+pub struct ViewOutput {
+    /// Absolute path of the file (resolved).
+    pub file_path: String,
+    /// File content with line numbers.
+    pub content: String,
+    /// Total number of lines in the file.
+    pub total_lines: usize,
+    /// Start offset applied.
+    pub offset: usize,
+    /// Number of lines returned.
+    pub lines_returned: usize,
+    /// Whether the file was auto-ingested into the graph.
+    pub auto_ingested: bool,
+    /// Elapsed milliseconds.
+    pub elapsed_ms: f64,
+}
+
 /// Impact summary for a single modified file.
 #[derive(Clone, Debug, Serialize)]
 pub struct VerificationImpact {
