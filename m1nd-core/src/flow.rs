@@ -114,6 +114,24 @@ pub struct ValvePoint {
     pub downstream_protected: u32,
 }
 
+/// A node that was skipped or score-reduced because it is protected by an
+/// advisory lock (`lock.create`). Reported in `FlowSimulationResult` so
+/// callers can see which turbulence was suppressed and why.
+#[derive(Clone, Debug, Serialize)]
+pub struct ProtectedNode {
+    /// Human-readable label of the protected node.
+    pub node_label: String,
+    /// Advisory lock ID(s) covering this node.
+    pub lock_ids: Vec<String>,
+    /// Original (pre-reduction) turbulence score, if the node was a
+    /// turbulence candidate. `None` when the node was visited but never
+    /// reached from multiple origins.
+    pub original_score: Option<f32>,
+    /// Whether the node was completely suppressed (dropped below threshold
+    /// after the protection factor was applied).
+    pub suppressed: bool,
+}
+
 /// Aggregate statistics for a flow simulation run.
 #[derive(Clone, Debug, Serialize)]
 pub struct FlowSummary {
@@ -127,6 +145,8 @@ pub struct FlowSummary {
     pub turbulence_count: u32,
     /// Number of valve (lock) points detected.
     pub valve_count: u32,
+    /// Number of nodes protected by advisory locks.
+    pub advisory_lock_protected_count: u32,
     /// Fraction of graph nodes visited in [0.0, 1.0].
     pub coverage_pct: f32,
     /// Wall-clock time in milliseconds.
@@ -140,6 +160,8 @@ pub struct FlowSimulationResult {
     pub turbulence_points: Vec<TurbulencePoint>,
     /// Valve points sorted by node ID ascending.
     pub valve_points: Vec<ValvePoint>,
+    /// Nodes protected by advisory locks — turbulence suppressed or reduced.
+    pub protected_nodes: Vec<ProtectedNode>,
     /// Aggregate statistics.
     pub summary: FlowSummary,
 }
@@ -165,6 +187,10 @@ pub struct FlowConfig {
     pub max_total_steps: usize,
     /// Optional substring filter to limit particle scope to matching node labels.
     pub scope_filter: Option<String>,
+    /// Node labels protected by advisory locks (injected by MCP layer from
+    /// active `lock.create` state). Mapping: node_label -> Vec<lock_id>.
+    /// Protected nodes get a 0.15 turbulence factor (85% reduction).
+    pub advisory_lock_protected_nodes: BTreeMap<String, Vec<String>>,
 }
 
 impl Default for FlowConfig {
@@ -179,6 +205,7 @@ impl Default for FlowConfig {
             min_edge_weight: DEFAULT_MIN_EDGE_WEIGHT,
             max_total_steps: 50_000,
             scope_filter: None,
+            advisory_lock_protected_nodes: BTreeMap::new(),
         }
     }
 }
@@ -763,11 +790,20 @@ impl FlowEngine {
         // 3. Identify turbulence points (nodes with arrivals from >1 distinct origin)
         let turbulent = accumulator.flow_turbulent_nodes();
         let mut turbulence_points = Vec::new();
+        let mut protected_nodes: Vec<ProtectedNode> = Vec::new();
 
         for (node, arrivals) in &turbulent {
             let node_label = flow_node_label(graph, *node);
             let has_lock = flow_is_valve(graph, *node, config).is_some();
             let is_read_only = flow_is_read_only(graph, *node, config);
+
+            // Check advisory lock protection (from lock.create)
+            let advisory_lock_ids = config
+                .advisory_lock_protected_nodes
+                .get(&node_label)
+                .cloned()
+                .unwrap_or_default();
+            let is_advisory_protected = !advisory_lock_ids.is_empty();
 
             // Count unserialized particles from distinct origins
             let mut origins_unserialized: BTreeSet<u32> = BTreeSet::new();
@@ -807,6 +843,12 @@ impl FlowEngine {
 
             let read_factor = if is_read_only { 0.2 } else { 1.0 };
 
+            // Advisory lock protection factor: nodes under active lock.create
+            // get an 85% score reduction (factor 0.15). The region is being
+            // actively worked on by an agent, so concurrent access there is
+            // expected and not a real race condition.
+            let advisory_factor = if is_advisory_protected { 0.15 } else { 1.0 };
+
             // Centrality factor: use in-degree as proxy (D-12)
             let in_deg = flow_in_degree(graph, *node);
             let centrality_normalized = (in_deg as f32) / (max_in_deg as f32).max(1.0);
@@ -819,8 +861,23 @@ impl FlowEngine {
                 1.0
             };
 
-            let turbulence_score =
+            // Score without advisory factor (for reporting original_score)
+            let pre_advisory_score =
                 base_score * lock_factor * read_factor * centrality_factor * utility_factor;
+
+            let turbulence_score = pre_advisory_score * advisory_factor;
+
+            // Record protected node regardless of threshold
+            if is_advisory_protected {
+                let suppressed = turbulence_score < config.turbulence_threshold
+                    && pre_advisory_score >= config.turbulence_threshold;
+                protected_nodes.push(ProtectedNode {
+                    node_label: node_label.clone(),
+                    lock_ids: advisory_lock_ids,
+                    original_score: Some(pre_advisory_score),
+                    suppressed,
+                });
+            }
 
             if turbulence_score < config.turbulence_threshold {
                 continue;
@@ -831,6 +888,7 @@ impl FlowEngine {
                 && particle_count >= 3
                 && nearest_lock.is_none()
                 && !has_lock
+                && !is_advisory_protected
             {
                 TurbulenceSeverity::Critical
             } else if turbulence_score >= 0.6 {
@@ -917,6 +975,10 @@ impl FlowEngine {
 
         let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
 
+        // Sort protected nodes deterministically by label
+        protected_nodes.sort_by(|a, b| a.node_label.cmp(&b.node_label));
+        let advisory_lock_protected_count = protected_nodes.len() as u32;
+
         Ok(FlowSimulationResult {
             summary: FlowSummary {
                 total_entry_points: entry_nodes.len() as u32,
@@ -924,11 +986,13 @@ impl FlowEngine {
                 total_nodes_visited: visited_count,
                 turbulence_count: turbulence_points.len() as u32,
                 valve_count: valve_points.len() as u32,
+                advisory_lock_protected_count,
                 coverage_pct,
                 elapsed_ms,
             },
             turbulence_points,
             valve_points,
+            protected_nodes,
         })
     }
 
@@ -1409,5 +1473,279 @@ mod tests {
             "expected 2 handle_ entry points, got {}",
             entries.len()
         );
+    }
+
+    // ── Test 9: advisory lock protection suppresses turbulence ──
+    #[test]
+    fn advisory_lock_suppresses_turbulence() {
+        // Two entries converging on shared_state: same as convergent_graph
+        let g = convergent_graph();
+        let engine = FlowEngine::new();
+
+        // First: run WITHOUT advisory lock — should produce turbulence
+        let mut config_no_lock = FlowConfig::default();
+        config_no_lock.turbulence_threshold = 0.0;
+        config_no_lock.lock_patterns = Vec::new();
+        config_no_lock.read_only_patterns = Vec::new();
+
+        let entry_nodes = vec![NodeId::new(0), NodeId::new(1)];
+        let result_no_lock = engine
+            .simulate(&g, &entry_nodes, 1, &config_no_lock)
+            .unwrap();
+        assert!(
+            result_no_lock.summary.turbulence_count > 0,
+            "baseline: expected turbulence without advisory lock"
+        );
+        assert!(result_no_lock.protected_nodes.is_empty());
+        assert_eq!(result_no_lock.summary.advisory_lock_protected_count, 0);
+
+        // Now: run WITH advisory lock protecting shared_state
+        let mut config_locked = FlowConfig::default();
+        config_locked.turbulence_threshold = 0.0;
+        config_locked.lock_patterns = Vec::new();
+        config_locked.read_only_patterns = Vec::new();
+        config_locked
+            .advisory_lock_protected_nodes
+            .insert("shared_state".to_string(), vec!["lock_jimi_001".to_string()]);
+
+        let result_locked = engine
+            .simulate(&g, &entry_nodes, 1, &config_locked)
+            .unwrap();
+
+        // The protected_nodes list should contain shared_state
+        assert_eq!(
+            result_locked.summary.advisory_lock_protected_count, 1,
+            "expected 1 protected node"
+        );
+        assert_eq!(result_locked.protected_nodes[0].node_label, "shared_state");
+        assert_eq!(
+            result_locked.protected_nodes[0].lock_ids,
+            vec!["lock_jimi_001"]
+        );
+        assert!(result_locked.protected_nodes[0].original_score.is_some());
+
+        // The turbulence score for shared_state should be 85% lower
+        let tp_no_lock = result_no_lock
+            .turbulence_points
+            .iter()
+            .find(|tp| tp.node_label == "shared_state");
+        let tp_locked = result_locked
+            .turbulence_points
+            .iter()
+            .find(|tp| tp.node_label == "shared_state");
+
+        if let (Some(no_lock), Some(locked)) = (tp_no_lock, tp_locked) {
+            assert!(
+                locked.turbulence_score < no_lock.turbulence_score,
+                "advisory lock should reduce turbulence score: {} should be < {}",
+                locked.turbulence_score,
+                no_lock.turbulence_score
+            );
+            let ratio = locked.turbulence_score / no_lock.turbulence_score;
+            assert!(
+                (ratio - 0.15).abs() < 0.01,
+                "expected ~0.15 ratio, got {}",
+                ratio
+            );
+        }
+    }
+
+    // ── Test 10: advisory lock suppresses below threshold ──
+    #[test]
+    fn advisory_lock_suppresses_below_threshold() {
+        let g = convergent_graph();
+        let engine = FlowEngine::new();
+
+        // Use a threshold that the protected score falls below
+        let mut config = FlowConfig::default();
+        config.turbulence_threshold = 0.3;
+        config.lock_patterns = Vec::new();
+        config.read_only_patterns = Vec::new();
+        config
+            .advisory_lock_protected_nodes
+            .insert("shared_state".to_string(), vec!["lock_test_001".to_string()]);
+
+        let entry_nodes = vec![NodeId::new(0), NodeId::new(1)];
+        let result = engine.simulate(&g, &entry_nodes, 1, &config).unwrap();
+
+        // shared_state should be in protected_nodes with suppressed=true
+        let protected = result
+            .protected_nodes
+            .iter()
+            .find(|p| p.node_label == "shared_state");
+        assert!(
+            protected.is_some(),
+            "shared_state should appear in protected_nodes"
+        );
+        let protected = protected.unwrap();
+        assert!(
+            protected.suppressed,
+            "shared_state should be marked as suppressed (score dropped below threshold)"
+        );
+
+        // It should NOT appear in turbulence_points (suppressed)
+        let in_turbulence = result
+            .turbulence_points
+            .iter()
+            .any(|tp| tp.node_label == "shared_state");
+        assert!(
+            !in_turbulence,
+            "suppressed node should not appear in turbulence_points"
+        );
+    }
+
+    // ── Test 11: advisory lock does not affect unprotected nodes ──
+    #[test]
+    fn advisory_lock_does_not_affect_unprotected_nodes() {
+        let g = convergent_graph();
+        let engine = FlowEngine::new();
+
+        // Protect a node that is NOT in the convergence path
+        let mut config = FlowConfig::default();
+        config.turbulence_threshold = 0.0;
+        config.lock_patterns = Vec::new();
+        config.read_only_patterns = Vec::new();
+        config
+            .advisory_lock_protected_nodes
+            .insert("unrelated_node".to_string(), vec!["lock_other_001".to_string()]);
+
+        let entry_nodes = vec![NodeId::new(0), NodeId::new(1)];
+        let result = engine.simulate(&g, &entry_nodes, 1, &config).unwrap();
+
+        // No protected nodes should appear (unrelated_node is not in the graph's turbulence set)
+        assert!(
+            result.protected_nodes.is_empty(),
+            "unrelated lock should not produce protected_nodes"
+        );
+        assert_eq!(result.summary.advisory_lock_protected_count, 0);
+
+        // Turbulence should still be detected at shared_state
+        assert!(
+            result.summary.turbulence_count > 0,
+            "turbulence should still be detected for unprotected nodes"
+        );
+    }
+
+    // ── Test 12: advisory lock with multiple lock IDs ──
+    #[test]
+    fn advisory_lock_multiple_lock_ids() {
+        let g = convergent_graph();
+        let engine = FlowEngine::new();
+
+        let mut config = FlowConfig::default();
+        config.turbulence_threshold = 0.0;
+        config.lock_patterns = Vec::new();
+        config.read_only_patterns = Vec::new();
+        config.advisory_lock_protected_nodes.insert(
+            "shared_state".to_string(),
+            vec!["lock_a_001".to_string(), "lock_b_002".to_string()],
+        );
+
+        let entry_nodes = vec![NodeId::new(0), NodeId::new(1)];
+        let result = engine.simulate(&g, &entry_nodes, 1, &config).unwrap();
+
+        let protected = result
+            .protected_nodes
+            .iter()
+            .find(|p| p.node_label == "shared_state")
+            .expect("shared_state should be in protected_nodes");
+        assert_eq!(protected.lock_ids.len(), 2);
+        assert!(protected.lock_ids.contains(&"lock_a_001".to_string()));
+        assert!(protected.lock_ids.contains(&"lock_b_002".to_string()));
+    }
+
+    // ── Test 13: advisory lock prevents Critical severity ──
+    #[test]
+    fn advisory_lock_prevents_critical_severity() {
+        // Build a graph with 4+ entries all converging on one node
+        let mut g = Graph::new();
+        for i in 0..4u32 {
+            g.add_node(
+                &format!("e{}", i),
+                &format!("handle_ep{}", i),
+                NodeType::Function,
+                &[],
+                1.0,
+                0.5,
+            )
+            .unwrap();
+        }
+        g.add_node("shared", "shared_critical", NodeType::Function, &[], 0.9, 0.4)
+            .unwrap(); // node 4
+        for i in 0..4u32 {
+            g.add_edge(
+                NodeId::new(i),
+                NodeId::new(4),
+                "calls",
+                FiniteF32::new(0.9),
+                EdgeDirection::Forward,
+                false,
+                FiniteF32::new(0.5),
+            )
+            .unwrap();
+        }
+        g.finalize().unwrap();
+
+        let engine = FlowEngine::new();
+        let entries: Vec<NodeId> = (0..4).map(NodeId::new).collect();
+
+        // Without lock: should be Critical
+        let mut config_no_lock = FlowConfig::default();
+        config_no_lock.turbulence_threshold = 0.0;
+        config_no_lock.lock_patterns = Vec::new();
+        config_no_lock.read_only_patterns = Vec::new();
+
+        let result_no = engine.simulate(&g, &entries, 1, &config_no_lock).unwrap();
+        let tp_no = result_no
+            .turbulence_points
+            .iter()
+            .find(|tp| tp.node_label == "shared_critical");
+        assert!(tp_no.is_some(), "should find turbulence without lock");
+
+        // With lock: severity should NOT be Critical
+        let mut config_locked = FlowConfig::default();
+        config_locked.turbulence_threshold = 0.0;
+        config_locked.lock_patterns = Vec::new();
+        config_locked.read_only_patterns = Vec::new();
+        config_locked.advisory_lock_protected_nodes.insert(
+            "shared_critical".to_string(),
+            vec!["lock_crit_001".to_string()],
+        );
+
+        let result_locked = engine.simulate(&g, &entries, 1, &config_locked).unwrap();
+        let tp_locked = result_locked
+            .turbulence_points
+            .iter()
+            .find(|tp| tp.node_label == "shared_critical");
+        if let Some(tp) = tp_locked {
+            assert_ne!(
+                tp.severity,
+                TurbulenceSeverity::Critical,
+                "advisory-locked node should not be Critical severity"
+            );
+        }
+    }
+
+    // ── Test 14: empty advisory lock map is backward compatible ──
+    #[test]
+    fn empty_advisory_lock_map_backward_compatible() {
+        let g = convergent_graph();
+        let engine = FlowEngine::new();
+
+        let config = FlowConfig {
+            turbulence_threshold: 0.0,
+            lock_patterns: Vec::new(),
+            read_only_patterns: Vec::new(),
+            advisory_lock_protected_nodes: BTreeMap::new(),
+            ..FlowConfig::default()
+        };
+
+        let entry_nodes = vec![NodeId::new(0), NodeId::new(1)];
+        let result = engine.simulate(&g, &entry_nodes, 1, &config).unwrap();
+
+        assert!(result.protected_nodes.is_empty());
+        assert_eq!(result.summary.advisory_lock_protected_count, 0);
+        // Turbulence still works normally
+        assert!(result.summary.turbulence_count > 0);
     }
 }

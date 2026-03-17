@@ -639,7 +639,7 @@ mod tests {
             .filter(|e| e.relation == "contains" && e.target.contains("::Direction::"))
             .collect();
         assert!(
-            contains_edges.len() >= 1,
+            !contains_edges.is_empty(),
             "Enum should have contains edges to variants"
         );
     }

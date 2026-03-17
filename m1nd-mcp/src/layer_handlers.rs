@@ -6026,10 +6026,29 @@ pub fn handle_antibody_create(
 }
 
 /// Handle m1nd.flow_simulate — concurrent flow simulation for race detection.
+///
+/// Checks active advisory locks (`lock.create`) and injects protected node
+/// labels into the flow config so that locked regions get reduced turbulence
+/// scores (85% reduction), cutting false positives for nodes under active work.
 pub fn handle_flow_simulate(
     state: &mut SessionState,
     input: layers::FlowSimulateInput,
 ) -> M1ndResult<serde_json::Value> {
+    // Collect advisory-lock-protected nodes BEFORE taking graph read lock
+    // (locks HashMap is on SessionState, not behind the graph RwLock).
+    let advisory_lock_protected_nodes = {
+        let mut map: std::collections::BTreeMap<String, Vec<String>> =
+            std::collections::BTreeMap::new();
+        for lock in state.locks.values() {
+            for node_label in &lock.baseline.nodes {
+                map.entry(node_label.clone())
+                    .or_default()
+                    .push(lock.lock_id.clone());
+            }
+        }
+        map
+    };
+
     let graph = state.graph.read();
     let n = graph.num_nodes() as usize;
     if n == 0 {
@@ -6064,6 +6083,7 @@ pub fn handle_flow_simulate(
         include_paths: input.include_paths,
         max_total_steps: input.max_total_steps,
         scope_filter: input.scope_filter.clone(),
+        advisory_lock_protected_nodes,
         ..m1nd_core::flow::FlowConfig::default()
     };
 
