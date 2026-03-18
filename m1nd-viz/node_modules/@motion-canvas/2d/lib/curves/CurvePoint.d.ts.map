@@ -1,0 +1,1 @@
+{"version":3,"file":"CurvePoint.d.ts","sourceRoot":"","sources":["../../src/lib/curves/CurvePoint.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAC,OAAO,EAAC,MAAM,qBAAqB,CAAC;AAEjD,MAAM,WAAW,UAAU;IACzB,QAAQ,EAAE,OAAO,CAAC;IAClB;;;;;;;OAOG;IACH,OAAO,EAAE,OAAO,CAAC;IACjB,MAAM,EAAE,OAAO,CAAC;CACjB"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"makeScene2D.d.ts","sourceRoot":"","sources":["../../src/lib/scenes/makeScene2D.ts"],"names":[],"mappings":"AAAA,OAAO,EAEL,aAAa,EACb,sBAAsB,EACvB,MAAM,qBAAqB,CAAC;AAC7B,OAAO,KAAK,EAAC,MAAM,EAAC,MAAM,eAAe,CAAC;AAC1C,OAAO,EAAC,OAAO,EAAC,MAAM,WAAW,CAAC;AAElC,wBAAgB,WAAW,CACzB,MAAM,EAAE,sBAAsB,CAAC,MAAM,CAAC,GACrC,aAAa,CAAC,OAAO,CAAC,CAQxB"}

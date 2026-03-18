@@ -1,0 +1,8 @@
+import { Vector2 } from './Vector';
+export function transformAngle(angle, matrix) {
+    return Vector2.fromDegrees(angle).transform(matrix).degrees;
+}
+export function transformScalar(scalar, matrix) {
+    return Vector2.magnitude(matrix.m11, matrix.m12) * scalar;
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiTWF0cml4LmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vc3JjL3R5cGVzL01hdHJpeC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxPQUFPLEVBQUMsT0FBTyxFQUFDLE1BQU0sVUFBVSxDQUFDO0FBRWpDLE1BQU0sVUFBVSxjQUFjLENBQUMsS0FBYSxFQUFFLE1BQWlCO0lBQzdELE9BQU8sT0FBTyxDQUFDLFdBQVcsQ0FBQyxLQUFLLENBQUMsQ0FBQyxTQUFTLENBQUMsTUFBTSxDQUFDLENBQUMsT0FBTyxDQUFDO0FBQzlELENBQUM7QUFFRCxNQUFNLFVBQVUsZUFBZSxDQUFDLE1BQWMsRUFBRSxNQUFpQjtJQUMvRCxPQUFPLE9BQU8sQ0FBQyxTQUFTLENBQUMsTUFBTSxDQUFDLEdBQUcsRUFBRSxNQUFNLENBQUMsR0FBRyxDQUFDLEdBQUcsTUFBTSxDQUFDO0FBQzVELENBQUMifQ==

@@ -1,7 +1,10 @@
 [package]
 name = "m1nd-mcp"
-version = "0.5.0"
+version = "0.5.1"
 edition = "2021"
+description = "MCP Server for m1nd. Stop letting AI grep your codebase. Neuro-symbolic connectome for AI agents."
+license = "MIT"
+repository = "https://github.com/maxkle1nz/m1nd"
 
 [features]
 default = ["serve"]

@@ -1,0 +1,46 @@
+export interface TimingFunction {
+    (value: number, from?: number, to?: number): number;
+}
+export declare function sin(value: number, from?: number, to?: number): number;
+export declare function easeInSine(value: number, from?: number, to?: number): number;
+export declare function easeOutSine(value: number, from?: number, to?: number): number;
+export declare function easeInOutSine(value: number, from?: number, to?: number): number;
+export declare function easeInQuad(value: number, from?: number, to?: number): number;
+export declare function easeOutQuad(value: number, from?: number, to?: number): number;
+export declare function easeInOutQuad(value: number, from?: number, to?: number): number;
+export declare function easeInCubic(value: number, from?: number, to?: number): number;
+export declare function easeOutCubic(value: number, from?: number, to?: number): number;
+export declare function easeInOutCubic(value: number, from?: number, to?: number): number;
+export declare function easeInQuart(value: number, from?: number, to?: number): number;
+export declare function easeOutQuart(value: number, from?: number, to?: number): number;
+export declare function easeInOutQuart(value: number, from?: number, to?: number): number;
+export declare function easeInQuint(value: number, from?: number, to?: number): number;
+export declare function easeOutQuint(value: number, from?: number, to?: number): number;
+export declare function easeInOutQuint(value: number, from?: number, to?: number): number;
+export declare function easeInExpo(value: number, from?: number, to?: number): number;
+export declare function easeOutExpo(value: number, from?: number, to?: number): number;
+export declare function easeInOutExpo(value: number, from?: number, to?: number): number;
+export declare function easeInCirc(value: number, from?: number, to?: number): number;
+export declare function easeOutCirc(value: number, from?: number, to?: number): number;
+export declare function easeInOutCirc(value: number, from?: number, to?: number): number;
+export declare function createEaseInBack(s?: number): TimingFunction;
+export declare function createEaseOutBack(s?: number): TimingFunction;
+export declare function createEaseInOutBack(s?: number, v?: number): TimingFunction;
+export declare function createEaseInElastic(s?: number): TimingFunction;
+export declare function createEaseOutElastic(s?: number): TimingFunction;
+export declare function createEaseInOutElastic(s?: number): TimingFunction;
+export declare function createEaseInBounce(n?: number, d?: number): TimingFunction;
+export declare function createEaseOutBounce(n?: number, d?: number): TimingFunction;
+export declare function createEaseInOutBounce(n?: number, d?: number): TimingFunction;
+export declare function linear(value: number, from?: number, to?: number): number;
+export declare function cos(value: number, from?: number, to?: number): number;
+export declare const easeInBack: TimingFunction;
+export declare const easeOutBack: TimingFunction;
+export declare const easeInOutBack: TimingFunction;
+export declare const easeInBounce: TimingFunction;
+export declare const easeOutBounce: TimingFunction;
+export declare const easeInOutBounce: TimingFunction;
+export declare const easeInElastic: TimingFunction;
+export declare const easeOutElastic: TimingFunction;
+export declare const easeInOutElastic: TimingFunction;
+//# sourceMappingURL=timingFunctions.d.ts.map

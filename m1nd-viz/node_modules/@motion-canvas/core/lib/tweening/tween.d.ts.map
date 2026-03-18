@@ -1,0 +1,1 @@
+{"version":3,"file":"tween.d.ts","sourceRoot":"","sources":["../../src/tweening/tween.ts"],"names":[],"mappings":"AACA,OAAO,EAAC,eAAe,EAAC,MAAM,cAAc,CAAC;AAI7C,wBAAiB,KAAK,CACpB,OAAO,EAAE,MAAM,EACf,UAAU,EAAE,CAAC,KAAK,EAAE,MAAM,EAAE,IAAI,EAAE,MAAM,KAAK,IAAI,EACjD,KAAK,CAAC,EAAE,CAAC,KAAK,EAAE,MAAM,EAAE,IAAI,EAAE,MAAM,KAAK,IAAI,GAC5C,eAAe,CAmBjB"}

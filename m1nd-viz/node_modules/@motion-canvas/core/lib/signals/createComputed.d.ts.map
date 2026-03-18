@@ -1,0 +1,1 @@
+{"version":3,"file":"createComputed.d.ts","sourceRoot":"","sources":["../../src/signals/createComputed.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,QAAQ,EAAkB,MAAM,YAAY,CAAC;AAErD,wBAAgB,cAAc,CAAC,MAAM,EACnC,OAAO,EAAE,CAAC,GAAG,IAAI,EAAE,GAAG,EAAE,KAAK,MAAM,EACnC,KAAK,CAAC,EAAE,GAAG,GACV,QAAQ,CAAC,MAAM,CAAC,CAElB"}

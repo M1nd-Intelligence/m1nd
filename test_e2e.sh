@@ -100,7 +100,7 @@ JSONRPC_EOF
 # Build actual messages
 MSG_INIT=$(init_msg)
 
-MSG_INGEST=$(rpc "m1nd.ingest" '{"path":"'"$PWD"'","agent_id":"e2e-test"}' 2)
+MSG_INGEST=$(rpc "m1nd.ingest" '{"path":"/Users/cosmophonix/connectome-poc/m1nd","agent_id":"e2e-test"}' 2)
 
 MSG_HEALTH1=$(rpc "m1nd.health" '{"agent_id":"e2e-test"}' 3)
 

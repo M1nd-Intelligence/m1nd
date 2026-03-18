@@ -1,0 +1,12 @@
+import { useScene } from './useScene';
+import { useThread } from './useThread';
+export function* beginSlide(name) {
+    const { slides } = useScene();
+    const thread = useThread();
+    slides.register(name, thread.fixed);
+    yield;
+    while (slides.shouldWait(name)) {
+        yield;
+    }
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiYmVnaW5TbGlkZS5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uL3NyYy91dGlscy9iZWdpblNsaWRlLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUNBLE9BQU8sRUFBQyxRQUFRLEVBQUMsTUFBTSxZQUFZLENBQUM7QUFDcEMsT0FBTyxFQUFDLFNBQVMsRUFBQyxNQUFNLGFBQWEsQ0FBQztBQUV0QyxNQUFNLFNBQVMsQ0FBQyxDQUFDLFVBQVUsQ0FBQyxJQUFZO0lBQ3RDLE1BQU0sRUFBQyxNQUFNLEVBQUMsR0FBRyxRQUFRLEVBQUUsQ0FBQztJQUM1QixNQUFNLE1BQU0sR0FBRyxTQUFTLEVBQUUsQ0FBQztJQUMzQixNQUFNLENBQUMsUUFBUSxDQUFDLElBQUksRUFBRSxNQUFNLENBQUMsS0FBSyxDQUFDLENBQUM7SUFDcEMsS0FBSyxDQUFDO0lBRU4sT0FBTyxNQUFNLENBQUMsVUFBVSxDQUFDLElBQUksQ0FBQyxFQUFFO1FBQzlCLEtBQUssQ0FBQztLQUNQO0FBQ0gsQ0FBQyJ9

@@ -1,0 +1,1 @@
+{"version":3,"file":"getRectProfile.d.ts","sourceRoot":"","sources":["../../src/lib/curves/getRectProfile.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,IAAI,EAAE,OAAO,EAAU,MAAM,qBAAqB,CAAC;AAI3D,OAAO,EAAC,YAAY,EAAC,MAAM,gBAAgB,CAAC;AAI5C,wBAAgB,cAAc,CAC5B,IAAI,EAAE,IAAI,EACV,MAAM,EAAE,OAAO,EACf,aAAa,EAAE,OAAO,EACtB,eAAe,EAAE,MAAM,GACtB,YAAY,CA0Fd"}

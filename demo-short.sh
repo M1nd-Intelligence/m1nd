@@ -17,9 +17,6 @@ RESET='\033[0m'
 M1ND="http://localhost:1337/api/tools"
 TOTAL_MS=0
 
-# Path to the codebase you want to analyze — set this to any directory with source code
-CODEBASE_PATH="${CODEBASE_PATH:-$HOME/your-codebase}"
-
 run() {
     local tool="$1" label="$2" data="$3"
     local t1=$(python3 -c "import time; print(int(time.time()*1000))")
@@ -63,7 +60,7 @@ echo -e "${DIM}  370 Python files. Zero LLM tokens. Let's go.${RESET}"
 echo ""
 
 # === QUERIES (8s real execution) ===
-run ingest      "ingest"      "{\"agent_id\":\"d\",\"path\":\"${CODEBASE_PATH}\",\"adapter\":\"code\",\"mode\":\"replace\"}"
+run ingest      "ingest"      '{"agent_id":"d","path":"/Users/cosmophonix/clawd/roomanizer-os/backend","adapter":"code","mode":"replace"}'
 run activate    "activate"    '{"agent_id":"d","query":"rate limiting and provider fallback","top_k":8}'
 run impact      "impact"      '{"agent_id":"d","node_id":"file::chat_handler.py","direction":"both"}'
 run hypothesize "hypothesize" '{"agent_id":"d","claim":"worker_pool has runtime dependency on whatsapp_manager through process_manager"}'
@@ -78,7 +75,7 @@ echo ""
 # === GREP COMPARISON (4s) ===
 echo -e "${DIM}  the same questions with grep:${RESET}"
 echo ""
-G1=$(grep -r "rate_limit" "${CODEBASE_PATH}" 2>/dev/null | wc -l | tr -d ' ')
+G1=$(grep -rc "rate_limit" /Users/cosmophonix/clawd/roomanizer-os/backend/*.py 2>/dev/null | awk -F: '{s+=$2}END{print s}')
 echo -e "${RED}  grep rate_limit${RESET}          ${G1} lines — ${RED}which ones matter?${RESET}"
 echo -e "${RED}  what breaks if I delete?${RESET}  ${RED}impossible${RESET}"
 echo -e "${RED}  runtime dependency?${RESET}      ${RED}impossible${RESET}"

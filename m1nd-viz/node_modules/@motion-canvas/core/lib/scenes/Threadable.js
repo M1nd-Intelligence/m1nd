@@ -1,0 +1,4 @@
+export function isThreadable(value) {
+    return value && typeof value === 'object' && 'onThreadChanged' in value;
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiVGhyZWFkYWJsZS5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uL3NyYy9zY2VuZXMvVGhyZWFkYWJsZS50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFtQkEsTUFBTSxVQUFVLFlBQVksQ0FBQyxLQUFVO0lBQ3JDLE9BQU8sS0FBSyxJQUFJLE9BQU8sS0FBSyxLQUFLLFFBQVEsSUFBSSxpQkFBaUIsSUFBSSxLQUFLLENBQUM7QUFDMUUsQ0FBQyJ9

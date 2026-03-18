@@ -214,7 +214,7 @@ pub fn tool_schemas() -> serde_json::Value {
     serde_json::json!({
         "tools": [
             {
-                "name": "m1nd_activate",
+                "name": "activate",
                 "description": "Spreading activation query across the connectome",
                 "inputSchema": {
                     "type": "object",
@@ -236,7 +236,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_impact",
+                "name": "impact",
                 "description": "Impact radius / blast analysis for a node",
                 "inputSchema": {
                     "type": "object",
@@ -255,7 +255,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_missing",
+                "name": "missing",
                 "description": "Detect structural holes and missing connections",
                 "inputSchema": {
                     "type": "object",
@@ -268,7 +268,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_why",
+                "name": "why",
                 "description": "Path explanation between two nodes",
                 "inputSchema": {
                     "type": "object",
@@ -282,7 +282,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_warmup",
+                "name": "warmup",
                 "description": "Task-based warmup and priming",
                 "inputSchema": {
                     "type": "object",
@@ -295,7 +295,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_counterfactual",
+                "name": "counterfactual",
                 "description": "What-if node removal simulation",
                 "inputSchema": {
                     "type": "object",
@@ -312,7 +312,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_predict",
+                "name": "predict",
                 "description": "Co-change prediction for a modified node",
                 "inputSchema": {
                     "type": "object",
@@ -326,7 +326,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_fingerprint",
+                "name": "fingerprint",
                 "description": "Activation fingerprint and equivalence detection",
                 "inputSchema": {
                     "type": "object",
@@ -344,7 +344,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_drift",
+                "name": "drift",
                 "description": "Weight and structural drift analysis",
                 "inputSchema": {
                     "type": "object",
@@ -357,7 +357,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_learn",
+                "name": "learn",
                 "description": "Explicit feedback-based edge adjustment",
                 "inputSchema": {
                     "type": "object",
@@ -380,7 +380,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_ingest",
+                "name": "ingest",
                 "description": "Ingest or re-ingest a codebase, descriptor, or memory corpus",
                 "inputSchema": {
                     "type": "object",
@@ -391,7 +391,7 @@ pub fn tool_schemas() -> serde_json::Value {
                         "adapter": {
                             "type": "string",
                             "default": "code",
-                            "enum": ["code", "json", "memory"],
+                            "enum": ["code", "json", "memory", "light"],
                             "description": "Adapter to use for parsing the input corpus"
                         },
                         "mode": {
@@ -409,7 +409,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_resonate",
+                "name": "resonate",
                 "description": "Resonance analysis: harmonics, sympathetic pairs, and resonant frequencies",
                 "inputSchema": {
                     "type": "object",
@@ -423,7 +423,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_health",
+                "name": "health",
                 "description": "Server health and statistics",
                 "inputSchema": {
                     "type": "object",
@@ -435,7 +435,7 @@ pub fn tool_schemas() -> serde_json::Value {
             },
             // --- Perspective MCP tools (12-PERSPECTIVE-SYNTHESIS) ---
             {
-                "name": "m1nd_perspective_start",
+                "name": "perspective_start",
                 "description": "Enter a perspective: creates a navigable route surface from a query",
                 "inputSchema": {
                     "type": "object",
@@ -449,7 +449,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_perspective_routes",
+                "name": "perspective_routes",
                 "description": "Browse the current route set with pagination",
                 "inputSchema": {
                     "type": "object",
@@ -464,7 +464,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_perspective_inspect",
+                "name": "perspective_inspect",
                 "description": "Expand a route with fuller path, metrics, provenance, and affinity",
                 "inputSchema": {
                     "type": "object",
@@ -479,7 +479,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_perspective_peek",
+                "name": "perspective_peek",
                 "description": "Extract a small relevant code/doc slice from a route target",
                 "inputSchema": {
                     "type": "object",
@@ -494,7 +494,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_perspective_follow",
+                "name": "perspective_follow",
                 "description": "Follow a route: move focus to target, synthesize new routes",
                 "inputSchema": {
                     "type": "object",
@@ -509,7 +509,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_perspective_suggest",
+                "name": "perspective_suggest",
                 "description": "Get the next best move suggestion based on navigation history",
                 "inputSchema": {
                     "type": "object",
@@ -522,7 +522,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_perspective_affinity",
+                "name": "perspective_affinity",
                 "description": "Discover probable connections a route target might have",
                 "inputSchema": {
                     "type": "object",
@@ -537,7 +537,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_perspective_branch",
+                "name": "perspective_branch",
                 "description": "Fork the current navigation state into a new branch",
                 "inputSchema": {
                     "type": "object",
@@ -550,7 +550,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_perspective_back",
+                "name": "perspective_back",
                 "description": "Navigate back to previous focus, restoring checkpoint state",
                 "inputSchema": {
                     "type": "object",
@@ -562,7 +562,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_perspective_compare",
+                "name": "perspective_compare",
                 "description": "Compare two perspectives on shared/unique nodes and dimension deltas",
                 "inputSchema": {
                     "type": "object",
@@ -576,7 +576,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_perspective_list",
+                "name": "perspective_list",
                 "description": "List all perspectives for an agent",
                 "inputSchema": {
                     "type": "object",
@@ -587,7 +587,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_perspective_close",
+                "name": "perspective_close",
                 "description": "Close a perspective and release associated locks",
                 "inputSchema": {
                     "type": "object",
@@ -598,77 +598,11 @@ pub fn tool_schemas() -> serde_json::Value {
                     "required": ["agent_id", "perspective_id"]
                 }
             },
-            // --- Lock tools ---
-            {
-                "name": "m1nd_lock_create",
-                "description": "Pin a subgraph region and capture a baseline for change monitoring",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "agent_id": { "type": "string" },
-                        "scope": { "type": "string", "enum": ["node", "subgraph", "query_neighborhood", "path"] },
-                        "root_nodes": { "type": "array", "items": { "type": "string" } },
-                        "radius": { "type": "integer", "description": "BFS radius for subgraph scope (1-4)" },
-                        "query": { "type": "string", "description": "Query for query_neighborhood scope" },
-                        "path_nodes": { "type": "array", "items": { "type": "string" }, "description": "Ordered nodes for path scope" }
-                    },
-                    "required": ["agent_id", "scope", "root_nodes"]
-                }
-            },
-            {
-                "name": "m1nd_lock_watch",
-                "description": "Set a watcher strategy on a lock (manual, on_ingest, on_learn)",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "agent_id": { "type": "string" },
-                        "lock_id": { "type": "string" },
-                        "strategy": { "type": "string", "enum": ["manual", "on_ingest", "on_learn"] }
-                    },
-                    "required": ["agent_id", "lock_id", "strategy"]
-                }
-            },
-            {
-                "name": "m1nd_lock_diff",
-                "description": "Compute what changed in a locked region since baseline",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "agent_id": { "type": "string" },
-                        "lock_id": { "type": "string" }
-                    },
-                    "required": ["agent_id", "lock_id"]
-                }
-            },
-            {
-                "name": "m1nd_lock_rebase",
-                "description": "Re-capture lock baseline from current graph without releasing",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "agent_id": { "type": "string" },
-                        "lock_id": { "type": "string" }
-                    },
-                    "required": ["agent_id", "lock_id"]
-                }
-            },
-            {
-                "name": "m1nd_lock_release",
-                "description": "Release a lock and free its resources",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "agent_id": { "type": "string" },
-                        "lock_id": { "type": "string" }
-                    },
-                    "required": ["agent_id", "lock_id"]
-                }
-            },
             // =================================================================
             // L2: Semantic Search
             // =================================================================
             {
-                "name": "m1nd_seek",
+                "name": "seek",
                 "description": "Intent-aware semantic code search — find code by PURPOSE, not text pattern",
                 "inputSchema": {
                     "type": "object",
@@ -685,7 +619,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_scan",
+                "name": "scan",
                 "description": "Pattern-aware structural code analysis with graph-validated findings",
                 "inputSchema": {
                     "type": "object",
@@ -704,7 +638,7 @@ pub fn tool_schemas() -> serde_json::Value {
             // L3: Temporal Intelligence
             // =================================================================
             {
-                "name": "m1nd_timeline",
+                "name": "timeline",
                 "description": "Git-based temporal history for a node — changes, co-changes, velocity, stability",
                 "inputSchema": {
                     "type": "object",
@@ -720,7 +654,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_diverge",
+                "name": "diverge",
                 "description": "Detect structural drift between a baseline and current graph state",
                 "inputSchema": {
                     "type": "object",
@@ -738,7 +672,7 @@ pub fn tool_schemas() -> serde_json::Value {
             // L4: Investigation Memory
             // =================================================================
             {
-                "name": "m1nd_trail_save",
+                "name": "trail_save",
                 "description": "Persist current investigation state — nodes visited, hypotheses, conclusions",
                 "inputSchema": {
                     "type": "object",
@@ -757,7 +691,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_trail_resume",
+                "name": "trail_resume",
                 "description": "Restore a saved investigation — re-inject activation boosts, detect staleness",
                 "inputSchema": {
                     "type": "object",
@@ -770,7 +704,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_trail_merge",
+                "name": "trail_merge",
                 "description": "Combine two or more investigation trails — discover cross-connections",
                 "inputSchema": {
                     "type": "object",
@@ -783,7 +717,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_trail_list",
+                "name": "trail_list",
                 "description": "List saved investigation trails with optional filters",
                 "inputSchema": {
                     "type": "object",
@@ -800,7 +734,7 @@ pub fn tool_schemas() -> serde_json::Value {
             // L5: Hypothesis Engine
             // =================================================================
             {
-                "name": "m1nd_hypothesize",
+                "name": "hypothesize",
                 "description": "Test a structural claim about the codebase — graph-based hypothesis testing",
                 "inputSchema": {
                     "type": "object",
@@ -816,7 +750,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_differential",
+                "name": "differential",
                 "description": "Focused structural diff between two graph snapshots",
                 "inputSchema": {
                     "type": "object",
@@ -834,7 +768,7 @@ pub fn tool_schemas() -> serde_json::Value {
             // L6: Execution Feedback
             // =================================================================
             {
-                "name": "m1nd_trace",
+                "name": "trace",
                 "description": "Map runtime errors to structural root causes via stacktrace analysis",
                 "inputSchema": {
                     "type": "object",
@@ -849,7 +783,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_validate_plan",
+                "name": "validate_plan",
                 "description": "Validate a modification plan against the code graph — detect gaps and risk",
                 "inputSchema": {
                     "type": "object",
@@ -879,7 +813,7 @@ pub fn tool_schemas() -> serde_json::Value {
             // L7: Multi-Repository Federation
             // =================================================================
             {
-                "name": "m1nd_federate",
+                "name": "federate",
                 "description": "Ingest multiple repos into a unified federated graph with cross-repo edge detection",
                 "inputSchema": {
                     "type": "object",
@@ -908,7 +842,7 @@ pub fn tool_schemas() -> serde_json::Value {
             // Superpowers: Antibody / Flow / Epidemic / Tremor / Trust / Layers
             // =================================================================
             {
-                "name": "m1nd_antibody_scan",
+                "name": "antibody_scan",
                 "description": "Scan code graph against stored bug antibodies (immune memory patterns). Returns matches where known bug patterns recur.",
                 "inputSchema": {
                     "type": "object",
@@ -926,7 +860,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_antibody_list",
+                "name": "antibody_list",
                 "description": "List all stored bug antibodies with metadata, match history, and specificity scores.",
                 "inputSchema": {
                     "type": "object",
@@ -938,7 +872,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_antibody_create",
+                "name": "antibody_create",
                 "description": "Create, disable, enable, or delete a bug antibody pattern.",
                 "inputSchema": {
                     "type": "object",
@@ -955,7 +889,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_flow_simulate",
+                "name": "flow_simulate",
                 "description": "Simulate concurrent execution flow. Detects race conditions via particle collision on shared mutable state without synchronization.",
                 "inputSchema": {
                     "type": "object",
@@ -975,7 +909,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_epidemic",
+                "name": "epidemic",
                 "description": "Predict bug propagation via SIR epidemiological model. Given known buggy modules, predicts which neighbors are most likely to harbor undiscovered bugs.",
                 "inputSchema": {
                     "type": "object",
@@ -996,7 +930,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_tremor",
+                "name": "tremor",
                 "description": "Detect code tremors: modules with accelerating change frequency (second derivative). Earthquake precursor analogy for imminent bugs.",
                 "inputSchema": {
                     "type": "object",
@@ -1014,7 +948,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_trust",
+                "name": "trust",
                 "description": "Per-module trust scores from defect history. Actuarial risk assessment: more confirmed bugs = lower trust = higher risk.",
                 "inputSchema": {
                     "type": "object",
@@ -1032,7 +966,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_layers",
+                "name": "layers",
                 "description": "Auto-detect architectural layers from graph topology. Returns layer assignments plus dependency violations (edges going against expected flow).",
                 "inputSchema": {
                     "type": "object",
@@ -1051,7 +985,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_layer_inspect",
+                "name": "layer_inspect",
                 "description": "Inspect a specific architectural layer: nodes, connections, violations, and health metrics.",
                 "inputSchema": {
                     "type": "object",
@@ -1069,7 +1003,7 @@ pub fn tool_schemas() -> serde_json::Value {
             // Surgical: context + apply
             // =================================================================
             {
-                "name": "m1nd_surgical_context",
+                "name": "surgical_context",
                 "description": "Return full context for surgical LLM editing: file contents, symbols, and graph neighbourhood (callers, callees, tests). Use before m1nd.apply.",
                 "inputSchema": {
                     "type": "object",
@@ -1084,7 +1018,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_apply",
+                "name": "apply",
                 "description": "Write LLM-edited code back to a file and trigger incremental re-ingest so the graph stays coherent. Always call m1nd.surgical_context first.",
                 "inputSchema": {
                     "type": "object",
@@ -1102,7 +1036,7 @@ pub fn tool_schemas() -> serde_json::Value {
             // View: lightweight file reader
             // =================================================================
             {
-                "name": "m1nd_view",
+                "name": "view",
                 "description": "Fast file reader with line numbers. Replaces View/cat/head/tail. No graph traversal — just reads the file. Auto-ingests if not in graph. Use for quick file inspection before surgical_context.",
                 "inputSchema": {
                     "type": "object",
@@ -1120,7 +1054,7 @@ pub fn tool_schemas() -> serde_json::Value {
             // Surgical V2: context_v2 + apply_batch
             // =================================================================
             {
-                "name": "m1nd_surgical_context_v2",
+                "name": "surgical_context_v2",
                 "description": "Get full surgical context for a file PLUS source code of connected files (callers, callees, tests). Returns a complete workspace snapshot in one call. Superset of m1nd.surgical_context.",
                 "inputSchema": {
                     "type": "object",
@@ -1137,7 +1071,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_apply_batch",
+                "name": "apply_batch",
                 "description": "Atomically write multiple files and trigger a single bulk re-ingest. Use after m1nd.surgical_context_v2 when editing a file and its callers/tests together. All-or-nothing by default.",
                 "inputSchema": {
                     "type": "object",
@@ -1166,7 +1100,7 @@ pub fn tool_schemas() -> serde_json::Value {
             // v0.4.0: search, help, report, panoramic, savings
             // =================================================================
             {
-                "name": "m1nd_search",
+                "name": "search",
                 "description": "Unified code search: literal, regex (with multiline), or semantic. Searches graph node labels AND file contents on disk. Supports invert (grep -v), count-only (grep -c), multiline regex (rg -U), and filename pattern filtering (grep --include). v0.5.0: regex mode now searches file contents (not just node IDs).",
                 "inputSchema": {
                     "type": "object",
@@ -1193,7 +1127,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_glob",
+                "name": "glob",
                 "description": "Graph-aware file glob: find files in the ingested graph by glob pattern. Zero I/O — pure graph query. Replaces find/glob for indexed codebases.",
                 "inputSchema": {
                     "type": "object",
@@ -1213,7 +1147,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_help",
+                "name": "help",
                 "description": "Get help text for m1nd tools. Returns overview or detailed help for a specific tool with visual identity.",
                 "inputSchema": {
                     "type": "object",
@@ -1225,7 +1159,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_report",
+                "name": "report",
                 "description": "Session intelligence report: queries, bugs, graph evolution, and estimated savings.",
                 "inputSchema": {
                     "type": "object",
@@ -1236,7 +1170,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_panoramic",
+                "name": "panoramic",
                 "description": "Panoramic graph health overview: per-module risk scores combining blast radius, centrality, and churn signals.",
                 "inputSchema": {
                     "type": "object",
@@ -1249,7 +1183,7 @@ pub fn tool_schemas() -> serde_json::Value {
                 }
             },
             {
-                "name": "m1nd_savings",
+                "name": "savings",
                 "description": "Estimated token and cost savings from using m1nd. Shows current session and global totals with Gaia counter.",
                 "inputSchema": {
                     "type": "object",
@@ -1257,6 +1191,20 @@ pub fn tool_schemas() -> serde_json::Value {
                         "agent_id": { "type": "string", "description": "Calling agent identifier" }
                     },
                     "required": ["agent_id"]
+                }
+            },
+            {
+                "name": "persist",
+                "description": "Persist/load graph and plasticity state; supports binary snapshots",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_id": { "type": "string", "description": "Calling agent identifier" },
+                        "action": { "type": "string", "enum": ["save", "load", "checkpoint", "status"], "description": "Action to perform" },
+                        "format": { "type": "string", "enum": ["json", "bin"], "default": "json", "description": "Snapshot format" },
+                        "path": { "type": "string", "description": "Override snapshot path (optional)" }
+                    },
+                    "required": ["agent_id", "action"]
                 }
             }
         ]
@@ -1298,10 +1246,10 @@ pub fn dispatch_tool(
         .to_string();
 
     let result = match normalized.as_str() {
-        name if name.starts_with("m1nd_perspective_") => {
+        name if name.starts_with("perspective_") => {
             dispatch_perspective_tool(state, name, params)
         }
-        name if name.starts_with("m1nd_lock_") => dispatch_lock_tool(state, name, params),
+        name if name.starts_with("lock_") => dispatch_lock_tool(state, name, params),
         _ => dispatch_core_tool(state, &normalized, params),
     };
 
@@ -1316,7 +1264,7 @@ pub fn dispatch_tool(
         // Track savings (skip meta tools)
         if !matches!(
             normalized.as_str(),
-            "m1nd_health" | "m1nd_help" | "m1nd_savings" | "m1nd_report"
+            "health" | "help" | "savings" | "report"
         ) {
             state.savings_tracker.record(&normalized, result_count);
             state.global_savings.total_queries += 1;
@@ -1342,194 +1290,197 @@ fn dispatch_core_tool(
     params: &serde_json::Value,
 ) -> M1ndResult<serde_json::Value> {
     match tool_name {
-        "m1nd_activate" => {
+        "activate" => {
             let input: ActivateInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = tools::handle_activate(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_impact" => {
+        "impact" => {
             let input: ImpactInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = tools::handle_impact(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_missing" => {
+        "missing" => {
             let input: MissingInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_missing(state, input)
         }
-        "m1nd_why" => {
+        "why" => {
             let input: WhyInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_why(state, input)
         }
-        "m1nd_warmup" => {
+        "warmup" => {
             let input: WarmupInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_warmup(state, input)
         }
-        "m1nd_counterfactual" => {
+        "counterfactual" => {
             let input: CounterfactualInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_counterfactual(state, input)
         }
-        "m1nd_predict" => {
+        "predict" => {
             let input: PredictInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_predict(state, input)
         }
-        "m1nd_fingerprint" => {
+        "fingerprint" => {
             let input: FingerprintInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_fingerprint(state, input)
         }
-        "m1nd_drift" => {
+        "drift" => {
             let input: DriftInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_drift(state, input)
         }
-        "m1nd_learn" => {
+        "learn" => {
             let input: LearnInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_learn(state, input)
         }
-        "m1nd_ingest" => {
+        "ingest" => {
             let input: IngestInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_ingest(state, input)
         }
-        "m1nd_resonate" => {
+        "resonate" => {
             let input: ResonateInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             tools::handle_resonate(state, input)
         }
-        "m1nd_health" => {
+        "health" => {
             let input: HealthInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = tools::handle_health(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
         // L2-L7: Superpowers layer tools
-        "m1nd_seek" => {
+        "seek" => {
             let input: layers::SeekInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_seek(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_scan" => {
+        "scan" => {
             let input: layers::ScanInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_scan(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_timeline" => {
+        "timeline" => {
             let input: layers::TimelineInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_timeline(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_diverge" => {
+        "diverge" => {
             let input: layers::DivergeInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_diverge(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_trail_save" => {
+        "trail_save" => {
             let input: layers::TrailSaveInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_trail_save(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_trail_resume" => {
+        "trail_resume" => {
             let input: layers::TrailResumeInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_trail_resume(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_trail_merge" => {
+        "trail_merge" => {
             let input: layers::TrailMergeInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_trail_merge(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_trail_list" => {
+        "trail_list" => {
             let input: layers::TrailListInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_trail_list(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_hypothesize" => {
+        "hypothesize" => {
             let input: layers::HypothesizeInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_hypothesize(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_differential" => {
+        "differential" => {
             let input: layers::DifferentialInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_differential(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_trace" => {
+        "trace" => {
             let input: layers::TraceInput =
-                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
+                serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
+                    tool: "trace".into(),
+                    detail: e.to_string(),
+                })?;
             let output = layer_handlers::handle_trace(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_validate_plan" => {
+        "validate_plan" => {
             let input: layers::ValidatePlanInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_validate_plan(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_federate" => {
+        "federate" => {
             let input: layers::FederateInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = layer_handlers::handle_federate(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_antibody_scan" => {
+        "antibody_scan" => {
             let input: layers::AntibodyScanInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_antibody_scan(state, input)
         }
-        "m1nd_antibody_list" => {
+        "antibody_list" => {
             let input: layers::AntibodyListInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_antibody_list(state, input)
         }
-        "m1nd_antibody_create" => {
+        "antibody_create" => {
             let input: layers::AntibodyCreateInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_antibody_create(state, input)
         }
-        "m1nd_flow_simulate" => {
+        "flow_simulate" => {
             let input: layers::FlowSimulateInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_flow_simulate(state, input)
         }
-        "m1nd_epidemic" => {
+        "epidemic" => {
             let input: layers::EpidemicInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_epidemic(state, input)
         }
-        "m1nd_tremor" => {
+        "tremor" => {
             let input: layers::TremorInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_tremor(state, input)
         }
-        "m1nd_trust" => {
+        "trust" => {
             let input: layers::TrustInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_trust(state, input)
         }
-        "m1nd_layers" => {
+        "layers" => {
             let input: layers::LayersInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_layers(state, input)
         }
-        "m1nd_layer_inspect" => {
+        "layer_inspect" => {
             let input: layers::LayerInspectInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             layer_handlers::handle_layer_inspect(state, input)
@@ -1537,37 +1488,37 @@ fn dispatch_core_tool(
         // -----------------------------------------------------------------
         // v0.4.0: search, help, panoramic, savings, report
         // -----------------------------------------------------------------
-        "m1nd_search" => {
+        "search" => {
             let input: layers::SearchInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = search_handlers::handle_search(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_glob" => {
+        "glob" => {
             let input: layers::GlobInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = search_handlers::handle_glob(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_help" => {
+        "help" => {
             let input: layers::HelpInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = search_handlers::handle_help(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_report" => {
+        "report" => {
             let input: layers::ReportInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = report_handlers::handle_report(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_panoramic" => {
+        "panoramic" => {
             let input: layers::PanoramicInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = report_handlers::handle_panoramic(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_savings" => {
+        "savings" => {
             let input: layers::SavingsInput =
                 serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
             let output = report_handlers::handle_savings(state, input)?;
@@ -1576,19 +1527,19 @@ fn dispatch_core_tool(
         // -----------------------------------------------------------------
         // Surgical: context + apply
         // -----------------------------------------------------------------
-        "m1nd_surgical_context" => {
+        "surgical_context" => {
             let input: crate::protocol::surgical::SurgicalContextInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_surgical_context".into(),
+                    tool: "surgical_context".into(),
                     detail: e.to_string(),
                 })?;
             let output = surgical_handlers::handle_surgical_context(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_apply" => {
+        "apply" => {
             let input: crate::protocol::surgical::ApplyInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_apply".into(),
+                    tool: "apply".into(),
                     detail: e.to_string(),
                 })?;
             let output = surgical_handlers::handle_apply(state, input)?;
@@ -1597,19 +1548,19 @@ fn dispatch_core_tool(
         // -----------------------------------------------------------------
         // Surgical V2: context_v2 + apply_batch
         // -----------------------------------------------------------------
-        "m1nd_surgical_context_v2" => {
+        "surgical_context_v2" => {
             let input: crate::protocol::surgical::SurgicalContextV2Input =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_surgical_context_v2".into(),
+                    tool: "surgical_context_v2".into(),
                     detail: e.to_string(),
                 })?;
             let output = surgical_handlers::handle_surgical_context_v2(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
         }
-        "m1nd_apply_batch" => {
+        "apply_batch" => {
             let input: crate::protocol::surgical::ApplyBatchInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_apply_batch".into(),
+                    tool: "apply_batch".into(),
                     detail: e.to_string(),
                 })?;
             let output = surgical_handlers::handle_apply_batch(state, input)?;
@@ -1618,14 +1569,19 @@ fn dispatch_core_tool(
         // -----------------------------------------------------------------
         // View: lightweight file reader
         // -----------------------------------------------------------------
-        "m1nd_view" => {
+        "view" => {
             let input: crate::protocol::surgical::ViewInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_view".into(),
+                    tool: "view".into(),
                     detail: e.to_string(),
                 })?;
             let output = surgical_handlers::handle_view(state, input)?;
             serde_json::to_value(output).map_err(M1ndError::Serde)
+        }
+        "persist" => {
+            let input: crate::persist_handlers::PersistInput =
+                serde_json::from_value(params.clone()).map_err(M1ndError::Serde)?;
+            crate::persist_handlers::handle_persist(state, input)
         }
         _ => Err(M1ndError::UnknownTool {
             name: tool_name.to_string(),
@@ -1643,98 +1599,98 @@ fn dispatch_perspective_tool(
     use crate::protocol::perspective::*;
 
     match tool_name {
-        "m1nd_perspective_start" => {
+        "perspective_start" => {
             let input: PerspectiveStartInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_start".into(),
+                    tool: "perspective_start".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_start(state, input)
         }
-        "m1nd_perspective_routes" => {
+        "perspective_routes" => {
             let input: PerspectiveRoutesInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_routes".into(),
+                    tool: "perspective_routes".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_routes(state, input)
         }
-        "m1nd_perspective_inspect" => {
+        "perspective_inspect" => {
             let input: PerspectiveInspectInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_inspect".into(),
+                    tool: "perspective_inspect".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_inspect(state, input)
         }
-        "m1nd_perspective_peek" => {
+        "perspective_peek" => {
             let input: PerspectivePeekInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_peek".into(),
+                    tool: "perspective_peek".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_peek(state, input)
         }
-        "m1nd_perspective_follow" => {
+        "perspective_follow" => {
             let input: PerspectiveFollowInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_follow".into(),
+                    tool: "perspective_follow".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_follow(state, input)
         }
-        "m1nd_perspective_suggest" => {
+        "perspective_suggest" => {
             let input: PerspectiveSuggestInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_suggest".into(),
+                    tool: "perspective_suggest".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_suggest(state, input)
         }
-        "m1nd_perspective_affinity" => {
+        "perspective_affinity" => {
             let input: PerspectiveAffinityInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_affinity".into(),
+                    tool: "perspective_affinity".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_affinity(state, input)
         }
-        "m1nd_perspective_branch" => {
+        "perspective_branch" => {
             let input: PerspectiveBranchInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_branch".into(),
+                    tool: "perspective_branch".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_branch(state, input)
         }
-        "m1nd_perspective_back" => {
+        "perspective_back" => {
             let input: PerspectiveBackInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_back".into(),
+                    tool: "perspective_back".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_back(state, input)
         }
-        "m1nd_perspective_compare" => {
+        "perspective_compare" => {
             let input: PerspectiveCompareInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_compare".into(),
+                    tool: "perspective_compare".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_compare(state, input)
         }
-        "m1nd_perspective_list" => {
+        "perspective_list" => {
             let input: PerspectiveListInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_list".into(),
+                    tool: "perspective_list".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_list(state, input)
         }
-        "m1nd_perspective_close" => {
+        "perspective_close" => {
             let input: PerspectiveCloseInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_perspective_close".into(),
+                    tool: "perspective_close".into(),
                     detail: e.to_string(),
                 })?;
             perspective_handlers::handle_perspective_close(state, input)
@@ -1755,42 +1711,42 @@ fn dispatch_lock_tool(
     use crate::protocol::lock::*;
 
     match tool_name {
-        "m1nd_lock_create" => {
+        "lock_create" => {
             let input: LockCreateInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_lock_create".into(),
+                    tool: "lock_create".into(),
                     detail: e.to_string(),
                 })?;
             lock_handlers::handle_lock_create(state, input)
         }
-        "m1nd_lock_watch" => {
+        "lock_watch" => {
             let input: LockWatchInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_lock_watch".into(),
+                    tool: "lock_watch".into(),
                     detail: e.to_string(),
                 })?;
             lock_handlers::handle_lock_watch(state, input)
         }
-        "m1nd_lock_diff" => {
+        "lock_diff" => {
             let input: LockDiffInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_lock_diff".into(),
+                    tool: "lock_diff".into(),
                     detail: e.to_string(),
                 })?;
             lock_handlers::handle_lock_diff(state, input)
         }
-        "m1nd_lock_rebase" => {
+        "lock_rebase" => {
             let input: LockRebaseInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_lock_rebase".into(),
+                    tool: "lock_rebase".into(),
                     detail: e.to_string(),
                 })?;
             lock_handlers::handle_lock_rebase(state, input)
         }
-        "m1nd_lock_release" => {
+        "lock_release" => {
             let input: LockReleaseInput =
                 serde_json::from_value(params.clone()).map_err(|e| M1ndError::InvalidParams {
-                    tool: "m1nd_lock_release".into(),
+                    tool: "lock_release".into(),
                     detail: e.to_string(),
                 })?;
             lock_handlers::handle_lock_release(state, input)

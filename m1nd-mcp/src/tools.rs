@@ -33,6 +33,8 @@ fn finalize_ingest(
     let namespace = input.namespace.clone().or_else(|| {
         if adapter == "memory" {
             Some("memory".to_string())
+        } else if adapter == "light" {
+            Some("light".to_string())
         } else {
             None
         }
@@ -1348,55 +1350,8 @@ pub fn handle_ingest(
 
             let ingestor = m1nd_ingest::Ingestor::new(config);
 
-            if input.incremental {
-                // BUG FIX (C2/BUG-1): incremental ingest was returning stats
-                // without applying the diff to the graph. Now we apply the diff,
-                // finalize, and rebuild engines so the graph actually updates.
-                let changed: Vec<std::path::PathBuf> = vec![path];
-                let (diff, stats) = {
-                    let graph = state.graph.read();
-                    ingestor.ingest_incremental(&graph, &changed)?
-                };
-
-                if !diff.is_empty() {
-                    {
-                        let mut graph = state.graph.write();
-                        let _ = diff.apply(&mut graph)?;
-                        graph.finalize()?;
-                    }
-                    state.rebuild_engines()?;
-                }
-
-                // Track ingest roots
-                if !state.ingest_roots.contains(&input.path) {
-                    state.ingest_roots.push(input.path.clone());
-                }
-
-                if let Err(e) = state.persist() {
-                    eprintln!("[m1nd] auto-persist after incremental ingest failed: {}", e);
-                }
-
-                let (node_count, edge_count) = {
-                    let graph = state.graph.read();
-                    (graph.num_nodes(), graph.num_edges())
-                };
-
-                Ok(serde_json::json!({
-                    "mode": "incremental",
-                    "adapter": "code",
-                    "files_scanned": stats.files_scanned,
-                    "files_parsed": stats.files_parsed,
-                    "nodes_created": stats.nodes_created,
-                    "edges_created": stats.edges_created,
-                    "elapsed_ms": stats.elapsed_ms,
-                    "diff_applied": !diff.is_empty(),
-                    "node_count": node_count,
-                    "edge_count": edge_count,
-                }))
-            } else {
-                let (new_graph, stats) = ingestor.ingest()?;
-                finalize_ingest(state, &input, "code", new_graph, stats)
-            }
+            let (new_graph, stats) = ingestor.ingest()?;
+            finalize_ingest(state, &input, "code", new_graph, stats)
         }
         "json" => {
             // JSON descriptor adapter -- domain-agnostic ingestion
@@ -1410,8 +1365,13 @@ pub fn handle_ingest(
             let (new_graph, stats) = adapter.ingest(&path)?;
             finalize_ingest(state, &input, "memory", new_graph, stats)
         }
+        "light" => {
+            let adapter = m1nd_ingest::L1ghtIngestAdapter::new(input.namespace.clone());
+            let (new_graph, stats) = adapter.ingest(&path)?;
+            finalize_ingest(state, &input, "light", new_graph, stats)
+        }
         other => Ok(serde_json::json!({
-            "error": format!("Unknown adapter: '{}'. Supported: 'code', 'json', 'memory'", other),
+            "error": format!("Unknown adapter: '{}'. Supported: 'code', 'json', 'memory', 'light'", other),
         })),
     }
 }

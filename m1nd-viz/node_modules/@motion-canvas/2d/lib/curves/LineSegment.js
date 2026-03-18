@@ -1,0 +1,45 @@
+import { lineTo, moveTo } from '../utils';
+import { Segment } from './Segment';
+export class LineSegment extends Segment {
+    constructor(from, to) {
+        super();
+        this.from = from;
+        this.to = to;
+        this.vector = to.sub(from);
+        this.length = this.vector.magnitude;
+        this.normal = this.vector.perpendicular.normalized.safe;
+        this.points = [from, to];
+    }
+    get arcLength() {
+        return this.length;
+    }
+    draw(context, start = 0, end = 1, move = false) {
+        const from = this.from.add(this.vector.scale(start));
+        const to = this.from.add(this.vector.scale(end));
+        if (move) {
+            moveTo(context, from);
+        }
+        lineTo(context, to);
+        return [
+            {
+                position: from,
+                tangent: this.normal.flipped,
+                normal: this.normal,
+            },
+            {
+                position: to,
+                tangent: this.normal,
+                normal: this.normal,
+            },
+        ];
+    }
+    getPoint(distance) {
+        const point = this.from.add(this.vector.scale(distance));
+        return {
+            position: point,
+            tangent: this.normal.flipped,
+            normal: this.normal,
+        };
+    }
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiTGluZVNlZ21lbnQuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi9zcmMvbGliL2N1cnZlcy9MaW5lU2VnbWVudC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFDQSxPQUFPLEVBQUMsTUFBTSxFQUFFLE1BQU0sRUFBQyxNQUFNLFVBQVUsQ0FBQztBQUV4QyxPQUFPLEVBQUMsT0FBTyxFQUFDLE1BQU0sV0FBVyxDQUFDO0FBRWxDLE1BQU0sT0FBTyxXQUFZLFNBQVEsT0FBTztJQU10QyxZQUNrQixJQUFhLEVBQ2IsRUFBVztRQUUzQixLQUFLLEVBQUUsQ0FBQztRQUhRLFNBQUksR0FBSixJQUFJLENBQVM7UUFDYixPQUFFLEdBQUYsRUFBRSxDQUFTO1FBRzNCLElBQUksQ0FBQyxNQUFNLEdBQUcsRUFBRSxDQUFDLEdBQUcsQ0FBQyxJQUFJLENBQUMsQ0FBQztRQUMzQixJQUFJLENBQUMsTUFBTSxHQUFHLElBQUksQ0FBQyxNQUFNLENBQUMsU0FBUyxDQUFDO1FBQ3BDLElBQUksQ0FBQyxNQUFNLEdBQUcsSUFBSSxDQUFDLE1BQU0sQ0FBQyxhQUFhLENBQUMsVUFBVSxDQUFDLElBQUksQ0FBQztRQUN4RCxJQUFJLENBQUMsTUFBTSxHQUFHLENBQUMsSUFBSSxFQUFFLEVBQUUsQ0FBQyxDQUFDO0lBQzNCLENBQUM7SUFFRCxJQUFXLFNBQVM7UUFDbEIsT0FBTyxJQUFJLENBQUMsTUFBTSxDQUFDO0lBQ3JCLENBQUM7SUFFTSxJQUFJLENBQ1QsT0FBMEMsRUFDMUMsS0FBSyxHQUFHLENBQUMsRUFDVCxHQUFHLEdBQUcsQ0FBQyxFQUNQLElBQUksR0FBRyxLQUFLO1FBRVosTUFBTSxJQUFJLEdBQUcsSUFBSSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsSUFBSSxDQUFDLE1BQU0sQ0FBQyxLQUFLLENBQUMsS0FBSyxDQUFDLENBQUMsQ0FBQztRQUNyRCxNQUFNLEVBQUUsR0FBRyxJQUFJLENBQUMsSUFBSSxDQUFDLEdBQUcsQ0FBQyxJQUFJLENBQUMsTUFBTSxDQUFDLEtBQUssQ0FBQyxHQUFHLENBQUMsQ0FBQyxDQUFDO1FBQ2pELElBQUksSUFBSSxFQUFFO1lBQ1IsTUFBTSxDQUFDLE9BQU8sRUFBRSxJQUFJLENBQUMsQ0FBQztTQUN2QjtRQUNELE1BQU0sQ0FBQyxPQUFPLEVBQUUsRUFBRSxDQUFDLENBQUM7UUFFcEIsT0FBTztZQUNMO2dCQUNFLFFBQVEsRUFBRSxJQUFJO2dCQUNkLE9BQU8sRUFBRSxJQUFJLENBQUMsTUFBTSxDQUFDLE9BQU87Z0JBQzVCLE1BQU0sRUFBRSxJQUFJLENBQUMsTUFBTTthQUNwQjtZQUNEO2dCQUNFLFFBQVEsRUFBRSxFQUFFO2dCQUNaLE9BQU8sRUFBRSxJQUFJLENBQUMsTUFBTTtnQkFDcEIsTUFBTSxFQUFFLElBQUksQ0FBQyxNQUFNO2FBQ3BCO1NBQ0YsQ0FBQztJQUNKLENBQUM7SUFFTSxRQUFRLENBQUMsUUFBZ0I7UUFDOUIsTUFBTSxLQUFLLEdBQUcsSUFBSSxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsSUFBSSxDQUFDLE1BQU0sQ0FBQyxLQUFLLENBQUMsUUFBUSxDQUFDLENBQUMsQ0FBQztRQUN6RCxPQUFPO1lBQ0wsUUFBUSxFQUFFLEtBQUs7WUFDZixPQUFPLEVBQUUsSUFBSSxDQUFDLE1BQU0sQ0FBQyxPQUFPO1lBQzVCLE1BQU0sRUFBRSxJQUFJLENBQUMsTUFBTTtTQUNwQixDQUFDO0lBQ0osQ0FBQztDQUNGIn0=

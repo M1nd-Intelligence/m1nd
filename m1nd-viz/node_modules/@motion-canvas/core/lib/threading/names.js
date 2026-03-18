@@ -1,0 +1,11 @@
+export function setTaskName(task, source) {
+    const prototype = Object.getPrototypeOf(task);
+    if (!prototype.threadable) {
+        prototype.threadable = true;
+        prototype.name = typeof source === 'string' ? source : getTaskName(source);
+    }
+}
+export function getTaskName(task) {
+    return Object.getPrototypeOf(task).name ?? null;
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibmFtZXMuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi9zcmMvdGhyZWFkaW5nL25hbWVzLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBLE1BQU0sVUFBVSxXQUFXLENBQUMsSUFBZSxFQUFFLE1BQTBCO0lBQ3JFLE1BQU0sU0FBUyxHQUFHLE1BQU0sQ0FBQyxjQUFjLENBQUMsSUFBSSxDQUFDLENBQUM7SUFDOUMsSUFBSSxDQUFDLFNBQVMsQ0FBQyxVQUFVLEVBQUU7UUFDekIsU0FBUyxDQUFDLFVBQVUsR0FBRyxJQUFJLENBQUM7UUFDNUIsU0FBUyxDQUFDLElBQUksR0FBRyxPQUFPLE1BQU0sS0FBSyxRQUFRLENBQUMsQ0FBQyxDQUFDLE1BQU0sQ0FBQyxDQUFDLENBQUMsV0FBVyxDQUFDLE1BQU0sQ0FBQyxDQUFDO0tBQzVFO0FBQ0gsQ0FBQztBQUVELE1BQU0sVUFBVSxXQUFXLENBQUMsSUFBZTtJQUN6QyxPQUFPLE1BQU0sQ0FBQyxjQUFjLENBQUMsSUFBSSxDQUFDLENBQUMsSUFBSSxJQUFJLElBQUksQ0FBQztBQUNsRCxDQUFDIn0=

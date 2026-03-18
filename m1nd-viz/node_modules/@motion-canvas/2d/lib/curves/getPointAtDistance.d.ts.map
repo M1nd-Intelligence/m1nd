@@ -1,0 +1,1 @@
+{"version":3,"file":"getPointAtDistance.d.ts","sourceRoot":"","sources":["../../src/lib/curves/getPointAtDistance.ts"],"names":[],"mappings":"AACA,OAAO,EAAC,UAAU,EAAC,MAAM,cAAc,CAAC;AACxC,OAAO,EAAC,YAAY,EAAC,MAAM,gBAAgB,CAAC;AAE5C,wBAAgB,kBAAkB,CAChC,OAAO,EAAE,YAAY,EACrB,QAAQ,EAAE,MAAM,GACf,UAAU,CAaZ"}

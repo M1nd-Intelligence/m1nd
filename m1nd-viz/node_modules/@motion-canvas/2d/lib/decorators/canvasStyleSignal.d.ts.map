@@ -1,0 +1,1 @@
+{"version":3,"file":"canvasStyleSignal.d.ts","sourceRoot":"","sources":["../../src/lib/decorators/canvasStyleSignal.ts"],"names":[],"mappings":"AAAA,OAAO,EAAQ,MAAM,EAAC,MAAM,qBAAqB,CAAC;AAClD,OAAO,KAAK,EAAC,WAAW,EAAE,mBAAmB,EAAC,MAAM,aAAa,CAAC;AAIlE,MAAM,MAAM,iBAAiB,CAAC,CAAC,IAAI,MAAM,CAAC,mBAAmB,EAAE,WAAW,EAAE,CAAC,CAAC,CAAC;AAE/E,wBAAgB,iBAAiB,IAAI,iBAAiB,CAOrD"}

@@ -1,22 +1,18 @@
 ## What
 
-<!-- One sentence: what does this PR do? -->
+Brief description of the change.
 
 ## Why
 
-<!-- Motivation or issue link -->
-
-## How
-
-<!-- Key changes, design decisions -->
+Motivation and context.
 
 ## Testing
 
-- [ ] `cargo test` passes
-- [ ] `cargo clippy` clean
-- [ ] `cargo fmt` applied
-- [ ] Tested with MCP client (tool name: ___)
+- [ ] `cargo test --workspace` passes
+- [ ] `cargo clippy --workspace` clean
+- [ ] Documentation updated if needed
+- [ ] New tools registered in `server.rs` dispatch
 
 ## Breaking Changes
 
-<!-- None / describe -->
+List any breaking changes to MCP tool signatures, or write "None".

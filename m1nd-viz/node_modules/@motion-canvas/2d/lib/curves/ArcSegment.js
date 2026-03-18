@@ -1,0 +1,101 @@
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+import { BBox, DEG2RAD, Matrix2D, Vector2, lazy } from '@motion-canvas/core';
+import { View2D } from '../components/View2D';
+import { Segment } from './Segment';
+export class ArcSegment extends Segment {
+    constructor(startPoint, radius, xAxisRotationDegree, largeArcFlag, sweepFlag, endPoint) {
+        super();
+        this.startPoint = startPoint;
+        this.radius = radius;
+        this.xAxisRotationDegree = xAxisRotationDegree;
+        this.largeArcFlag = largeArcFlag;
+        this.sweepFlag = sweepFlag;
+        this.endPoint = endPoint;
+        this.xAxisRotation = this.xAxisRotationDegree * DEG2RAD;
+        this.radius = new Vector2(Math.abs(radius.x), Math.abs(radius.y));
+        const pAccent = startPoint
+            .sub(endPoint)
+            .div(2)
+            .transform(Matrix2D.fromRotation(-xAxisRotationDegree).domMatrix);
+        const L = (pAccent.x * pAccent.x) / (radius.x * radius.x) +
+            (pAccent.y * pAccent.y) / (radius.y * radius.y);
+        if (L > 1) {
+            const Lsqrt = Math.sqrt(L);
+            radius.x = Lsqrt * radius.x;
+            radius.y = Lsqrt * radius.y;
+        }
+        const cAccent = new Vector2(radius.ctg * pAccent.y, radius.perpendicular.ctg * pAccent.x).scale(Math.sqrt(1 /
+            ((pAccent.x * pAccent.x) / (radius.x * radius.x) +
+                (pAccent.y * pAccent.y) / (radius.y * radius.y)) -
+            1) * (largeArcFlag === sweepFlag ? -1 : 1));
+        this.xAxisRotationMatrix =
+            Matrix2D.fromRotation(xAxisRotationDegree).domMatrix;
+        this.center = cAccent
+            .transform(this.xAxisRotationMatrix)
+            .add(startPoint.add(endPoint).div(2));
+        const q = pAccent.sub(cAccent).div(radius);
+        const s = pAccent.scale(-1).sub(cAccent).div(radius);
+        this.startAngle = q.radians;
+        this.deltaAngle = Vector2.angleBetween(q, s) % (Math.PI * 2);
+        if (this.sweepFlag === 0 && this.deltaAngle > 0) {
+            this.deltaAngle -= Math.PI * 2;
+        }
+        if (this.sweepFlag === 1 && this.deltaAngle < 0) {
+            this.deltaAngle += Math.PI * 2;
+        }
+        ArcSegment.el.setAttribute('d', `M ${this.startPoint.x} ${this.startPoint.y} A ${this.radius.x} ${this.radius.y} ${this.xAxisRotationDegree} ${this.largeArcFlag} ${this.sweepFlag} ${this.endPoint.x} ${this.endPoint.y}`);
+        this.length = ArcSegment.el.getTotalLength();
+        const bbox = new BBox(ArcSegment.el.getBBox());
+        this.points = [bbox.topLeft, bbox.bottomRight];
+    }
+    getAnglePosition(angle) {
+        return this.radius
+            .mul(Vector2.fromRadians(angle))
+            .transform(this.xAxisRotationMatrix)
+            .add(this.center);
+    }
+    getAngleDerivative(angle) {
+        return new Vector2(-this.radius.x * Math.sin(angle), this.radius.y * Math.cos(angle)).transform(this.xAxisRotationMatrix);
+    }
+    draw(context, start, end, move) {
+        const startAngle = this.startAngle + this.deltaAngle * start;
+        const endAngle = this.startAngle + this.deltaAngle * end;
+        const startPos = this.getPoint(start);
+        const endPos = this.getPoint(end);
+        if (move)
+            context.moveTo(startPos.position.x, startPos.position.y);
+        context.ellipse(this.center.x, this.center.y, this.radius.x, this.radius.y, this.xAxisRotation, startAngle, endAngle, this.sweepFlag === 0);
+        return [startPos, endPos];
+    }
+    getPoint(distance) {
+        const angle = this.startAngle + distance * this.deltaAngle;
+        const tangent = this.getAngleDerivative(angle).normalized;
+        return {
+            position: distance === 0
+                ? this.startPoint
+                : distance === 1
+                    ? this.endPoint
+                    : this.getAnglePosition(angle),
+            tangent,
+            normal: tangent.perpendicular,
+        };
+    }
+    get arcLength() {
+        return this.length;
+    }
+}
+__decorate([
+    lazy(() => {
+        const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        root.appendChild(el);
+        View2D.shadowRoot.appendChild(root);
+        return el;
+    })
+], ArcSegment, "el", void 0);
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiQXJjU2VnbWVudC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uL3NyYy9saWIvY3VydmVzL0FyY1NlZ21lbnQudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7O0FBQUEsT0FBTyxFQUFDLElBQUksRUFBRSxPQUFPLEVBQUUsUUFBUSxFQUFFLE9BQU8sRUFBRSxJQUFJLEVBQUMsTUFBTSxxQkFBcUIsQ0FBQztBQUMzRSxPQUFPLEVBQUMsTUFBTSxFQUFDLE1BQU0sc0JBQXNCLENBQUM7QUFFNUMsT0FBTyxFQUFDLE9BQU8sRUFBQyxNQUFNLFdBQVcsQ0FBQztBQUVsQyxNQUFNLE9BQU8sVUFBVyxTQUFRLE9BQU87SUFrQnJDLFlBQ2tCLFVBQW1CLEVBQ25CLE1BQWUsRUFDZixtQkFBMkIsRUFDM0IsWUFBb0IsRUFDcEIsU0FBaUIsRUFDakIsUUFBaUI7UUFFakMsS0FBSyxFQUFFLENBQUM7UUFQUSxlQUFVLEdBQVYsVUFBVSxDQUFTO1FBQ25CLFdBQU0sR0FBTixNQUFNLENBQVM7UUFDZix3QkFBbUIsR0FBbkIsbUJBQW1CLENBQVE7UUFDM0IsaUJBQVksR0FBWixZQUFZLENBQVE7UUFDcEIsY0FBUyxHQUFULFNBQVMsQ0FBUTtRQUNqQixhQUFRLEdBQVIsUUFBUSxDQUFTO1FBSWpDLElBQUksQ0FBQyxhQUFhLEdBQUcsSUFBSSxDQUFDLG1CQUFtQixHQUFHLE9BQU8sQ0FBQztRQUN4RCxJQUFJLENBQUMsTUFBTSxHQUFHLElBQUksT0FBTyxDQUFDLElBQUksQ0FBQyxHQUFHLENBQUMsTUFBTSxDQUFDLENBQUMsQ0FBQyxFQUFFLElBQUksQ0FBQyxHQUFHLENBQUMsTUFBTSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7UUFFbEUsTUFBTSxPQUFPLEdBQUcsVUFBVTthQUN2QixHQUFHLENBQUMsUUFBUSxDQUFDO2FBQ2IsR0FBRyxDQUFDLENBQUMsQ0FBQzthQUNOLFNBQVMsQ0FBQyxRQUFRLENBQUMsWUFBWSxDQUFDLENBQUMsbUJB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

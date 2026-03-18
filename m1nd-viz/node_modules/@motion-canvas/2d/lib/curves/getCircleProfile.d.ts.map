@@ -1,0 +1,1 @@
+{"version":3,"file":"getCircleProfile.d.ts","sourceRoot":"","sources":["../../src/lib/curves/getCircleProfile.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,OAAO,EAAC,MAAM,qBAAqB,CAAC;AAE5C,OAAO,EAAC,YAAY,EAAC,MAAM,gBAAgB,CAAC;AAI5C,wBAAgB,gBAAgB,CAC9B,IAAI,EAAE,OAAO,EACb,UAAU,EAAE,MAAM,EAClB,QAAQ,EAAE,MAAM,EAChB,MAAM,EAAE,OAAO,EACf,gBAAgB,UAAQ,GACvB,YAAY,CAkDd"}

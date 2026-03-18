@@ -1,0 +1,33 @@
+.index-module_root__omEd0 {
+  margin-top: -1px;
+  padding: 3px 0 4px;
+  border-top: 2px solid var(--background-color);
+}
+
+.index-module_label__9BJvW {
+  --depth: 0;
+  padding: 4px 0 4px calc(var(--depth) * 22px + 24px);
+  border-radius: var(--radius);
+  user-select: none;
+  cursor: pointer;
+  display: flex;
+}
+.index-module_label__9BJvW:hover {
+  background-color: var(--surface-color-hover);
+}
+.index-module_label__9BJvW.index-module_active__KevXv {
+  --surface-color-hover: none;
+  background-color: var(--theme-overlay);
+  color: var(--theme);
+}
+.index-module_label__9BJvW.index-module_parent__5nc9I {
+  padding-left: calc(var(--depth) * 22px);
+}
+.index-module_label__9BJvW > svg {
+  width: 20px;
+  height: 20px;
+  align-self: center;
+  background-color: var(--background-color);
+  border-radius: var(--radius);
+  margin-right: 8px;
+}

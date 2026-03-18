@@ -1,0 +1,20 @@
+{
+  "name": "m1nd-viz",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "serve": "vite",
+    "build": "vite build",
+    "render": "vite build"
+  },
+  "dependencies": {
+    "@motion-canvas/2d": "^3.17.2",
+    "@motion-canvas/core": "^3.17.2",
+    "@motion-canvas/ui": "^3.17.2",
+    "@motion-canvas/vite-plugin": "^3.17.2",
+    "vite": "^5.4.21"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

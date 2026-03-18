@@ -1,24 +1,13 @@
-# Build
-/target/
-**/*.rs.bk
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# m1nd runtime state (don't commit user data)
+target/
+m1nd-ui/node_modules/
+m1nd-ui/dist/
+*.json
+!package.json
+!tsconfig.json
+!postcss.config.js
 graph_snapshot.json
 plasticity_state.json
-
-# Test artifacts
-/tmp/
-
-# Wiki build intermediate artifacts
-docs/wiki-build/wiki-build/
+antibodies.json
+tremor_state.json
+trust_state.json
+trails/

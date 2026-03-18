@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>world.m1nd.mcp-server</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/cosmophonix/clawd/roomanizer-os/mcp/m1nd/target/release/m1nd-mcp</string>
+        <string>--serve</string>
+        <string>--port</string>
+        <string>1337</string>
+        <string>--stdio</string>
+        <string>--no-gui</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>M1ND_GRAPH_SOURCE</key>
+        <string>/Users/cosmophonix/.m1nd/graph.json</string>
+        <key>M1ND_PLASTICITY_STATE</key>
+        <string>/Users/cosmophonix/.m1nd/plasticity.json</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardErrorPath</key>
+    <string>/Users/cosmophonix/.m1nd/m1nd-mcp.err.log</string>
+    <key>StandardOutPath</key>
+    <string>/Users/cosmophonix/.m1nd/m1nd-mcp.out.log</string>
+    <key>WorkingDirectory</key>
+    <string>/Users/cosmophonix/.m1nd</string>
+</dict>
+</plist>

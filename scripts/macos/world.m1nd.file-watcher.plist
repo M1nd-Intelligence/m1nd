@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>world.m1nd.file-watcher</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>python3</string>
+        <string>/Users/cosmophonix/.m1nd/file-watcher.py</string>
+    </array>
+    <key>WatchPaths</key>
+    <array>
+        <string>/Users/cosmophonix/clawd/crush</string>
+        <string>/Users/cosmophonix/clawd/roomanizer-os</string>
+        <string>/Users/cosmophonix/clawd/openclaw</string>
+        <string>/Users/cosmophonix/clawd/RESON</string>
+        <string>/Users/cosmophonix/clawd/kosmo-only</string>
+        <string>/Users/cosmophonix/clawd/jimi-cli-ui</string>
+        <string>/Users/cosmophonix/clawd/crush-work</string>
+    </array>
+    <key>StandardErrorPath</key>
+    <string>/Users/cosmophonix/.m1nd/watcher.err.log</string>
+    <key>StandardOutPath</key>
+    <string>/Users/cosmophonix/.m1nd/watcher.out.log</string>
+    <key>WorkingDirectory</key>
+    <string>/Users/cosmophonix/.m1nd</string>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+</dict>
+</plist>

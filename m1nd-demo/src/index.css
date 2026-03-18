@@ -1,0 +1,81 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #080C14;
+  color: #E8EDF5;
+}
+
+/* Font stack with font-display: swap to prevent FOUT blocking */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-display: swap;
+  src: local('JetBrains Mono'), local('JetBrainsMono-Regular');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-display: swap;
+  src: local('JetBrains Mono Bold'), local('JetBrainsMono-Bold');
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* Font stack -- prefer JetBrains Mono, fall back gracefully */
+body {
+  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "SF Mono", "Consolas", monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #0F1420; }
+::-webkit-scrollbar-thumb { background: #3A4A6B; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #00D4FF40; }
+
+/* Prevent text selection during presentation */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Glow utilities */
+.glow-cyan { text-shadow: 0 0 20px #00D4FF80; }
+.glow-gold { text-shadow: 0 0 20px #FFD70080; }
+.glow-magenta { text-shadow: 0 0 20px #FF00AA80; }
+.glow-green { text-shadow: 0 0 20px #00FF8880; }
+
+/* Consolidated cursor blink keyframe -- used by all scenes */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Focus visible for keyboard navigation */
+a:focus-visible {
+  outline: 2px solid rgba(0, 212, 255, 0.5);
+  outline-offset: 4px;
+}
+
+button:focus-visible {
+  outline: 2px solid rgba(0, 212, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Prefers reduced motion: disable all animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

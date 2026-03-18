@@ -1,0 +1,1 @@
+{"version":3,"file":"TimeEvent.d.ts","sourceRoot":"","sources":["../../../src/scenes/timeEvents/TimeEvent.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,MAAM,WAAW,SAAS;IACxB;;OAEG;IACH,IAAI,EAAE,MAAM,CAAC;IACb;;;;;;;OAOG;IACH,WAAW,EAAE,MAAM,CAAC;IACpB;;;OAGG;IACH,UAAU,EAAE,MAAM,CAAC;IACnB;;OAEG;IACH,MAAM,EAAE,MAAM,CAAC;IACf;;OAEG;IACH,KAAK,CAAC,EAAE,MAAM,CAAC;CAChB"}

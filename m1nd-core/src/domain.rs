@@ -49,11 +49,8 @@ impl DomainConfig {
     /// Music production / DAW domain
     pub fn music() -> Self {
         let mut half_lives = HashMap::new();
-        // Rooms/buses are structural (slow decay)
         half_lives.insert(NodeType::System, 720.0); // 30 days (rooms, buses)
-                                                    // Plugins/effects change more often
         half_lives.insert(NodeType::Process, 336.0); // 14 days (plugins, effects)
-                                                     // Parameters change constantly
         half_lives.insert(NodeType::Material, 168.0); // 7 days (audio signals)
         half_lives.insert(NodeType::Concept, 504.0); // 21 days (presets, templates)
         Self {
@@ -77,7 +74,7 @@ impl DomainConfig {
         Self {
             name: "generic".into(),
             half_lives: HashMap::new(),
-            default_half_life: 336.0, // 14 days
+            default_half_life: 336.0,
             relations: vec![
                 "contains".into(),
                 "references".into(),
@@ -111,6 +108,40 @@ impl DomainConfig {
                 "supersedes".into(),
                 "decided".into(),
                 "tracks".into(),
+            ],
+            git_co_change: false,
+        }
+    }
+
+    /// L1GHT protocol / graph-native artifact domain
+    pub fn light() -> Self {
+        let mut half_lives = HashMap::new();
+        half_lives.insert(NodeType::File, 1440.0); // 60 days
+        half_lives.insert(NodeType::Module, 1080.0); // 45 days
+        half_lives.insert(NodeType::Concept, 1080.0); // 45 days
+        half_lives.insert(NodeType::Process, 720.0); // 30 days
+        half_lives.insert(NodeType::Reference, 840.0); // 35 days
+        half_lives.insert(NodeType::System, 1440.0); // 60 days
+        Self {
+            name: "light".into(),
+            half_lives,
+            default_half_life: 840.0,
+            relations: vec![
+                "contains_section".into(),
+                "defines_protocol".into(),
+                "has_state".into(),
+                "has_glyph".into(),
+                "has_color".into(),
+                "has_metadata".into(),
+                "depends_on".into(),
+                "next_binding".into(),
+                "declares_entity".into(),
+                "declares_event".into(),
+                "declares_state".into(),
+                "declares_test".into(),
+                "declares_blocker".into(),
+                "declares_warning".into(),
+                "binds_to".into(),
             ],
             git_co_change: false,
         }

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@motion-canvas/2d/lib",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@motion-canvas/core": ["node_modules/@motion-canvas/core"],
+      "@motion-canvas/2d": ["node_modules/@motion-canvas/2d"]
+    }
+  },
+  "include": ["src"]
+}

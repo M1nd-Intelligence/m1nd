@@ -15,8 +15,6 @@ X='\033[0m'
 
 M1ND="http://localhost:1337/api/tools"
 TMP=$(mktemp -d)
-# Path to the codebase you want to analyze — set this to any directory with source code
-CODEBASE_PATH="${CODEBASE_PATH:-$HOME/your-codebase}"
 trap "rm -rf $TMP" EXIT
 
 q() {
@@ -59,7 +57,7 @@ echo ""
 echo -e "${W}  m1nd${X}"
 echo ""
 
-q r1 ingest "{\"agent_id\":\"d\",\"path\":\"${CODEBASE_PATH}\",\"adapter\":\"code\",\"mode\":\"replace\"}"
+q r1 ingest '{"agent_id":"d","path":"/Users/cosmophonix/clawd/roomanizer-os/backend","adapter":"code","mode":"replace"}'
 q r2 activate '{"agent_id":"d","query":"rate limiting and provider fallback","top_k":8}'
 q r3 impact '{"agent_id":"d","node_id":"file::chat_handler.py","direction":"both"}'
 q r4 hypothesize '{"agent_id":"d","claim":"worker_pool has runtime dependency on whatsapp_manager through process_manager"}'

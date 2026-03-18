@@ -1,0 +1,5 @@
+import { useScene } from '@motion-canvas/core';
+export function useScene2D() {
+    return useScene();
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoidXNlU2NlbmUyRC5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uL3NyYy9saWIvc2NlbmVzL3VzZVNjZW5lMkQudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsT0FBTyxFQUFDLFFBQVEsRUFBQyxNQUFNLHFCQUFxQixDQUFDO0FBRzdDLE1BQU0sVUFBVSxVQUFVO0lBQ3hCLE9BQWdCLFFBQVEsRUFBRSxDQUFDO0FBQzdCLENBQUMifQ==

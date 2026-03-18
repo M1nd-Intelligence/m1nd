@@ -1,0 +1,1 @@
+{"version":3,"file":"CurveProfile.d.ts","sourceRoot":"","sources":["../../src/lib/curves/CurveProfile.ts"],"names":[],"mappings":"AAAA,OAAO,EAAC,OAAO,EAAC,MAAM,WAAW,CAAC;AAElC,MAAM,WAAW,YAAY;IAC3B,SAAS,EAAE,MAAM,CAAC;IAClB,QAAQ,EAAE,OAAO,EAAE,CAAC;IACpB,MAAM,EAAE,MAAM,CAAC;CAChB"}

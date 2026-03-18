@@ -19,9 +19,6 @@ M1ND="http://localhost:1337/api/tools"
 AGENT="demo"
 TOTAL_MS=0
 
-# Path to the codebase you want to analyze — set this to any directory with source code
-CODEBASE_PATH="${CODEBASE_PATH:-$HOME/your-codebase}"
-
 banner() {
     echo ""
     echo -e "${WHITE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
@@ -57,7 +54,7 @@ $1
 banner "ACT 1: SPEED — 7 queries against a 52K-line production backend"
 # =====================================================================
 
-echo -e "${DIM}Target: ${CODEBASE_PATH}${RESET}"
+echo -e "${DIM}Target: /Users/cosmophonix/clawd/roomanizer-os/backend (370 .py files, 160K lines)${RESET}"
 echo ""
 sleep 1
 
@@ -65,7 +62,7 @@ sleep 1
 echo -ne "${CYAN}[ingest]${RESET} ingesting backend... "
 T1=$(python3 -c "import time; print(int(time.time()*1000))")
 R1=$(curl -s "$M1ND/m1nd.ingest" -H 'Content-Type: application/json' \
-    -d "{\"agent_id\":\"demo\",\"path\":\"${CODEBASE_PATH}\",\"adapter\":\"code\",\"mode\":\"replace\"}" 2>/dev/null)
+    -d '{"agent_id":"demo","path":"/Users/cosmophonix/clawd/roomanizer-os/backend","adapter":"code","mode":"replace"}' 2>/dev/null)
 T2=$(python3 -c "import time; print(int(time.time()*1000))")
 E1=$((T2 - T1))
 TOTAL_MS=$((TOTAL_MS + E1))
@@ -162,14 +159,14 @@ sleep 1
 
 echo -ne "${RED}[grep]${RESET} grep -r \"rate_limit\" backend/ ... "
 T1=$(python3 -c "import time; print(int(time.time()*1000))")
-GREP1=$(grep -r "rate_limit" "${CODEBASE_PATH}" 2>/dev/null | wc -l)
+GREP1=$(grep -r "rate_limit" /Users/cosmophonix/clawd/roomanizer-os/backend/*.py 2>/dev/null | wc -l)
 T2=$(python3 -c "import time; print(int(time.time()*1000))")
 echo -e "${YELLOW}$((T2-T1))ms${RESET} → ${GREP1} lines. Which ones matter? ${RED}you decide.${RESET}"
 sleep 1
 
 echo -ne "${RED}[grep]${RESET} grep -r \"cancel.*pool\\|pool.*cancel\" backend/ ... "
 T1=$(python3 -c "import time; print(int(time.time()*1000))")
-GREP2=$(grep -r "cancel.*pool\|pool.*cancel" "${CODEBASE_PATH}" 2>/dev/null | wc -l)
+GREP2=$(grep -r "cancel.*pool\|pool.*cancel" /Users/cosmophonix/clawd/roomanizer-os/backend/*.py 2>/dev/null | wc -l)
 T2=$(python3 -c "import time; print(int(time.time()*1000))")
 echo -e "${YELLOW}$((T2-T1))ms${RESET} → ${GREP2} lines. Are there runtime deps? ${RED}can't tell.${RESET}"
 sleep 1

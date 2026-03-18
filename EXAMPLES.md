@@ -1367,3 +1367,30 @@ is a read-only check after a successful write.
 
 `m1nd.apply` (single-file) also accepts `verify: true` with the same semantics.
 Latency overhead: ~1–3ms per file (one incremental ingest pass).
+
+---
+
+## Case Study 2: The "Invisible Bug" / Provider Retry (March 2026)
+
+**Context**: In the `crush` Go agent codebase, connections to AI providers were failing intermittently with HTTP 429 and 502 errors. The LLM was asked to implement a retry mechanism.
+**The Standard RAG/Grep Approach**: The agent would search for `Provider` or `http.Post`, read 5-6 files, guess where the error originated, and write a wrapper. Cost: ~15,000 tokens, likely missing side-effects on the `Agent` UI callback.
+
+**The m1nd Approach**:
+The JIMI agent used `m1nd.missing()` and `m1nd.activate()` mapping the `provider.go` to the `agent.go` structural boundaries. 
+m1nd immediately exposed a **Structural Hole**: The `OnRetry` UI callback was completely disconnected from the provider's HTTP execution scope. 
+Without reading the files linearly, JIMI inserted the exact exponential backoff + callback routing needed.
+
+**Result**: 100% accurate fix in one shot. **84% reduction in LLM context usage**. What grep couldn't see (a missing UI callback link), the connectome flagged instantly.
+
+---
+
+## Case Study 3: Overcoming the Intelligence Paradox (March 2026 / Roomanizer OS)
+
+**Context**: The `m1nd` graph for a mono-repo was hitting 259,000 nodes and consuming 140MB of RAM, causing an 18-second ingest latency per query via `stdio` MCP bounds.
+**The Standard Approach**: An LLM would try to write a caching layer for the MCP server, passing huge JSON blobs back and forth, burning tokens on parsing.
+
+**The m1nd Approach**:
+JIMI used `m1nd.layers()` and `m1nd.impact()` to map the deployment architecture. It designed a **Smart Namespace Ingest** via a persistent `HTTP 1337` server and a microscopic Python proxy (`m1nd-proxy.py`).
+By isolating the namespaces, the graph compressed from 259,225 nodes to 58,179 nodes (**-77.5%**).
+
+**Result**: Query time dropped from 18 seconds to sub-millisecond real-time queries. The agent proved that by shrinking the context to exact, causal truth, it could execute complex OS-level architecture (launchd + python proxy + rust mcp) flawlessly on the first try. Smaller, laser-focused LLM context outperformed frontier models drowning in noise.

@@ -1,0 +1,21 @@
+import { BBox, Spacing, Vector2 } from '@motion-canvas/core';
+import { CanvasStyle, Gradient, Pattern, PossibleCanvasStyle } from '../partials';
+export declare function canvasStyleParser(style: PossibleCanvasStyle): Gradient | Pattern | import("chroma-js").Color | null;
+export declare function resolveCanvasStyle(style: CanvasStyle, context: CanvasRenderingContext2D): string | CanvasGradient | CanvasPattern;
+export declare function drawRoundRect(context: CanvasRenderingContext2D | Path2D, rect: BBox, radius: Spacing, smoothCorners: boolean, cornerSharpness: number): void;
+export declare function adjustRectRadius(radius: number, horizontal: number, vertical: number, rect: BBox): number;
+export declare function drawRect(context: CanvasRenderingContext2D | Path2D, rect: BBox): void;
+export declare function fillRect(context: CanvasRenderingContext2D, rect: BBox): void;
+export declare function strokeRect(context: CanvasRenderingContext2D, rect: BBox): void;
+export declare function drawPolygon(path: CanvasRenderingContext2D | Path2D, rect: BBox, sides: number): void;
+export declare function drawImage(context: CanvasRenderingContext2D, image: CanvasImageSource, destination: BBox): void;
+export declare function drawImage(context: CanvasRenderingContext2D, image: CanvasImageSource, source: BBox, destination: BBox): void;
+export declare function moveTo(context: CanvasRenderingContext2D | Path2D, position: Vector2): void;
+export declare function lineTo(context: CanvasRenderingContext2D | Path2D, position: Vector2): void;
+export declare function arcTo(context: CanvasRenderingContext2D | Path2D, through: Vector2, position: Vector2, radius: number): void;
+export declare function drawLine(context: CanvasRenderingContext2D | Path2D, points: Vector2[]): void;
+export declare function drawPivot(context: CanvasRenderingContext2D | Path2D, offset: Vector2, radius?: number): void;
+export declare function arc(context: CanvasRenderingContext2D | Path2D, center: Vector2, radius: number, startAngle?: number, endAngle?: number, counterclockwise?: boolean): void;
+export declare function bezierCurveTo(context: CanvasRenderingContext2D | Path2D, controlPoint1: Vector2, controlPoint2: Vector2, to: Vector2): void;
+export declare function quadraticCurveTo(context: CanvasRenderingContext2D | Path2D, controlPoint: Vector2, to: Vector2): void;
+//# sourceMappingURL=CanvasUtils.d.ts.map
