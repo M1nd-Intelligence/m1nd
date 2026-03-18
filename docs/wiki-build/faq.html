@@ -1,0 +1,469 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>FAQ - m1nd Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Complete documentation for m1nd — the neuro-symbolic connectome engine">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-2459343d.css">
+        <link rel="stylesheet" href="css/chrome-ae938929.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/custom-a18dc32c.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "navy";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex-93e3b672.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-35a7562c.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('navy')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">m1nd Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/maxkle1nz/m1nd" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/maxkle1nz/m1nd/edit/main/docs/wiki/src/src/faq.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                            <span class=fa-svg id="git-edit-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M421.7 220.3l-11.3 11.3-22.6 22.6-205 205c-6.6 6.6-14.8 11.5-23.8 14.1L30.8 511c-8.4 2.5-17.5 .2-23.7-6.1S-1.5 489.7 1 481.2L38.7 353.1c2.6-9 7.5-17.2 14.1-23.8l205-205 22.6-22.6 11.3-11.3 33.9 33.9 62.1 62.1 33.9 33.9zM96 353.9l-9.3 9.3c-.9 .9-1.6 2.1-2 3.4l-25.3 86 86-25.3c1.3-.4 2.5-1.1 3.4-2l9.3-9.3H112c-8.8 0-16-7.2-16-16V353.9zM453.3 19.3l39.4 39.4c25 25 25 65.5 0 90.5l-14.5 14.5-22.6 22.6-11.3 11.3-33.9-33.9-62.1-62.1L314.3 67.7l11.3-11.3 22.6-22.6 14.5-14.5c25-25 65.5-25 90.5 0z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="frequently-asked-questions"><a class="header" href="#frequently-asked-questions">Frequently Asked Questions</a></h1>
+<h2 id="why-m1nd"><a class="header" href="#why-m1nd">Why m1nd?</a></h2>
+<h3 id="why-not-just-use-grepripgrep"><a class="header" href="#why-not-just-use-grepripgrep">Why not just use grep/ripgrep?</a></h3>
+<p>Grep finds text. m1nd finds structure, relationships, and consequences. Grep tells you “this string appears on line 47 of auth.py.” m1nd tells you “auth.py is structurally connected to 12 modules, and changing it cascades to 4,271 nodes across 3 layers.” Grep answers in 5ms but cannot reason about dependencies, simulate deletions, or learn which results were useful. m1nd answers in 31ms and gets smarter every time you use it. Use both: grep for exact text, m1nd for structural reasoning.</p>
+<h3 id="how-does-m1nd-compare-to-ai-powered-code-search-cursor-github-copilot-search"><a class="header" href="#how-does-m1nd-compare-to-ai-powered-code-search-cursor-github-copilot-search">How does m1nd compare to AI-powered code search (Cursor, GitHub Copilot search)?</a></h3>
+<p>AI-powered code search sends your query (and often your code) to an LLM, costing tokens per search. Cursor’s codebase indexing and Copilot’s @workspace search embed your code into vectors and retrieve top-K chunks – each query burns $0.05-$0.50 in API costs. m1nd runs locally in Rust with zero LLM calls, zero tokens, and zero network round-trips. A spreading activation query returns ranked results in 31ms at $0.00. m1nd also maintains a persistent graph that learns from feedback via Hebbian plasticity – something no embedding-based search can do.</p>
+<h3 id="whats-the-real-cost-of-llm-based-code-search"><a class="header" href="#whats-the-real-cost-of-llm-based-code-search">What’s the real cost of LLM-based code search?</a></h3>
+<p>Every LLM-based code search burns tokens: the query, the retrieved context, and the model’s processing. At 100 searches per day, that is $5-$50/day per developer in API costs alone. In early 2026, Cursor users reported monthly overages exceeding $22,000 for teams with heavy codebase search usage. m1nd processes the same queries locally for $0.00 – no API keys, no cloud egress, no token metering, no surprise bills. The 8MB binary pays for itself on day one.</p>
+<h3 id="does-m1nd-replace-my-ides-search"><a class="header" href="#does-m1nd-replace-my-ides-search">Does m1nd replace my IDE’s search?</a></h3>
+<p>No. m1nd complements your IDE’s search, not replaces it. Use your IDE’s go-to-definition and find-references for precise, language-server-powered navigation. Use grep/ripgrep for fast text matching. Use m1nd for the questions those tools cannot answer: blast radius analysis, counterfactual simulation (“what breaks if I delete this module?”), structural hole detection (“what is missing?”), and hypothesis testing. m1nd adds a reasoning layer on top of your existing toolchain through 43 MCP tools that any compatible editor can call.</p>
+<h3 id="why-local-first-why-not-cloud"><a class="header" href="#why-local-first-why-not-cloud">Why local-first? Why not cloud?</a></h3>
+<p>Three reasons: cost, privacy, and latency. Cloud code search means your proprietary code leaves your machine on every query, each query costs tokens, and network round-trips add 100-500ms of latency. m1nd runs as a single 8MB binary on your machine. Your code never leaves localhost. Queries resolve in 31-77ms. There are no API keys to manage, no cloud accounts to provision, no egress fees, and no vendor lock-in. The graph persists to a local JSON file you own and can inspect, copy, or delete at any time.</p>
+<h3 id="what-makes-m1nd-agent-native"><a class="header" href="#what-makes-m1nd-agent-native">What makes m1nd “agent-native”?</a></h3>
+<p>m1nd was built from the ground up as an MCP server, not retrofitted. It exposes 61 tools that AI agents call natively – spreading activation, impact analysis, counterfactual simulation, hypothesis testing, and a full Perspective navigation system with 12 stateful tools for browsing the code graph. Multiple agents share the same graph instance simultaneously, each with isolated perspectives. The graph learns from agent feedback via Hebbian plasticity, getting smarter with every interaction. No other code intelligence tool provides persistent, learning, multi-agent structural reasoning over MCP.</p>
+<hr>
+<h2 id="general"><a class="header" href="#general">General</a></h2>
+<h3 id="what-is-m1nd"><a class="header" href="#what-is-m1nd">What is m1nd?</a></h3>
+<p>m1nd is a neuro-symbolic connectome engine for code intelligence. It parses your codebase into a weighted graph and provides 43 MCP tools for querying, learning, and navigating it. Built in Rust, it runs locally as an MCP server and works with any MCP-compatible AI agent (Claude Code, Cursor, Windsurf, Zed, etc.).</p>
+<p>The key differentiator: the graph <em>learns</em>. When you tell m1nd which results were useful and which were not, it adjusts edge weights via Hebbian plasticity. Over time, the graph adapts to how your team thinks about your codebase.</p>
+<h3 id="how-is-m1nd-different-from-grep--ripgrep"><a class="header" href="#how-is-m1nd-different-from-grep--ripgrep">How is m1nd different from grep / ripgrep?</a></h3>
+<p>Grep finds <em>text</em>. m1nd finds <em>structure and relationships</em>.</p>
+<p>Grep tells you which files contain the word “authentication”. m1nd tells you which modules are structurally connected to authentication, which ones are likely co-changed when auth changes, which hidden dependencies exist between auth and seemingly unrelated modules, and what would break if you removed the auth module.</p>
+<p>Grep is fast and essential. m1nd answers questions that grep cannot even formulate.</p>
+<h3 id="how-is-m1nd-different-from-rag"><a class="header" href="#how-is-m1nd-different-from-rag">How is m1nd different from RAG?</a></h3>
+<p>RAG (Retrieval-Augmented Generation) embeds code chunks into vectors and retrieves the top-K most similar chunks for each query. Each retrieval is independent – RAG has no memory of previous queries and no understanding of relationships between results.</p>
+<p>m1nd maintains a persistent graph where relationships are first-class citizens. The graph learns from feedback, remembers investigations across sessions, and can answer structural questions (“what breaks if I delete X?”, “does A depend on B at runtime?”) that RAG cannot.</p>
+<p>RAG is useful for semantic similarity search. m1nd is useful for structural reasoning. They are complementary, not competing.</p>
+<h3 id="how-is-m1nd-different-from-static-analysis-tools-tree-sitter-ast-grep-sourcegraph"><a class="header" href="#how-is-m1nd-different-from-static-analysis-tools-tree-sitter-ast-grep-sourcegraph">How is m1nd different from static analysis tools (tree-sitter, ast-grep, Sourcegraph)?</a></h3>
+<p>Static analysis tools parse code into ASTs and compute call graphs, type hierarchies, and cross-references. These are accurate but frozen – they represent the code at a single point in time and cannot answer “what if?” questions.</p>
+<p>m1nd uses similar structural information as a starting point but adds three things static analysis cannot: (1) Hebbian learning that adapts the graph based on usage, (2) temporal intelligence from co-change history, and (3) simulation engines for hypotheses and counterfactuals.</p>
+<p>Sourcegraph is a search engine. m1nd is a reasoning engine.</p>
+<h3 id="do-i-need-an-llm-to-use-m1nd"><a class="header" href="#do-i-need-an-llm-to-use-m1nd">Do I need an LLM to use m1nd?</a></h3>
+<p>No. m1nd makes zero LLM calls. It is pure Rust computation: graph algorithms, spreading activation, Hebbian plasticity. No API keys, no network calls, no token costs.</p>
+<p>m1nd is designed to <em>work alongside</em> LLMs (as an MCP tool that agents call), but the graph engine itself is completely self-contained.</p>
+<h3 id="what-languages-does-m1nd-support"><a class="header" href="#what-languages-does-m1nd-support">What languages does m1nd support?</a></h3>
+<p>m1nd has dedicated extractors for:</p>
+<ul>
+<li>Python (.py)</li>
+<li>Rust (.rs)</li>
+<li>TypeScript (.ts, .tsx)</li>
+<li>JavaScript (.js, .jsx)</li>
+<li>Go (.go)</li>
+<li>Java (.java)</li>
+</ul>
+<p>All other file types use a generic fallback extractor that identifies functions, classes, and imports through heuristic pattern matching. The generic extractor produces a less detailed graph but still captures useful structure.</p>
+<p>Tree-sitter integration is planned, which would add support for 64+ languages.</p>
+<h3 id="is-m1nd-open-source"><a class="header" href="#is-m1nd-open-source">Is m1nd open source?</a></h3>
+<p>Yes. MIT license. Source at <a href="https://github.com/cosmophonix/m1nd">github.com/cosmophonix/m1nd</a>.</p>
+<hr>
+<h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
+<h3 id="what-platforms-does-m1nd-support"><a class="header" href="#what-platforms-does-m1nd-support">What platforms does m1nd support?</a></h3>
+<p>Any platform where Rust compiles. Tested on:</p>
+<ul>
+<li>macOS (ARM64 and x86_64)</li>
+<li>Linux (x86_64, ARM64)</li>
+<li>Windows (x86_64)</li>
+</ul>
+<h3 id="what-is-the-minimum-rust-version"><a class="header" href="#what-is-the-minimum-rust-version">What is the minimum Rust version?</a></h3>
+<p>Rust 1.75 or later. The project uses the 2021 edition.</p>
+<h3 id="how-large-is-the-binary"><a class="header" href="#how-large-is-the-binary">How large is the binary?</a></h3>
+<p>Approximately 8MB for a release build. No runtime dependencies, no shared libraries. The binary is fully self-contained.</p>
+<h3 id="can-i-install-from-cratesio"><a class="header" href="#can-i-install-from-cratesio">Can I install from crates.io?</a></h3>
+<p>Not yet. For now, build from source:</p>
+<pre><code class="language-bash">git clone https://github.com/maxkle1nz/m1nd.git
+cd m1nd &amp;&amp; cargo build --release
+</code></pre>
+<p>Yes: <code>cargo install m1nd-mcp</code></p>
+<hr>
+<h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
+<h3 id="how-many-files-can-m1nd-handle"><a class="header" href="#how-many-files-can-m1nd-handle">How many files can m1nd handle?</a></h3>
+<p>Tested up to 10,000+ files. At ~2MB of memory for 10,000 nodes, a 100K-file codebase would need roughly 20MB for the graph. This is well within modern machine capacity.</p>
+<p>At 400K+ files, the in-memory graph starts to become a consideration (~80MB), but it still works. m1nd was optimized for codebases in the 100 to 50,000 file range.</p>
+<h3 id="does-it-work-with-non-code-files"><a class="header" href="#does-it-work-with-non-code-files">Does it work with non-code files?</a></h3>
+<p>Yes. m1nd has a <code>json</code> adapter for structured data and a <code>memory</code> adapter for text corpora. You can also use the generic fallback extractor for any text file. The graph is not limited to source code – it is a general-purpose knowledge graph that happens to have excellent code extractors.</p>
+<h3 id="how-much-memory-does-m1nd-use"><a class="header" href="#how-much-memory-does-m1nd-use">How much memory does m1nd use?</a></h3>
+<p>The graph itself is compact: ~2MB for a 10,000-node graph with 26,000 edges (Compressed Sparse Row format). The MCP server process uses additional memory for the JSON-RPC layer, perspective state, lock baselines, and trail storage. A typical production instance serving a 335-file codebase uses under 50MB total.</p>
+<h3 id="can-i-ingest-multiple-codebases-into-one-graph"><a class="header" href="#can-i-ingest-multiple-codebases-into-one-graph">Can I ingest multiple codebases into one graph?</a></h3>
+<p>Yes, through the <code>federate</code> tool. It ingests multiple repositories into a unified graph with automatic cross-repository edge detection:</p>
+<pre><code class="language-jsonc">{"method":"tools/call","params":{"name":"m1nd.federate","arguments":{
+  "agent_id":"dev",
+  "repos":[
+    {"name":"backend","path":"/project/backend"},
+    {"name":"frontend","path":"/project/frontend"}
+  ]
+}}}
+</code></pre>
+<h3 id="can-i-do-incremental-ingests"><a class="header" href="#can-i-do-incremental-ingests">Can I do incremental ingests?</a></h3>
+<p>Yes. Pass <code>"incremental": true</code> to the <code>ingest</code> tool. Incremental ingest only re-processes files that changed since the last ingest, preserving learned edge weights for unchanged regions.</p>
+<hr>
+<h2 id="architecture"><a class="header" href="#architecture">Architecture</a></h2>
+<h3 id="where-is-the-graph-stored"><a class="header" href="#where-is-the-graph-stored">Where is the graph stored?</a></h3>
+<p>In memory during runtime. Optionally persisted to JSON files on disk via the <code>M1ND_GRAPH_SOURCE</code> and <code>M1ND_PLASTICITY_STATE</code> environment variables.</p>
+<p>Without persistence configured, the graph is lost when the process exits. Always configure persistence for production use.</p>
+<h3 id="how-often-does-it-persist"><a class="header" href="#how-often-does-it-persist">How often does it persist?</a></h3>
+<p>By default, every 50 queries. Also on shutdown. The <code>auto_persist_interval</code> configuration parameter controls this.</p>
+<h3 id="can-i-export-the-graph"><a class="header" href="#can-i-export-the-graph">Can I export the graph?</a></h3>
+<p>The persisted graph state is a JSON file (<code>graph_snapshot.json</code>). You can read, copy, and process it with standard JSON tools. The format includes all nodes, edges, PageRank scores, and metadata.</p>
+<p>The plasticity state is a separate JSON file (<code>plasticity_state.json</code>) containing per-edge synaptic records (learned weights).</p>
+<h3 id="what-is-the-graph-format"><a class="header" href="#what-is-the-graph-format">What is the graph format?</a></h3>
+<p>Compressed Sparse Row (CSR) with forward and reverse adjacency lists. Each node has an external ID (e.g., <code>file::auth.py</code>), a type (file, class, function, module), metadata, and a PageRank score. Each edge has a type (imports, calls, inherits, co_change), a base weight, and an optional plasticity weight.</p>
+<h3 id="what-is-xlr-noise-cancellation"><a class="header" href="#what-is-xlr-noise-cancellation">What is XLR noise cancellation?</a></h3>
+<p>Borrowed from professional audio engineering. Like a balanced XLR cable, m1nd transmits the activation signal on two inverted channels and subtracts common-mode noise at the receiver. This reduces false positives in activation queries by cancelling out signals that propagate through generic hub nodes (like <code>config.py</code> or <code>utils.py</code>) rather than through meaningful structural paths.</p>
+<p>XLR is enabled by default. Pass <code>"xlr": false</code> to <code>activate</code> to disable it for a single query.</p>
+<hr>
+<h2 id="mcp-protocol"><a class="header" href="#mcp-protocol">MCP Protocol</a></h2>
+<h3 id="what-mcp-clients-work-with-m1nd"><a class="header" href="#what-mcp-clients-work-with-m1nd">What MCP clients work with m1nd?</a></h3>
+<p>Any client that speaks MCP over stdio. Tested and verified:</p>
+<ul>
+<li>Claude Code</li>
+<li>Cursor</li>
+<li>Windsurf</li>
+<li>Zed</li>
+<li>Cline</li>
+<li>Roo Code</li>
+<li>Continue</li>
+<li>OpenCode</li>
+<li>GitHub Copilot (MCP mode)</li>
+<li>Amazon Q Developer</li>
+</ul>
+<h3 id="can-i-use-m1nd-without-mcp"><a class="header" href="#can-i-use-m1nd-without-mcp">Can I use m1nd without MCP?</a></h3>
+<p>The server speaks JSON-RPC over stdio, which is the MCP transport. You can send raw JSON-RPC from any program that can write to stdin and read from stdout. No MCP client library is required – the protocol is just JSON over pipes.</p>
+<h3 id="what-mcp-protocol-version-does-m1nd-implement"><a class="header" href="#what-mcp-protocol-version-does-m1nd-implement">What MCP protocol version does m1nd implement?</a></h3>
+<p>Protocol version <code>2024-11-05</code>. The server reports this in the <code>initialize</code> response.</p>
+<h3 id="does-m1nd-support-mcp-notifications"><a class="header" href="#does-m1nd-support-mcp-notifications">Does m1nd support MCP notifications?</a></h3>
+<p>Yes. The server silently ignores incoming notifications per the MCP specification.</p>
+<hr>
+<h2 id="performance"><a class="header" href="#performance">Performance</a></h2>
+<h3 id="how-fast-is-spreading-activation"><a class="header" href="#how-fast-is-spreading-activation">How fast is spreading activation?</a></h3>
+<p>31-77ms for a 9,767-node graph, returning 15-20 ranked results. The variance depends on query specificity and graph density around the activated region.</p>
+<h3 id="how-fast-is-ingest"><a class="header" href="#how-fast-is-ingest">How fast is ingest?</a></h3>
+<p>910ms for 335 Python files producing 9,767 nodes and 26,557 edges. This includes parsing, reference resolution, edge creation, and PageRank computation.</p>
+<h3 id="how-fast-is-learning"><a class="header" href="#how-fast-is-learning">How fast is learning?</a></h3>
+<p>Sub-millisecond. A <code>learn</code> call with feedback on 2-3 nodes adjusts hundreds of edges in under 1ms.</p>
+<h3 id="what-about-100k-files"><a class="header" href="#what-about-100k-files">What about 100K files?</a></h3>
+<p>Ingest would take roughly 30-45 seconds (linear scaling from the 335-file benchmark). Activation would be 100-200ms. The graph would occupy ~20MB in memory. These are estimates – actual performance depends on code density and language.</p>
+<h3 id="what-is-the-lock-diff-speed"><a class="header" href="#what-is-the-lock-diff-speed">What is the lock diff speed?</a></h3>
+<p>0.08 microseconds (80 nanoseconds). Lock diff is a constant-time operation – it compares fingerprints, not individual nodes. It is essentially free.</p>
+<h3 id="full-benchmark-table"><a class="header" href="#full-benchmark-table">Full benchmark table</a></h3>
+<p>All numbers from real execution against a production Python backend (335 files, ~52K lines):</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Operation</th><th>Time</th><th>Scale</th></tr>
+</thead>
+<tbody>
+<tr><td>Full ingest</td><td>910ms</td><td>335 files, 9,767 nodes, 26,557 edges</td></tr>
+<tr><td>Spreading activation</td><td>31-77ms</td><td>15 results from 9,767 nodes</td></tr>
+<tr><td>Blast radius (depth=3)</td><td>5-52ms</td><td>Up to 4,271 affected nodes</td></tr>
+<tr><td>Stacktrace analysis</td><td>3.5ms</td><td>5 frames, 4 suspects ranked</td></tr>
+<tr><td>Plan validation</td><td>10ms</td><td>7 files, 43,152 blast radius</td></tr>
+<tr><td>Counterfactual cascade</td><td>3ms</td><td>Full BFS on 26,557 edges</td></tr>
+<tr><td>Hypothesis testing</td><td>58ms</td><td>25,015 paths explored</td></tr>
+<tr><td>Pattern scan (all 8)</td><td>38ms</td><td>335 files, 50 findings per pattern</td></tr>
+<tr><td>Multi-repo federation</td><td>1.3s</td><td>11,217 nodes, 18,203 cross-repo edges</td></tr>
+<tr><td>Lock diff</td><td>0.08us</td><td>1,639-node subgraph comparison</td></tr>
+<tr><td>Trail merge</td><td>1.2ms</td><td>5 hypotheses, 3 conflicts detected</td></tr>
+</tbody>
+</table>
+</div>
+<hr>
+<h2 id="plasticity-and-learning"><a class="header" href="#plasticity-and-learning">Plasticity and Learning</a></h2>
+<h3 id="how-does-hebbian-learning-work"><a class="header" href="#how-does-hebbian-learning-work">How does Hebbian learning work?</a></h3>
+<p>“Neurons that fire together wire together.” When you call <code>learn</code> with <code>feedback: "correct"</code> and a list of node IDs, m1nd identifies all edges on paths between those nodes and increases their weights (Long-Term Potentiation, LTP). When you call with <code>feedback: "wrong"</code>, it decreases weights on paths leading to the marked nodes (Long-Term Depression, LTD).</p>
+<p>The <code>strength</code> parameter (default 0.2) controls how aggressively weights shift. The <code>learning_rate</code> server configuration (default 0.08) provides a global scaling factor.</p>
+<h3 id="can-i-reset-learned-weights"><a class="header" href="#can-i-reset-learned-weights">Can I reset learned weights?</a></h3>
+<p>Yes. Delete the <code>plasticity_state.json</code> file and restart the server. Alternatively, re-ingest the codebase, which rebuilds the graph from scratch (but does not clear the plasticity state file – you need to delete it separately or pass <code>"incremental": false</code> and delete the plasticity file).</p>
+<h3 id="does-the-graph-overfit"><a class="header" href="#does-the-graph-overfit">Does the graph overfit?</a></h3>
+<p>Hebbian learning includes homeostatic normalization to prevent runaway weight amplification. Edge weights are bounded and periodically normalized so that heavily-used paths do not completely dominate. The <code>decay_rate</code> parameter (default 0.005) provides a slow decay toward baseline weights over time.</p>
+<p>In practice, overfitting requires thousands of feedback signals consistently reinforcing the same narrow paths. Normal usage produces a well-distributed weight landscape.</p>
+<h3 id="what-is-partial-feedback"><a class="header" href="#what-is-partial-feedback">What is “partial” feedback?</a></h3>
+<p>The <code>learn</code> tool accepts three feedback types:</p>
+<ul>
+<li><code>correct</code> – strengthen paths (LTP)</li>
+<li><code>wrong</code> – weaken paths (LTD)</li>
+<li><code>partial</code> – mixed signal. Applies a mild strengthening (half the LTP strength) to acknowledged nodes while slightly weakening peripheral paths.</li>
+</ul>
+<hr>
+<h2 id="perspectives"><a class="header" href="#perspectives">Perspectives</a></h2>
+<h3 id="what-are-perspectives"><a class="header" href="#what-are-perspectives">What are perspectives?</a></h3>
+<p>A perspective is a stateful navigation session through the graph. You start one with a query or anchor node, and m1nd synthesizes a “route surface” – a ranked set of paths you can follow. As you navigate (follow, back, branch), the perspective maintains breadcrumb history and updates the route surface.</p>
+<p>Think of it as a browser for the code graph. You have a current “page” (focus node), links (routes), history (back button), and bookmarks (branches).</p>
+<h3 id="how-many-perspectives-can-be-open-simultaneously"><a class="header" href="#how-many-perspectives-can-be-open-simultaneously">How many perspectives can be open simultaneously?</a></h3>
+<p>There is no hard limit. Each perspective occupies a small amount of memory (proportional to the number of visited nodes). In practice, 10-20 concurrent perspectives per agent is typical. Close perspectives you are done with to free memory.</p>
+<h3 id="do-perspectives-persist-across-sessions"><a class="header" href="#do-perspectives-persist-across-sessions">Do perspectives persist across sessions?</a></h3>
+<p>Perspectives are in-memory only and are lost when the server restarts. For persistent investigation state, use the trail system (<code>trail.save</code> / <code>trail.resume</code>).</p>
+<h3 id="can-i-branch-a-perspective"><a class="header" href="#can-i-branch-a-perspective">Can I branch a perspective?</a></h3>
+<p>Yes. <code>perspective.branch</code> forks the current navigation state into a new independent perspective. Both the original and the branch have the same history up to the branch point, and diverge afterward. This is useful for exploring “what if I go this way instead?” without losing your current position.</p>
+<hr>
+<h2 id="comparison"><a class="header" href="#comparison">Comparison</a></h2>
+<h3 id="m1nd-vs-tree-sitter"><a class="header" href="#m1nd-vs-tree-sitter">m1nd vs tree-sitter</a></h3>
+<p>tree-sitter is a parser. It produces ASTs from source code. m1nd uses structural information similar to what tree-sitter extracts, but builds a <em>weighted, learning graph</em> on top of it. tree-sitter tells you what the code <em>is</em>. m1nd tells you what the code <em>means</em> in context, what changed, what might break, and what is missing.</p>
+<p>They are complementary. tree-sitter integration is planned for m1nd to expand language support.</p>
+<h3 id="m1nd-vs-ast-grep"><a class="header" href="#m1nd-vs-ast-grep">m1nd vs ast-grep</a></h3>
+<p>ast-grep is a structural search tool – it finds code patterns using AST matching. m1nd does not do pattern matching on syntax trees. Instead, it does graph-level reasoning: spreading activation, hypothesis testing, counterfactual simulation, learning. ast-grep answers “where does this pattern appear?” m1nd answers “what is connected to this, what breaks if it changes, and what am I missing?”</p>
+<h3 id="m1nd-vs-rag-retrieval-augmented-generation"><a class="header" href="#m1nd-vs-rag-retrieval-augmented-generation">m1nd vs RAG (Retrieval-Augmented Generation)</a></h3>
+<p>RAG embeds code into vectors and retrieves similar chunks. Each retrieval is independent and stateless. m1nd maintains a persistent graph with relationships, learning, and investigation state. RAG cannot answer structural questions, simulate deletions, or learn from feedback.</p>
+<p>RAG costs LLM tokens per query. m1nd costs zero tokens per query.</p>
+<h3 id="m1nd-vs-sourcegraph--codegraph--scip"><a class="header" href="#m1nd-vs-sourcegraph--codegraph--scip">m1nd vs Sourcegraph / CodeGraph / SCIP</a></h3>
+<p>Sourcegraph provides cross-repository code search and navigation based on SCIP (Source Code Intelligence Protocol) indexing. It produces accurate, language-server-quality code intelligence.</p>
+<p>m1nd is not a code search engine. It is a reasoning engine. Sourcegraph tells you “function X is defined here and called here.” m1nd tells you “if you change function X, here are the 4,189 nodes in the cascade, and the graph predicts these 3 files probably need changes too.”</p>
+<p>Sourcegraph is a hosted SaaS product. m1nd is a local binary with zero cost per query.</p>
+<h3 id="m1nd-vs-github-copilot-context"><a class="header" href="#m1nd-vs-github-copilot-context">m1nd vs GitHub Copilot context</a></h3>
+<p>Copilot uses a mix of embeddings and heuristics to select context files for the LLM. It does not maintain a persistent graph, does not learn from feedback, and does not support structural queries.</p>
+<p>m1nd can be used <em>alongside</em> Copilot – through MCP, Copilot can call m1nd tools to get smarter context before generating code.</p>
+<hr>
+<h2 id="contributing"><a class="header" href="#contributing">Contributing</a></h2>
+<h3 id="how-do-i-contribute"><a class="header" href="#how-do-i-contribute">How do I contribute?</a></h3>
+<p>See <a href="https://github.com/cosmophonix/m1nd/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>. Fork the repo, create a branch, make your changes with tests, and open a PR.</p>
+<h3 id="what-is-the-test-suite"><a class="header" href="#what-is-the-test-suite">What is the test suite?</a></h3>
+<pre><code class="language-bash">cargo test --all
+</code></pre>
+<p>Tests cover the core graph engine, plasticity, spreading activation, hypothesis engine, all MCP tool handlers, and the JSON-RPC protocol layer.</p>
+<h3 id="what-are-the-code-style-requirements"><a class="header" href="#what-are-the-code-style-requirements">What are the code style requirements?</a></h3>
+<ul>
+<li><code>cargo fmt</code> before committing</li>
+<li><code>cargo clippy --all -- -D warnings</code> must pass</li>
+<li>No <code>unsafe</code> without an explanatory comment</li>
+<li>All new code needs tests</li>
+</ul>
+<h3 id="what-areas-need-the-most-help"><a class="header" href="#what-areas-need-the-most-help">What areas need the most help?</a></h3>
+<ol>
+<li><strong>Language extractors</strong>: Adding tree-sitter integration or new language-specific extractors</li>
+<li><strong>Graph algorithms</strong>: Community detection, better decay functions, embedding-based semantic scoring</li>
+<li><strong>Benchmarks</strong>: Running m1nd on diverse codebases and reporting real-world performance numbers</li>
+<li><strong>Documentation</strong>: Tutorials, examples, and translations</li>
+</ol>
+<h3 id="where-do-i-report-bugs"><a class="header" href="#where-do-i-report-bugs">Where do I report bugs?</a></h3>
+<p>GitHub Issues at <a href="https://github.com/cosmophonix/m1nd/issues">github.com/cosmophonix/m1nd/issues</a>. Use the <code>bug</code> label.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="tutorials/multi-agent.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="benchmarks.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="tutorials/multi-agent.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="benchmarks.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-c2a407aa.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-a0b12cfe.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>
