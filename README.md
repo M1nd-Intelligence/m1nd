@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <strong>39 missing bugs found in one session &middot; 89% hypothesis accuracy &middot; Saves 84% in LLM context costs</strong>
+  <strong>Innumerous missing bugs found in one session &middot; 89% hypothesis accuracy &middot; Saves 84% in LLM context costs</strong>
 </p>
 
 <p align="center">
