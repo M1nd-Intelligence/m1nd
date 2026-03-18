@@ -48,7 +48,7 @@ tree-sitter = { version = "0.25", optional = true }
 tree-sitter-language = { version = "0.1", optional = true }
 
 # Tier 1 grammars (14 languages)
-tree-sitter-c = { version = "0.23", optional = true }
+tree-sitter-c = { version = "0.24", optional = true }
 tree-sitter-cpp = { version = "0.23", optional = true }
 tree-sitter-c-sharp = { version = "0.23", optional = true }
 tree-sitter-ruby = { version = "0.23", optional = true }
