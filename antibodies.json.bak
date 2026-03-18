@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "antibodies": [
+    {
+      "id": "ab-41da6d35-2e8b-4b06-86d5-6d352e8b06d5",
+      "name": "cancelled_error_swallowed",
+      "description": "CancelledError caught with break instead of raise",
+      "pattern": {
+        "nodes": [
+          {
+            "role": "handler",
+            "node_type": "Function",
+            "required_tags": [],
+            "label_contains": null
+          },
+          {
+            "role": "exception",
+            "node_type": "Function",
+            "required_tags": [],
+            "label_contains": null
+          }
+        ],
+        "edges": [
+          {
+            "source_idx": 0,
+            "target_idx": 1,
+            "relation": "references"
+          }
+        ],
+        "negative_edges": []
+      },
+      "severity": "Critical",
+      "match_count": 0,
+      "created_at": 1773458618.172292,
+      "last_match_at": null,
+      "created_by": "jimi",
+      "source_query": "",
+      "source_nodes": [],
+      "enabled": true,
+      "specificity": 0.42857143
+    },
+    {
+      "id": "ab-41da6d37-ca07-476d-ad65-6d37ca076d65",
+      "name": "shutdown-pattern",
+      "description": "Test antibody for shutdown nodes",
+      "pattern": {
+        "nodes": [
+          {
+            "role": "target",
+            "node_type": null,
+            "required_tags": [],
+            "label_contains": "shutdown"
+          }
+        ],
+        "edges": [],
+        "negative_edges": []
+      },
+      "severity": "Warning",
+      "match_count": 42,
+      "created_at": 1773461288.116052,
+      "last_match_at": 1773660843.69299,
+      "created_by": "test",
+      "source_query": "",
+      "source_nodes": [],
+      "enabled": true,
+      "specificity": 0.33333334
+    }
+  ]
+}
