@@ -1,0 +1,30 @@
+[book]
+title = "m1nd Documentation"
+authors = ["Max Kleinschmidt"]
+description = "Complete documentation for m1nd — the neuro-symbolic connectome engine"
+language = "en"
+src = "src"
+
+[build]
+build-dir = "../../wiki-build"
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/maxkle1nz/m1nd"
+edit-url-template = "https://github.com/maxkle1nz/m1nd/edit/main/docs/wiki/src/{path}"
+site-url = "/m1nd/wiki/"
+additional-css = ["theme/custom.css"]
+
+[output.html.search]
+enable = true
+limit-results = 20
+boost-hierarchy = 2
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
+optional = true
+
+[output.html.fold]
+enable = true
+level = 1
