@@ -36,10 +36,10 @@
             const path_to_root = "../";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-93e3b672.js";
+            window.path_to_searchindex_js = "../searchindex-7447e1d8.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-35a7562c.js"></script>
+        <script src="../toc-72b55f3c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -414,8 +414,8 @@ pub const DIMENSION_WEIGHTS: [f32; 4] = [0.35, 0.25, 0.15, 0.25];
 <p><code>SeedFinder</code> resolves query strings to graph nodes via a 5-level matching cascade:</p>
 <ol>
 <li><strong>Exact label match</strong> (highest priority)</li>
-<li><strong>Prefix match</strong> (e.g., “chat_” matches “handler”)</li>
-<li><strong>Substring match</strong> (e.g., “handler” matches “handler”)</li>
+<li><strong>Prefix match</strong> (e.g., “auth_” matches “auth_handler”)</li>
+<li><strong>Substring match</strong> (e.g., “handler” matches “auth_handler”)</li>
 <li><strong>Tag match</strong> (e.g., “#api” tag)</li>
 <li><strong>Fuzzy trigram</strong> (cosine similarity of trigram vectors, lowest priority)</li>
 </ol>
@@ -481,7 +481,7 @@ pub const DIMENSION_WEIGHTS: [f32; 4] = [0.35, 0.25, 0.15, 0.25];
 <ol>
 <li><strong>Anti-seed selection</strong>: Pick nodes dissimilar to seeds (Jaccard similarity &lt; 0.2, degree ratio filter).</li>
 <li><strong>Immunity computation</strong>: BFS 2 hops from seeds. Immune nodes cannot be suppressed.</li>
-<li><strong>Hot propagation</strong>: Spread <code>SpectralPulse</code> (defined in xlr.rs) with frequency <code>F_HOT=1.0</code> from seed nodes. Pulses carry amplitude, phase, frequency, and a bounded recent path (<code>[NodeId; 3]</code>, not unbounded Vec).</li>
+<li><strong>Hot propagation</strong>: Spread <code>SpectralPulse</code> with frequency <code>F_HOT=1.0</code> from seed nodes. Pulses carry amplitude, phase, frequency, and a bounded recent path (<code>[NodeId; 3]</code>, not unbounded Vec – FM-RES-007).</li>
 <li><strong>Cold propagation</strong>: Spread from anti-seeds with frequency <code>F_COLD=3.7</code>.</li>
 <li><strong>Spectral overlap + density modulation</strong>: Compute overlap between hot and cold spectra using Gaussian kernel (<code>bw=0.8</code>). Dense neighborhoods get modulated (clamped to <code>[0.3, 2.0]</code>).</li>
 <li><strong>Sigmoid gating</strong>: Apply <code>1 / (1 + exp(-steepness * (hot - cold)))</code> to produce final scores.</li>

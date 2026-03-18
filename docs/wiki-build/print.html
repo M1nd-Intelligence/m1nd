@@ -37,10 +37,10 @@
             const path_to_root = "";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-93e3b672.js";
+            window.path_to_searchindex_js = "searchindex-7447e1d8.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-35a7562c.js"></script>
+        <script src="toc-72b55f3c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -180,7 +180,7 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<p>m1nd is a neuro-symbolic connectome engine built in Rust. It ingests a codebase into a weighted, directed graph — then lets you fire queries into that graph and watch where the energy goes. Signal propagates across structural, semantic, temporal, and causal dimensions. The graph learns from every interaction via Hebbian plasticity: paths you use get stronger, paths you ignore decay. The result is a code intelligence layer that adapts to how you think about your codebase. It ships as an <a href="https://modelcontextprotocol.io/">MCP</a> server with 61 tools, runs on stdio, and works with any MCP-compatible client.</p>
+<p>m1nd is a neuro-symbolic connectome engine built in Rust. It ingests a codebase into a weighted, directed graph — then lets you fire queries into that graph and watch where the energy goes. Signal propagates across structural, semantic, temporal, and causal dimensions. The graph learns from every interaction via Hebbian plasticity: paths you use get stronger, paths you ignore decay. The result is a code intelligence layer that adapts to how you think about your codebase. It ships as an <a href="https://modelcontextprotocol.io/">MCP</a> server with 43 tools, runs on stdio, and works with any MCP-compatible client.</p>
 <h2 id="the-problem"><a class="header" href="#the-problem">The Problem</a></h2>
 <p>AI coding agents are powerful reasoners but terrible navigators. An LLM can analyze a function you paste into its context window, but it cannot <em>find</em> the right function in a codebase of 10,000 files without burning tokens on speculative grep, glob, and tree walks. The existing tools fail in different ways:</p>
 <ul>
@@ -299,7 +299,7 @@ static_assertions = "1"
 <pre><code class="language-mermaid">graph TD
     subgraph "m1nd-mcp (Transport)"
         STDIO["JSON-RPC stdio&lt;br/&gt;dual: framed + line"]
-        DISPATCH["Tool Dispatch&lt;br/&gt;61 tools"]
+        DISPATCH["Tool Dispatch&lt;br/&gt;43 tools"]
         SESSION["SessionState&lt;br/&gt;SharedGraph + Engines"]
         PERSIST["Auto-Persist&lt;br/&gt;every 50 queries"]
     end
@@ -357,7 +357,7 @@ static_assertions = "1"
 <li><strong>Transport</strong>: JSON-RPC message arrives on stdin (either Content-Length framed or raw line JSON).</li>
 <li><strong>Dispatch</strong>: <code>McpServer.serve()</code> parses the JSON-RPC request, matches the tool name, extracts parameters.</li>
 <li><strong>Session</strong>: The tool handler acquires a read lock on <code>SharedGraph</code> (<code>Arc&lt;parking_lot::RwLock&lt;Graph&gt;&gt;</code>).</li>
-<li><strong>Seed Finding</strong>: <code>SeedFinder</code> locates matching nodes via multi-strategy matching (exact label, prefix, substring, tag, fuzzy trigram – all checked per token with early-continue on strong matches).</li>
+<li><strong>Seed Finding</strong>: <code>SeedFinder</code> locates matching nodes via a 5-level cascade: exact label, prefix, substring, tag, fuzzy trigram.</li>
 <li><strong>Activation</strong>: <code>HybridEngine</code> auto-selects heap or wavefront strategy based on seed ratio and average degree.</li>
 <li><strong>Dimensions</strong>: Four dimensions run: Structural (BFS/heap propagation), Semantic (trigram TF-IDF + co-occurrence PPMI), Temporal (decay + velocity), Causal (forward/backward with discount).</li>
 <li><strong>Merge</strong>: <code>merge_dimensions()</code> combines results with adaptive weights <code>[0.35, 0.25, 0.15, 0.25]</code> and resonance bonus (4-dim: 1.5x, 3-dim: 1.3x).</li>
@@ -401,7 +401,7 @@ impl FiniteF32 {
 <h3 id="atomic-persistence"><a class="header" href="#atomic-persistence">Atomic Persistence</a></h3>
 <p>Graph and plasticity state are saved via atomic write: serialize to a temporary file, then <code>rename()</code> over the target. This prevents corruption on crash (FM-PL-008). The NaN firewall at the export boundary rejects any non-finite values that might have leaked through.</p>
 <h2 id="performance-characteristics"><a class="header" href="#performance-characteristics">Performance Characteristics</a></h2>
-<p>Benchmarks on a production codebase (335 files, ~52K lines, Python + Rust + TypeScript):</p>
+<p>Benchmarks on the a production codebase (335 files, ~52K lines, Python + Rust + TypeScript):</p>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -411,7 +411,7 @@ impl FiniteF32 {
 <tr><td>Full ingest</td><td>~910ms</td><td>Walk + parallel extract + resolve + finalize (CSR + PageRank)</td></tr>
 <tr><td>Activate query</td><td>~31ms</td><td>4-dimension with XLR, top-20 results</td></tr>
 <tr><td>Impact analysis</td><td>~5ms</td><td>BFS blast radius, 3-hop default</td></tr>
-<tr><td>Predict (co-change)</td><td>&lt;1ms</td><td>Co-change matrix lookup + velocity scoring</td></tr>
+<tr><td>Predict (co-change)</td><td>~8ms</td><td>Co-change matrix lookup + velocity scoring</td></tr>
 <tr><td>Graph persist</td><td>~45ms</td><td>Atomic JSON write, ~2MB snapshot</td></tr>
 <tr><td>Plasticity update</td><td>~2ms</td><td>5-step Hebbian cycle on co-activated edges</td></tr>
 </tbody>
@@ -664,8 +664,8 @@ pub const DIMENSION_WEIGHTS: [f32; 4] = [0.35, 0.25, 0.15, 0.25];
 <p><code>SeedFinder</code> resolves query strings to graph nodes via a 5-level matching cascade:</p>
 <ol>
 <li><strong>Exact label match</strong> (highest priority)</li>
-<li><strong>Prefix match</strong> (e.g., “chat_” matches “handler”)</li>
-<li><strong>Substring match</strong> (e.g., “handler” matches “handler”)</li>
+<li><strong>Prefix match</strong> (e.g., “auth_” matches “auth_handler”)</li>
+<li><strong>Substring match</strong> (e.g., “handler” matches “auth_handler”)</li>
 <li><strong>Tag match</strong> (e.g., “#api” tag)</li>
 <li><strong>Fuzzy trigram</strong> (cosine similarity of trigram vectors, lowest priority)</li>
 </ol>
@@ -731,7 +731,7 @@ pub const DIMENSION_WEIGHTS: [f32; 4] = [0.35, 0.25, 0.15, 0.25];
 <ol>
 <li><strong>Anti-seed selection</strong>: Pick nodes dissimilar to seeds (Jaccard similarity &lt; 0.2, degree ratio filter).</li>
 <li><strong>Immunity computation</strong>: BFS 2 hops from seeds. Immune nodes cannot be suppressed.</li>
-<li><strong>Hot propagation</strong>: Spread <code>SpectralPulse</code> (defined in xlr.rs) with frequency <code>F_HOT=1.0</code> from seed nodes. Pulses carry amplitude, phase, frequency, and a bounded recent path (<code>[NodeId; 3]</code>, not unbounded Vec).</li>
+<li><strong>Hot propagation</strong>: Spread <code>SpectralPulse</code> with frequency <code>F_HOT=1.0</code> from seed nodes. Pulses carry amplitude, phase, frequency, and a bounded recent path (<code>[NodeId; 3]</code>, not unbounded Vec – FM-RES-007).</li>
 <li><strong>Cold propagation</strong>: Spread from anti-seeds with frequency <code>F_COLD=3.7</code>.</li>
 <li><strong>Spectral overlap + density modulation</strong>: Compute overlap between hot and cold spectra using Gaussian kernel (<code>bw=0.8</code>). Dense neighborhoods get modulated (clamped to <code>[0.3, 2.0]</code>).</li>
 <li><strong>Sigmoid gating</strong>: Apply <code>1 / (1 + exp(-steepness * (hot - cold)))</code> to produce final scores.</li>
@@ -1192,10 +1192,10 @@ skip_files: vec![
 <p><strong>Framed mode</strong> (HTTP-style headers):</p>
 <pre><code>Content-Length: 142\r\n
 \r\n
-{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"jimi"}},"id":1}
+{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"orchestrator"}},"id":1}
 </code></pre>
 <p><strong>Line mode</strong> (raw JSON):</p>
-<pre><code>{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"jimi"}},"id":1}
+<pre><code>{"jsonrpc":"2.0","method":"tools/call","params":{"name":"m1nd.activate","arguments":{"query":"chat","agent_id":"orchestrator"}},"id":1}
 </code></pre>
 <p>Detection is based on the first non-whitespace byte: if it is <code>{</code> or <code>[</code>, the message is treated as line-mode JSON. Otherwise, it is parsed as framed with <code>Content-Length</code> headers. Responses are written in the same mode as the incoming request.</p>
 <pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
@@ -1223,7 +1223,7 @@ skip_files: vec![
         "name": "m1nd.activate",
         "arguments": {
             "query": "chat handler",
-            "agent_id": "jimi",
+            "agent_id": "orchestrator",
             "top_k": 20,
             "dimensions": ["structural", "semantic", "temporal", "causal"],
             "xlr": true
@@ -1332,7 +1332,7 @@ skip_files: vec![
 }
 </code></pre>
 <h3 id="tool-categories"><a class="header" href="#tool-categories">Tool Categories</a></h3>
-<p>The 61 tools are organized into functional groups:</p>
+<p>The 43 tools are organized into functional groups:</p>
 <p><strong>Core Query Tools</strong> (13):</p>
 <div class="table-wrapper">
 <table>
@@ -2372,7 +2372,7 @@ if fallback {
 <h1 id="api-reference-overview"><a class="header" href="#api-reference-overview">API Reference Overview</a></h1>
 <p>m1nd exposes <strong>43 MCP tools</strong> over JSON-RPC 2.0 via stdio. Every tool requires <code>agent_id</code> as a parameter. Tools are organized into seven groups.</p>
 <h2 id="tool-index"><a class="header" href="#tool-index">Tool Index</a></h2>
-<h3 id="core-activation"><a class="header" href="#core-activation">Core Activation</a></h3>
+<h3 id="core-activation-3-tools"><a class="header" href="#core-activation-3-tools">Core Activation (3 tools)</a></h3>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -2385,7 +2385,7 @@ if fallback {
 </tbody>
 </table>
 </div>
-<h3 id="analysis"><a class="header" href="#analysis">Analysis</a></h3>
+<h3 id="analysis-7-tools"><a class="header" href="#analysis-7-tools">Analysis (7 tools)</a></h3>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -2402,7 +2402,7 @@ if fallback {
 </tbody>
 </table>
 </div>
-<h3 id="memory--learning"><a class="header" href="#memory--learning">Memory &amp; Learning</a></h3>
+<h3 id="memory--learning-7-tools"><a class="header" href="#memory--learning-7-tools">Memory &amp; Learning (7 tools)</a></h3>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -2419,7 +2419,7 @@ if fallback {
 </tbody>
 </table>
 </div>
-<h3 id="exploration"><a class="header" href="#exploration">Exploration</a></h3>
+<h3 id="exploration-6-tools"><a class="header" href="#exploration-6-tools">Exploration (6 tools)</a></h3>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -2435,7 +2435,7 @@ if fallback {
 </tbody>
 </table>
 </div>
-<h3 id="perspectives-1"><a class="header" href="#perspectives-1">Perspectives</a></h3>
+<h3 id="perspectives-12-tools"><a class="header" href="#perspectives-12-tools">Perspectives (12 tools)</a></h3>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -2457,7 +2457,7 @@ if fallback {
 </tbody>
 </table>
 </div>
-<h3 id="lifecycle--locks"><a class="header" href="#lifecycle--locks">Lifecycle &amp; Locks</a></h3>
+<h3 id="lifecycle--locks-8-tools"><a class="header" href="#lifecycle--locks-8-tools">Lifecycle &amp; Locks (8 tools)</a></h3>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -2488,7 +2488,7 @@ if fallback {
 </tbody>
 </table>
 </div>
-<p>Agent IDs are free-form strings. Convention: use the agent’s name or role identifier (e.g. <code>"orchestrator"</code>, <code>"auditor-1"</code>, <code>"builder-api"</code>, <code>"analyzer-core"</code>).</p>
+<p>Agent IDs are free-form strings. Convention: use the agent’s name or role identifier (e.g. <code>"orchestrator"</code>, <code>"auditor-1"</code>, <code>"builder-api"</code>).</p>
 <h2 id="json-rpc-request-format"><a class="header" href="#json-rpc-request-format">JSON-RPC Request Format</a></h2>
 <p>m1nd uses the <a href="https://modelcontextprotocol.io/">MCP protocol</a> over JSON-RPC 2.0 via stdio. All tool calls use the <code>tools/call</code> method.</p>
 <h3 id="request-structure"><a class="header" href="#request-structure">Request structure</a></h3>
@@ -2499,7 +2499,7 @@ if fallback {
   "params": {
     "name": "m1nd.activate",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "session management"
     }
   }
@@ -2593,7 +2593,7 @@ if fallback {
 <p>Then list available tools:</p>
 <pre><code class="language-json">{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}
 </code></pre>
-<p>This returns the full schema for all 61 tools with <code>inputSchema</code> for each.</p>
+<p>This returns the full schema for all 43 tools with <code>inputSchema</code> for each.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="activation-tools"><a class="header" href="#activation-tools">Activation Tools</a></h1>
 <p>Three tools for querying the connectome through spreading activation, task-based priming, and resonance analysis.</p>
@@ -2625,7 +2625,7 @@ if fallback {
   "params": {
     "name": "m1nd.activate",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "session pool management",
       "top_k": 5,
       "include_ghost_edges": true
@@ -2729,7 +2729,7 @@ if fallback {
   "params": {
     "name": "m1nd.warmup",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "task_description": "Refactor the messaging routing module to support group chats",
       "boost_strength": 0.2
     }
@@ -2787,7 +2787,7 @@ if fallback {
   "params": {
     "name": "m1nd.resonate",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "authentication flow",
       "top_k": 10
     }
@@ -2866,7 +2866,7 @@ if fallback {
   "params": {
     "name": "m1nd.impact",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "node_id": "file::handler.py",
       "direction": "forward",
       "include_causal_chains": true
@@ -2880,7 +2880,7 @@ if fallback {
   "source_label": "handler.py",
   "direction": "forward",
   "blast_radius": [
-    { "node_id": "file::routes.py", "label": "routes.py", "type": "file", "signal_strength": 0.91, "hop_distance": 1 },
+    { "node_id": "file::chat_routes.py", "label": "chat_routes.py", "type": "file", "signal_strength": 0.91, "hop_distance": 1 },
     { "node_id": "file::ws_relay.py", "label": "ws_relay.py", "type": "file", "signal_strength": 0.78, "hop_distance": 1 },
     { "node_id": "file::parser.py", "label": "parser.py", "type": "file", "signal_strength": 0.65, "hop_distance": 2 }
   ],
@@ -2888,7 +2888,7 @@ if fallback {
   "max_hops_reached": 3,
   "causal_chains": [
     {
-      "path": ["handler.py", "routes.py", "main.py"],
+      "path": ["handler.py", "chat_routes.py", "main.py"],
       "relations": ["imported_by", "registered_in"],
       "cumulative_strength": 0.82
     }
@@ -2933,7 +2933,7 @@ if fallback {
   "params": {
     "name": "m1nd.predict",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "changed_node": "file::pool.py",
       "top_k": 5
     }
@@ -2989,7 +2989,7 @@ if fallback {
   "params": {
     "name": "m1nd.counterfactual",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "node_ids": ["file::worker.py"],
       "include_cascade": true
     }
@@ -3046,7 +3046,7 @@ if fallback {
   "params": {
     "name": "m1nd.fingerprint",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "target_node": "file::pool.py",
       "similarity_threshold": 0.7
     }
@@ -3103,7 +3103,7 @@ if fallback {
   "params": {
     "name": "m1nd.hypothesize",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "claim": "worker depends on messaging at runtime"
     }
   }
@@ -3184,7 +3184,7 @@ if fallback {
   "params": {
     "name": "m1nd.differential",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "snapshot_a": "/path/to/before.json",
       "snapshot_b": "current",
       "question": "what new coupling was introduced?"
@@ -3235,7 +3235,7 @@ if fallback {
 <tbody>
 <tr><td><code>agent_id</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Calling agent identifier.</td></tr>
 <tr><td><code>baseline</code></td><td><code>string</code></td><td>Yes</td><td>–</td><td>Baseline reference. Values: ISO date (<code>"2026-03-01"</code>), git ref (SHA or tag), or <code>"last_session"</code> to use the saved GraphFingerprint.</td></tr>
-<tr><td><code>scope</code></td><td><code>string</code></td><td>No</td><td>–</td><td>File path glob to limit scope. Example: <code>"backend/runtime*"</code>. <code>None</code> = all nodes.</td></tr>
+<tr><td><code>scope</code></td><td><code>string</code></td><td>No</td><td>–</td><td>File path glob to limit scope. Example: <code>"backend/orchestrator*"</code>. <code>None</code> = all nodes.</td></tr>
 <tr><td><code>include_coupling_changes</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Include coupling matrix delta between communities.</td></tr>
 <tr><td><code>include_anomalies</code></td><td><code>boolean</code></td><td>No</td><td><code>true</code></td><td>Detect anomalies: test deficits, velocity spikes, new coupling, isolation.</td></tr>
 </tbody>
@@ -3249,9 +3249,9 @@ if fallback {
   "params": {
     "name": "m1nd.diverge",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "baseline": "2026-03-01",
-      "scope": "backend/runtime*"
+      "scope": "backend/orchestrator*"
     }
   }
 }
@@ -3274,7 +3274,7 @@ if fallback {
     { "type": "test_deficit", "file": "orchestrator_runtime_guard.py", "detail": "New file with 0 test files", "severity": "warning" },
     { "type": "velocity_spike", "file": "orchestrator_v2.py", "detail": "450 lines added in 12 days", "severity": "info" }
   ],
-  "summary": "23% structural drift. 1 new file (untested). Orchestrator coupling strengthened.",
+  "summary": "23% structural drift. 1 new file (untested). orchestrator coupling strengthened.",
   "elapsed_ms": 85.0
 }
 </code></pre>
@@ -3333,7 +3333,7 @@ if fallback {
   "params": {
     "name": "m1nd.learn",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "session pool management",
       "feedback": "correct",
       "node_ids": ["file::pool.py", "file::worker.py"],
@@ -3389,7 +3389,7 @@ if fallback {
   "params": {
     "name": "m1nd.drift",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "since": "last_session",
       "include_weight_drift": true
     }
@@ -3446,7 +3446,7 @@ if fallback {
   "params": {
     "name": "m1nd.why",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "source": "file::worker.py",
       "target": "file::messaging.py",
       "max_hops": 4
@@ -3517,7 +3517,7 @@ if fallback {
   "params": {
     "name": "m1nd.trail.save",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "label": "auth-leak-investigation",
       "hypotheses": [
         {
@@ -3545,7 +3545,7 @@ if fallback {
 <pre><code class="language-json">{
   "trail_id": "trail_jimi_001_a1b2c3",
   "label": "auth-leak-investigation",
-  "agent_id": "jimi",
+  "agent_id": "orchestrator",
   "nodes_saved": 47,
   "hypotheses_saved": 2,
   "conclusions_saved": 0,
@@ -3590,7 +3590,7 @@ if fallback {
   "params": {
     "name": "m1nd.trail.resume",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "trail_id": "trail_jimi_001_a1b2c3"
     }
   }
@@ -3607,7 +3607,7 @@ if fallback {
   "hypotheses_downgraded": [],
   "trail": {
     "trail_id": "trail_jimi_001_a1b2c3",
-    "agent_id": "jimi",
+    "agent_id": "orchestrator",
     "label": "auth-leak-investigation",
     "status": "active",
     "created_at_ms": 1710300000000,
@@ -3658,7 +3658,7 @@ if fallback {
   "params": {
     "name": "m1nd.trail.list",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "filter_status": "saved",
       "filter_tags": ["security"]
     }
@@ -3670,7 +3670,7 @@ if fallback {
   "trails": [
     {
       "trail_id": "trail_jimi_001_a1b2c3",
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "label": "auth-leak-investigation",
       "status": "saved",
       "created_at_ms": 1710300000000,
@@ -3720,7 +3720,7 @@ if fallback {
   "params": {
     "name": "m1nd.trail.merge",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "trail_ids": ["trail_jimi_001_a1b2c3", "trail_analyst_002_d4e5f6"],
       "label": "combined-auth-investigation"
     }
@@ -3809,7 +3809,7 @@ if fallback {
   "params": {
     "name": "m1nd.seek",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "code that validates user credentials",
       "top_k": 5,
       "node_types": ["function", "class"]
@@ -3883,7 +3883,7 @@ if fallback {
   "params": {
     "name": "m1nd.scan",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "pattern": "error_handling",
       "scope": "backend/",
       "severity_min": 0.5
@@ -3964,7 +3964,7 @@ if fallback {
   "params": {
     "name": "m1nd.missing",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "database connection pooling",
       "min_sibling_activation": 0.3
     }
@@ -4030,7 +4030,7 @@ if fallback {
   "params": {
     "name": "m1nd.trace",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "error_text": "Traceback (most recent call last):\n  File \"backend/handler.py\", line 234, in handle_message\n  File \"backend/pool.py\", line 89, in acquire\n  File \"backend/worker.py\", line 156, in submit\nTimeoutError: pool exhausted",
       "language": "python",
       "top_k": 5
@@ -4134,7 +4134,7 @@ if fallback {
   "params": {
     "name": "m1nd.timeline",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "node": "file::backend/handler.py",
       "depth": "30d",
       "top_k": 5
@@ -4150,21 +4150,21 @@ if fallback {
     {
       "date": "2026-03-10",
       "commit": "a1b2c3d",
-      "author": "dev",
+      "author": "cosmophonix",
       "delta": "+45/-12",
-      "co_changed": ["parser.py", "routes.py"]
+      "co_changed": ["parser.py", "chat_routes.py"]
     },
     {
       "date": "2026-03-05",
       "commit": "e4f5g6h",
-      "author": "dev",
+      "author": "cosmophonix",
       "delta": "+120/-30",
       "co_changed": ["pool.py", "worker.py"]
     }
   ],
   "co_changed_with": [
     { "file": "parser.py", "times": 8, "coupling_degree": 0.72 },
-    { "file": "routes.py", "times": 6, "coupling_degree": 0.55 },
+    { "file": "chat_routes.py", "times": 6, "coupling_degree": 0.55 },
     { "file": "pool.py", "times": 4, "coupling_degree": 0.38 }
   ],
   "velocity": "accelerating",
@@ -4256,7 +4256,7 @@ if fallback {
   "params": {
     "name": "m1nd.federate",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "repos": [
         { "name": "backend", "path": "/project/backend" },
         { "name": "frontend", "path": "/project/frontend" },
@@ -4352,7 +4352,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.start",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "session management and connection pooling",
       "anchor_node": "file::pool.py"
     }
@@ -4433,7 +4433,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.routes",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "page": 2,
       "page_size": 6,
@@ -4508,7 +4508,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.inspect",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "route_id": "R_a1b2c3",
       "route_set_version": 100
@@ -4586,7 +4586,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.peek",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "route_index": 1,
       "route_set_version": 100
@@ -4645,7 +4645,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.follow",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "route_id": "R_a1b2c3",
       "route_set_version": 100
@@ -4725,7 +4725,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.suggest",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "route_set_version": 101
     }
@@ -4781,7 +4781,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.affinity",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "route_id": "R_j1k2l3",
       "route_set_version": 101
@@ -4835,7 +4835,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.branch",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001",
       "branch_name": "auth-path"
     }
@@ -4884,7 +4884,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.back",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_001"
     }
   }
@@ -4949,7 +4949,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.compare",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id_a": "persp_jimi_001",
       "perspective_id_b": "persp_jimi_002"
     }
@@ -5004,14 +5004,14 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.list",
     "arguments": {
-      "agent_id": "jimi"
+      "agent_id": "orchestrator"
     }
   }
 }
 </code></pre>
 <h3 id="example-response-10"><a class="header" href="#example-response-10">Example Response</a></h3>
 <pre><code class="language-json">{
-  "agent_id": "jimi",
+  "agent_id": "orchestrator",
   "perspectives": [
     {
       "perspective_id": "persp_jimi_001",
@@ -5070,7 +5070,7 @@ if fallback {
   "params": {
     "name": "m1nd.perspective.close",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "perspective_id": "persp_jimi_002"
     }
   }
@@ -5166,7 +5166,7 @@ if fallback {
   "params": {
     "name": "m1nd.ingest",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "path": "/path/to/your/project",
       "adapter": "code",
       "mode": "replace",
@@ -5249,7 +5249,7 @@ if fallback {
   "params": {
     "name": "m1nd.health",
     "arguments": {
-      "agent_id": "jimi"
+      "agent_id": "orchestrator"
     }
   }
 }
@@ -5265,7 +5265,7 @@ if fallback {
   "plasticity_state": "active",
   "last_persist_time": "2026-03-13T10:30:00Z",
   "active_sessions": [
-    { "agent_id": "jimi", "last_active": "2026-03-13T11:25:00Z" }
+    { "agent_id": "orchestrator", "last_active": "2026-03-13T11:25:00Z" }
   ]
 }
 </code></pre>
@@ -5305,7 +5305,7 @@ if fallback {
   "params": {
     "name": "m1nd.validate_plan",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "actions": [
         { "action_type": "modify", "file_path": "backend/pool.py", "description": "Add connection timeout" },
         { "action_type": "modify", "file_path": "backend/worker.py", "description": "Update pool acquire to use timeout" },
@@ -5420,7 +5420,7 @@ if fallback {
   "params": {
     "name": "m1nd.lock.create",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "scope": "subgraph",
       "root_nodes": ["file::handler.py"],
       "radius": 2
@@ -5481,7 +5481,7 @@ if fallback {
   "params": {
     "name": "m1nd.lock.watch",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001",
       "strategy": "on_ingest"
     }
@@ -5529,7 +5529,7 @@ if fallback {
   "params": {
     "name": "m1nd.lock.diff",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001"
     }
   }
@@ -5610,7 +5610,7 @@ if fallback {
   "params": {
     "name": "m1nd.lock.rebase",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001"
     }
   }
@@ -5660,7 +5660,7 @@ if fallback {
   "params": {
     "name": "m1nd.lock.release",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001"
     }
   }
@@ -6200,10 +6200,10 @@ cargo build --release
 <p>The graph is shared. Learning by one agent benefits all agents. Perspectives are isolated per agent. Trails can be shared across agents.</p>
 <h2 id="agent-id-conventions"><a class="header" href="#agent-id-conventions">Agent ID Conventions</a></h2>
 <p>Every m1nd tool requires an <code>agent_id</code> parameter. This is a free-form string, but consistent naming matters:</p>
-<pre><code>agent_id: "orchestrator"    -- orchestrator
-agent_id: "auditor-1"       -- security hardening agent
+<pre><code>agent_id: "orchestrator"          -- orchestrator
+agent_id: "auditor-1"   -- security hardening agent
 agent_id: "builder-api"     -- API building agent
-agent_id: "analyzer-core"   -- performance analysis agent
+agent_id: "analyzer-core"  -- performance analysis agent
 </code></pre>
 <p><strong>Recommended convention</strong>: <code>{archetype}-{task}</code> for short-lived task agents, simple names for persistent agents.</p>
 <p>Rules:</p>
@@ -6307,8 +6307,8 @@ agent_id: "analyzer-core"   -- performance analysis agent
 }
 // -&gt; [{"perspective_id": "persp-d4e5f6", "focus": "file::worker.py", ...}]
 </code></pre>
-<h3 id="comparing-perspectives"><a class="header" href="#comparing-perspectives">Comparing Perspectives</a></h3>
-<p>You can compare two perspectives owned by the same agent using <code>perspective.compare</code>. This is useful for discovering where two investigation branches overlap:</p>
+<h3 id="comparing-perspectives-across-agents"><a class="header" href="#comparing-perspectives-across-agents">Comparing Perspectives Across Agents</a></h3>
+<p>You <em>can</em> explicitly compare two perspectives from different agents using <code>perspective.compare</code>. This is useful for discovering where two independent investigations overlap:</p>
 <pre><code class="language-jsonc">{
   "method": "tools/call",
   "params": {
@@ -6316,7 +6316,7 @@ agent_id: "analyzer-core"   -- performance analysis agent
     "arguments": {
       "agent_id": "agent-a",
       "perspective_id_a": "persp-a1b2c3",
-      "perspective_id_b": "persp-a4d5e6"
+      "perspective_id_b": "persp-d4e5f6"
     }
   }
 }
@@ -6333,9 +6333,6 @@ agent_id: "analyzer-core"   -- performance analysis agent
   }
 }
 </code></pre>
-<blockquote>
-<p><strong>Note</strong>: In V1, both perspectives must belong to the same agent. Cross-agent perspective comparison is planned for V2. To compare findings across agents, use the trail system (trail.save + trail.merge) instead.</p>
-</blockquote>
 <h2 id="lock-system-for-concurrent-access"><a class="header" href="#lock-system-for-concurrent-access">Lock System for Concurrent Access</a></h2>
 <p>When multiple agents might modify the same region of the codebase simultaneously, the lock system prevents conflicts.</p>
 <h3 id="agent-a-lock-the-auth-region"><a class="header" href="#agent-a-lock-the-auth-region">Agent A: Lock the Auth Region</a></h3>
@@ -6511,19 +6508,19 @@ agent_id: "analyzer-core"   -- performance analysis agent
   }
 }
 </code></pre>
-<h2 id="real-world-example-multi-agent-production-system"><a class="header" href="#real-world-example-multi-agent-production-system">Real-World Example: Multi-Agent Production System</a></h2>
-<p>The following example is based on a production system that uses m1nd as its shared code intelligence layer. Here is how it works in practice:</p>
+<h2 id="real-world-example-production-system"><a class="header" href="#real-world-example-production-system">Real-World Example: Multi-Agent Production System</a></h2>
+<p>a production system is a multi-agent orchestration system that uses m1nd as its shared code intelligence layer. Here is how it works in production:</p>
 <h3 id="architecture"><a class="header" href="#architecture">Architecture</a></h3>
 <pre><code>orchestrator
   |
-  +-- auditor-1 (security agent)       --+
-  +-- builder-api (API builder)         --+-- All share one m1nd instance
-  +-- analyzer-core (performance)       --+
-  +-- watcher-files (file watcher)      --+
-  +-- reviewer-quality (code reviewer)  --+
-  +-- ... additional agents            --+
+  +-- auditor-1 (security agent)     --+
+  +-- builder-api (API builder)           --+-- All share one m1nd instance
+  +-- analyzer-core (performance)        --+
+  +-- sentinel-files (file watcher)     --+
+  +-- critic-quality (code reviewer)    --+
+  +-- ... 14 more agents               --+
 </code></pre>
-<p>One m1nd instance serves all agents. The graph covers a Python backend, a React frontend, and server infrastructure.</p>
+<p>One m1nd instance serves all agents. The graph covers a 335-file Python backend (~52K lines), a React frontend, and MCP server infrastructure.</p>
 <h3 id="orchestrator-boot-sequence"><a class="header" href="#orchestrator-boot-sequence">Orchestrator Boot Sequence</a></h3>
 <p>When the orchestrator starts a session:</p>
 <pre><code class="language-jsonc">// Step 1: Check m1nd health
@@ -6585,7 +6582,7 @@ agent_id: "analyzer-core"   -- performance analysis agent
 // Orchestrator merges with Agent B's independent findings
 {"method":"tools/call","params":{"name":"m1nd.trail.merge","arguments":{
   "agent_id":"orchestrator",
-  "trail_ids":["trail-auditor-001","trail-analyzer-002"]
+  "trail_ids":["trail-hacker-001","trail-analyst-002"]
 }}}
 </code></pre>
 <h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
@@ -6614,20 +6611,6 @@ agent_id: "analyzer-core"   -- performance analysis agent
 </ol>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="frequently-asked-questions"><a class="header" href="#frequently-asked-questions">Frequently Asked Questions</a></h1>
-<h2 id="why-m1nd"><a class="header" href="#why-m1nd">Why m1nd?</a></h2>
-<h3 id="why-not-just-use-grepripgrep"><a class="header" href="#why-not-just-use-grepripgrep">Why not just use grep/ripgrep?</a></h3>
-<p>Grep finds text. m1nd finds structure, relationships, and consequences. Grep tells you “this string appears on line 47 of auth.py.” m1nd tells you “auth.py is structurally connected to 12 modules, and changing it cascades to 4,271 nodes across 3 layers.” Grep answers in 5ms but cannot reason about dependencies, simulate deletions, or learn which results were useful. m1nd answers in 31ms and gets smarter every time you use it. Use both: grep for exact text, m1nd for structural reasoning.</p>
-<h3 id="how-does-m1nd-compare-to-ai-powered-code-search-cursor-github-copilot-search"><a class="header" href="#how-does-m1nd-compare-to-ai-powered-code-search-cursor-github-copilot-search">How does m1nd compare to AI-powered code search (Cursor, GitHub Copilot search)?</a></h3>
-<p>AI-powered code search sends your query (and often your code) to an LLM, costing tokens per search. Cursor’s codebase indexing and Copilot’s @workspace search embed your code into vectors and retrieve top-K chunks – each query burns $0.05-$0.50 in API costs. m1nd runs locally in Rust with zero LLM calls, zero tokens, and zero network round-trips. A spreading activation query returns ranked results in 31ms at $0.00. m1nd also maintains a persistent graph that learns from feedback via Hebbian plasticity – something no embedding-based search can do.</p>
-<h3 id="whats-the-real-cost-of-llm-based-code-search"><a class="header" href="#whats-the-real-cost-of-llm-based-code-search">What’s the real cost of LLM-based code search?</a></h3>
-<p>Every LLM-based code search burns tokens: the query, the retrieved context, and the model’s processing. At 100 searches per day, that is $5-$50/day per developer in API costs alone. In early 2026, Cursor users reported monthly overages exceeding $22,000 for teams with heavy codebase search usage. m1nd processes the same queries locally for $0.00 – no API keys, no cloud egress, no token metering, no surprise bills. The 8MB binary pays for itself on day one.</p>
-<h3 id="does-m1nd-replace-my-ides-search"><a class="header" href="#does-m1nd-replace-my-ides-search">Does m1nd replace my IDE’s search?</a></h3>
-<p>No. m1nd complements your IDE’s search, not replaces it. Use your IDE’s go-to-definition and find-references for precise, language-server-powered navigation. Use grep/ripgrep for fast text matching. Use m1nd for the questions those tools cannot answer: blast radius analysis, counterfactual simulation (“what breaks if I delete this module?”), structural hole detection (“what is missing?”), and hypothesis testing. m1nd adds a reasoning layer on top of your existing toolchain through 43 MCP tools that any compatible editor can call.</p>
-<h3 id="why-local-first-why-not-cloud"><a class="header" href="#why-local-first-why-not-cloud">Why local-first? Why not cloud?</a></h3>
-<p>Three reasons: cost, privacy, and latency. Cloud code search means your proprietary code leaves your machine on every query, each query costs tokens, and network round-trips add 100-500ms of latency. m1nd runs as a single 8MB binary on your machine. Your code never leaves localhost. Queries resolve in 31-77ms. There are no API keys to manage, no cloud accounts to provision, no egress fees, and no vendor lock-in. The graph persists to a local JSON file you own and can inspect, copy, or delete at any time.</p>
-<h3 id="what-makes-m1nd-agent-native"><a class="header" href="#what-makes-m1nd-agent-native">What makes m1nd “agent-native”?</a></h3>
-<p>m1nd was built from the ground up as an MCP server, not retrofitted. It exposes 61 tools that AI agents call natively – spreading activation, impact analysis, counterfactual simulation, hypothesis testing, and a full Perspective navigation system with 12 stateful tools for browsing the code graph. Multiple agents share the same graph instance simultaneously, each with isolated perspectives. The graph learns from agent feedback via Hebbian plasticity, getting smarter with every interaction. No other code intelligence tool provides persistent, learning, multi-agent structural reasoning over MCP.</p>
-<hr>
 <h2 id="general"><a class="header" href="#general">General</a></h2>
 <h3 id="what-is-m1nd"><a class="header" href="#what-is-m1nd">What is m1nd?</a></h3>
 <p>m1nd is a neuro-symbolic connectome engine for code intelligence. It parses your codebase into a weighted graph and provides 43 MCP tools for querying, learning, and navigating it. Built in Rust, it runs locally as an MCP server and works with any MCP-compatible AI agent (Claude Code, Cursor, Windsurf, Zed, etc.).</p>
@@ -6675,10 +6658,6 @@ agent_id: "analyzer-core"   -- performance analysis agent
 <h3 id="how-large-is-the-binary"><a class="header" href="#how-large-is-the-binary">How large is the binary?</a></h3>
 <p>Approximately 8MB for a release build. No runtime dependencies, no shared libraries. The binary is fully self-contained.</p>
 <h3 id="can-i-install-from-cratesio"><a class="header" href="#can-i-install-from-cratesio">Can I install from crates.io?</a></h3>
-<p>Not yet. For now, build from source:</p>
-<pre><code class="language-bash">git clone https://github.com/maxkle1nz/m1nd.git
-cd m1nd &amp;&amp; cargo build --release
-</code></pre>
 <p>Yes: <code>cargo install m1nd-mcp</code></p>
 <hr>
 <h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
@@ -6790,7 +6769,7 @@ cd m1nd &amp;&amp; cargo build --release
 <li><code>partial</code> – mixed signal. Applies a mild strengthening (half the LTP strength) to acknowledged nodes while slightly weakening peripheral paths.</li>
 </ul>
 <hr>
-<h2 id="perspectives-2"><a class="header" href="#perspectives-2">Perspectives</a></h2>
+<h2 id="perspectives-1"><a class="header" href="#perspectives-1">Perspectives</a></h2>
 <h3 id="what-are-perspectives"><a class="header" href="#what-are-perspectives">What are perspectives?</a></h3>
 <p>A perspective is a stateful navigation session through the graph. You start one with a query or anchor node, and m1nd synthesizes a “route surface” – a ranked set of paths you can follow. As you navigate (follow, back, branch), the perspective maintains breadcrumb history and updates the route surface.</p>
 <p>Think of it as a browser for the code graph. You have a current “page” (focus node), links (routes), history (back button), and bookmarks (branches).</p>
@@ -6972,49 +6951,8 @@ cd m1nd &amp;&amp; cargo build --release
 </table>
 </div>
 <p><strong>Estimated savings: ~720K tokens/day</strong> (60% reduction in context tokens).</p>
-<p>These are estimates based on production usage in a multi-agent system. Your mileage varies with codebase size, task type, and agent behavior.</p>
+<p>These are estimates based on production usage in the a multi-agent system. Your mileage varies with codebase size, task type, and agent behavior.</p>
 <p>The key insight: m1nd does not replace search. It <em>focuses</em> search. The agent still uses grep and reads files, but it starts from a much better position because m1nd told it where to look.</p>
-<h2 id="cost-comparison"><a class="header" href="#cost-comparison">Cost Comparison</a></h2>
-<h3 id="cost-per-investigation-cycle"><a class="header" href="#cost-per-investigation-cycle">Cost per Investigation Cycle</a></h3>
-<p>A typical investigation cycle – finding related code, understanding dependencies, checking blast radius – involves multiple queries. Here is what that costs across different tools:</p>
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th>Tool</th><th>Cost per Investigation</th><th>Latency</th><th>Runs Locally</th></tr>
-</thead>
-<tbody>
-<tr><td><strong>m1nd</strong> (activate + impact + why)</td><td><strong>$0.00</strong></td><td>~120ms total</td><td>Yes</td></tr>
-<tr><td>LLM grep (Cursor codebase search)</td><td>$0.05-$0.50</td><td>500-2000ms</td><td>No (cloud)</td></tr>
-<tr><td>Copilot @workspace query</td><td>$0.10-$0.30</td><td>1000-3000ms</td><td>No (cloud)</td></tr>
-<tr><td>Manual grep + file reads via agent</td><td>$0.02-$0.15 (token cost)</td><td>varies</td><td>Partially</td></tr>
-</tbody>
-</table>
-</div>
-<h3 id="monthly-projection-for-a-team"><a class="header" href="#monthly-projection-for-a-team">Monthly Projection for a Team</a></h3>
-<p>At 100 code searches per developer per day (a conservative estimate for an active agent-assisted workflow):</p>
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th>Scenario</th><th>Daily Cost</th><th>Monthly Cost (22 days)</th><th>Annual Cost</th></tr>
-</thead>
-<tbody>
-<tr><td><strong>m1nd</strong> (5 devs, 100 searches/day each)</td><td><strong>$0.00</strong></td><td><strong>$0.00</strong></td><td><strong>$0.00</strong></td></tr>
-<tr><td>LLM grep at $0.10 avg (5 devs)</td><td>$50.00</td><td>$1,100</td><td>$13,200</td></tr>
-<tr><td>LLM grep at $0.25 avg (5 devs)</td><td>$125.00</td><td>$2,750</td><td>$33,000</td></tr>
-<tr><td>LLM grep at $0.50 avg (heavy usage)</td><td>$250.00</td><td>$5,500</td><td>$66,000</td></tr>
-</tbody>
-</table>
-</div>
-<p>These numbers are not hypothetical. In early 2026, Cursor users reported monthly overages exceeding $22,000 when teams relied heavily on AI-powered codebase search with uncapped token consumption. The per-query cost is small; the volume makes it expensive.</p>
-<h3 id="what-you-do-not-pay-for-with-m1nd"><a class="header" href="#what-you-do-not-pay-for-with-m1nd">What You Do Not Pay For with m1nd</a></h3>
-<ul>
-<li><strong>No API keys.</strong> m1nd makes zero network calls. There is nothing to provision or rotate.</li>
-<li><strong>No cloud egress.</strong> Your code stays on your machine. No bytes leave localhost.</li>
-<li><strong>No token metering.</strong> Queries are pure Rust graph computation. There are no tokens, no embeddings, no LLM inference.</li>
-<li><strong>No surprise bills.</strong> The cost is fixed at zero regardless of query volume, team size, or codebase scale.</li>
-<li><strong>No vendor lock-in.</strong> The graph persists to a local JSON file. Switch tools anytime, your data stays.</li>
-</ul>
-<p>The 8MB m1nd binary replaces an unbounded cloud cost center with a local, zero-cost, sub-100ms reasoning engine.</p>
 <h2 id="memory-and-cpu-usage"><a class="header" href="#memory-and-cpu-usage">Memory and CPU Usage</a></h2>
 <h3 id="memory"><a class="header" href="#memory">Memory</a></h3>
 <div class="table-wrapper">
@@ -7067,7 +7005,7 @@ cargo build --release
 # Start the server
 ./target/release/m1nd-mcp
 </code></pre>
-<p>Then send the JSON-RPC calls from the <a href="https://github.com/maxkle1nz/m1nd/blob/main/EXAMPLES.md">Examples</a> document against your own codebase. Times will vary based on:</p>
+<p>Then send the JSON-RPC calls from the <a href="../EXAMPLES.html">Examples</a> document against your own codebase. Times will vary based on:</p>
 <ul>
 <li>Hardware (CPU speed, memory bandwidth)</li>
 <li>Codebase size and language</li>
@@ -7114,7 +7052,7 @@ cargo build --release
 <li>Foundation (13): activate, impact, missing, why, learn, drift, health, seek, scan, timeline, diverge, warmup, federate</li>
 <li>Perspective Navigation (12): start, routes, follow, back, peek, inspect, suggest, affinity, branch, compare, list, close</li>
 <li>Lock System (5): create, watch, diff, rebase, release</li>
-<li>Superpowers (12): hypothesize, counterfactual, predict, fingerprint, resonate, trace, validate_plan, differential, trail.save, trail.resume, trail.merge, trail.list</li>
+<li>Superpowers (13): hypothesize, counterfactual, predict, fingerprint, resonate, trace, validate_plan, differential, trail.save, trail.resume, trail.merge, trail.list, seek</li>
 </ul>
 </li>
 <li><strong>JSON-RPC over stdio</strong>: compatible with MCP protocol version 2024-11-05</li>

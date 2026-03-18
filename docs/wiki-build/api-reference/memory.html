@@ -36,10 +36,10 @@
             const path_to_root = "../";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-93e3b672.js";
+            window.path_to_searchindex_js = "../searchindex-7447e1d8.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-35a7562c.js"></script>
+        <script src="../toc-72b55f3c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -209,7 +209,7 @@
   "params": {
     "name": "m1nd.learn",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "session pool management",
       "feedback": "correct",
       "node_ids": ["file::pool.py", "file::worker.py"],
@@ -265,7 +265,7 @@
   "params": {
     "name": "m1nd.drift",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "since": "last_session",
       "include_weight_drift": true
     }
@@ -322,7 +322,7 @@
   "params": {
     "name": "m1nd.why",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "source": "file::worker.py",
       "target": "file::messaging.py",
       "max_hops": 4
@@ -393,7 +393,7 @@
   "params": {
     "name": "m1nd.trail.save",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "label": "auth-leak-investigation",
       "hypotheses": [
         {
@@ -421,7 +421,7 @@
 <pre><code class="language-json">{
   "trail_id": "trail_jimi_001_a1b2c3",
   "label": "auth-leak-investigation",
-  "agent_id": "jimi",
+  "agent_id": "orchestrator",
   "nodes_saved": 47,
   "hypotheses_saved": 2,
   "conclusions_saved": 0,
@@ -466,7 +466,7 @@
   "params": {
     "name": "m1nd.trail.resume",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "trail_id": "trail_jimi_001_a1b2c3"
     }
   }
@@ -483,7 +483,7 @@
   "hypotheses_downgraded": [],
   "trail": {
     "trail_id": "trail_jimi_001_a1b2c3",
-    "agent_id": "jimi",
+    "agent_id": "orchestrator",
     "label": "auth-leak-investigation",
     "status": "active",
     "created_at_ms": 1710300000000,
@@ -534,7 +534,7 @@
   "params": {
     "name": "m1nd.trail.list",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "filter_status": "saved",
       "filter_tags": ["security"]
     }
@@ -546,7 +546,7 @@
   "trails": [
     {
       "trail_id": "trail_jimi_001_a1b2c3",
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "label": "auth-leak-investigation",
       "status": "saved",
       "created_at_ms": 1710300000000,
@@ -596,7 +596,7 @@
   "params": {
     "name": "m1nd.trail.merge",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "trail_ids": ["trail_jimi_001_a1b2c3", "trail_analyst_002_d4e5f6"],
       "label": "combined-auth-investigation"
     }

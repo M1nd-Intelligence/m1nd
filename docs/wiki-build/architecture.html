@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture — m1nd Wiki</title>
+  <meta name="description" content="How the m1nd connectome engine works internally. Graph structure, 6 computation engines, data flow, and MCP protocol layer.">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0a0f; --bg-raised: #0f1118; --bg-card: #13151e;
+      --border: #1e2433; --border-hover: #2a3040;
+      --text: #f0f2f5; --text-dim: #8b9daf; --text-faint: #5a6577;
+      --cyan: #00d4ff; --yellow: #ffd700; --magenta: #ff00ff;
+      --blue: #4169e1; --green: #00ff88;
+      --cyan-dim: rgba(0, 212, 255, 0.12); --yellow-dim: rgba(255, 215, 0, 0.12);
+      --magenta-dim: rgba(255, 0, 255, 0.10); --blue-dim: rgba(65, 105, 225, 0.12);
+      --green-dim: rgba(0, 255, 136, 0.10);
+      --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(30,36,51,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(30,36,51,0.18) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: 0; }
+    a { color: var(--cyan); text-decoration: none; transition: color 0.2s; }
+    a:hover { opacity: 0.85; }
+
+    /* NAV */
+    .wiki-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,15,0.88); backdrop-filter: blur(24px) saturate(180%); border-bottom: 1px solid var(--border); height: 56px; }
+    .wiki-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 100%; }
+    .wiki-nav-logo { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+    .wiki-nav-logo .glyphs { font-size: 16px; letter-spacing: 3px; }
+    .g-cy { color: var(--cyan); } .g-ye { color: var(--yellow); } .g-ma { color: var(--magenta); } .g-bl { color: var(--blue); } .g-gr { color: var(--green); }
+    .wiki-nav-logo .sep { color: var(--text-faint); font-weight: 400; }
+    .wiki-nav-logo .wiki-label { color: var(--text-dim); font-weight: 400; font-size: 14px; }
+    .wiki-nav-links { display: flex; gap: 6px; align-items: center; }
+    .wiki-nav-links a { color: var(--text-dim); font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: 8px; transition: all 0.2s; }
+    .wiki-nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .wiki-nav-links a.active { color: var(--blue); background: var(--blue-dim); }
+    .wiki-nav-links a.home-link { color: var(--text-faint); border: 1px solid var(--border); }
+    .wiki-nav-links a.home-link:hover { border-color: var(--cyan); color: var(--cyan); }
+    .nav-hamburger { display: none; background: none; border: none; cursor: pointer; color: var(--text-dim); padding: 8px; }
+    .nav-hamburger svg { width: 24px; height: 24px; }
+    .mobile-menu { display: none; position: fixed; top: 56px; left: 0; right: 0; background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 16px 24px; z-index: 99; }
+    .mobile-menu.open { display: block; }
+    .mobile-menu a { display: block; color: var(--text-dim); font-size: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .mobile-menu a:last-child { border-bottom: none; }
+    @media (max-width: 860px) { .wiki-nav-links { display: none; } .nav-hamburger { display: block; } }
+
+    /* LAYOUT */
+    .wiki-container { max-width: 900px; margin: 0 auto; padding: 80px 24px 80px; position: relative; z-index: 1; }
+
+    /* HEADER */
+    .page-header { margin-bottom: 56px; }
+    .breadcrumb { font-family: var(--mono); font-size: 12px; color: var(--text-faint); margin-bottom: 16px; }
+    .breadcrumb a { color: var(--text-dim); }
+    .page-header h1 { font-family: var(--mono); font-size: clamp(28px,5vw,42px); font-weight: 700; letter-spacing: -1px; margin-bottom: 12px; }
+    .page-header .page-desc { font-size: 17px; color: var(--text-dim); max-width: 640px; line-height: 1.7; }
+
+    /* SECTION */
+    .arch-section { margin-bottom: 72px; scroll-margin-top: 72px; }
+    .section-label { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 12px; }
+    .section-title { font-size: clamp(22px,4vw,32px); font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; }
+    .section-desc { color: var(--text-dim); font-size: 15px; line-height: 1.7; margin-bottom: 32px; max-width: 680px; }
+
+    /* ARCH DIAGRAM */
+    .arch-diagram {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 40px 32px; margin-bottom: 40px; overflow-x: auto;
+    }
+    .arch-layers { display: flex; flex-direction: column; gap: 4px; max-width: 720px; margin: 0 auto; }
+    .arch-layer {
+      display: flex; align-items: center; border-radius: 10px;
+      padding: 16px 20px; transition: all 0.3s;
+      position: relative;
+    }
+    .arch-layer:hover { transform: translateX(4px); }
+    .arch-layer .layer-glyph { font-size: 22px; width: 36px; text-align: center; margin-right: 16px; flex-shrink: 0; }
+    .arch-layer .layer-name { font-family: var(--mono); font-weight: 700; font-size: 14px; width: 140px; flex-shrink: 0; }
+    .arch-layer .layer-desc { font-size: 13px; color: var(--text-dim); }
+    .arch-layer .layer-arrow { margin-left: auto; color: var(--text-faint); font-size: 16px; padding-left: 12px; }
+
+    .layer-mcp { background: rgba(0, 212, 255, 0.06); border: 1px solid rgba(0, 212, 255, 0.15); }
+    .layer-mcp .layer-name { color: var(--cyan); }
+    .layer-dispatch { background: rgba(255, 215, 0, 0.05); border: 1px solid rgba(255, 215, 0, 0.12); }
+    .layer-dispatch .layer-name { color: var(--yellow); }
+    .layer-engines { background: rgba(65, 105, 225, 0.06); border: 1px solid rgba(65, 105, 225, 0.15); }
+    .layer-engines .layer-name { color: var(--blue); }
+    .layer-graph { background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.12); }
+    .layer-graph .layer-name { color: var(--green); }
+    .layer-persist { background: rgba(255, 0, 255, 0.05); border: 1px solid rgba(255, 0, 255, 0.10); }
+    .layer-persist .layer-name { color: var(--magenta); }
+
+    .flow-arrow {
+      text-align: center; color: var(--text-faint); font-family: var(--mono);
+      font-size: 18px; padding: 4px 0; letter-spacing: 6px;
+    }
+
+    /* ENGINE CARDS */
+    .engines-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px; margin-bottom: 40px;
+    }
+    .engine-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px; transition: all 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .engine-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; opacity: 0.6;
+      transition: opacity 0.3s;
+    }
+    .engine-card:hover::before { opacity: 1; }
+    .engine-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+
+    .engine-card.eq::before { background: var(--cyan); }
+    .engine-card.te::before { background: var(--yellow); }
+    .engine-card.ce::before { background: var(--blue); }
+    .engine-card.ta::before { background: var(--magenta); }
+    .engine-card.re::before { background: var(--green); }
+    .engine-card.pe::before { background: linear-gradient(90deg, var(--cyan), var(--yellow)); }
+
+    .engine-name { font-family: var(--mono); font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+    .engine-card.eq .engine-name { color: var(--cyan); }
+    .engine-card.te .engine-name { color: var(--yellow); }
+    .engine-card.ce .engine-name { color: var(--blue); }
+    .engine-card.ta .engine-name { color: var(--magenta); }
+    .engine-card.re .engine-name { color: var(--green); }
+    .engine-card.pe .engine-name { color: var(--cyan); }
+
+    .engine-subtitle { font-family: var(--mono); font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .engine-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 12px; }
+    .engine-features { list-style: none; }
+    .engine-features li {
+      font-size: 12px; color: var(--text-dim); padding: 3px 0;
+      font-family: var(--mono);
+    }
+    .engine-features li::before { content: '+ '; color: var(--text-faint); }
+
+    /* NODE/EDGE DIAGRAM */
+    .graph-visual {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 40px 32px; margin-bottom: 40px; text-align: center;
+    }
+    .graph-elements {
+      display: flex; justify-content: center; gap: 56px; margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .graph-col { text-align: left; }
+    .graph-col-title {
+      font-family: var(--mono); font-weight: 700; font-size: 13px;
+      text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    }
+    .graph-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0; font-size: 14px;
+    }
+    .node-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .edge-line {
+      width: 24px; height: 2px; flex-shrink: 0; border-radius: 1px;
+    }
+
+    /* CONCURRENCY VISUAL */
+    .concurrency-box {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 32px; margin-bottom: 40px;
+    }
+    .conc-diagram {
+      display: flex; align-items: center; justify-content: center;
+      gap: 24px; flex-wrap: wrap;
+    }
+    .conc-agent {
+      background: var(--bg-raised); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 20px; text-align: center;
+      min-width: 100px;
+    }
+    .conc-agent .agent-label { font-family: var(--mono); font-size: 12px; color: var(--text-dim); margin-bottom: 4px; }
+    .conc-agent .agent-icon { font-size: 24px; }
+    .conc-arrow { color: var(--cyan); font-family: var(--mono); font-size: 24px; }
+    .conc-center {
+      background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(0, 255, 136, 0.08));
+      border: 2px solid rgba(0, 212, 255, 0.25);
+      border-radius: 14px; padding: 24px 32px; text-align: center;
+    }
+    .conc-center .center-label {
+      font-family: var(--mono); font-weight: 700; font-size: 14px; color: var(--cyan);
+      margin-bottom: 4px;
+    }
+    .conc-center .center-sub {
+      font-family: var(--mono); font-size: 11px; color: var(--text-faint);
+    }
+
+    /* CODE BLOCKS */
+    .code-block {
+      background: var(--bg-raised); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 20px; font-family: var(--mono); font-size: 13px;
+      overflow-x: auto; line-height: 1.8; margin-bottom: 24px;
+    }
+    .code-block .comment { color: var(--text-faint); font-style: italic; }
+    .code-block .kw { color: var(--magenta); }
+    .code-block .str { color: var(--green); }
+    .code-block .fn { color: var(--cyan); }
+    .code-block .type { color: var(--yellow); }
+
+    /* PROTOCOL DIAGRAM */
+    .protocol-flow {
+      display: flex; align-items: stretch; gap: 2px;
+      margin-bottom: 32px; border-radius: 14px; overflow: hidden;
+    }
+    .protocol-step {
+      flex: 1; background: var(--bg-card); padding: 24px 16px; text-align: center;
+      position: relative; min-width: 120px;
+    }
+    .protocol-step:not(:last-child)::after {
+      content: ''; position: absolute; right: -1px; top: 50%;
+      transform: translateY(-50%);
+      width: 0; height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 10px solid var(--border);
+      z-index: 2;
+    }
+    .protocol-step .ps-num {
+      font-family: var(--mono); font-size: 24px; font-weight: 700;
+      opacity: 0.3; margin-bottom: 4px;
+    }
+    .protocol-step .ps-name { font-family: var(--mono); font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+    .protocol-step .ps-desc { font-size: 12px; color: var(--text-dim); }
+
+    .ps-receive .ps-name { color: var(--cyan); }
+    .ps-parse .ps-name { color: var(--yellow); }
+    .ps-dispatch .ps-name { color: var(--blue); }
+    .ps-execute .ps-name { color: var(--magenta); }
+    .ps-respond .ps-name { color: var(--green); }
+
+    @media (max-width: 768px) {
+      .protocol-flow { flex-direction: column; }
+      .protocol-step:not(:last-child)::after { display: none; }
+      .conc-diagram { flex-direction: column; gap: 12px; }
+      .conc-arrow { transform: rotate(90deg); }
+    }
+
+    /* INFO BOXES */
+    .info-box {
+      background: var(--bg-card); border-left: 3px solid var(--cyan);
+      border-radius: 0 10px 10px 0; padding: 16px 20px;
+      margin-bottom: 24px;
+    }
+    .info-box .info-title { font-family: var(--mono); font-weight: 700; font-size: 13px; color: var(--cyan); margin-bottom: 4px; }
+    .info-box p { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+
+    /* FOOTER */
+    .wiki-footer { border-top: 1px solid var(--border); padding: 40px 24px; text-align: center; }
+    .footer-glyphs { font-size: 20px; letter-spacing: 6px; margin-bottom: 12px; }
+    .footer-text { font-size: 13px; color: var(--text-faint); font-family: var(--mono); }
+    .footer-links { display: flex; gap: 24px; justify-content: center; margin-top: 16px; }
+    .footer-links a { color: var(--text-dim); font-size: 13px; }
+
+    @keyframes float-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .arch-section { animation: float-up 0.5s ease-out backwards; }
+  </style>
+</head>
+<body>
+  <nav class="wiki-nav">
+    <div class="wiki-nav-inner">
+      <a href="index.html" class="wiki-nav-logo">
+        <span class="glyphs"><span class="g-cy">&#x234C;</span><span class="g-ye">&#x2350;</span><span class="g-ma">&#x2342;</span><span class="g-bl">&#x1D53B;</span> <span class="g-gr">&#x27C1;</span></span>
+        <span class="sep">/</span><span class="wiki-label">wiki</span>
+      </a>
+      <div class="wiki-nav-links">
+        <a href="index.html">Home</a>
+        <a href="tools.html">Tools</a>
+        <a href="architecture.html" class="active">Architecture</a>
+        <a href="quickstart.html">Quickstart</a>
+        <a href="benchmarks.html">Benchmarks</a>
+        <a href="patterns.html">Patterns</a>
+        <a href="../index.html" class="home-link">Main Site</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.toggle('open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Home</a><a href="tools.html">Tools</a><a href="architecture.html">Architecture</a>
+    <a href="quickstart.html">Quickstart</a><a href="benchmarks.html">Benchmarks</a><a href="patterns.html">Patterns</a>
+    <a href="../index.html">Main Site</a>
+  </div>
+
+  <div class="wiki-container">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="index.html">Wiki</a> / Architecture</div>
+      <h1>Architecture</h1>
+      <p class="page-desc">How the connectome engine works internally. From MCP request to graph response, through 6 computation engines.</p>
+    </div>
+
+    <!-- LAYER DIAGRAM -->
+    <section class="arch-section" id="layers">
+      <div class="section-label" style="color: var(--cyan);">System Layers</div>
+      <h2 class="section-title">Five-Layer Stack</h2>
+      <p class="section-desc">Every request flows through five layers, from the MCP protocol surface down to persistent storage.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-layers">
+          <div class="arch-layer layer-mcp">
+            <span class="layer-glyph g-cy">&#x234C;</span>
+            <span class="layer-name">MCP Server</span>
+            <span class="layer-desc">JSON-RPC over stdio. Receives tool calls, validates params, returns branded responses.</span>
+          </div>
+          <div class="flow-arrow">&#x25BC;</div>
+          <div class="arch-layer layer-dispatch">
+            <span class="layer-glyph g-ye">&#x2350;</span>
+            <span class="layer-name">Tool Dispatch</span>
+            <span class="layer-desc">Routes 43 tools to the correct engine. Parameter normalization, error wrapping.</span>
+          </div>
+          <div class="flow-arrow">&#x25BC;</div>
+          <div class="arch-layer layer-engines">
+            <span class="layer-glyph g-bl">&#x1D53B;</span>
+            <span class="layer-name">6 Engines</span>
+            <span class="layer-desc">Query, Temporal, Counterfactual, Topology, Resonance, Plasticity. The computation layer.</span>
+          </div>
+          <div class="flow-arrow">&#x25BC;</div>
+          <div class="arch-layer layer-graph">
+            <span class="layer-glyph g-gr">&#x27C1;</span>
+            <span class="layer-name">SharedGraph</span>
+            <span class="layer-desc">Arc&lt;RwLock&lt;Graph&gt;&gt; for concurrent multi-agent access. Nodes + weighted edges.</span>
+          </div>
+          <div class="flow-arrow">&#x25BC;</div>
+          <div class="arch-layer layer-persist">
+            <span class="layer-glyph g-ma">&#x2342;</span>
+            <span class="layer-name">Persistence</span>
+            <span class="layer-desc">Auto-persist every 50 queries + on shutdown. Graph JSON + plasticity state on disk.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRAPH STRUCTURE -->
+    <section class="arch-section" id="graph">
+      <div class="section-label" style="color: var(--green);">Graph Structure</div>
+      <h2 class="section-title">Nodes and Edges</h2>
+      <p class="section-desc">The graph stores four types of nodes and four types of weighted edges. All edges carry a weight between 0.0 and 1.0 that adapts through Hebbian learning.</p>
+
+      <div class="graph-visual">
+        <div class="graph-elements">
+          <div class="graph-col">
+            <div class="graph-col-title" style="color: var(--cyan);">Node Types</div>
+            <div class="graph-item">
+              <span class="node-dot" style="background: var(--cyan);"></span>
+              <span><strong>Module</strong> &#x2014; A file, package, or crate</span>
+            </div>
+            <div class="graph-item">
+              <span class="node-dot" style="background: var(--yellow);"></span>
+              <span><strong>Function</strong> &#x2014; A callable unit</span>
+            </div>
+            <div class="graph-item">
+              <span class="node-dot" style="background: var(--magenta);"></span>
+              <span><strong>Type</strong> &#x2014; A struct, enum, trait, or interface</span>
+            </div>
+            <div class="graph-item">
+              <span class="node-dot" style="background: var(--green);"></span>
+              <span><strong>File</strong> &#x2014; A source file on disk</span>
+            </div>
+          </div>
+          <div class="graph-col">
+            <div class="graph-col-title" style="color: var(--yellow);">Edge Types</div>
+            <div class="graph-item">
+              <span class="edge-line" style="background: var(--cyan);"></span>
+              <span><strong>imports</strong> &#x2014; A uses/imports B</span>
+            </div>
+            <div class="graph-item">
+              <span class="edge-line" style="background: var(--yellow);"></span>
+              <span><strong>calls</strong> &#x2014; A invokes B</span>
+            </div>
+            <div class="graph-item">
+              <span class="edge-line" style="background: var(--magenta);"></span>
+              <span><strong>contains</strong> &#x2014; A includes B</span>
+            </div>
+            <div class="graph-item">
+              <span class="edge-line" style="background: var(--green); border-style: dashed;"></span>
+              <span><strong>co-changes</strong> &#x2014; A and B change together</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box" style="text-align: left;">
+          <div class="info-title">Edge Weights</div>
+          <p>Every edge has a weight between 0.0 and 1.0. Weights are initialized from static analysis (import depth, call frequency) and adapted at runtime through Hebbian learning. When an agent confirms a connection is useful (via <code>learn</code>), the weight increases. When confirmed wrong, it decays.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 ENGINES -->
+    <section class="arch-section" id="engines">
+      <div class="section-label" style="color: var(--blue);">Computation</div>
+      <h2 class="section-title">Six Engines</h2>
+      <p class="section-desc">Each engine handles a different class of computation against the shared graph. They can be composed -- a single tool call may invoke multiple engines.</p>
+
+      <div class="engines-grid">
+        <div class="engine-card eq">
+          <div class="engine-name">QueryOrchestrator</div>
+          <div class="engine-subtitle">Hybrid Search + Semantic + XLR</div>
+          <p class="engine-desc">The primary query engine. Combines spreading activation (signal propagation along weighted edges) with semantic matching and XLR noise cancellation to produce ranked results.</p>
+          <ul class="engine-features">
+            <li>Spreading activation with configurable depth</li>
+            <li>XLR noise filtering (eXtract, Locate, Rank)</li>
+            <li>Threshold-based result pruning</li>
+            <li>Multi-hop semantic chaining</li>
+          </ul>
+        </div>
+
+        <div class="engine-card te">
+          <div class="engine-name">TemporalEngine</div>
+          <div class="engine-subtitle">Co-change, Causal Chains, Decay</div>
+          <p class="engine-desc">Tracks how the graph evolves over time. Detects co-change patterns (files that change together), builds causal chains, and applies temporal decay to reduce noise from stale connections.</p>
+          <ul class="engine-features">
+            <li>Co-change frequency tracking</li>
+            <li>Causal chain inference</li>
+            <li>Temporal decay (older = weaker)</li>
+            <li>Change velocity estimation</li>
+          </ul>
+        </div>
+
+        <div class="engine-card ce">
+          <div class="engine-name">CounterfactualEngine</div>
+          <div class="engine-subtitle">Removal Simulation</div>
+          <p class="engine-desc">Simulates removing nodes from the graph without modifying it. Creates a shadow copy, performs the removal, and reports disconnections, orphans, and broken dependency paths.</p>
+          <ul class="engine-features">
+            <li>Shadow graph creation</li>
+            <li>Disconnection detection</li>
+            <li>Orphan identification</li>
+            <li>Path integrity validation</li>
+          </ul>
+        </div>
+
+        <div class="engine-card ta">
+          <div class="engine-name">TopologyAnalyzer</div>
+          <div class="engine-subtitle">Structural Holes, Betweenness</div>
+          <p class="engine-desc">Analyzes the structural properties of the graph topology. Finds structural holes (gaps where connections should exist), computes betweenness centrality, and identifies community boundaries.</p>
+          <ul class="engine-features">
+            <li>Structural hole detection</li>
+            <li>Betweenness centrality</li>
+            <li>Community detection</li>
+            <li>Clustering coefficient</li>
+          </ul>
+        </div>
+
+        <div class="engine-card re">
+          <div class="engine-name">ResonanceEngine</div>
+          <div class="engine-subtitle">Standing Waves, Harmonics</div>
+          <p class="engine-desc">Sends simultaneous signals from multiple seed nodes and detects standing wave patterns -- places where signals from different sources reinforce each other. Reveals deep cross-domain relationships.</p>
+          <ul class="engine-features">
+            <li>Multi-source signal emission</li>
+            <li>Standing wave detection</li>
+            <li>Harmonic analysis</li>
+            <li>Cross-domain correlation</li>
+          </ul>
+        </div>
+
+        <div class="engine-card pe">
+          <div class="engine-name">PlasticityEngine</div>
+          <div class="engine-subtitle">Hebbian Learning, Weight Adaptation</div>
+          <p class="engine-desc">Implements the learning loop. When agents provide feedback via <code>learn</code>, the PlasticityEngine adjusts edge weights using Hebbian rules -- "neurons that fire together, wire together."</p>
+          <ul class="engine-features">
+            <li>Hebbian weight updates</li>
+            <li>Anti-Hebbian decay</li>
+            <li>Plasticity state persistence</li>
+            <li>Multi-agent weight fusion</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- MCP PROTOCOL -->
+    <section class="arch-section" id="mcp">
+      <div class="section-label" style="color: var(--yellow);">Protocol</div>
+      <h2 class="section-title">MCP Request Lifecycle</h2>
+      <p class="section-desc">The Model Context Protocol (MCP) layer handles communication between AI coding agents and the m1nd binary. JSON-RPC over stdio, no network required.</p>
+
+      <div class="protocol-flow">
+        <div class="protocol-step ps-receive">
+          <div class="ps-num">1</div>
+          <div class="ps-name">Receive</div>
+          <div class="ps-desc">JSON-RPC request on stdin</div>
+        </div>
+        <div class="protocol-step ps-parse">
+          <div class="ps-num">2</div>
+          <div class="ps-name">Parse</div>
+          <div class="ps-desc">Validate params, extract tool name</div>
+        </div>
+        <div class="protocol-step ps-dispatch">
+          <div class="ps-num">3</div>
+          <div class="ps-name">Dispatch</div>
+          <div class="ps-desc">Route to engine via tool handler</div>
+        </div>
+        <div class="protocol-step ps-execute">
+          <div class="ps-num">4</div>
+          <div class="ps-name">Execute</div>
+          <div class="ps-desc">Engine computes against SharedGraph</div>
+        </div>
+        <div class="protocol-step ps-respond">
+          <div class="ps-num">5</div>
+          <div class="ps-name">Respond</div>
+          <div class="ps-desc">Branded JSON result on stdout</div>
+        </div>
+      </div>
+
+      <div class="code-block">
+<span class="comment">// Example MCP request (JSON-RPC)</span>
+{
+  <span class="str">"jsonrpc"</span>: <span class="str">"2.0"</span>,
+  <span class="str">"id"</span>: <span class="type">1</span>,
+  <span class="str">"method"</span>: <span class="str">"tools/call"</span>,
+  <span class="str">"params"</span>: {
+    <span class="str">"name"</span>: <span class="str">"m1nd_activate"</span>,
+    <span class="str">"arguments"</span>: {
+      <span class="str">"query"</span>: <span class="str">"authentication"</span>,
+      <span class="str">"depth"</span>: <span class="type">3</span>,
+      <span class="str">"threshold"</span>: <span class="type">0.4</span>,
+      <span class="str">"agent_id"</span>: <span class="str">"jimi"</span>
+    }
+  }
+}
+</div>
+    </section>
+
+    <!-- CONCURRENCY -->
+    <section class="arch-section" id="concurrency">
+      <div class="section-label" style="color: var(--green);">Concurrency</div>
+      <h2 class="section-title">Multi-Agent Access</h2>
+      <p class="section-desc">One m1nd instance serves all agents. The SharedGraph uses Rust's <code>Arc&lt;RwLock&lt;Graph&gt;&gt;</code> for safe concurrent access. Writes are immediately visible to all agents.</p>
+
+      <div class="concurrency-box">
+        <div class="conc-diagram">
+          <div class="conc-agent">
+            <div class="agent-label">Agent A</div>
+            <div class="agent-icon" style="color: var(--cyan);">&#x234C;</div>
+          </div>
+          <div class="conc-agent">
+            <div class="agent-label">Agent B</div>
+            <div class="agent-icon" style="color: var(--yellow);">&#x2350;</div>
+          </div>
+          <div class="conc-arrow">&#x2192;</div>
+          <div class="conc-center">
+            <div class="center-label">SharedGraph</div>
+            <div class="center-sub">Arc&lt;RwLock&lt;Graph&gt;&gt;</div>
+          </div>
+          <div class="conc-arrow">&#x2190;</div>
+          <div class="conc-agent">
+            <div class="agent-label">Agent C</div>
+            <div class="agent-icon" style="color: var(--magenta);">&#x2342;</div>
+          </div>
+          <div class="conc-agent">
+            <div class="agent-label">Agent D</div>
+            <div class="agent-icon" style="color: var(--green);">&#x27C1;</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-title">Persistence Strategy</div>
+        <p>The graph auto-persists to disk every 50 queries and on server shutdown. Two files are written: <code>graph_snapshot.json</code> (full graph state) and <code>plasticity_state.json</code> (learned weights). On startup, both are loaded to restore the full learned state.</p>
+      </div>
+    </section>
+
+    <!-- CRATE STRUCTURE -->
+    <section class="arch-section" id="crates">
+      <div class="section-label" style="color: var(--magenta);">Source</div>
+      <h2 class="section-title">Rust Workspace</h2>
+      <p class="section-desc">m1nd is a Rust workspace with 3 crates. The binary is ~4MB, zero runtime dependencies beyond the standard library.</p>
+
+      <div class="code-block">
+<span class="comment">// Workspace layout</span>
+mcp/m1nd/
+<span class="kw">  Cargo.toml</span>          <span class="comment">// workspace root</span>
+  m1nd-core/          <span class="comment">// graph, engines, query, plasticity</span>
+<span class="kw">    src/lib.rs</span>        <span class="comment">// ~3000 lines</span>
+  m1nd-ingest/        <span class="comment">// codebase parsing, AST extraction</span>
+<span class="kw">    src/lib.rs</span>        <span class="comment">// ~1200 lines</span>
+  m1nd-mcp/           <span class="comment">// MCP server, tool handlers, branding</span>
+<span class="kw">    src/main.rs</span>       <span class="comment">// ~800 lines</span>
+</div>
+    </section>
+  </div>
+
+  <footer class="wiki-footer">
+    <div class="footer-glyphs"><span class="g-cy">&#x234C;</span><span class="g-ye">&#x2350;</span><span class="g-ma">&#x2342;</span><span class="g-bl">&#x1D53B;</span> <span class="g-gr">&#x27C1;</span></div>
+    <div class="footer-text">neuro-symbolic connectome engine</div>
+    <div class="footer-links">
+      <a href="index.html">Wiki Home</a><a href="tools.html">Tools</a><a href="quickstart.html">Quickstart</a><a href="../index.html">Main Site</a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patterns &amp; Workflows — m1nd Wiki</title>
+  <meta name="description" content="Proven m1nd usage patterns and workflows. Research flow, code change workflow, build loop, and session recovery.">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0a0f; --bg-raised: #0f1118; --bg-card: #13151e;
+      --border: #1e2433; --border-hover: #2a3040;
+      --text: #f0f2f5; --text-dim: #8b9daf; --text-faint: #5a6577;
+      --cyan: #00d4ff; --yellow: #ffd700; --magenta: #ff00ff;
+      --blue: #4169e1; --green: #00ff88;
+      --cyan-dim: rgba(0, 212, 255, 0.12); --magenta-dim: rgba(255, 0, 255, 0.10);
+      --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(30,36,51,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(30,36,51,0.18) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: 0; }
+    a { color: var(--cyan); text-decoration: none; transition: color 0.2s; }
+    a:hover { opacity: 0.85; }
+
+    /* NAV */
+    .wiki-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10,10,15,0.88); backdrop-filter: blur(24px) saturate(180%); border-bottom: 1px solid var(--border); height: 56px; }
+    .wiki-nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 100%; }
+    .wiki-nav-logo { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+    .wiki-nav-logo .glyphs { font-size: 16px; letter-spacing: 3px; }
+    .g-cy { color: var(--cyan); } .g-ye { color: var(--yellow); } .g-ma { color: var(--magenta); } .g-bl { color: var(--blue); } .g-gr { color: var(--green); }
+    .wiki-nav-logo .sep { color: var(--text-faint); font-weight: 400; }
+    .wiki-nav-logo .wiki-label { color: var(--text-dim); font-weight: 400; font-size: 14px; }
+    .wiki-nav-links { display: flex; gap: 6px; align-items: center; }
+    .wiki-nav-links a { color: var(--text-dim); font-size: 13px; font-weight: 500; padding: 6px 14px; border-radius: 8px; transition: all 0.2s; }
+    .wiki-nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .wiki-nav-links a.active { color: var(--magenta); background: var(--magenta-dim); }
+    .wiki-nav-links a.home-link { color: var(--text-faint); border: 1px solid var(--border); }
+    .wiki-nav-links a.home-link:hover { border-color: var(--cyan); color: var(--cyan); }
+    .nav-hamburger { display: none; background: none; border: none; cursor: pointer; color: var(--text-dim); padding: 8px; }
+    .nav-hamburger svg { width: 24px; height: 24px; }
+    .mobile-menu { display: none; position: fixed; top: 56px; left: 0; right: 0; background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 16px 24px; z-index: 99; }
+    .mobile-menu.open { display: block; }
+    .mobile-menu a { display: block; color: var(--text-dim); font-size: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .mobile-menu a:last-child { border-bottom: none; }
+    @media (max-width: 860px) { .wiki-nav-links { display: none; } .nav-hamburger { display: block; } }
+
+    .wiki-container { max-width: 900px; margin: 0 auto; padding: 80px 24px 80px; position: relative; z-index: 1; }
+    .page-header { margin-bottom: 56px; }
+    .breadcrumb { font-family: var(--mono); font-size: 12px; color: var(--text-faint); margin-bottom: 16px; }
+    .breadcrumb a { color: var(--text-dim); }
+    .page-header h1 { font-family: var(--mono); font-size: clamp(28px,5vw,42px); font-weight: 700; letter-spacing: -1px; margin-bottom: 12px; }
+    .page-header .page-desc { font-size: 17px; color: var(--text-dim); max-width: 640px; line-height: 1.7; }
+
+    .pattern-section { margin-bottom: 80px; scroll-margin-top: 72px; }
+    .section-label { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 12px; }
+    .section-title { font-size: clamp(22px,4vw,32px); font-weight: 700; letter-spacing: -1px; margin-bottom: 8px; }
+    .section-subtitle { font-size: 15px; color: var(--text-dim); line-height: 1.7; margin-bottom: 32px; max-width: 680px; }
+
+    /* WORKFLOW OVERVIEW */
+    .workflow-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px; margin-bottom: 64px;
+    }
+    .workflow-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px 20px; text-align: center;
+      text-decoration: none; color: var(--text);
+      transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .workflow-card:hover { transform: translateY(-3px); border-color: var(--border-hover); }
+    .workflow-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; opacity: 0.6; }
+    .workflow-card:hover::before { opacity: 1; }
+    .wc-glyph { font-size: 32px; margin-bottom: 10px; }
+    .wc-name { font-family: var(--mono); font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .wc-desc { font-size: 12px; color: var(--text-dim); }
+
+    .workflow-card.research::before { background: var(--cyan); }
+    .workflow-card.research .wc-name { color: var(--cyan); }
+    .workflow-card.change::before { background: var(--blue); }
+    .workflow-card.change .wc-name { color: var(--blue); }
+    .workflow-card.build::before { background: var(--green); }
+    .workflow-card.build .wc-name { color: var(--green); }
+    .workflow-card.recovery::before { background: var(--yellow); }
+    .workflow-card.recovery .wc-name { color: var(--yellow); }
+
+    /* FLOWCHART */
+    .flowchart {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px; margin-bottom: 32px;
+      overflow-x: auto;
+    }
+    .flow-nodes {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; flex-wrap: nowrap; min-width: min-content;
+    }
+    .flow-node {
+      background: var(--bg-raised); border: 2px solid var(--border);
+      border-radius: 12px; padding: 16px 18px; text-align: center;
+      min-width: 110px; position: relative;
+      transition: all 0.3s;
+    }
+    .flow-node:hover { transform: translateY(-2px); }
+    .flow-node .fn-tool { font-family: var(--mono); font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+    .flow-node .fn-desc { font-size: 11px; color: var(--text-dim); }
+    .flow-node .fn-glyph { font-size: 20px; margin-bottom: 6px; }
+
+    .flow-arrow-h {
+      font-family: var(--mono); font-size: 20px; padding: 0 6px;
+      flex-shrink: 0;
+    }
+
+    .flow-node.cy { border-color: rgba(0,212,255,0.3); }
+    .flow-node.cy .fn-tool { color: var(--cyan); }
+    .flow-node.cy .fn-glyph { color: var(--cyan); }
+    .flow-arrow-h.cy { color: var(--cyan); }
+
+    .flow-node.ye { border-color: rgba(255,215,0,0.3); }
+    .flow-node.ye .fn-tool { color: var(--yellow); }
+    .flow-node.ye .fn-glyph { color: var(--yellow); }
+    .flow-arrow-h.ye { color: var(--yellow); }
+
+    .flow-node.ma { border-color: rgba(255,0,255,0.25); }
+    .flow-node.ma .fn-tool { color: var(--magenta); }
+    .flow-node.ma .fn-glyph { color: var(--magenta); }
+    .flow-arrow-h.ma { color: var(--magenta); }
+
+    .flow-node.bl { border-color: rgba(65,105,225,0.3); }
+    .flow-node.bl .fn-tool { color: var(--blue); }
+    .flow-node.bl .fn-glyph { color: var(--blue); }
+    .flow-arrow-h.bl { color: var(--blue); }
+
+    .flow-node.gr { border-color: rgba(0,255,136,0.25); }
+    .flow-node.gr .fn-tool { color: var(--green); }
+    .flow-node.gr .fn-glyph { color: var(--green); }
+    .flow-arrow-h.gr { color: var(--green); }
+
+    /* MOBILE FLOWCHART */
+    @media (max-width: 768px) {
+      .flow-nodes { flex-direction: column; gap: 0; }
+      .flow-arrow-h { transform: rotate(90deg); padding: 4px 0; }
+    }
+
+    /* STEP EXPLANATION */
+    .flow-explain {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; margin-bottom: 32px;
+    }
+    .explain-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+    }
+    .explain-num {
+      font-family: var(--mono); font-size: 20px; font-weight: 700;
+      opacity: 0.3; margin-bottom: 4px;
+    }
+    .explain-tool { font-family: var(--mono); font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+    .explain-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+
+    /* CODE BLOCKS */
+    .code-block {
+      background: var(--bg-raised); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px 20px; font-family: var(--mono); font-size: 13px;
+      overflow-x: auto; line-height: 1.8; margin-bottom: 24px;
+    }
+    .code-block .comment { color: var(--text-faint); font-style: italic; }
+    .code-block .fn { color: var(--cyan); }
+    .code-block .str { color: var(--green); }
+    .code-block .num { color: var(--yellow); }
+    .code-block .kw { color: var(--magenta); }
+
+    /* FEEDBACK LOOP VISUAL */
+    .feedback-loop {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px; margin-bottom: 32px;
+      text-align: center;
+    }
+    .loop-ring {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .loop-item {
+      background: var(--bg-raised); border: 2px solid var(--border);
+      border-radius: 50%; width: 100px; height: 100px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: all 0.3s;
+    }
+    .loop-item:hover { transform: scale(1.05); }
+    .loop-item .li-icon { font-size: 22px; margin-bottom: 2px; }
+    .loop-item .li-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .loop-connector { font-family: var(--mono); font-size: 20px; color: var(--text-faint); }
+
+    .loop-item.ingest { border-color: rgba(0,212,255,0.3); }
+    .loop-item.ingest .li-icon { color: var(--cyan); }
+    .loop-item.ingest .li-label { color: var(--cyan); }
+
+    .loop-item.build-l { border-color: rgba(0,255,136,0.25); }
+    .loop-item.build-l .li-icon { color: var(--green); }
+    .loop-item.build-l .li-label { color: var(--green); }
+
+    .loop-item.learn-l { border-color: rgba(255,215,0,0.3); }
+    .loop-item.learn-l .li-icon { color: var(--yellow); }
+    .loop-item.learn-l .li-label { color: var(--yellow); }
+
+    .loop-item.predict-l { border-color: rgba(65,105,225,0.3); }
+    .loop-item.predict-l .li-icon { color: var(--blue); }
+    .loop-item.predict-l .li-label { color: var(--blue); }
+
+    .loop-item.warmup-l { border-color: rgba(255,0,255,0.25); }
+    .loop-item.warmup-l .li-icon { color: var(--magenta); }
+    .loop-item.warmup-l .li-label { color: var(--magenta); }
+
+    /* TIP BOX */
+    .tip-box {
+      background: var(--bg-card); border-left: 3px solid var(--green);
+      border-radius: 0 10px 10px 0; padding: 16px 20px; margin-bottom: 24px;
+    }
+    .tip-box .tip-title { font-family: var(--mono); font-weight: 700; font-size: 13px; color: var(--green); margin-bottom: 4px; }
+    .tip-box p { font-size: 14px; color: var(--text-dim); line-height: 1.6; }
+
+    /* MULTI-AGENT VISUAL */
+    .ma-diagram {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px; margin-bottom: 32px;
+    }
+    .ma-grid {
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      gap: 24px; align-items: center;
+    }
+    .ma-agents { display: flex; flex-direction: column; gap: 12px; }
+    .ma-agent {
+      background: var(--bg-raised); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .ma-agent .ma-icon { font-size: 18px; }
+    .ma-agent .ma-name { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+    .ma-agent .ma-task { font-size: 11px; color: var(--text-dim); }
+    .ma-center {
+      background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(0,255,136,0.06));
+      border: 2px solid rgba(0,212,255,0.2); border-radius: 16px;
+      padding: 24px 16px; text-align: center;
+    }
+    .ma-center .mc-label { font-family: var(--mono); font-weight: 700; color: var(--cyan); margin-bottom: 4px; }
+    .ma-center .mc-sub { font-size: 11px; color: var(--text-faint); font-family: var(--mono); }
+    .ma-arrows { font-family: var(--mono); font-size: 20px; color: var(--cyan); }
+
+    @media (max-width: 768px) {
+      .ma-grid { grid-template-columns: 1fr; }
+      .ma-arrows { transform: rotate(90deg); text-align: center; }
+    }
+
+    .wiki-footer { border-top: 1px solid var(--border); padding: 40px 24px; text-align: center; }
+    .footer-glyphs { font-size: 20px; letter-spacing: 6px; margin-bottom: 12px; }
+    .footer-text { font-size: 13px; color: var(--text-faint); font-family: var(--mono); }
+    .footer-links { display: flex; gap: 24px; justify-content: center; margin-top: 16px; }
+    .footer-links a { color: var(--text-dim); font-size: 13px; }
+
+    @keyframes float-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .pattern-section { animation: float-up 0.5s ease-out backwards; }
+  </style>
+</head>
+<body>
+  <nav class="wiki-nav">
+    <div class="wiki-nav-inner">
+      <a href="index.html" class="wiki-nav-logo">
+        <span class="glyphs"><span class="g-cy">&#x234C;</span><span class="g-ye">&#x2350;</span><span class="g-ma">&#x2342;</span><span class="g-bl">&#x1D53B;</span> <span class="g-gr">&#x27C1;</span></span>
+        <span class="sep">/</span><span class="wiki-label">wiki</span>
+      </a>
+      <div class="wiki-nav-links">
+        <a href="index.html">Home</a><a href="tools.html">Tools</a><a href="architecture.html">Architecture</a>
+        <a href="quickstart.html">Quickstart</a><a href="benchmarks.html">Benchmarks</a>
+        <a href="patterns.html" class="active">Patterns</a><a href="../index.html" class="home-link">Main Site</a>
+      </div>
+      <button class="nav-hamburger" onclick="document.getElementById('mobileMenu').classList.toggle('open')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Home</a><a href="tools.html">Tools</a><a href="architecture.html">Architecture</a>
+    <a href="quickstart.html">Quickstart</a><a href="benchmarks.html">Benchmarks</a><a href="patterns.html">Patterns</a>
+    <a href="../index.html">Main Site</a>
+  </div>
+
+  <div class="wiki-container">
+    <div class="page-header">
+      <div class="breadcrumb"><a href="index.html">Wiki</a> / Patterns &amp; Workflows</div>
+      <h1>Patterns &amp; Workflows</h1>
+      <p class="page-desc">Proven sequences of m1nd tool calls for common development tasks. Each pattern is a composable recipe that builds on the connectome's strengths.</p>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="workflow-grid">
+      <a href="#research" class="workflow-card research">
+        <div class="wc-glyph" style="color: var(--cyan);">&#x234C;</div>
+        <div class="wc-name">Research Flow</div>
+        <div class="wc-desc">Explore, understand, discover gaps</div>
+      </a>
+      <a href="#code-change" class="workflow-card change">
+        <div class="wc-glyph" style="color: var(--blue);">&#x1D53B;</div>
+        <div class="wc-name">Code Change</div>
+        <div class="wc-desc">Safe modification with blast radius</div>
+      </a>
+      <a href="#build-loop" class="workflow-card build">
+        <div class="wc-glyph" style="color: var(--green);">&#x27C1;</div>
+        <div class="wc-name">Build Loop</div>
+        <div class="wc-desc">Iterative build with graph learning</div>
+      </a>
+      <a href="#session-recovery" class="workflow-card recovery">
+        <div class="wc-glyph" style="color: var(--yellow);">&#x2350;</div>
+        <div class="wc-name">Session Recovery</div>
+        <div class="wc-desc">Resume context across sessions</div>
+      </a>
+    </div>
+
+    <!-- ═══ RESEARCH FLOW ═══ -->
+    <section class="pattern-section" id="research">
+      <div class="section-label" style="color: var(--cyan);">&#x234C; Pattern 1</div>
+      <h2 class="section-title">Research Flow</h2>
+      <p class="section-subtitle">For exploring an unfamiliar area of the codebase. Ask broad questions, narrow down, find gaps, and teach the graph what worked.</p>
+
+      <div class="flowchart">
+        <div class="flow-nodes">
+          <div class="flow-node cy">
+            <div class="fn-glyph">&#x234C;</div>
+            <div class="fn-tool">ingest</div>
+            <div class="fn-desc">Load code</div>
+          </div>
+          <div class="flow-arrow-h cy">&#x2192;</div>
+          <div class="flow-node cy">
+            <div class="fn-glyph">&#x234C;</div>
+            <div class="fn-tool">activate</div>
+            <div class="fn-desc">Explore topic</div>
+          </div>
+          <div class="flow-arrow-h ye">&#x2192;</div>
+          <div class="flow-node ye">
+            <div class="fn-glyph">&#x2350;</div>
+            <div class="fn-tool">why</div>
+            <div class="fn-desc">Trace links</div>
+          </div>
+          <div class="flow-arrow-h ma">&#x2192;</div>
+          <div class="flow-node ma">
+            <div class="fn-glyph">&#x2342;</div>
+            <div class="fn-tool">missing</div>
+            <div class="fn-desc">Find gaps</div>
+          </div>
+          <div class="flow-arrow-h cy">&#x2192;</div>
+          <div class="flow-node cy">
+            <div class="fn-glyph">&#x234C;</div>
+            <div class="fn-tool">learn</div>
+            <div class="fn-desc">Feedback</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-explain">
+        <div class="explain-card">
+          <div class="explain-num">1</div>
+          <div class="explain-tool" style="color: var(--cyan);">ingest</div>
+          <div class="explain-desc">Load the codebase into the graph. Use <code>mode: "full"</code> for first time, <code>"incremental"</code> after.</div>
+        </div>
+        <div class="explain-card">
+          <div class="explain-num">2</div>
+          <div class="explain-tool" style="color: var(--cyan);">activate</div>
+          <div class="explain-desc">Query the topic broadly. Start with depth 3, threshold 0.3 for maximum coverage.</div>
+        </div>
+        <div class="explain-card">
+          <div class="explain-num">3</div>
+          <div class="explain-tool" style="color: var(--yellow);">why</div>
+          <div class="explain-desc">For interesting connections in the results, trace the path between them. "Why does auth relate to billing?"</div>
+        </div>
+        <div class="explain-card">
+          <div class="explain-num">4</div>
+          <div class="explain-tool" style="color: var(--magenta);">missing</div>
+          <div class="explain-desc">Identify what the research did not find. Gaps and structural holes in the topic area.</div>
+        </div>
+        <div class="explain-card">
+          <div class="explain-num">5</div>
+          <div class="explain-tool" style="color: var(--cyan);">learn</div>
+          <div class="explain-desc">Provide feedback. "correct" if the activation results were useful, "wrong" if they led astray.</div>
+        </div>
+      </div>
+
+      <div class="code-block"><span class="comment">// Research flow example: understanding the auth system</span>
+
+<span class="fn">m1nd.ingest</span>({ <span class="str">"source"</span>: <span class="str">"./backend"</span>, <span class="str">"mode"</span>: <span class="str">"incremental"</span> })
+
+<span class="fn">m1nd.activate</span>({ <span class="str">"query"</span>: <span class="str">"authentication and authorization"</span>, <span class="str">"depth"</span>: <span class="num">3</span> })
+<span class="comment">// Returns: auth_middleware, jwt_handler, rbac_guard, session_store, ...</span>
+
+<span class="fn">m1nd.why</span>({ <span class="str">"from"</span>: <span class="str">"jwt_handler"</span>, <span class="str">"to"</span>: <span class="str">"session_store"</span> })
+<span class="comment">// Returns: jwt_handler -> token_validator -> session_lookup -> session_store</span>
+
+<span class="fn">m1nd.missing</span>({ <span class="str">"context"</span>: <span class="str">"authentication"</span> })
+<span class="comment">// Returns: No rate limiting on login endpoint, no token rotation</span>
+
+<span class="fn">m1nd.learn</span>({ <span class="str">"query"</span>: <span class="str">"authentication and authorization"</span>, <span class="str">"feedback"</span>: <span class="str">"correct"</span> })</div>
+    </section>
+
+    <!-- ═══ CODE CHANGE ═══ -->
+    <section class="pattern-section" id="code-change">
+      <div class="section-label" style="color: var(--blue);">&#x1D53B; Pattern 2</div>
+      <h2 class="section-title">Code Change Flow</h2>
+      <p class="section-subtitle">For safely modifying existing code. Understand the blast radius before touching anything, then verify completeness after.</p>
+
+      <div class="flowchart">
+        <div class="flow-nodes">
+          <div class="flow-node bl">
+            <div class="fn-glyph">&#x1D53B;</div>
+            <div class="fn-tool">impact</div>
+            <div class="fn-desc">Blast radius</div>
+          </div>
+          <div class="flow-arrow-h bl">&#x2192;</div>
+          <div class="flow-node bl">
+            <div class="fn-glyph">&#x1D53B;</div>
+            <div class="fn-tool">predict</div>
+            <div class="fn-desc">Co-changes</div>
+          </div>
+          <div class="flow-arrow-h bl">&#x2192;</div>
+          <div class="flow-node bl">
+            <div class="fn-glyph">&#x1D53B;</div>
+            <div class="fn-tool">counterfactual</div>
+            <div class="fn-desc">Simulate</div>
+          </div>
+          <div class="flow-arrow-h cy">&#x2192;</div>
+          <div class="flow-node cy">
+            <div class="fn-glyph">&#x234C;</div>
+            <div class="fn-tool">warmup</div>
+            <div class="fn-desc">Prime</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-explain">
+        <div class="explain-card">
+          <div class="explain-num">1</div>
+          <div class="explain-tool" style="color: var(--blue);">impact</div>
+          <div class="explain-desc">Check the blast radius of your planned change. How many other files are affected? Which tests might break?</div>
+        </div>
+        <div class="explain-card">
+          <div class="explain-num">2</div>
+          <div class="explain-tool" style="color: var(--blue);">predict</div>
+          <div class="explain-desc">Based on co-change history, what other files typically change alongside your target? Do not miss them.</div>
+        </div>
+        <div class="explain-card">
+          <div class="explain-num">3</div>
+          <div class="explain-tool" style="color: var(--blue);">counterfactual</div>
+          <div class="explain-desc">If removing or significantly changing the module, simulate the removal. What breaks? What becomes orphaned?</div>
+        </div>
+        <div class="explain-card">
+          <div class="explain-num">4</div>
+          <div class="explain-tool" style="color: var(--cyan);">warmup</div>
+          <div class="explain-desc">Prime the graph for the change task. Subsequent queries in this area will be faster and more precise.</div>
+        </div>
+      </div>
+
+      <div class="code-block"><span class="comment">// Code change flow: refactoring the database layer</span>
+
+<span class="fn">m1nd.impact</span>({ <span class="str">"node"</span>: <span class="str">"database_pool.py"</span>, <span class="str">"depth"</span>: <span class="num">4</span> })
+<span class="comment">// Returns: 23 affected modules, 5 direct dependents, 18 transitive</span>
+
+<span class="fn">m1nd.predict</span>({ <span class="str">"changed_nodes"</span>: [<span class="str">"database_pool.py"</span>] })
+<span class="comment">// Returns: database_config.py (0.95), migration_runner.py (0.88), test_db.py (0.82)</span>
+
+<span class="fn">m1nd.counterfactual</span>({ <span class="str">"remove_nodes"</span>: [<span class="str">"legacy_db_adapter"</span>] })
+<span class="comment">// Returns: 2 orphaned modules, 0 broken paths (safe to remove!)</span>
+
+<span class="fn">m1nd.warmup</span>({ <span class="str">"context"</span>: <span class="str">"database pool refactoring and connection management"</span> })</div>
+    </section>
+
+    <!-- ═══ BUILD LOOP ═══ -->
+    <section class="pattern-section" id="build-loop">
+      <div class="section-label" style="color: var(--green);">&#x27C1; Pattern 3</div>
+      <h2 class="section-title">Build Loop</h2>
+      <p class="section-subtitle">For iterative development. After each module is built, update the graph, get feedback, and prepare for the next module. The graph improves with each iteration.</p>
+
+      <div class="feedback-loop">
+        <div class="loop-ring">
+          <div class="loop-item ingest">
+            <span class="li-icon">&#x234C;</span>
+            <span class="li-label">Ingest</span>
+          </div>
+          <div class="loop-connector">&#x2192;</div>
+          <div class="loop-item build-l">
+            <span class="li-icon">&#x27C1;</span>
+            <span class="li-label">Build</span>
+          </div>
+          <div class="loop-connector">&#x2192;</div>
+          <div class="loop-item learn-l">
+            <span class="li-icon">&#x234C;</span>
+            <span class="li-label">Learn</span>
+          </div>
+          <div class="loop-connector">&#x2192;</div>
+          <div class="loop-item predict-l">
+            <span class="li-icon">&#x1D53B;</span>
+            <span class="li-label">Predict</span>
+          </div>
+          <div class="loop-connector">&#x2192;</div>
+          <div class="loop-item warmup-l">
+            <span class="li-icon">&#x234C;</span>
+            <span class="li-label">Warmup</span>
+          </div>
+          <div class="loop-connector">&#x21BA;</div>
+        </div>
+      </div>
+
+      <div class="code-block"><span class="comment">// Build loop: constructing a new feature module by module</span>
+
+<span class="comment">// Module 1: API routes</span>
+<span class="comment">// ... write the code ...</span>
+<span class="fn">m1nd.ingest</span>({ <span class="str">"source"</span>: <span class="str">"./backend"</span>, <span class="str">"mode"</span>: <span class="str">"incremental"</span> })
+<span class="fn">m1nd.learn</span>({ <span class="str">"query"</span>: <span class="str">"new feature routes"</span>, <span class="str">"feedback"</span>: <span class="str">"correct"</span> })
+<span class="fn">m1nd.predict</span>({ <span class="str">"changed_nodes"</span>: [<span class="str">"feature_routes.py"</span>] })
+<span class="comment">// Returns: feature_models.py (predicted), feature_tests.py (predicted)</span>
+<span class="fn">m1nd.warmup</span>({ <span class="str">"context"</span>: <span class="str">"building feature models and validation"</span> })
+
+<span class="comment">// Module 2: Models (predicted by the graph)</span>
+<span class="comment">// ... write the code ...</span>
+<span class="fn">m1nd.ingest</span>({ <span class="str">"source"</span>: <span class="str">"./backend"</span>, <span class="str">"mode"</span>: <span class="str">"incremental"</span> })
+<span class="fn">m1nd.learn</span>({ <span class="str">"query"</span>: <span class="str">"feature models"</span>, <span class="str">"feedback"</span>: <span class="str">"correct"</span> })
+<span class="comment">// ... continue loop ...</span></div>
+
+      <div class="tip-box">
+        <div class="tip-title">Compounding Intelligence</div>
+        <p>Each <code>learn</code> call makes the graph smarter. By the 3rd iteration, <code>predict</code> is significantly more accurate because it has observed your co-change patterns for this feature. This is Hebbian plasticity in action.</p>
+      </div>
+    </section>
+
+    <!-- ═══ SESSION RECOVERY ═══ -->
+    <section class="pattern-section" id="session-recovery">
+      <div class="section-label" style="color: var(--yellow);">&#x2350; Pattern 4</div>
+      <h2 class="section-title">Session Recovery</h2>
+      <p class="section-subtitle">When you start a new session (new agent instance, new day, after compaction), use this pattern to recover your context from the persisted graph state.</p>
+
+      <div class="flowchart">
+        <div class="flow-nodes">
+          <div class="flow-node ye">
+            <div class="fn-glyph">&#x2342;</div>
+            <div class="fn-tool">health</div>
+            <div class="fn-desc">Verify alive</div>
+          </div>
+          <div class="flow-arrow-h ye">&#x2192;</div>
+          <div class="flow-node ye">
+            <div class="fn-glyph">&#x2342;</div>
+            <div class="fn-tool">drift</div>
+            <div class="fn-desc">What changed</div>
+          </div>
+          <div class="flow-arrow-h cy">&#x2192;</div>
+          <div class="flow-node cy">
+            <div class="fn-glyph">&#x234C;</div>
+            <div class="fn-tool">ingest</div>
+            <div class="fn-desc">Update graph</div>
+          </div>
+          <div class="flow-arrow-h cy">&#x2192;</div>
+          <div class="flow-node cy">
+            <div class="fn-glyph">&#x234C;</div>
+            <div class="fn-tool">warmup</div>
+            <div class="fn-desc">Resume task</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block"><span class="comment">// Session recovery: starting fresh, graph persisted from last session</span>
+
+<span class="fn">m1nd.health</span>({})
+<span class="comment">// Returns: healthy, 2341 nodes, 4892 edges, uptime: 3s</span>
+
+<span class="fn">m1nd.drift</span>({ <span class="str">"since"</span>: <span class="str">"last_session"</span> })
+<span class="comment">// Returns: 14 weight changes, 3 new Hebbian strengthenings in auth subgraph</span>
+
+<span class="fn">m1nd.ingest</span>({ <span class="str">"source"</span>: <span class="str">"./backend"</span>, <span class="str">"mode"</span>: <span class="str">"incremental"</span> })
+<span class="comment">// Returns: 5 files changed since last ingest, graph updated</span>
+
+<span class="fn">m1nd.warmup</span>({ <span class="str">"context"</span>: <span class="str">"resuming auth refactoring from yesterday"</span> })
+<span class="comment">// Graph primed with auth subgraph pre-activated. Ready to work.</span></div>
+
+      <div class="tip-box">
+        <div class="tip-title">Graph Persistence</div>
+        <p>The graph auto-persists to disk. When m1nd restarts, it loads the full graph including all learned weights. Your <code>learn</code> feedback from previous sessions carries forward. The graph remembers even when the agent forgets.</p>
+      </div>
+    </section>
+
+    <!-- ═══ MULTI-AGENT ═══ -->
+    <section class="pattern-section" id="multi-agent">
+      <div class="section-label" style="color: var(--green);">&#x27C1; Advanced</div>
+      <h2 class="section-title">Multi-Agent Coordination</h2>
+      <p class="section-subtitle">Multiple agents can share the same m1nd instance. Writes from one agent are instantly visible to all others. Use locks to coordinate concurrent work on the same subgraph.</p>
+
+      <div class="ma-diagram">
+        <div class="ma-grid">
+          <div class="ma-agents">
+            <div class="ma-agent">
+              <span class="ma-icon" style="color: var(--cyan);">&#x234C;</span>
+              <div>
+                <div class="ma-name" style="color: var(--cyan);">Agent A</div>
+                <div class="ma-task">Researching auth</div>
+              </div>
+            </div>
+            <div class="ma-agent">
+              <span class="ma-icon" style="color: var(--yellow);">&#x2350;</span>
+              <div>
+                <div class="ma-name" style="color: var(--yellow);">Agent B</div>
+                <div class="ma-task">Building API routes</div>
+              </div>
+            </div>
+          </div>
+          <div class="ma-arrows">&#x2194;</div>
+          <div class="ma-center">
+            <div class="mc-label">SharedGraph</div>
+            <div class="mc-sub">1 m1nd instance</div>
+            <div class="mc-sub">Real-time visibility</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block"><span class="comment">// Agent A: lock the auth subgraph while working on it</span>
+<span class="fn">m1nd.lock_create</span>({ <span class="str">"scope"</span>: <span class="str">"backend/auth/"</span>, <span class="str">"agent_id"</span>: <span class="str">"agent-a"</span> })
+<span class="comment">// Returns: lock_id = "lock-abc123"</span>
+
+<span class="comment">// Agent A: periodically check if anyone else modified the locked region</span>
+<span class="fn">m1nd.lock_diff</span>({ <span class="str">"lock_id"</span>: <span class="str">"lock-abc123"</span>, <span class="str">"agent_id"</span>: <span class="str">"agent-a"</span> })
+<span class="comment">// Returns: Agent B modified user_model.py (edge to auth_middleware changed)</span>
+
+<span class="comment">// Agent A: accept the changes and rebase</span>
+<span class="fn">m1nd.lock_rebase</span>({ <span class="str">"lock_id"</span>: <span class="str">"lock-abc123"</span>, <span class="str">"agent_id"</span>: <span class="str">"agent-a"</span> })
+
+<span class="comment">// Agent A: done, release the lock</span>
+<span class="fn">m1nd.lock_release</span>({ <span class="str">"lock_id"</span>: <span class="str">"lock-abc123"</span>, <span class="str">"agent_id"</span>: <span class="str">"agent-a"</span> })</div>
+    </section>
+
+  </div>
+
+  <footer class="wiki-footer">
+    <div class="footer-glyphs"><span class="g-cy">&#x234C;</span><span class="g-ye">&#x2350;</span><span class="g-ma">&#x2342;</span><span class="g-bl">&#x1D53B;</span> <span class="g-gr">&#x27C1;</span></div>
+    <div class="footer-text">neuro-symbolic connectome engine</div>
+    <div class="footer-links">
+      <a href="index.html">Wiki Home</a><a href="tools.html">Tools</a><a href="architecture.html">Architecture</a><a href="../index.html">Main Site</a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -36,10 +36,10 @@
             const path_to_root = "../";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-93e3b672.js";
+            window.path_to_searchindex_js = "../searchindex-7447e1d8.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-35a7562c.js"></script>
+        <script src="../toc-72b55f3c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -216,7 +216,7 @@
   "params": {
     "name": "m1nd.seek",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "code that validates user credentials",
       "top_k": 5,
       "node_types": ["function", "class"]
@@ -290,7 +290,7 @@
   "params": {
     "name": "m1nd.scan",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "pattern": "error_handling",
       "scope": "backend/",
       "severity_min": 0.5
@@ -371,7 +371,7 @@
   "params": {
     "name": "m1nd.missing",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "query": "database connection pooling",
       "min_sibling_activation": 0.3
     }
@@ -437,7 +437,7 @@
   "params": {
     "name": "m1nd.trace",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "error_text": "Traceback (most recent call last):\n  File \"backend/handler.py\", line 234, in handle_message\n  File \"backend/pool.py\", line 89, in acquire\n  File \"backend/worker.py\", line 156, in submit\nTimeoutError: pool exhausted",
       "language": "python",
       "top_k": 5
@@ -541,7 +541,7 @@
   "params": {
     "name": "m1nd.timeline",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "node": "file::backend/handler.py",
       "depth": "30d",
       "top_k": 5
@@ -557,21 +557,21 @@
     {
       "date": "2026-03-10",
       "commit": "a1b2c3d",
-      "author": "dev",
+      "author": "cosmophonix",
       "delta": "+45/-12",
-      "co_changed": ["parser.py", "routes.py"]
+      "co_changed": ["parser.py", "chat_routes.py"]
     },
     {
       "date": "2026-03-05",
       "commit": "e4f5g6h",
-      "author": "dev",
+      "author": "cosmophonix",
       "delta": "+120/-30",
       "co_changed": ["pool.py", "worker.py"]
     }
   ],
   "co_changed_with": [
     { "file": "parser.py", "times": 8, "coupling_degree": 0.72 },
-    { "file": "routes.py", "times": 6, "coupling_degree": 0.55 },
+    { "file": "chat_routes.py", "times": 6, "coupling_degree": 0.55 },
     { "file": "pool.py", "times": 4, "coupling_degree": 0.38 }
   ],
   "velocity": "accelerating",
@@ -663,7 +663,7 @@
   "params": {
     "name": "m1nd.federate",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "repos": [
         { "name": "backend", "path": "/project/backend" },
         { "name": "frontend", "path": "/project/frontend" },

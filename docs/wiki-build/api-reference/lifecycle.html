@@ -36,10 +36,10 @@
             const path_to_root = "../";
             const default_light_theme = "navy";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-93e3b672.js";
+            window.path_to_searchindex_js = "../searchindex-7447e1d8.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-35a7562c.js"></script>
+        <script src="../toc-72b55f3c.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -210,7 +210,7 @@
   "params": {
     "name": "m1nd.ingest",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "path": "/path/to/your/project",
       "adapter": "code",
       "mode": "replace",
@@ -293,7 +293,7 @@
   "params": {
     "name": "m1nd.health",
     "arguments": {
-      "agent_id": "jimi"
+      "agent_id": "orchestrator"
     }
   }
 }
@@ -309,7 +309,7 @@
   "plasticity_state": "active",
   "last_persist_time": "2026-03-13T10:30:00Z",
   "active_sessions": [
-    { "agent_id": "jimi", "last_active": "2026-03-13T11:25:00Z" }
+    { "agent_id": "orchestrator", "last_active": "2026-03-13T11:25:00Z" }
   ]
 }
 </code></pre>
@@ -349,7 +349,7 @@
   "params": {
     "name": "m1nd.validate_plan",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "actions": [
         { "action_type": "modify", "file_path": "backend/pool.py", "description": "Add connection timeout" },
         { "action_type": "modify", "file_path": "backend/worker.py", "description": "Update pool acquire to use timeout" },
@@ -464,7 +464,7 @@
   "params": {
     "name": "m1nd.lock.create",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "scope": "subgraph",
       "root_nodes": ["file::handler.py"],
       "radius": 2
@@ -525,7 +525,7 @@
   "params": {
     "name": "m1nd.lock.watch",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001",
       "strategy": "on_ingest"
     }
@@ -573,7 +573,7 @@
   "params": {
     "name": "m1nd.lock.diff",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001"
     }
   }
@@ -654,7 +654,7 @@
   "params": {
     "name": "m1nd.lock.rebase",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001"
     }
   }
@@ -704,7 +704,7 @@
   "params": {
     "name": "m1nd.lock.release",
     "arguments": {
-      "agent_id": "jimi",
+      "agent_id": "orchestrator",
       "lock_id": "lock_jimi_001"
     }
   }
