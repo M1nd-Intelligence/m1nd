@@ -35,5 +35,5 @@ path = "src/main.rs"
 
 [dev-dependencies]
 tempfile = "3.27.0"
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.13", features = ["json"] }
 tokio-test = "0.4"
