@@ -187,7 +187,7 @@
     /* ---- DOMAIN MAP ---- */
     .domain-map {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       margin-bottom: 80px;
     }
@@ -257,7 +257,7 @@
 
     @media (max-width: 860px) {
       .domain-map { grid-template-columns: repeat(2, 1fr); }
-      .domain-card:last-child { grid-column: span 2; }
+      .domain-card:last-child { grid-column: span 1; }
     }
     @media (max-width: 480px) {
       .domain-map { grid-template-columns: 1fr; }
@@ -467,7 +467,7 @@
       </div>
       <h1 class="hero-title">Neuro-Symbolic Connectome Engine</h1>
       <p class="hero-subtitle">
-        63 MCP tools. 6 computation engines. Zero LLM cost.<br>
+        63 MCP tools. 8 groups. Zero LLM cost.<br>
         A local Rust binary that gives AI agents structural understanding of your codebase.
       </p>
     </section>
@@ -503,6 +503,24 @@
         <div class="domain-name">Connection</div>
         <div class="domain-desc">Perspectives, federation, resonance. How parts relate across boundaries.</div>
         <div class="domain-tools">resonate &middot; federate &middot; perspective.* (12 tools)</div>
+      </div>
+      <div class="domain-card" style="border-top: 3px solid var(--blue);">
+        <div class="domain-glyph" style="color: var(--blue);">&#x27C1;</div>
+        <div class="domain-name" style="color: var(--blue);">Lock</div>
+        <div class="domain-desc">Pin subgraph regions, capture baselines, monitor structural deltas.</div>
+        <div class="domain-tools">lock_create &middot; lock_diff &middot; lock_watch &middot; lock_rebase &middot; lock_release</div>
+      </div>
+      <div class="domain-card" style="border-top: 3px solid var(--yellow);">
+        <div class="domain-glyph" style="color: var(--yellow);">&#x2350;</div>
+        <div class="domain-name" style="color: var(--yellow);">Trail</div>
+        <div class="domain-desc">Persist, resume, and merge investigations across sessions.</div>
+        <div class="domain-tools">trail_save &middot; trail_resume &middot; trail_merge &middot; trail_list</div>
+      </div>
+      <div class="domain-card" style="border-top: 3px solid var(--green);">
+        <div class="domain-glyph" style="color: var(--green);">&#x2342;</div>
+        <div class="domain-name" style="color: var(--green);">Surgical</div>
+        <div class="domain-desc">Read, edit, and apply code changes with full graph awareness.</div>
+        <div class="domain-tools">view &middot; surgical_context &middot; surgical_context_v2 &middot; apply &middot; apply_batch</div>
       </div>
     </div>
 
@@ -544,7 +562,7 @@
         <div class="page-card-desc">Complete reference for all 63 MCP tools. Grouped by semantic domain with parameters, examples, and use cases.</div>
         <div class="page-card-meta">
           <span>63 tools</span>
-          <span>6 domains</span>
+          <span>8 groups</span>
         </div>
       </a>
       <a href="architecture.html" class="page-card pg-arch">
@@ -630,11 +648,20 @@
         </div>
         <span class="ql-arrow">&#x2192;</span>
       </a>
-      <a href="architecture.html#engines" class="quick-link">
+      <a href="tools.html#surgical" class="quick-link">
         <span class="ql-glyph" style="color: var(--magenta);">&#x2342;</span>
         <div>
-          <div class="ql-title">6 Engines</div>
-          <div class="ql-desc">Query, Temporal, Counterfactual...</div>
+          <div class="ql-title">apply_batch</div>
+          <div class="ql-desc">Atomic multi-file code writes</div>
+        </div>
+        <span class="ql-arrow">&#x2192;</span>
+      </a>
+    </div>
+      <a href="tools.html#surgical" class="quick-link">
+        <span class="ql-glyph" style="color: var(--blue);">&#x27C1;</span>
+        <div>
+          <div class="ql-title">lock_create</div>
+          <div class="ql-desc">Pin subgraph &amp; capture baseline</div>
         </div>
         <span class="ql-arrow">&#x2192;</span>
       </a>
