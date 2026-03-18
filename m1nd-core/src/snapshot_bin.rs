@@ -117,14 +117,14 @@ pub fn save_graph(graph: &Graph, path: &Path) -> M1ndResult<()> {
 
     // Nodes
     let mut nodes = Vec::with_capacity(n);
-    for i in 0..n {
+    for (i, ext_id) in node_to_ext_id.iter().enumerate().take(n) {
         let label = graph.strings.resolve(graph.nodes.label[i]).to_string();
         let tags: Vec<String> = graph.nodes.tags[i]
             .iter()
             .map(|&t| graph.strings.resolve(t).to_string())
             .collect();
         nodes.push(NodeSnapshotBin {
-            external_id: node_to_ext_id[i].clone(),
+            external_id: ext_id.clone(),
             label,
             node_type: node_type_to_u8(graph.nodes.node_type[i]),
             tags,

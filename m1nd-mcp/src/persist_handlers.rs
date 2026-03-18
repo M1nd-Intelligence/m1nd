@@ -30,7 +30,7 @@ pub fn handle_persist(state: &mut SessionState, input: PersistInput) -> M1ndResu
     let path: PathBuf = input
         .path
         .as_ref()
-        .map(|s| PathBuf::from(s))
+        .map(PathBuf::from)
         .unwrap_or(default_path.clone());
 
     match input.action.as_str() {

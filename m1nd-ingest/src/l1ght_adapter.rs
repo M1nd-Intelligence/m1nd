@@ -555,8 +555,10 @@ impl IngestAdapter for L1ghtIngestAdapter {
     fn ingest(&self, root: &Path) -> M1ndResult<(Graph, IngestStats)> {
         let start = Instant::now();
         let files = self.collect_files(root);
-        let mut stats = IngestStats::default();
-        stats.files_scanned = files.len() as u64;
+        let mut stats = IngestStats {
+            files_scanned: files.len() as u64,
+            ..Default::default()
+        };
 
         let mut nodes = Vec::new();
         let mut edges = Vec::new();
