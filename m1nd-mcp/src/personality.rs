@@ -98,9 +98,9 @@ pub fn suggest_next(tool_name: &str) -> Vec<String> {
             "apply(file, content) to make changes directly".into(),
             "apply_batch(edits) for multiple files".into(),
         ],
-        "edit_preview" => vec![
-            "edit_commit(preview_id, confirm=true) to apply the previewed change".into(),
-        ],
+        "edit_preview" => {
+            vec!["edit_commit(preview_id, confirm=true) to apply the previewed change".into()]
+        }
         "edit_commit" => vec![
             "predict(changed_node) for ripple effects".into(),
             "learn(feedback) to update graph".into(),
@@ -802,7 +802,11 @@ pub fn tool_docs() -> Vec<ToolDoc> {
                 ("agent_id", "Calling agent identifier", true),
                 ("preview_id", "Handle from edit_preview", true),
                 ("confirm", "Must be true to proceed", true),
-                ("reingest", "Re-ingest file into graph (default true)", false),
+                (
+                    "reingest",
+                    "Re-ingest file into graph (default true)",
+                    false,
+                ),
             ],
             returns: "Commit result with bytes written, graph updates",
             example: r#"{"preview_id": "preview_jimi_17...", "confirm": true, "agent_id": "jimi"}"#,

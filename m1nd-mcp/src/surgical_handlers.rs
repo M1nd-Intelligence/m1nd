@@ -1332,7 +1332,9 @@ pub fn handle_edit_commit(
     if current_hash != preview.source_hash {
         return Err(M1ndError::InvalidParams {
             tool: "edit_commit".into(),
-            detail: "source_modified: file changed since preview was created; run edit_preview again".into(),
+            detail:
+                "source_modified: file changed since preview was created; run edit_preview again"
+                    .into(),
         });
     }
 
